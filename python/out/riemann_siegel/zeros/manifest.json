@@ -1,0 +1,24 @@
+{
+  "rows": 10104,
+  "rows_per_file": 250000,
+  "height": "10011.107",
+  "cols": [
+    "idx",
+    "left",
+    "right"
+  ],
+  "params": {
+    "method": "riemann_siegel",
+    "prec": 200,
+    "max_depth": 0,
+    "epsilon": 0.125,
+    "widen": true
+  },
+  "files": [
+    {
+      "file": "zeros_00001.txt",
+      "rows": 10104,
+      "height": "10011.107"
+    }
+  ]
+}

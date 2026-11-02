@@ -1,0 +1,888 @@
+% Blueprint: the Riemann--Siegel contour, and the order-zero remainder bound.
+%
+% References:  \cite{Siegel1932} is the original derivation from Riemann's Nachlass;
+% \cite{Edwards} Ch.~7 is the standard exposition; \cite{Gabcke} gives sharp explicit
+% constants at low order and \cite{AriasDeReyna2011} explicit constants at every order.
+
+\chapter{The Riemann--Siegel contour and the order-zero remainder}
+\label{cha:riemann_siegel}
+
+Throughout, $s=\sigma+i\tau\in\mathbb{C}$, and for $t>0$ we write
+\[
+  T:=\frac{t}{2\pi},\qquad \nu:=\lfloor\sqrt{T}\rfloor,\qquad p:=\sqrt{T}-\nu\in[0,1).
+\]
+The Riemann--Siegel formula rests on a single contour integral whose integrand has a
+simple pole of residue $\tfrac1{2\pi i}$ at every integer, so that moving the contour
+across the integers $1,\dots,\nu$ manufactures the partial sum $\sum_{n\le\nu}n^{-s}$,
+while the shifted integral is small because the contour can be made to run through a
+saddle of the integrand located at height $\sqrt{T}$.  This chapter builds that
+mechanism and quantifies ``small'' at the crudest useful order, $O(t^{-1/4})$.
+
+\section{The Riemann--Siegel kernel}
+\label{sec:rs_kernel}
+
+\begin{definition}[Riemann--Siegel kernel]
+\label{def:rs_kernel}
+\lean{Zeta.RiemannSiegel.kernel}
+\leanok
+For $x\in\mathbb{C}\setminus\mathbb{Z}$ set
+\[
+  G(x)\;:=\;\frac{e^{i\pi x^{2}}}{e^{i\pi x}-e^{-i\pi x}}\;=\;\frac{e^{i\pi x^{2}}}{2i\sin(\pi x)} .
+\]
+\end{definition}
+
+\begin{lemma}[Poles and residues of $G$]
+\label{lem:rs_kernel_residue}
+\lean{Zeta.RiemannSiegel.differentiableAt_kernel, Zeta.RiemannSiegel.tendsto_sub_mul_kernel}
+\leanok
+\uses{def:rs_kernel}
+$G$ is holomorphic on $\mathbb{C}\setminus\mathbb{Z}$ and has a simple pole at every
+$n\in\mathbb{Z}$, with
+\[
+  \operatorname*{Res}_{x=n}G(x)\;=\;\frac1{2\pi i}\qquad\text{for every }n\in\mathbb{Z}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+The numerator $e^{i\pi x^{2}}$ is entire and the denominator $2i\sin(\pi x)$ vanishes
+exactly on $\mathbb{Z}$, so $G$ is holomorphic off $\mathbb{Z}$.  The zeros of
+$2i\sin(\pi x)$ are simple: its derivative $2\pi i\cos(\pi x)$ takes the value
+$2\pi i(-1)^{n}\ne0$ at $x=n$.  Hence $G$ has a simple pole at $n$ with residue
+\[
+  \frac{e^{i\pi n^{2}}}{2\pi i\cos(\pi n)}\;=\;\frac{(-1)^{n^{2}}}{2\pi i\,(-1)^{n}}
+  \;=\;\frac1{2\pi i},
+\]
+using $e^{i\pi n^{2}}=(e^{i\pi})^{n^{2}}=(-1)^{n^{2}}$ and $n^{2}\equiv n\pmod 2$.
+\end{proof}
+
+The uniformity of the residue (the same value $\tfrac1{2\pi i}$ at \emph{every} integer)
+is what makes the contour shift of \Cref{thm:rs_shift} produce the plain partial sum,
+with no $n$-dependent weights.
+
+\begin{lemma}[Quasi-periodicity]
+\label{lem:rs_kernel_quasi}
+\lean{Zeta.RiemannSiegel.kernel_add_one, Zeta.RiemannSiegel.kernel_add_one_sub_kernel}
+\leanok
+\uses{def:rs_kernel}
+For every $x\in\mathbb{C}\setminus\mathbb{Z}$,
+\[
+  G(x+1)\;=\;e^{2\pi i x}\,G(x),\qquad\text{equivalently}\qquad
+  G(x+1)-G(x)\;=\;e^{i\pi x(x+1)} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Since $e^{i\pi(x+1)^{2}}=e^{i\pi x^{2}}e^{2\pi ix}e^{i\pi}=-e^{i\pi x^{2}}e^{2\pi ix}$ and
+$e^{i\pi(x+1)}-e^{-i\pi(x+1)}=-\bigl(e^{i\pi x}-e^{-i\pi x}\bigr)$, the two sign changes
+cancel and $G(x+1)=e^{2\pi ix}G(x)$.  For the second form,
+\[
+  G(x+1)-G(x)=\bigl(e^{2\pi ix}-1\bigr)G(x)
+  =e^{i\pi x}\bigl(e^{i\pi x}-e^{-i\pi x}\bigr)\cdot\frac{e^{i\pi x^{2}}}{e^{i\pi x}-e^{-i\pi x}}
+  =e^{i\pi x^{2}+i\pi x}. \qedhere
+\]
+\end{proof}
+
+\Cref{lem:rs_kernel_quasi} is not used in the present chapter; it is recorded here
+because the entire higher-order theory is driven by it (see \Cref{sec:rs_roadmap}): the
+increment of $G$ across one period is a pure Gaussian, and it is the Gaussian integrals
+$\int x^{-s}e^{i\pi x(x+1)}\,dx$ that generate the correction terms $C_k(p)$.
+
+\begin{lemma}[Modulus of the Gaussian factor]
+\label{lem:rs_gauss_modulus}
+\lean{Complex.norm_exp_pi_mul_I_mul_sq}
+\leanok
+For $x=u+iv$ with $u,v\in\mathbb{R}$ one has $\bigl|e^{i\pi x^{2}}\bigr|=e^{-2\pi uv}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\operatorname{Im}(x^{2})=2uv$, and $|e^{iz}|=e^{-\operatorname{Im}z}$.
+\end{proof}
+
+So $e^{i\pi x^{2}}$ decays precisely where $uv\to+\infty$: in the first and third
+quadrants, and in particular in both directions along any line of slope $1$.  This
+dictates the shape of the contour.
+
+\section{The slanted contour and the branch of \texorpdfstring{$x^{-s}$}{x\^{}-s}}
+\label{sec:rs_contour}
+
+\begin{definition}[Slanted line]
+\label{def:rs_line}
+\lean{Zeta.RiemannSiegel.line}
+\leanok
+For $a\in\mathbb{R}$ let $L(a):\mathbb{R}\to\mathbb{C}$,
+\[
+  L(a)(w)\;:=\;(a+w)+iw ,
+\]
+the line of slope $1$ through $a$, traversed in the direction $1+i$.
+\end{definition}
+
+\begin{lemma}[Rotation to a vertical line]
+\label{lem:rs_rotate}
+\lean{Zeta.RiemannSiegel.re_exp_pi_div_four_mul_I_mul_line, Zeta.RiemannSiegel.norm_line_ge}
+\leanok
+\uses{def:rs_line}
+For all $a,w\in\mathbb{R}$,
+\[
+  e^{i\pi/4}\,L(a)(w)\;=\;\frac{a+i\,(a+2w)}{\sqrt2}.
+\]
+In particular $\operatorname{Re}\bigl(e^{i\pi/4}L(a)(w)\bigr)=a/\sqrt2$ is constant along
+$L(a)$, and
+\[
+  \bigl|L(a)(w)\bigr|^{2}=\frac{a^{2}+(a+2w)^{2}}{2}\;\ge\;\frac{a^{2}}2 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+With $e^{i\pi/4}=(1+i)/\sqrt2$,
+$(1+i)\bigl((a+w)+iw\bigr)=(a+w-w)+i\,(a+w+w)=a+i(a+2w)$.  The modulus identity follows
+by taking absolute values (rotation is an isometry), and the lower bound from
+$|z|\ge|\operatorname{Re}z|$.
+\end{proof}
+
+\begin{definition}[The branch of $x^{-s}$]
+\label{def:rs_power}
+\lean{Zeta.RiemannSiegel.slantArg, Zeta.RiemannSiegel.slantLog,
+Zeta.RiemannSiegel.slantCpow, Zeta.RiemannSiegel.slantCpow_eq_exp_mul_slantLog}
+\leanok
+On the cut plane $\Omega:=\mathbb{C}\setminus i[0,\infty)$ let
+$\operatorname{Log}x:=\log\lvert x\rvert+i\arg_{\Omega}x$ with
+$\arg_{\Omega}x\in(-\tfrac{3\pi}2,\tfrac\pi2)$, the branch of the logarithm that is real
+on $(0,\infty)$ and continuous on $\Omega$, and set $x^{-s}:=e^{-s\operatorname{Log}x}$.
+Equivalently, and this is the form to formalize,
+\[
+  x^{-s}\;=\;e^{i\pi s/4}\,\bigl(e^{i\pi/4}x\bigr)^{-s}_{\mathrm{princ}},
+\]
+where the right-hand side uses mathlib's principal branch, legitimately so whenever
+$\operatorname{Re}(e^{i\pi/4}x)>0$.
+\end{definition}
+
+\begin{lemma}[The contour lies in the rotated right half-plane]
+\label{lem:rs_branch_ok}
+\lean{Zeta.RiemannSiegel.slantArg_line, Zeta.RiemannSiegel.abs_slantArg_line_lt,
+Zeta.RiemannSiegel.slantLog_eq_log}
+\leanok
+\uses{def:rs_line, def:rs_power, lem:rs_rotate}
+Let $a>0$.  Then $L(a)(w)\in\Omega$ for every $w\in\mathbb{R}$, the two descriptions in
+\Cref{def:rs_power} agree there, and, writing $x=L(a)(w)$,
+\[
+  \arg_{\Omega}x\;=\;\arctan\!\Bigl(\frac{a+2w}{a}\Bigr)-\frac\pi4\;\in\;\Bigl(-\frac{3\pi}4,\frac\pi4\Bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+By \Cref{lem:rs_rotate}, $z:=e^{i\pi/4}x$ has $\operatorname{Re}z=a/\sqrt2>0$, so
+$z$ lies in the open right half-plane, where the principal argument is
+$\arg z=\arctan(\operatorname{Im}z/\operatorname{Re}z)=\arctan\bigl((a+2w)/a\bigr)\in(-\tfrac\pi2,\tfrac\pi2)$.
+Subtracting the rotation angle gives $\arg_{\Omega}x=\arg z-\tfrac\pi4$, which lies in
+$(-\tfrac{3\pi}4,\tfrac\pi4)\subset(-\tfrac{3\pi}2,\tfrac\pi2)$; in particular $x$ misses
+the cut $i[0,\infty)$, on which the argument is $\pi/2$.
+\end{proof}
+
+\begin{lemma}[Modulus of the power]
+\label{lem:rs_power_modulus}
+\lean{Zeta.RiemannSiegel.norm_slantCpow}
+\leanok
+\uses{def:rs_power}
+For $x\in\Omega$ and $s=\sigma+i\tau$,
+$\bigl|x^{-s}\bigr|=\lvert x\rvert^{-\sigma}e^{\tau\arg_{\Omega}x}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\operatorname{Re}(-s\operatorname{Log}x)=-\sigma\log|x|+\tau\arg_{\Omega}x$.
+\end{proof}
+
+\begin{lemma}[Uniform lower bound for the denominator]
+\label{lem:rs_sin_lower}
+\lean{Zeta.RiemannSiegel.norm_sin_pi_mul_line_ge}
+\leanok
+\uses{def:rs_line}
+Let $a\in\tfrac12+\mathbb{Z}$.  Then for every $w\in\mathbb{R}$, with $x=L(a)(w)$,
+\[
+  \bigl|e^{i\pi x}-e^{-i\pi x}\bigr|\;=\;2\lvert\sin(\pi x)\rvert\;\ge\;\sqrt2 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $x=u+iv$ with $u=a+w$, $v=w$, and use
+$\lvert\sin(\pi u+i\pi v)\rvert^{2}=\sin^{2}(\pi u)+\sinh^{2}(\pi v)$.
+
+If $\lvert w\rvert\ge\tfrac14$ then
+$\sinh^{2}(\pi v)\ge\sinh^{2}(\pi/4)\ge\tfrac12$, since
+$\sinh(\pi/4)=0.868\ldots\ge 1/\sqrt2$.
+
+If $\lvert w\rvert\le\tfrac14$ then $u=a+w$ lies within $\tfrac14$ of the half-integer
+$a$, so $\pi u$ lies within $\pi/4$ of an odd multiple of $\pi/2$ and therefore
+$\lvert\sin(\pi u)\rvert\ge\cos(\pi/4)=1/\sqrt2$, giving $\sin^{2}(\pi u)\ge\tfrac12$.
+
+In both cases $\lvert\sin(\pi x)\rvert^{2}\ge\tfrac12$, i.e. $2|\sin(\pi x)|\ge\sqrt2$.
+\end{proof}
+
+The constant $\sqrt2$ of \Cref{lem:rs_sin_lower} is what is needed near the crossing point, and
+it is all that the order-zero theory uses.  Away from the crossing point the denominator is not
+bounded but exponentially large, and \Cref{sec:rsf_sharp} needs that: it is the difference
+between an outer tail that is negligible and one that is not.
+
+\begin{lemma}[Exponential lower bound for the kernel denominator]
+\label{lem:rs_sin_lower_sharp}
+\lean{Zeta.RiemannSiegel.sinh_le_norm_sin_pi_mul_line,
+Zeta.RiemannSiegel.mul_exp_le_norm_sin_pi_mul_line}
+\leanok
+\uses{def:rs_line}
+For all $a,w\in\mathbb{R}$, with $x=L(a)(w)$,
+\[
+  \bigl|e^{i\pi x}-e^{-i\pi x}\bigr|\;=\;2\lvert\sin(\pi x)\rvert\;\ge\;2\sinh\bigl(\pi\lvert w\rvert\bigr).
+\]
+In particular $2\lvert\sin(\pi x)\rvert\ge\tfrac{99}{100}e^{\pi\lvert w\rvert}$ whenever
+$\lvert w\rvert\ge1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rs_line}
+With $x=u+iv$, $u=a+w$, $v=w$, one has
+$\lvert\sin(\pi u+i\pi v)\rvert^{2}=\sin^{2}(\pi u)+\sinh^{2}(\pi v)\ge\sinh^{2}(\pi v)$, and
+$\sinh$ is odd and increasing, so $\lvert\sin(\pi x)\rvert\ge\sinh(\pi\lvert w\rvert)$.  For the
+second form, $2\sinh y=e^{y}\bigl(1-e^{-2y}\bigr)\ge e^{y}\bigl(1-e^{-2\pi}\bigr)
+\ge\tfrac{99}{100}e^{y}$ for $y\ge\pi$, since $e^{-2\pi}<\tfrac1{100}$.  No hypothesis on $a$ is
+needed: unlike \Cref{lem:rs_sin_lower}, this bound is vacuous rather than false at $w=0$.
+\end{proof}
+
+\begin{proposition}[Absolute convergence]
+\label{prop:rs_integrable}
+\lean{Zeta.RiemannSiegel.integrable_contourIntegrand}
+\leanok
+\uses{def:rs_kernel, lem:rs_gauss_modulus, lem:rs_rotate, lem:rs_branch_ok, lem:rs_power_modulus, lem:rs_sin_lower}
+Let $a\in\tfrac12+\mathbb{Z}_{\ge0}$ and $s\in\mathbb{C}$.  Then
+\[
+  w\;\longmapsto\;\bigl|L(a)(w)^{-s}\,G\bigl(L(a)(w)\bigr)\bigr|
+\]
+is integrable on $\mathbb{R}$.
+\end{proposition}
+
+\begin{proof}
+\leanok
+Put $x=L(a)(w)=u+iv$ with $u=a+w$, $v=w$.  By \Cref{lem:rs_gauss_modulus},
+\[
+  \bigl|e^{i\pi x^{2}}\bigr|=e^{-2\pi w(a+w)}=e^{-2\pi w^{2}-2\pi aw}
+  =e^{-\pi w^{2}}\,e^{-\pi((w+a)^{2}-a^{2})}\;\le\;e^{\pi a^{2}}e^{-\pi w^{2}} .
+\]
+By \Cref{lem:rs_sin_lower} the denominator is $\ge\sqrt2$, so
+$\lvert G(x)\rvert\le \tfrac1{\sqrt2}e^{\pi a^{2}}e^{-\pi w^{2}}$.  By
+\Cref{lem:rs_power_modulus} and \Cref{lem:rs_branch_ok},
+$\lvert x^{-s}\rvert\le\lvert x\rvert^{-\sigma}e^{3\pi\lvert\tau\rvert/4}$, and by
+\Cref{lem:rs_rotate} we have $a/\sqrt2\le\lvert x\rvert\le a+2\lvert w\rvert$, whence
+$\lvert x\rvert^{-\sigma}\le\max\bigl\{(a/\sqrt2)^{-\sigma},\,(a+2|w|)^{-\sigma}\bigr\}
+\le C_{a,\sigma}(1+|w|)^{\lvert\sigma\rvert}$.  The product is dominated by
+$C(1+|w|)^{|\sigma|}e^{-\pi w^{2}}$, which is integrable.
+\end{proof}
+
+\begin{definition}[The contour integral]
+\label{def:rs_integral}
+\lean{Zeta.RiemannSiegel.contourIntegral}
+\leanok
+\uses{def:rs_line, def:rs_power, def:rs_kernel, prop:rs_integrable}
+For $a\in\tfrac12+\mathbb{Z}_{\ge0}$ and $s\in\mathbb{C}$ set
+\[
+  I(s,a)\;:=\;\int_{L(a)}x^{-s}G(x)\,dx\;=\;(1+i)\int_{\mathbb{R}}L(a)(w)^{-s}\,
+     G\bigl(L(a)(w)\bigr)\,dw .
+\]
+\end{definition}
+
+\section{Residues: the partial sum as a contour shift}
+\label{sec:rs_shift}
+
+\begin{theorem}[Contour-shift identity]
+\label{thm:rs_shift}
+\lean{Zeta.RiemannSiegel.contourIntegral_sub_contourIntegral_eq_sum_cpow_neg}
+\leanok
+\uses{def:rs_integral, lem:rs_kernel_residue, lem:rs_branch_ok, lem:rs_rotate, lem:rs_gauss_modulus, prop:rs_integrable}
+Let $j\le k$ be non-negative integers, put $b=j+\tfrac12$ and $a=k+\tfrac12$, and let
+$s\in\mathbb{C}$.  Then
+\[
+  I(s,a)-I(s,b)\;=\;\sum_{j<n\le k}n^{-s}\;=\;\sum_{b<n<a}n^{-s},
+\]
+the sums being over integers $n$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+Both sides are additive in the chain $b=j+\tfrac12<j+\tfrac32<\dots<k+\tfrac12=a$, so it
+suffices to treat one step, $a=b+1$, and to induct on $k-j$; we may therefore assume that
+exactly one integer $n$ lies between $b$ and $a$.
+
+Work in the rotated coordinate $z=e^{i\pi/4}x$ of \Cref{lem:rs_rotate}, in which $L(b)$
+and $L(a)$ become the vertical lines $\operatorname{Re}z=b/\sqrt2$ and
+$\operatorname{Re}z=a/\sqrt2$, traversed upwards.  For $H>0$ let $\mathcal{R}_{H}$ be the
+positively oriented boundary of the rectangle with vertices
+$\tfrac{b}{\sqrt2}\pm iH$, $\tfrac{a}{\sqrt2}\pm iH$.
+
+\emph{Holomorphy and poles.}  The preimage of the closed rectangle under
+$z\mapsto e^{-i\pi/4}z$ is contained in the closed slanted strip
+$S:=\{x:\ b\le\operatorname{Re}x-\operatorname{Im}x\le a\}$.  Every point $iy$ of the cut
+$i[0,\infty)$ has $\operatorname{Re}-\operatorname{Im}=-y\le0<b$, so $S\subset\Omega$ and
+$x^{-s}$ is holomorphic on a neighbourhood of the rectangle; likewise $0\notin S$.  By
+\Cref{lem:rs_kernel_residue} the only singularity of $x^{-s}G(x)$ in $S$ is the simple
+pole at $n$ (the strip has width $1$ and its endpoints are half-integers, so no other
+integer meets it and no pole lies on the boundary), with residue
+$n^{-s}\cdot\tfrac1{2\pi i}$.  For $H>n/\sqrt2$ it lies inside, so the residue theorem
+gives
+\[
+  \oint_{\mathcal{R}_{H}}x^{-s}G(x)\,dx\;=\;2\pi i\cdot\frac{n^{-s}}{2\pi i}\;=\;n^{-s}.
+\]
+
+\emph{The horizontal sides vanish.}  On the top side $z=\xi+iH$ with
+$\xi\in[b/\sqrt2,a/\sqrt2]$ we have $x=e^{-i\pi/4}z$, so
+$u=\tfrac{\xi+H}{\sqrt2}$, $v=\tfrac{H-\xi}{\sqrt2}$ and $uv=\tfrac{H^{2}-\xi^{2}}2$;
+on the bottom side $z=\xi-iH$ we get $u=\tfrac{\xi-H}{\sqrt2}$, $v=\tfrac{-H-\xi}{\sqrt2}$
+and again $uv=\tfrac{H^{2}-\xi^{2}}2$.  Hence on both sides, by
+\Cref{lem:rs_gauss_modulus},
+\[
+  \bigl|e^{i\pi x^{2}}\bigr|=e^{-\pi(H^{2}-\xi^{2})}\le e^{-\pi(H^{2}-a^{2}/2)} ,
+\]
+while $2\lvert\sin \pi x\rvert\ge2\sinh(\pi\lvert v\rvert)\ge 1$ for $H$ large.  For the
+power, every point $z$ of the closed rectangle has $\operatorname{Re}z\ge b/\sqrt2>0$, so
+exactly as in \Cref{lem:rs_branch_ok} its preimage $x$ satisfies
+$\arg_{\Omega}x=\arg z-\tfrac\pi4\in(-\tfrac{3\pi}4,\tfrac\pi4)$, whence
+$\lvert x^{-s}\rvert\le\lvert x\rvert^{-\sigma}e^{3\pi|\tau|/4}$ with
+$H\le\lvert x\rvert\le\sqrt{H^{2}+a^{2}/2}$, which grows at most polynomially in $H$.  As the
+sides have fixed length $(a-b)/\sqrt2$, both contributions tend to $0$ as $H\to\infty$.
+
+\emph{Conclusion.}  The two vertical sides contribute
+$\int_{-H}^{H}$-truncations of $I(s,a)$ and $-I(s,b)$, which converge to $I(s,a)-I(s,b)$
+by \Cref{prop:rs_integrable} and dominated convergence.  Letting $H\to\infty$ gives the
+claim.
+\end{proof}
+
+\begin{corollary}[Partial sums from the contour]
+\label{cor:rs_partial_sum}
+\lean{Zeta.RiemannSiegel.sum_cpow_neg_eq_contourIntegral_sub_contourIntegral}
+\leanok
+\uses{thm:rs_shift}
+For every $s\in\mathbb{C}$ and every integer $\nu\ge1$,
+\[
+  \sum_{n=1}^{\nu}n^{-s}\;=\;I\bigl(s,\nu+\tfrac12\bigr)-I\bigl(s,\tfrac12\bigr).
+\]
+Equivalently $I(s,\nu+\tfrac12)=\sum_{n=1}^{\nu}n^{-s}+I(s,\tfrac12)$: the integral over
+the far contour is the partial sum plus a quantity independent of $\nu$.  It is this
+$\nu$-independent term $I(s,\tfrac12)$ that \Cref{sec:rs_roadmap} must identify with
+$\zeta(s)$ and the $\chi(s)$-half of the functional equation; the present chapter bounds
+the other term, $I(s,\nu+\tfrac12)$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+Take $j=0$, $k=\nu$ in \Cref{thm:rs_shift}; the integers strictly between $\tfrac12$ and
+$\nu+\tfrac12$ are exactly $1,\dots,\nu$.
+\end{proof}
+
+\section{The order-zero remainder bound}
+\label{sec:rs_bound}
+
+We now specialise to the critical line, $s=\tfrac12+it$ with $t>0$, and bound
+$I(s,\nu+\tfrac12)$.  Everything rests on a single elementary inequality for
+$\arctan$, which encodes the fact that the contour crosses a saddle of the integrand.
+
+Throughout this section we abbreviate
+\[
+  g(r)\;:=\;\arctan(1+2r)-\frac\pi4,\qquad
+  H(r)\;:=\;-g(r)+r+\frac{r^{2}}2 ,
+\]
+so that $g$ is strictly increasing with $g(0)=0$, and $g$ ranges over
+$(-\tfrac{3\pi}4,\tfrac\pi4)$.
+
+\begin{lemma}[Quadratic majorant for $\arctan$]
+\label{lem:rs_arctan_quadratic}
+\lean{Zeta.RiemannSiegel.lineArg_le, Zeta.RiemannSiegel.lineArg_le_self}
+\leanok
+For every $r\in\mathbb{R}$ one has $H(r)\ge0$, i.e.
+\[
+  \arctan(1+2r)\;\le\;\frac\pi4+r+\frac{r^{2}}2 .
+\]
+Moreover $g(r)\le r$ for $r\ge0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$H(0)=0$, and
+\[
+  H'(r)=1+r-\frac{2}{1+(1+2r)^{2}}
+   =\frac{(1+r)\bigl(1+(1+2r)^{2}\bigr)-2}{1+(1+2r)^{2}} .
+\]
+The numerator expands to
+\[
+  (1+r)(2+4r+4r^{2})-2\;=\;4r^{3}+8r^{2}+6r\;=\;2r\,(2r^{2}+4r+3),
+\]
+and $2r^{2}+4r+3=2(r+1)^{2}+1>0$, so $H'(r)$ has the sign of $r$ for every $r$.  Hence
+$H$ is decreasing on $(-\infty,0]$ and increasing on $[0,\infty)$, so $H\ge H(0)=0$.
+
+For the last claim, $g'(r)=\tfrac2{1+(1+2r)^{2}}\le1$ for $r\ge0$, because
+$(1+2r)^{2}\ge1$ there; integrating from $g(0)=0$ gives $g(r)\le r$.
+\end{proof}
+
+\begin{remark}[Why $g$ must not be bounded by $\lvert r\rvert$]
+\label{rem:rs_arctan_trap}
+The tempting bound $\lvert g(r)\rvert\le\lvert r\rvert$ is \emph{false}: $g'$ attains its
+maximum $2$ at $r=-\tfrac12$, where $\lvert g(-\tfrac12)\rvert=\tfrac\pi4>\tfrac12$.  Using
+the true global bound $\lvert g\rvert\le2\lvert r\rvert$ instead would double the constant
+$B$ of \Cref{lem:rs_phase_bound} and inflate the final estimate by a factor $\approx10^{5}$.
+\Cref{lem:rs_arctan_perturbed} avoids this by never separating the two terms: the loss
+occurs only for $r<0$, and there it is absorbed by the slack in $H\ge0$.
+\end{remark}
+
+\begin{lemma}[Perturbed majorant]
+\label{lem:rs_arctan_perturbed}
+\lean{Zeta.RiemannSiegel.mul_lineArg_sub_le}
+\leanok
+\uses{lem:rs_arctan_quadratic}
+Let $\lambda\ge0$ with $\lvert\lambda-1\rvert\le1$.  Then for every $r\in\mathbb{R}$,
+\[
+  \lambda\,g(r)-r-r^{2}\;\le\;-\frac{r^{2}}2+\lvert\lambda-1\rvert\,\lvert r\rvert .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $\varepsilon:=\lambda-1$, so $\lvert\varepsilon\rvert\le1$, and note the algebraic
+identities
+\[
+  g(r)-r-r^{2}=-H(r)-\frac{r^{2}}2,\qquad r-g(r)=H(r)-\frac{r^{2}}2 .
+\]
+Set $D(r):=\bigl[\lambda g(r)-r-r^{2}\bigr]-\bigl[-\tfrac{r^{2}}2+\lvert\varepsilon\rvert\lvert r\rvert\bigr]
+=-H(r)+\varepsilon g(r)-\lvert\varepsilon\rvert\lvert r\rvert$; we must show $D\le0$.
+
+If $r\ge0$ then $g(r)\ge0$ and $\lvert r\rvert=r$, so
+$\varepsilon g(r)\le\lvert\varepsilon\rvert g(r)$ and, by the last part of
+\Cref{lem:rs_arctan_quadratic}, $g(r)\le r$.  Hence
+$D(r)\le-H(r)+\lvert\varepsilon\rvert\bigl(g(r)-r\bigr)\le-H(r)\le0$.
+
+If $r<0$ then $g(r)<0$ and $\lvert r\rvert=-r$.  When $\varepsilon\ge0$ we get
+$\varepsilon g(r)\le0$ and $-\lvert\varepsilon\rvert\lvert r\rvert\le 0$, so
+$D(r)\le-H(r)\le0$.  When $\varepsilon<0$, $\varepsilon g(r)=\lvert\varepsilon\rvert(-g(r))$
+and $-\lvert\varepsilon\rvert\lvert r\rvert=\lvert\varepsilon\rvert r$, so
+\[
+  D(r)=-H(r)+\lvert\varepsilon\rvert\bigl(r-g(r)\bigr)
+      =-H(r)+\lvert\varepsilon\rvert\Bigl(H(r)-\frac{r^{2}}2\Bigr)
+      =-\bigl(1-\lvert\varepsilon\rvert\bigr)H(r)-\lvert\varepsilon\rvert\frac{r^{2}}2\;\le\;0,
+\]
+since $H\ge0$ and $\lvert\varepsilon\rvert\le1$.
+\end{proof}
+
+\begin{lemma}[Gaussian majorant for the phase]
+\label{lem:rs_phase_bound}
+\lean{Zeta.RiemannSiegel.phase_le}
+\leanok
+\uses{def:rs_line, lem:rs_branch_ok, lem:rs_power_modulus, lem:rs_gauss_modulus, lem:rs_arctan_perturbed}
+Let $t>0$, $T=t/2\pi$, and let $a>0$ satisfy $T\le2a^{2}$.  Put, for $x=L(a)(w)$,
+\[
+  \varphi(w)\;:=\;t\,\arg_{\Omega}x-2\pi w(a+w),
+  \qquad\text{so that}\qquad
+  \bigl|x^{-1/2-it}\bigr|\cdot\bigl|e^{i\pi x^{2}}\bigr|=\lvert x\rvert^{-1/2}e^{\varphi(w)} .
+\]
+Then for every $w\in\mathbb{R}$,
+\[
+  \varphi(w)\;\le\;-\pi w^{2}+B\,\lvert w\rvert,
+  \qquad B:=\frac{2\pi\,\lvert T-a^{2}\rvert}{a}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+The displayed factorisation is \Cref{lem:rs_power_modulus} together with
+\Cref{lem:rs_gauss_modulus}.  Substitute $w=ra$ and use \Cref{lem:rs_branch_ok}:
+\[
+  \varphi(ra)=2\pi T\,g(r)-2\pi a^{2}r(1+r)
+  =2\pi a^{2}\bigl[\lambda\,g(r)-r-r^{2}\bigr],
+\]
+with $\lambda:=T/a^{2}$.  The hypothesis $T\le2a^{2}$ says $\lambda\le2$, i.e.
+$\lvert\lambda-1\rvert\le1$ (as $\lambda\ge0$), so \Cref{lem:rs_arctan_perturbed} applies
+and gives
+\[
+  \lambda\,g(r)-r-r^{2}\;\le\;-\frac{r^{2}}2+\lvert\lambda-1\rvert\,\lvert r\rvert .
+\]
+Multiplying by $2\pi a^{2}$ and returning to $w=ra$ gives
+$\varphi(w)\le-\pi w^{2}+2\pi a\lvert\lambda-1\rvert\lvert w\rvert$, and
+$2\pi a\lvert\lambda-1\rvert=2\pi\lvert T-a^{2}\rvert/a=B$.
+\end{proof}
+
+The rôle of $a$ is now visible: $B$ measures how far the crossing point $a$ is from the
+saddle $\sqrt T$, and $\varphi(0)=0$ always, so the integrand has size $\asymp|x|^{-1/2}$
+at the crossing point and Gaussian decay away from it, over a window of width $O(1)$.
+
+\begin{theorem}[Order-zero bound for the shifted integral]
+\label{thm:rs_remainder_bound}
+\lean{Zeta.RiemannSiegel.norm_contourIntegral_le}
+\leanok
+\uses{def:rs_integral, prop:rs_integrable, lem:rs_sin_lower, lem:rs_rotate, lem:rs_phase_bound}
+Let $t\ge0$, $T=t/2\pi$, and let $a\in\tfrac12+\mathbb{Z}$ satisfy $a>0$ and $T\le2a^{2}$.  Then
+\[
+  \Bigl|I\bigl(\tfrac12+it,\;a\bigr)\Bigr|\;\le\;2^{5/4}\,a^{-1/2}\,e^{B^{2}/4\pi},
+  \qquad B:=\frac{2\pi\lvert T-a^{2}\rvert}{a}.
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+By \Cref{def:rs_integral}, $\lvert 1+i\rvert=\sqrt2$ and \Cref{lem:rs_sin_lower},
+\[
+  \bigl|I(\tfrac12+it,a)\bigr|
+  \;\le\;\sqrt2\int_{\mathbb{R}}\lvert x\rvert^{-1/2}\,
+     \frac{\bigl|e^{i\pi x^{2}}\bigr|}{\lvert e^{i\pi x}-e^{-i\pi x}\rvert}\,dw
+  \;\le\;\int_{\mathbb{R}}\lvert x\rvert^{-1/2}e^{\varphi(w)}\,dw ,
+\]
+where $x=L(a)(w)$ and $\varphi$ is as in \Cref{lem:rs_phase_bound} (the two factors
+$\sqrt2$ cancel; the interchange is legitimate by \Cref{prop:rs_integrable}).  By
+\Cref{lem:rs_rotate},
+$\lvert x\rvert\ge a/\sqrt2$, so $\lvert x\rvert^{-1/2}\le2^{1/4}a^{-1/2}$, and by
+\Cref{lem:rs_phase_bound}, using
+$-\pi w^{2}+B\lvert w\rvert=-\pi\bigl(\lvert w\rvert-\tfrac B{2\pi}\bigr)^{2}+\tfrac{B^{2}}{4\pi}$,
+\[
+  \int_{\mathbb{R}}e^{\varphi(w)}\,dw\;\le\;\int_{\mathbb{R}}e^{-\pi w^{2}+B|w|}\,dw
+  \;=\;e^{B^{2}/4\pi}\cdot2\int_{0}^{\infty}e^{-\pi\left(w-\frac{B}{2\pi}\right)^{2}}dw
+  \;\le\;2\,e^{B^{2}/4\pi},
+\]
+the last step because $\int_{0}^{\infty}e^{-\pi(w-c)^{2}}dw\le\int_{\mathbb{R}}e^{-\pi u^{2}}du=1$.
+(The factor $2$ is needed: the majorant $e^{-\pi w^{2}+B|w|}$ has two peaks, at
+$w=\pm B/2\pi$.)
+\end{proof}
+
+\begin{corollary}[Numerical form]
+\label{cor:rs_remainder_explicit}
+\lean{Zeta.RiemannSiegel.norm_contourIntegral_le_ninetyFive, Zeta.RiemannSiegel.norm_contourIntegral_le_hundredFiftyOne}
+\leanok
+\uses{thm:rs_remainder_bound}
+For $t\ge32\pi$ (i.e. $T\ge16$), with $\nu=\lfloor\sqrt T\rfloor$ and $a=\nu+\tfrac12$,
+\[
+  \Bigl|I\bigl(\tfrac12+it,\;a\bigr)\Bigr|
+  \;\le\;95\,T^{-1/4}\;\le\;151\,t^{-1/4}.
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+Write $S=\sqrt T\ge4$.  From $\nu\le S<\nu+1$ we get $S-\tfrac12\le a\le S+\tfrac12$, hence
+$a\ge\tfrac78 S\ge\tfrac72$ (the middle step because $S\ge4$).  Two consequences.  First,
+$T=S^{2}\le(a+\tfrac12)^{2}\le2a^{2}$, since $a^{2}-a-\tfrac14\ge0$ for $a\ge\tfrac72$, so
+\Cref{thm:rs_remainder_bound} applies.  Second, $\lvert S-a\rvert\le\tfrac12$ and
+$S+a\le2a+\tfrac12$, so
+\[
+  \lvert T-a^{2}\rvert=\lvert S-a\rvert(S+a)\le\tfrac12\bigl(2a+\tfrac12\bigr)=a+\tfrac14,
+  \qquad B\le\frac{2\pi(a+\tfrac14)}{a}=2\pi+\frac{\pi}{2a}\le\frac{15\pi}7 .
+\]
+Hence $B^{2}/4\pi\le\tfrac{225\pi}{196}\le3.60643$ (using $\pi<3.141593$), and
+\[
+  e^{3.60643}=\frac{e^{4}}{e^{0.39357}}
+  \le\frac{54.5981501}{1+0.39357+\tfrac12(0.39357)^{2}}\le37.12 ,
+\]
+the numerator by $e<2.7182818286$ and the denominator by $1+x+\tfrac{x^{2}}2\le e^{x}$.  Also
+$a^{-1/2}\le(\tfrac87)^{1/2}T^{-1/4}\le1.07\,T^{-1/4}$ and $2^{5/4}\le2.379$.  Multiplying,
+$2.379\cdot1.07\cdot37.12\le94.5\le95$.  Finally
+$T^{-1/4}=(2\pi)^{1/4}t^{-1/4}\le1.5833\,t^{-1/4}$ and $95\cdot1.5833\le151$.
+\end{proof}
+
+\begin{remark}[On the size of the constant]
+\label{rem:rs_constant}
+The true size of $I(\tfrac12+it,\nu+\tfrac12)$ is $\asymp\tfrac12T^{-1/4}$, so
+\Cref{cor:rs_remainder_explicit} is lossy by about two orders of magnitude.  Essentially one
+step is responsible: the factor $e^{B^{2}/4\pi}\le37.12$, which is the price of crossing the
+real axis at the half-integer $a=\nu+\tfrac12$ rather than at the saddle $\sqrt T$
+itself.  Crossing at $\sqrt T$ makes $B=0$, but then \Cref{lem:rs_sin_lower} fails:
+the denominator $2\lvert\sin\pi x\rvert$ degenerates as $\sqrt T$ approaches an integer.
+Reinstating that lost factor is precisely what produces the classical zeroth correction
+term
+\[
+  \Psi(p)=\frac{\cos\bigl(2\pi(p^{2}-p-\tfrac1{16})\bigr)}{\cos(2\pi p)},\qquad p=\sqrt T-\nu,
+\]
+with its $\cos(2\pi p)$ denominator, the subject of the first-order chapter.  Note also that $B\le4\pi\lvert p-\tfrac12\rvert\cdot\bigl(1+O(T^{-1/2})\bigr)$,
+so the bound above is only weak for $p$ near $0$ or $1$ and is essentially
+$2^{5/4}a^{-1/2}$ for $p$ near $\tfrac12$.
+\end{remark}
+
+\subsection{The sharp form of the phase bound}
+\label{sec:rs_phase_sharp}
+
+\Cref{lem:rs_phase_bound} discards a definite amount: at $\lambda=1$ the true behaviour of
+$\lambda g(r)-r-r^{2}$ near $r=0$ is $-2r^{2}$, and the lemma keeps only $-\tfrac{r^{2}}2$, a
+factor $4$ in the Gaussian exponent.  That is irrelevant when the region of interest starts at
+$\lvert w\rvert=W\asymp T^{1/12}$, where the exponent $-\pi W^{2}$ is already enormous, and it is
+fatal when it starts at $W\asymp\sqrt T/(2\sqrt2)$, where the discarded factor sits in the
+exponent alongside the term it has to beat.  \Cref{sec:rsf_sharp} needs the sharp form, so we
+record it here, at the end of the section that proves the crude one.  The gain comes from never
+estimating
+$H$, but only $\psi(r):=r-g(r)$, in terms of which
+\begin{equation}\label{eq:rs_phase_identity}
+  \lambda g(r)-r-r^{2}\;=\;\varepsilon\,g(r)-r^{2}-\psi(r),\qquad\varepsilon:=\lambda-1,
+\end{equation}
+which holds identically.  \Cref{lem:rs_arctan_perturbed} is
+\eqref{eq:rs_phase_identity} with $\psi\ge-\tfrac{r^{2}}2$; what follows is
+\eqref{eq:rs_phase_identity} with $\psi$ bounded from below correctly.
+
+\begin{lemma}[Sharp majorant for the normalised argument]
+\label{lem:rs_arctan_sharp}
+\lean{Zeta.RiemannSiegel.lineArg_le_sub_div}
+\leanok
+For every $r\ge-\tfrac12$,
+\[
+  \psi(r)\;:=\;r-g(r)\;\ge\;\frac{r^{2}}{1+\lvert r\rvert}\;\ge\;0 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Both halves are one-line monotonicity arguments in $r$ itself, comparing derivatives.
+
+\emph{Case $r\ge0$.}  Here $r-\tfrac{r^{2}}{1+\lvert r\rvert}=\tfrac r{1+r}$, so the claim is
+$g(r)\le\tfrac r{1+r}$.  Both sides vanish at $r=0$, and
+\[
+  \frac{d}{dr}\Bigl(\frac r{1+r}-g(r)\Bigr)
+  \;=\;\frac1{(1+r)^{2}}-\frac2{1+(1+2r)^{2}}\;\ge\;0 ,
+\]
+since $1+(1+2r)^{2}-2(1+r)^{2}=2r^{2}\ge0$ and both denominators are positive; so the difference
+is nondecreasing on $[0,\infty)$ and therefore nonnegative there.
+
+\emph{Case $-\tfrac12\le r\le0$.}  Here $r-\tfrac{r^{2}}{1+\lvert r\rvert}
+=\tfrac{r-2r^{2}}{1-r}$, so the claim is $g(r)\le\tfrac{r-2r^{2}}{1-r}$.  Both sides again vanish
+at $r=0$, and
+\[
+  \frac{d}{dr}\Bigl(\frac{r-2r^{2}}{1-r}-g(r)\Bigr)
+  \;=\;\frac{1-4r+2r^{2}}{(1-r)^{2}}-\frac2{1+(1+2r)^{2}}\;\le\;0 ,
+\]
+since
+\[
+  \bigl(1-4r+2r^{2}\bigr)\bigl(1+(1+2r)^{2}\bigr)-2(1-r)^{2}
+  \;=\;2r^{2}\bigl(4r^{2}-4r-5\bigr)\;\le\;0
+  \qquad\bigl(-\tfrac12\le r\le0\bigr),
+\]
+because $4r^{2}\le1$ there and hence $4r^{2}-4r-5\le1+2-5<0$.  So the difference is nonincreasing
+on $[-\tfrac12,0]$, and being $0$ at the right endpoint it is nonnegative throughout.
+\end{proof}
+
+\begin{remark}[Why $r\ge-\tfrac12$, and what happens below it]
+\label{rem:rs_arctan_sharp_range}
+The inequality $\psi(r)\ge\tfrac{r^{2}}{1+\lvert r\rvert}$ is in fact true on
+$r\ge-1.082\ldots$ and false below, so the restriction to $r\ge-\tfrac12$ is not sharp; it is
+where the derivative comparison above stops, because $4r^{2}-4r-5$ changes sign at $r=\tfrac{1-\sqrt6}2=-0.7247\ldots$,
+below which the majorant $\tfrac{r-2r^{2}}{1-r}$ ceases to be the slower of the two.
+Nothing is lost: the range $r\le-\tfrac12$ is covered by the second display of
+\Cref{lem:rs_arctan_perturbed_sharp}, whose bound $-\tfrac{r^{2}}2$ is weaker but is applied only
+where $\lvert w\rvert\ge\tfrac a2\asymp\tfrac{\sqrt T}2$, and there even $-\tfrac{r^{2}}2$ is a
+Gaussian of width $O(1)$ evaluated at distance $\asymp\sqrt T$.
+\end{remark}
+
+\begin{lemma}[Sharp perturbed majorant]
+\label{lem:rs_arctan_perturbed_sharp}
+\lean{Zeta.RiemannSiegel.mul_lineArg_sub_le',
+Zeta.RiemannSiegel.mul_lineArg_sub_le_of_le_neg_half}
+\leanok
+\uses{lem:rs_arctan_quadratic, lem:rs_arctan_sharp}
+Let $\lambda\ge0$ with $\varepsilon:=\lambda-1$ satisfying $\lvert\varepsilon\rvert\le1$.  Then
+\[
+  \lambda\,g(r)-r-r^{2}\;\le\;-r^{2}
+    -\bigl(1-\lvert\varepsilon\rvert\bigr)\frac{r^{2}}{1+\lvert r\rvert}
+    +\lvert\varepsilon\rvert\,\lvert r\rvert
+  \qquad\bigl(r\ge-\tfrac12\bigr),
+\]
+and, if moreover $\lambda\ge\tfrac2\pi$,
+\[
+  \lambda\,g(r)-r-r^{2}\;\le\;-\frac{r^{2}}2\qquad\bigl(r\le-\tfrac12\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rs_arctan_quadratic, lem:rs_arctan_sharp}
+For the first display, start from \eqref{eq:rs_phase_identity}, which is the definition of
+$\psi$ rearranged, and recall $\psi\ge0$ from \Cref{lem:rs_arctan_sharp}.  Three cases, of which
+only the third is not immediate.
+
+If $r\ge0$ then $g(r)\le r$ by \Cref{lem:rs_arctan_quadratic} and $g(r)\ge g(0)=0$ because $g$
+is increasing, so
+$\varepsilon g(r)\le\lvert\varepsilon\rvert g(r)\le\lvert\varepsilon\rvert\lvert r\rvert$.
+
+If $r<0$ and $\varepsilon\ge0$ then $g(r)<0$, so
+$\varepsilon g(r)\le0\le\lvert\varepsilon\rvert\lvert r\rvert$.
+
+If $r<0$ and $\varepsilon<0$ then $-g(r)=\psi(r)-r=\psi(r)+\lvert r\rvert$, so
+\[
+  \varepsilon g(r)\;=\;\lvert\varepsilon\rvert\bigl(-g(r)\bigr)
+    \;=\;\lvert\varepsilon\rvert\,\lvert r\rvert+\lvert\varepsilon\rvert\,\psi(r) ,
+\]
+\emph{exactly}: here, and only here, part of $\psi$ is spent on the perturbation.  In each case
+$\varepsilon g(r)\le\lvert\varepsilon\rvert\lvert r\rvert+\lvert\varepsilon\rvert\psi(r)$, and
+substituting into \eqref{eq:rs_phase_identity} gives
+$\lambda g-r-r^{2}\le-r^{2}-(1-\lvert\varepsilon\rvert)\psi(r)+\lvert\varepsilon\rvert\lvert r\rvert$,
+which is the first display after $\psi(r)\ge\tfrac{r^{2}}{1+\lvert r\rvert}$ and
+$1-\lvert\varepsilon\rvert\ge0$.
+
+For the second display, $g$ is increasing, so $g(r)\le g(-\tfrac12)=\arctan0-\tfrac\pi4
+=-\tfrac\pi4<0$ for $r\le-\tfrac12$; multiplying the inequality $\lambda\ge\tfrac2\pi$ by the
+negative number $g(r)$ and then using $g(r)\le-\tfrac\pi4$,
+\[
+  \lambda\,g(r)\;\le\;\frac2\pi\,g(r)\;\le\;-\frac12 .
+\]
+Finally $-r-r^{2}=-\tfrac{r^{2}}2-\tfrac{(r+1)^{2}-1}2\le-\tfrac{r^{2}}2+\tfrac12$, and the two
+estimates add.
+\end{proof}
+
+\begin{lemma}[Sharp Gaussian majorant for the phase]
+\label{lem:rs_phase_sharp}
+\lean{Zeta.RiemannSiegel.phase_le',
+Zeta.RiemannSiegel.phase_le_of_le_neg_half}
+\leanok
+\uses{lem:rs_phase_bound, lem:rs_arctan_perturbed_sharp}
+Let $t>0$, $T=t/2\pi$, and let $a>0$ satisfy $T\le2a^{2}$.  With $\varphi$ and
+$B=2\pi\lvert T-a^{2}\rvert/a$ as in \Cref{lem:rs_phase_bound} and
+$\varepsilon:=T/a^{2}-1$, so that $B=2\pi a\lvert\varepsilon\rvert$,
+\[
+  \varphi(w)\;\le\;-2\pi w^{2}
+    -\bigl(1-\lvert\varepsilon\rvert\bigr)\frac{2\pi a\,w^{2}}{a+\lvert w\rvert}
+    +B\,\lvert w\rvert
+  \qquad\bigl(w\ge-\tfrac a2\bigr),
+\]
+and, if moreover $T\ge\tfrac2\pi a^{2}$,
+\[
+  \varphi(w)\;\le\;-\pi w^{2}\qquad\bigl(w\le-\tfrac a2\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rs_phase_bound, lem:rs_arctan_perturbed_sharp}
+As in \Cref{lem:rs_phase_bound}, substituting $w=ra$ gives
+$\varphi(ra)=2\pi a^{2}\bigl[\lambda g(r)-r-r^{2}\bigr]$ with $\lambda=T/a^{2}$, and the
+hypothesis $T\le2a^{2}$ says $\lvert\lambda-1\rvert\le1$.  Apply
+\Cref{lem:rs_arctan_perturbed_sharp} and multiply by $2\pi a^{2}>0$, using
+\[
+  2\pi a^{2}\cdot\frac{r^{2}}{1+\lvert r\rvert}=\frac{2\pi a\,w^{2}}{a+\lvert w\rvert},
+  \qquad
+  2\pi a^{2}\lvert\varepsilon\rvert\,\lvert r\rvert=2\pi a\lvert\varepsilon\rvert\,\lvert w\rvert
+   =B\lvert w\rvert .
+\]
+The two ranges $r\ge-\tfrac12$ and $r\le-\tfrac12$ are $w\ge-\tfrac a2$ and $w\le-\tfrac a2$,
+and $\lambda\ge\tfrac2\pi$ is $T\ge\tfrac2\pi a^{2}$.
+\end{proof}
+
+The first display is sharp to leading order: at $\varepsilon=0$ and $\lvert w\rvert\ll a$ it
+reads $\varphi(w)\le-4\pi w^{2}+O(w^{3}/a)$, against the truth $\varphi(w)=-4\pi w^{2}+O(w^{3}/a)$,
+whereas \Cref{lem:rs_phase_bound} gives only $-\pi w^{2}$.  The linear term $B\lvert w\rvert$ is
+unchanged and cannot be improved: it is the displacement of the crossing point from the
+saddle.
+
+\section{Formalization notes}
+\label{sec:rs_formalization}
+
+\begin{remark}[Rectangles]
+\label{rem:rs_rectangles}
+The proof of \Cref{thm:rs_shift} is phrased in the rotated coordinate
+$z=e^{i\pi/4}x$, in which the contour is an axis-parallel rectangle.  This lets
+the formalization use PrimeNumberTheoremAnd's \texttt{Rectangle.lean} and
+\texttt{ResidueCalcOnRectangles.lean};
+\Cref{lem:rs_rotate} (the rotated line is $\operatorname{Re}z=a/\sqrt2$) is the bridge.
+\end{remark}
+
+\begin{remark}[Branch handling]
+\label{rem:rs_branch}
+mathlib's \texttt{Complex.log} uses $\arg\in(-\pi,\pi]$, whose cut is the negative real
+axis, which the contour crosses.  \Cref{def:rs_power} therefore defines $x^{-s}$
+through the principal branch of the \emph{rotated} variable, which is legitimate on the
+whole contour by \Cref{lem:rs_branch_ok} ($\operatorname{Re}(e^{i\pi/4}x)=a/\sqrt2>0$).
+The branch theory then reduces to the single identity
+$x^{-s}=e^{i\pi s/4}(e^{i\pi/4}x)^{-s}_{\mathrm{princ}}$ and its agreement with $n^{-s}$
+at positive integers.
+\end{remark}
+
+\begin{remark}[Numerical facts required]
+\label{rem:rs_numerics}
+The chapter needs only five numerical estimates, all elementary:
+$\sinh(\pi/4)\ge1/\sqrt2$ and $\cos(\pi/4)=1/\sqrt2$ (\Cref{lem:rs_sin_lower});
+$225\pi/196\le3.60643$ and $e^{3.60643}\le37.12$ (\Cref{cor:rs_remainder_explicit});
+and $e^{2\pi}\ge e^{6}\ge100$, which is the factor $1-e^{-2\pi}\ge\tfrac{99}{100}$ of
+\Cref{lem:rs_sin_lower_sharp}.  The
+Gaussian integral $\int_{\mathbb{R}}e^{-\pi u^{2}}du=1$ is mathlib's
+\texttt{integral\_gaussian}.  One further identity is used twice
+(\Cref{lem:rs_sin_lower} and \Cref{thm:rs_shift}), and is proved as the auxiliary lemma
+\texttt{Complex.norm\_sin\_sq}:
+\[
+  \lvert\sin(u+iv)\rvert^{2}=\sin^{2}u+\sinh^{2}v\qquad(u,v\in\mathbb{R}),
+\]
+which follows from $\sin(u+iv)=\sin u\cosh v+i\cos u\sinh v$ and
+$\cosh^{2}=1+\sinh^{2}$.
+\end{remark}
+
+\section{From \texorpdfstring{\Cref{thm:rs_remainder_bound}}{the remainder bound} to the order-zero formula}
+\label{sec:rs_roadmap}
+
+\Cref{cor:rs_partial_sum} identifies $I(s,\nu+\tfrac12)$ as the exact error of the
+approximation $\zeta(s)\approx\sum_{n\le\nu}n^{-s}-I(s,\tfrac12)$, and
+\Cref{thm:rs_remainder_bound} bounds it by $O(T^{-1/4})$.  What is \emph{not} supplied by
+this chapter is the identification of the residual object $I(s,\tfrac12)$.  Writing
+$K(s):=\lim_{a\to\infty}I(s,a)$ along half-integers $a$, \Cref{cor:rs_partial_sum} gives,
+for $\operatorname{Re}s>1$,
+\[
+  \zeta(s)\;=\;-\,I\bigl(s,\tfrac12\bigr)+K(s),
+\]
+and the content of Siegel's identity \cite{Siegel1932} is that $K(s)$ is
+$\chi(s)$ times the mirror-contour integral for $1-s$, where
+$\chi(s)=2^{s}\pi^{s-1}\sin(\pi s/2)\Gamma(1-s)$ is the factor of the functional
+equation.  On the critical line $\chi(\tfrac12+it)=e^{-2i\theta(t)}$ with $\theta$ the
+Riemann--Siegel theta of \Cref{def:nf_theta}, so the two halves are complex conjugates
+after multiplication by $e^{i\theta(t)}$, and the definition of $Z$
+(\Cref{def:hz_Z}) collapses to
+\[
+  Z(t)\;=\;2\sum_{n=1}^{\nu}n^{-1/2}\cos\bigl(\theta(t)-t\log n\bigr)+R_{0}(t),
+  \qquad \lvert R_{0}(t)\rvert\le 2\bigl|I(\tfrac12+it,\nu+\tfrac12)\bigr| .
+\]
+This programme is carried out in \Cref{cha:rs_zero}: \Cref{thm:rsz_reduction} there is its
+unconditional half, and the identification of $I(s,\tfrac12)$ is isolated as the single
+input \Cref{thm:rsz_siegel}.  The two ingredients recorded in the remarks below are
+promoted there to \Cref{lem:rsz_expansion} and \Cref{lem:rsz_gauss_integral} and proved in
+full; they are stated here as well because they follow from \Cref{def:rs_kernel} alone.
+
+\begin{remark}[Half-plane Gaussian expansions of $G$]
+\label{rem:rs_expansion}
+Summing the geometric series in $e^{\pm2\pi ix}$ separately in the two half-planes gives,
+for $\operatorname{Im}x>0$ and $\operatorname{Im}x<0$ respectively,
+\[
+  G(x)=-\sum_{k\ge0}e^{-i\pi(2k+1)^{2}/4}\,e^{i\pi\left(x+\frac{2k+1}2\right)^{2}},
+  \qquad
+  G(x)=\ \ \sum_{k\ge0}e^{-i\pi(2k+1)^{2}/4}\,e^{i\pi\left(x-\frac{2k+1}2\right)^{2}} .
+\]
+Since $(2k+1)^{2}\equiv1\pmod 8$ for every $k$, the coefficients are in fact all equal to
+the single constant $e^{-i\pi/4}$, so
+\[
+  G(x)=\mp\,e^{-i\pi/4}\sum_{k\ge0}e^{i\pi\left(x\pm\frac{2k+1}2\right)^{2}}
+  \qquad(\pm=\text{sign of }\operatorname{Im}x).
+\]
+Thus $G$ is, on each half-plane, a plain superposition of Gaussians centred at the
+half-integers, with a single constant of modulus $1$ in front, and it is that constant
+$e^{-i\pi/4}$, together with the Gaussian integrals
+$\int x^{-s}e^{i\pi(x\pm m/2)^{2}}dx$, that produces the archimedean factor in $\chi(s)$.
+\end{remark}
+
+\begin{remark}[The two kernels differ by an entire function]
+\label{rem:rs_mirror}
+Let $\widetilde G(x):=e^{-i\pi x^{2}}/\bigl(e^{-i\pi x}-e^{i\pi x}\bigr)$ be the mirror
+kernel (the one adapted to lines of slope $-1$, obtained from $G$ by
+$x\mapsto\bar x$ and conjugation).  Then
+\[
+  G(x)+\widetilde G(x)\;=\;\frac{e^{i\pi x^{2}}-e^{-i\pi x^{2}}}{2i\sin(\pi x)}
+  \;=\;\frac{\sin(\pi x^{2})}{\sin(\pi x)},
+\]
+which is \emph{entire}: at $x=n\in\mathbb{Z}$ the numerator vanishes because
+$n^{2}\in\mathbb{Z}$.  Deforming the contour of the entire function
+$x^{-s}\sin(\pi x^{2})/\sin(\pi x)$ is what converts the $G$-integral on a slope-$1$ line
+into the $\widetilde G$-integral on a slope-$(-1)$ line, i.e. into the $\chi(s)$-half of
+the formula.
+\end{remark}
+
+Beyond that, the higher-order chapters need the saddle-point expansion of
+$I(s,a)$ around $w=0$ to all orders, with a remainder uniform in the truncation index;
+\Cref{lem:rs_kernel_quasi} and \Cref{rem:rs_expansion} supply the Gaussian structure that
+makes those integrals computable, and \cite{Gabcke,AriasDeReyna2011} are the references
+for the explicit constants.

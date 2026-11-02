@@ -1,0 +1,849 @@
+% Blueprint: the Riemann--Siegel expansion of Hardy's Z to arbitrary order.
+
+\chapter{The Riemann--Siegel expansion to arbitrary order}
+\label{cha:rs_general}
+
+Throughout this chapter the notation of \Cref{cha:rs_first} is in force:
+\[
+  s=\tfrac12+it,\qquad T=\frac{t}{2\pi},\qquad \nu=\lfloor\sqrt T\rfloor,\qquad
+  p=\sqrt T-\nu,\qquad a=\nu+\tfrac12,
+\]
+$\vartheta(t)=\tfrac t2\log\tfrac t{2\pi}-\tfrac t2-\tfrac\pi8$ is the leading Stirling phase,
+$\Delta$ is the saddle discrepancy of \Cref{def:rsf_discrepancy}, and for a point
+$x=L(a)(w)$ on the contour
+\[
+  y=x-\sqrt T,\qquad v=y+p=x-\nu,\qquad u=\frac{y}{\sqrt T} .
+\]
+One new abbreviation is used everywhere:
+\[
+  \boxed{\;\delta:=T^{-1/2}\;}\qquad\text{so that}\qquad u=y\,\delta .
+\]
+$K\ge1$ is the order of the expansion.  Expansions run over $0\le k<K$, so that $K=1$
+reproduces \Cref{cha:rs_first}.
+
+\section{The coefficient polynomials}
+\label{sec:rsg_coeff}
+
+\Cref{lem:rsf_discrepancy_bound} exhibits $\Delta$ as a convergent series in $u=y\delta$ whose
+$k$-th term carries $T\,u^{k}=y^{k}\delta^{k-2}$.  Both halves of $\Delta$ are therefore power
+series in $\delta$ with coefficients polynomial in $y$, and this is the only structure the
+whole section uses.
+
+\begin{definition}[The discrepancy as a function of the expansion variable]
+\label{def:rsg_series}
+\lean{Zeta.RiemannSiegel.discrepancySeries}
+\uses{def:rsf_discrepancy, lem:rsf_discrepancy_bound}
+For $y,\zeta\in\mathbb{C}$ with $\lvert y\zeta\rvert<1$ put
+\[
+  G(y,\zeta)\;:=\;-\tfrac12\log(1+y\zeta)\;-\;2\pi i\sum_{k\ge3}\frac{(-1)^{k-1}y^{k}}{k}\,\zeta^{k-2},
+\]
+with $\log$ the principal branch.  Equivalently, for $\zeta\ne0$,
+\[
+  G(y,\zeta)=-\tfrac12\log(1+y\zeta)-\frac{2\pi i}{\zeta^{2}}
+     \Bigl(\log(1+y\zeta)-y\zeta+\tfrac12(y\zeta)^{2}\Bigr),
+\]
+and $G(y,0)=0$.  Write $H(y,\zeta):=\exp G(y,\zeta)$.
+\end{definition}
+
+The two displays agree because the bracket is $O(\zeta^{3})$; the first is the definition, and
+the second (which is \texttt{Complex.log}$(1+u)-$\texttt{Complex.logTaylor}$\,3\,u$ divided by
+$\zeta^{2}$) is the form in which \Cref{lem:rsf_discrepancy_bound} already supplies both the
+identity and the estimate.  The removable singularity at $\zeta=0$ is the only reason the series
+form is taken as primary.
+
+\begin{lemma}[Identification with the saddle discrepancy]
+\label{lem:rsg_identify}
+\lean{Zeta.RiemannSiegel.saddleDiscrepancy_eq_discrepancySeries}
+\uses{def:rsg_series, def:rsf_discrepancy, lem:rsf_discrepancy_bound}
+Let $T>0$ and let $x=L(a)(w)$ with $\lvert u\rvert\le\tfrac12$.  Then
+\[
+  \Delta(x)\;=\;G\bigl(y,\delta\bigr),\qquad\text{hence}\qquad e^{\Delta(x)}=H(y,\delta).
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsf_discrepancy_bound, def:rsg_series}
+This is \Cref{lem:rsf_discrepancy_bound} verbatim: there
+$\Delta=-\tfrac12\log(1+u)-2\pi iT\sum_{k\ge3}(-1)^{k-1}u^{k}/k$, and
+$T u^{k}=T\,y^{k}T^{-k/2}=y^{k}\delta^{k-2}$ because $\delta^{2}=T^{-1}$.
+\end{proof}
+
+\begin{lemma}[Analyticity and the basic bound]
+\label{lem:rsg_analytic}
+\lean{Zeta.RiemannSiegel.analyticOn_discrepancySeries,
+Zeta.RiemannSiegel.norm_discrepancySeries_le}
+\uses{def:rsg_series, lem:rsf_discrepancy_bound}
+Fix $y\in\mathbb{C}$.  Then $\zeta\mapsto G(y,\zeta)$ is analytic on the disc
+$\lvert\zeta\rvert<1/\lvert y\rvert$ (on all of $\mathbb{C}$ if $y=0$), and for
+$\lvert y\zeta\rvert\le\tfrac12$
+\[
+  \lvert G(y,\zeta)\rvert\;\le\;\lvert\zeta\rvert\,\Lambda(y),
+  \qquad \Lambda(y):=\lvert y\rvert+\frac{4\pi}{3}\lvert y\rvert^{3}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsf_discrepancy_bound}
+Analyticity: both summands are compositions of $\log(1+\cdot)$, analytic on
+$\lvert y\zeta\rvert<1$, with polynomials, the second after removing a $\zeta^{2}$ from a
+function vanishing to order $3$.  The bound is the bound of
+\Cref{lem:rsf_discrepancy_bound} rewritten: with $u=y\zeta$ and $\lvert u\rvert\le\tfrac12$,
+$\lvert\tfrac12\log(1+u)\rvert\le\lvert u\rvert$ and, by
+\texttt{norm\_log\_sub\_logTaylor\_le},
+$\lvert\log(1+u)-u+\tfrac12u^{2}\rvert\le\lvert u\rvert^{3}/\bigl(3(1-\lvert u\rvert)\bigr)
+\le\tfrac23\lvert u\rvert^{3}$, so that the second summand is at most
+$2\pi\lvert\zeta\rvert^{-2}\cdot\tfrac23\lvert y\rvert^{3}\lvert\zeta\rvert^{3}
+=\tfrac{4\pi}3\lvert y\rvert^{3}\lvert\zeta\rvert$.
+\end{proof}
+
+\begin{definition}[The coefficient polynomials]
+\label{def:rsg_poly}
+\lean{Zeta.RiemannSiegel.saddlePoly}
+\uses{def:rsg_series, lem:rsg_analytic}
+$P_{k}(y)$ is the $k$-th Taylor coefficient of $\zeta\mapsto H(y,\zeta)$ at $\zeta=0$:
+\[
+  H(y,\zeta)=\sum_{k\ge0}P_{k}(y)\,\zeta^{k}\qquad\bigl(\lvert y\zeta\rvert<1\bigr).
+\]
+\end{definition}
+
+\begin{lemma}[Recursion, degree and parity]
+\label{lem:rsg_recursion}
+\lean{Zeta.RiemannSiegel.saddlePoly_zero, Zeta.RiemannSiegel.saddlePoly_succ,
+Zeta.RiemannSiegel.saddlePoly_neg}
+\uses{def:rsg_poly, def:rsg_series}
+Put
+\[
+  A_{m}(y):=(-1)^{m}\Bigl(\frac{y^{m}}{2m}+\frac{2\pi i\,y^{m+2}}{m+2}\Bigr)\qquad(m\ge1),
+\]
+the coefficient of $\zeta^{m}$ in $G(y,\zeta)$.  Then $P_{0}=1$ and, for $k\ge1$,
+\[
+  k\,P_{k}(y)\;=\;\sum_{m=1}^{k}m\,A_{m}(y)\,P_{k-m}(y).
+\]
+Consequently each $P_{k}$ is a polynomial of degree exactly $3k$ containing only the powers
+$y^{j}$ with $j\equiv k\pmod 2$, so $P_{k}(-y)=(-1)^{k}P_{k}(y)$.  Explicitly
+\[
+  P_{0}=1,\qquad P_{1}(y)=-\frac y2-\frac{2\pi i}{3}y^{3},\qquad
+  P_{2}(y)=\frac38y^{2}+\frac{5\pi i}{6}y^{4}-\frac{2\pi^{2}}{9}y^{6}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{def:rsg_poly, def:rsg_series}
+The formula for $A_{m}$ is \Cref{def:rsg_series} read off termwise: the logarithm contributes
+$-\tfrac12(-1)^{m-1}y^{m}/m=(-1)^{m}y^{m}/(2m)$, and the second series contributes its $k=m+2$
+term, $-2\pi i(-1)^{m+1}y^{m+2}/(m+2)=(-1)^{m}2\pi iy^{m+2}/(m+2)$.
+
+The recursion is $H'=G'H$ (derivatives in $\zeta$) read off in coefficients: the left side has
+$\zeta^{k-1}$-coefficient $kP_{k}$, the right side $\sum_{m=1}^{k}mA_{m}P_{k-m}$.  Both series
+converge on a common disc, so coefficients may be compared.
+
+Degree and parity follow by strong induction: $A_{m}$ has degree $m+2$ and contains only powers
+$\equiv m\pmod2$, so $A_{m}P_{k-m}$ has degree $(m+2)+3(k-m)=3k-2(m-1)\le3k$ with equality
+exactly at $m=1$, and only powers $\equiv m+(k-m)=k\pmod 2$.  The leading coefficient is
+therefore $(1/k)\cdot1\cdot(-2\pi i/3)$ times that of $P_{k-1}$, hence nonzero.  The two explicit
+polynomials are $P_{1}=A_{1}$ and $P_{2}=\tfrac12(2A_{2}+A_{1}\cdot A_{1})=A_{2}+\tfrac12A_{1}^{2}$
+with $A_{1}=-(y/2+2\pi iy^{3}/3)$ and $A_{2}=y^{2}/4+\tfrac{\pi i}2y^{4}$.
+\end{proof}
+
+\begin{lemma}[Cauchy bound for the coefficients, and the Taylor remainder]
+\label{lem:rsg_cauchy}
+\lean{Zeta.RiemannSiegel.norm_saddlePoly_le,
+Zeta.RiemannSiegel.norm_sub_sum_saddlePoly_le}
+\uses{def:rsg_poly, lem:rsg_analytic}
+Put $\lambda(y):=\tfrac12+\tfrac{2\pi}3\lvert y\rvert^{2}$.  Then for every $k\ge0$
+\[
+  \lvert P_{k}(y)\rvert\;\le\;e^{\lambda(y)}\bigl(2\lvert y\rvert\bigr)^{k},
+\]
+and for every $K\ge1$ and every real $\delta>0$ with $2\lvert y\rvert\delta\le\tfrac12$,
+\[
+  \Bigl\lvert H(y,\delta)-\sum_{k<K}P_{k}(y)\,\delta^{k}\Bigr\rvert
+  \;\le\;2\,e^{\lambda(y)}\bigl(2\lvert y\rvert\delta\bigr)^{K}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsg_analytic, def:rsg_poly}
+For $y=0$ both claims are trivial ($H\equiv1$, $P_{k}=\delta_{k0}$).  For $y\ne0$ take the
+circle $\lvert\zeta\rvert=r$ with $r:=1/(2\lvert y\rvert)$, which lies inside the disc of
+analyticity and on which $\lvert y\zeta\rvert=\tfrac12$, so that \Cref{lem:rsg_analytic} applies
+and gives
+\[
+  \lvert G(y,\zeta)\rvert\le r\Lambda(y)=\frac{\lvert y\rvert+\tfrac{4\pi}3\lvert y\rvert^{3}}
+  {2\lvert y\rvert}=\lambda(y),\qquad\text{hence}\qquad\lvert H(y,\zeta)\rvert\le e^{\lambda(y)}
+  \quad\text{on }\lvert\zeta\rvert=r .
+\]
+Cauchy's estimate for the Taylor coefficients gives $\lvert P_{k}(y)\rvert\le
+e^{\lambda(y)}r^{-k}=e^{\lambda(y)}(2\lvert y\rvert)^{k}$.  Summing the tail geometrically, for
+$q:=2\lvert y\rvert\delta=\delta/r\le\tfrac12$,
+\[
+  \Bigl\lvert H(y,\delta)-\sum_{k<K}P_{k}(y)\delta^{k}\Bigr\rvert
+  \le\sum_{k\ge K}e^{\lambda(y)}q^{k}=e^{\lambda(y)}\frac{q^{K}}{1-q}\le2e^{\lambda(y)}q^{K}. \qedhere
+\]
+\end{proof}
+
+\begin{remark}[Why a Cauchy estimate, and not an induction]
+\label{rem:rsg_why_cauchy}
+\uses{lem:rsg_recursion, lem:rsg_cauchy}
+It is tempting to prove $\lvert P_{k}\rvert\le C\rho^{k}$ directly from
+\Cref{lem:rsg_recursion} by strong induction.  It does not work.  With
+$\lvert A_{m}(y)\rvert\le\lambda(y)\lvert y\rvert^{m}$ (which is what the explicit $A_{m}$
+gives, using $1/(2m)\le\tfrac12$ and $1/(m+2)\le\tfrac13$) the inductive step requires
+$\sum_{m\ge1}m\lambda(y)(\lvert y\rvert/\rho)^{m}\le k$, i.e.\ $2\lambda(y)\le k$ at
+$\rho=2\lvert y\rvert$.  This fails for every $k<2\lambda(y)$, and in particular always at
+$k=1$, because $\lambda(y)>\tfrac12$.  The constant $e^{\lambda}$ of \Cref{lem:rsg_cauchy} is
+exactly what the induction cannot produce: it is the size of $H$ on the circle.  The recursion
+is used to prove that the $P_{k}$ are polynomials, with the degrees and parities that
+\Cref{sec:rsg_model} needs.
+\end{remark}
+
+\section{The higher model integrals}
+\label{sec:rsg_model}
+
+Every $P_{k}$ is a polynomial, so the integrals that replace $M(p)$ are the integrals of a
+monomial against the model.  The kernel is untouched, and that is the whole point: the two
+contour relations of \Cref{sec:rsf_model} are statements about $1/(e^{i\pi v}-e^{-i\pi v})$ and
+about the Gaussian, and neither notices the extra factor $(v-p)^{n}$.
+
+\begin{definition}[The model moments]
+\label{def:rsg_moment}
+\lean{Zeta.RiemannSiegel.modelMoment}
+\uses{def:rsf_model, def:rs_line}
+For $n\in\mathbb{N}$ and $p\in\mathbb{C}$ set
+\[
+  N_{n}(p)\;:=\;\int_{L(1/2)}\frac{(v-p)^{n}\,e^{2\pi i(v-p)^{2}}}{e^{i\pi v}-e^{-i\pi v}}\,dv .
+\]
+Thus $N_{0}=M$ is the model integral of \Cref{def:rsf_model}.
+\end{definition}
+
+\begin{lemma}[Absolute convergence]
+\label{lem:rsg_moment_conv}
+\lean{Zeta.RiemannSiegel.integrable_modelMomentIntegrand}
+\uses{def:rsg_moment, lem:rsf_model_conv, lem:rs_sin_lower}
+For every $n$ and every $p\in\mathbb{C}$ the integrand of \Cref{def:rsg_moment} is absolutely
+integrable, so $N_{n}(p)$ is defined.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsf_model_conv, lem:rs_sin_lower}
+The proof of \Cref{lem:rsf_model_conv} applies (\Cref{lem:rs_sin_lower} bounds the
+denominator below by $\sqrt2$, cancelling the Jacobian $\lvert1+i\rvert=\sqrt2$, and the Gaussian
+factor is $e^{\pi\kappa^{2}}e^{-4\pi(w+\kappa/2)^{2}}$ with $\kappa=\tfrac12-p$), and
+the majorant carries the extra polynomial factor
+$\lvert v-p\rvert^{n}\le(\tfrac12+\sqrt2\lvert w\rvert)^{n}$, which the Gaussian absorbs.
+\end{proof}
+
+\begin{definition}[The higher model terms and correction functions]
+\label{def:rsg_correction}
+\lean{Zeta.RiemannSiegel.modelTerm, Zeta.RiemannSiegel.correctionRe,
+Zeta.RiemannSiegel.correctionIm}
+\uses{def:rsg_moment, def:rsg_poly, def:rsf_correction, lem:rsg_moment_conv}
+Writing $P_{k}(y)=\sum_{n\le3k}c_{k,n}y^{n}$ as in \Cref{lem:rsg_recursion}, set
+\[
+  M_{k}(p):=\sum_{n\le3k}c_{k,n}N_{n}(p)
+   =\int_{L(1/2)}\frac{P_{k}(v-p)\,e^{2\pi i(v-p)^{2}}}{e^{i\pi v}-e^{-i\pi v}}\,dv ,
+\]
+and, for real $p$,
+\[
+  C_{k}(p):=2\operatorname{Re}\bigl(e^{-i\pi/8}M_{k}(p)\bigr),\qquad
+  \Phi_{k}(p):=2\operatorname{Im}\bigl(e^{-i\pi/8}M_{k}(p)\bigr).
+\]
+Thus $M_{0}=M$ and $C_{0}=\Psi$ is the correction function of \Cref{def:rsf_correction}.
+\end{definition}
+
+The three ingredients of \Cref{sec:rsf_model} now generalise one by one.
+
+\begin{lemma}[The Gaussian moments on the contour]
+\label{lem:rsg_gauss}
+\lean{Zeta.RiemannSiegel.integral_pow_mul_exp_two_pi_mul_I_mul_line_sub_sq}
+\uses{def:rs_line, lem:rsf_gauss}
+For every $a\in\mathbb{R}$, every $c\in\mathbb{C}$ and every $n\in\mathbb{N}$ the integral
+\[
+  g_{n}\;:=\;\int_{L(a)}(v-c)^{n}e^{2\pi i(v-c)^{2}}\,dv
+\]
+depends on neither $a$ nor $c$, and
+\[
+  g_{2r+1}=0,\qquad g_{2r}=\frac{1+i}{2}\,(2r-1)!!\,\Bigl(\frac{i}{4\pi}\Bigr)^{r} .
+\]
+More generally, for every $\beta\in\mathbb{C}$,
+\[
+  g_{n}(\beta)\;:=\;\int_{L(a)}(v-c+\beta)^{n}e^{2\pi i(v-c)^{2}}\,dv
+   \;=\;\sum_{l=0}^{n}\binom nl\beta^{\,n-l}g_{l}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsf_gauss, def:rs_line}
+Independence of $a$ and $c$ is proved by moving a contour (\Cref{lem:rsf_gauss} evaluates the
+$n=0$ case in closed form by \texttt{integral\_cexp\_quadratic}).  The integrand is entire and
+decays like $e^{-4\pi w^{2}}$ times a polynomial along every line $L(a)$, so the rectangle argument
+of \Cref{thm:rs_shift} (with the integrand holomorphic inside, and with horizontal sides
+vanishing) gives
+independence of $a$.  For $c$, substituting $v\mapsto v+c$ replaces $L(a)$ by its translate
+$L(a)-c$, and every translate of $L(a)$ is again a member of the family: writing $c=c_{1}+ic_{2}$,
+\[
+  L(a)-c=L\bigl(a-c_{1}+c_{2}\bigr),
+\]
+because $a-c-(a-c_{1}+c_{2})=-c_{2}(1+i)$ lies in the direction $(1+i)$ of the line.  So
+$c$-independence follows from $a$-independence.  Taking $a=c=0$, $v=L(0)(w)=\sqrt2e^{i\pi/4}w$ and
+$dv=\sqrt2e^{i\pi/4}dw$, so that $2\pi iv^{2}=2\pi i\cdot2iw^{2}=-4\pi w^{2}$ and
+\[
+  g_{n}=2^{(n+1)/2}e^{i(n+1)\pi/4}\int_{\mathbb{R}}w^{n}e^{-4\pi w^{2}}dw .
+\]
+The integral vanishes for odd $n$ by oddness.  For $n=2r$ it is
+$\tfrac12(2r-1)!!\,(8\pi)^{-r}$, whence
+$g_{2r}=2^{r-1/2}e^{i(2r+1)\pi/4}(2r-1)!!(8\pi)^{-r}
+ =\tfrac{e^{i\pi/4}}{\sqrt2}(2r-1)!!\,i^{r}(4\pi)^{-r}$, which is the stated form because
+$e^{i\pi/4}/\sqrt2=(1+i)/2$.  The last display is the binomial theorem under the integral sign,
+legitimate because the sum is finite.  (Consistency check: $g_{0}=(1+i)/2=e^{i\pi/4}/\sqrt2$ is
+\Cref{lem:rsf_gauss}, and $g_{2}=(i-1)/(8\pi)$.)
+\end{proof}
+
+\begin{lemma}[Half shift]
+\label{lem:rsg_half_shift}
+\lean{Zeta.RiemannSiegel.modelMoment_add_half}
+\uses{def:rsg_moment, lem:rsg_gauss, lem:rsf_partial, lem:rsg_moment_conv}
+For every $n\in\mathbb{N}$ and every $p\in\mathbb{C}$,
+\[
+  N_{n}\bigl(p+\tfrac12\bigr)
+   \;=\;i\,e^{2\pi ip}\sum_{j=0}^{n}\binom nj\Bigl(-\tfrac12\Bigr)^{n-j}N_{j}(p)
+     \;-\;i\,e^{i\pi p}\,e^{-i\pi/8}\,\gamma_{n},
+  \qquad \gamma_{n}:=g_{n}\bigl(-\tfrac14\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsg_gauss, lem:rsf_partial, lem:rsg_moment_conv}
+Exactly the proof of \Cref{lem:rsf_half_shift}, carrying the monomial along.  The Gaussian
+quasi-period is unchanged,
+$e^{2\pi i(v-p-\frac12)^{2}}=i\,e^{2\pi ip}e^{2\pi i(v-p)^{2}}e^{-2\pi iv}$, and the monomial
+expands binomially, $\bigl(v-p-\tfrac12\bigr)^{n}
+=\sum_{j}\binom nj(-\tfrac12)^{n-j}(v-p)^{j}$.  Applying \Cref{lem:rsf_partial} to
+$e^{-2\pi iv}/(e^{i\pi v}-e^{-i\pi v})$ splits each of the $n+1$ resulting integrals in two,
+legitimately by \Cref{lem:rsg_moment_conv} and by the corresponding (easier) Gaussian bound for
+the kernel-free piece.  This gives
+\[
+  N_{n}\bigl(p+\tfrac12\bigr)=i\,e^{2\pi ip}\Bigl[\sum_{j}\binom nj\bigl(-\tfrac12\bigr)^{n-j}N_{j}(p)
+     -\sum_{j}\binom nj\bigl(-\tfrac12\bigr)^{n-j}J_{j}(p)\Bigr],
+\]
+where $J_{j}(p)=\int_{L(1/2)}(v-p)^{j}e^{2\pi i(v-p)^{2}}e^{-i\pi v}dv$.
+
+The second sum collapses before it is evaluated, and this is the only step that is not a
+transcription.  Completing the square as in \Cref{lem:rsf_half_shift}, with $z=v-p$,
+$2\pi iz^{2}-i\pi(z+p)=2\pi i(z-\tfrac14)^{2}-\tfrac{i\pi}8-i\pi p$, so with
+$\varsigma:=v-p-\tfrac14$
+\[
+  \sum_{j}\binom nj\bigl(-\tfrac12\bigr)^{n-j}J_{j}(p)
+  =e^{-i\pi/8}e^{-i\pi p}\int_{L(1/2)}
+    \Bigl[\sum_{j}\binom nj\bigl(-\tfrac12\bigr)^{n-j}\bigl(\varsigma+\tfrac14\bigr)^{j}\Bigr]
+    e^{2\pi i\varsigma^{2}}\,dv ,
+\]
+and the bracket is $\bigl((\varsigma+\tfrac14)-\tfrac12\bigr)^{n}=(\varsigma-\tfrac14)^{n}$ by
+the binomial theorem.  By \Cref{lem:rsg_gauss} (with $c=p+\tfrac14$ and $\beta=-\tfrac14$) that
+integral is $\gamma_{n}$.  Finally $i\,e^{2\pi ip}\cdot e^{-i\pi p}=i\,e^{i\pi p}$.
+\end{proof}
+
+\begin{lemma}[Unit shift]
+\label{lem:rsg_unit_shift}
+\lean{Zeta.RiemannSiegel.modelMoment_add_modelMoment_add_one}
+\uses{def:rsg_moment, lem:rsg_moment_conv, lem:rs_kernel_residue, lem:rs_rotate, thm:rs_shift}
+For every $n\in\mathbb{N}$ and every $p\in\mathbb{C}$,
+\[
+  N_{n}(p)+N_{n}(p+1)\;=\;(-p)^{n}\,e^{2\pi ip^{2}} .
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rs_kernel_residue, lem:rs_rotate, thm:rs_shift, lem:rsg_moment_conv}
+The proof of \Cref{lem:rsf_unit_shift} applies verbatim to
+$m^{(n)}_{p}(v):=(v-p)^{n}e^{2\pi i(v-p)^{2}}/(e^{i\pi v}-e^{-i\pi v})$.  The rectangle of
+\Cref{thm:rs_shift} between $L(\tfrac12)$ and $L(\tfrac32)$ contains the single singularity
+$v=1$; the horizontal sides still vanish, the Gaussian decay of
+\Cref{lem:rsg_moment_conv} beating the extra polynomial factor.  Translation by $1$ still
+reverses the sign,
+\[
+  m^{(n)}_{p}(v+1)=\frac{(v-(p-1))^{n}e^{2\pi i(v-(p-1))^{2}}}{-(e^{i\pi v}-e^{-i\pi v})}
+  =-m^{(n)}_{p-1}(v),
+\]
+using $2\pi i(v-p)^{2}+4\pi i(v-p)=2\pi i(v-(p-1))^{2}-2\pi i$ for the exponential and
+$v+1-p=v-(p-1)$ for the monomial, so $\int_{L(3/2)}m^{(n)}_{p}=-N_{n}(p-1)$.  The residue of
+$m^{(n)}_{p}$ at $v=1$ is $-(1-p)^{n}e^{2\pi i(1-p)^{2}}/(2\pi i)$ by
+\Cref{lem:rs_kernel_residue}, so
+$-N_{n}(p-1)-N_{n}(p)=-(1-p)^{n}e^{2\pi i(1-p)^{2}}$.  Replacing $p$ by $p+1$ gives the claim.
+\end{proof}
+
+\begin{theorem}[Closed form of the model moments]
+\label{thm:rsg_closed}
+\lean{Zeta.RiemannSiegel.two_mul_cos_mul_modelMoment}
+\uses{lem:rsg_half_shift, lem:rsg_unit_shift, lem:rsg_gauss}
+For every $n\in\mathbb{N}$ and every $p\in\mathbb{C}$, with
+$\gamma_{n}=g_{n}(-\tfrac14)$ and $\gamma'_{n}=g_{n}(-\tfrac34)$ as in
+\Cref{lem:rsg_gauss},
+\[
+  2\cos(2\pi p)\,N_{n}(p)\;=\;(-p)^{n}e^{2\pi i(p^{2}-p)}
+   \;-\;e^{2\pi ip}\sum_{j<n}\binom nj(-1)^{n-j}N_{j}(p)
+   \;+\;e^{-i\pi/8}\bigl(e^{i\pi p}\gamma'_{n}-e^{-i\pi p}\gamma_{n}\bigr).
+\]
+In particular the $N_{n}$ are determined recursively, in closed form, by elementary functions of
+$p$, through product identities valid at every $p$.
+\end{theorem}
+
+\begin{proof}
+\uses{lem:rsg_half_shift, lem:rsg_unit_shift}
+Apply \Cref{lem:rsg_half_shift} at $p$ and then at $p+\tfrac12$, using
+$e^{2\pi i(p+\frac12)}=-e^{2\pi ip}$ and $e^{i\pi(p+\frac12)}=i\,e^{i\pi p}$:
+\[
+  N_{n}(p+1)=-i\,e^{2\pi ip}\sum_{j}\binom nj\bigl(-\tfrac12\bigr)^{n-j}N_{j}\bigl(p+\tfrac12\bigr)
+    +e^{i\pi p}e^{-i\pi/8}\gamma_{n}.
+\]
+Substituting \Cref{lem:rsg_half_shift} again and using that the binomial transform
+$y^{n}\mapsto(y-\tfrac12)^{n}$ composed with itself is $y^{n}\mapsto(y-1)^{n}$ (so that the
+double sum $\sum_{j}\binom nj(-\tfrac12)^{n-j}\sum_{l}\binom jl(-\tfrac12)^{j-l}N_{l}$ is
+$\sum_{j}\binom nj(-1)^{n-j}N_{j}$, and likewise
+$\sum_{j}\binom nj(-\tfrac12)^{n-j}\gamma_{j}=g_{n}(-\tfrac34)=\gamma'_{n}$) gives
+\[
+  N_{n}(p+1)=e^{4\pi ip}\sum_{j\le n}\binom nj(-1)^{n-j}N_{j}(p)
+   -e^{3i\pi p}e^{-i\pi/8}\gamma'_{n}+e^{i\pi p}e^{-i\pi/8}\gamma_{n}.
+\]
+By \Cref{lem:rsg_unit_shift} the left-hand side is also $(-p)^{n}e^{2\pi ip^{2}}-N_{n}(p)$.
+Equating, separating the $j=n$ term $e^{4\pi ip}N_{n}(p)$ and collecting,
+\[
+  \bigl(1+e^{4\pi ip}\bigr)N_{n}(p)=(-p)^{n}e^{2\pi ip^{2}}
+   -e^{4\pi ip}\sum_{j<n}\binom nj(-1)^{n-j}N_{j}(p)
+   +e^{-i\pi/8}\bigl(e^{3i\pi p}\gamma'_{n}-e^{i\pi p}\gamma_{n}\bigr).
+\]
+Now $1+e^{4\pi ip}=2e^{2\pi ip}\cos(2\pi p)$, and dividing by the nowhere-vanishing $e^{2\pi ip}$
+gives the statement.  As in \Cref{rem:rsf_why_algebraic} the argument never divides by
+$1+e^{4\pi ip}$ or by $\cos(2\pi p)$, both of which vanish at $p\in\tfrac14+\tfrac12\mathbb{Z}$;
+the identity is a product identity valid at every $p$.
+\end{proof}
+
+\begin{corollary}[The first two instances]
+\label{cor:rsg_closed_low}
+\lean{Zeta.RiemannSiegel.two_mul_cos_mul_modelMoment_one}
+\uses{thm:rsg_closed, thm:rsf_model_closed, lem:rsg_gauss}
+At $n=0$, $\gamma_{0}=\gamma'_{0}=g_{0}=e^{i\pi/4}/\sqrt2$ and \Cref{thm:rsg_closed} reads
+\[
+  2\cos(2\pi p)M(p)=e^{2\pi i(p^{2}-p)}+\sqrt2\,e^{5i\pi/8}\sin(\pi p),
+\]
+which is \Cref{thm:rsf_model_closed}.  At $n=1$, $\gamma_{1}=-\tfrac14g_{0}$ and
+$\gamma'_{1}=-\tfrac34g_{0}$, so
+\[
+  2\cos(2\pi p)N_{1}(p)=-p\,e^{2\pi i(p^{2}-p)}+e^{2\pi ip}M(p)
+   +\frac{e^{i\pi/8}}{4\sqrt2}\bigl(e^{-i\pi p}-3e^{i\pi p}\bigr).
+\]
+\end{corollary}
+
+\begin{proof}
+\uses{thm:rsg_closed, lem:rsg_gauss}
+Substitution.  For $n=0$ the last bracket is
+$e^{-i\pi/8}g_{0}(e^{i\pi p}-e^{-i\pi p})
+=e^{-i\pi/8}e^{i\pi/4}2^{-1/2}\cdot2i\sin(\pi p)=\sqrt2e^{5i\pi/8}\sin(\pi p)$, and the sum over
+$j<0$ is empty.  For $n=1$, $g_{1}=0$ so $\gamma_{1}=\binom10(-\tfrac14)g_{0}$ and
+$\gamma'_{1}=\binom10(-\tfrac34)g_{0}$, and $e^{-i\pi/8}g_{0}=e^{i\pi/8}/\sqrt2$.
+\end{proof}
+
+\begin{corollary}[Closed form for $\Phi_{0}$]
+\label{cor:rsg_phi_closed}
+\lean{Zeta.RiemannSiegel.cos_mul_correctionIm}
+\uses{def:rsg_correction, thm:rsf_model_closed, cor:rsf_correction_closed}
+For every real $p$,
+\[
+  \cos(2\pi p)\,\Phi_{0}(p)\;=\;\sin\Bigl(2\pi\bigl(p^{2}-p-\tfrac1{16}\bigr)\Bigr)+\sqrt2\sin(\pi p),
+\]
+the companion of \Cref{cor:rsf_correction_closed}, and $\lvert\Phi_{0}(p)\rvert\le e^{\pi/4}$
+for $0\le p\le1$.
+\end{corollary}
+
+\begin{proof}
+\uses{thm:rsf_model_closed, lem:rsf_model_conv}
+Multiply \Cref{thm:rsf_model_closed} by $e^{-i\pi/8}$, giving
+$2\cos(2\pi p)e^{-i\pi/8}M(p)=e^{2\pi i(p^{2}-p-\frac1{16})}+i\sqrt2\sin(\pi p)$, and take
+imaginary parts.  The bound is
+$\lvert\Phi_{0}\rvert\le2\lvert M\rvert\le e^{\pi(\frac12-p)^{2}}\le e^{\pi/4}$ by
+\Cref{lem:rsf_model_conv}.
+\end{proof}
+
+\section{The saddle-point reduction at order \texorpdfstring{$K$}{K}}
+\label{sec:rsg_saddle}
+
+The structure is that of \Cref{sec:rsf_saddle}, with $e^{\Delta}-1$ replaced by
+$e^{\Delta}-\sum_{k<K}P_{k}(y)\delta^{k}$ and the split radius enlarged so that the outer region
+is negligible at the new depth.  Throughout,
+\[
+  W:=\sqrt{K+1}\;T^{1/12},\qquad A:=0.854,\qquad B:=1.415,
+\]
+$A$ and $B$ being the constants of \Cref{lem:rsf_inner} (for which
+$\lvert y\rvert\le A+B\lvert w'\rvert$ after the shift $w'=w+\tfrac\kappa2$), and
+\[
+  c:=4\pi-\frac{2\pi}3\bigl(1+B^{2}\bigr)\ \ge\ 6.27,\qquad
+  S_{k}(\sigma):=\sum_{j=0}^{k}\binom kj(2A)^{k-j}(2B)^{j}\,
+     \sigma^{-\frac{j+1}2}\,\Gamma\Bigl(\frac{j+1}2\Bigr).
+\]
+Finally
+\[
+  E_{K}:=710\,S_{K}(c)+1,\qquad
+  Q_{K}:=320+710\sum_{k<K}S_{k}\bigl(\tfrac c2\bigr).
+\]
+Numerically $E_{1}\le1179$, $E_{2}\le2880$, $E_{3}\le7354$ and
+$Q_{1}\le1031$, $Q_{2}\le2886$, $Q_{3}\le8053$.
+
+\begin{lemma}[Inner estimate at order $K$]
+\label{lem:rsg_inner}
+\lean{Zeta.RiemannSiegel.norm_integral_inner_le_of_order,
+integral_abs_pow_mul_exp_neg_mul_sq}
+\uses{lem:rsg_cauchy, lem:rsg_identify, lem:rsf_model_conv, lem:rs_sin_lower}
+Let $K\ge1$, $T\ge10^{6}$ and $K+1\le T^{5/6}/64$.  Then
+\[
+  \left\lvert\int_{\lvert w\rvert\le W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-\sum_{k<K}P_{k}(y)\delta^{k}\bigr)}
+         {e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+  \right\rvert\;\le\;710\,S_{K}(c)\;T^{-K/2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsg_cauchy, lem:rsg_identify, lem:rs_sin_lower, lem:rsf_model_conv}
+\emph{The pointwise hypotheses.}  With $\kappa=\tfrac12-p$ and $w'=w+\tfrac\kappa2$ one has, as
+in \Cref{lem:rsf_inner}, $\lvert y\rvert\le\tfrac12+\sqrt2\lvert w\rvert\le A+B\lvert w'\rvert$
+and, on the inner region, $\lvert y\rvert\le\tfrac12+\sqrt2W\le2\sqrt{K+1}\,T^{1/12}$.  The
+hypothesis $K+1\le T^{5/6}/64$ says exactly $2\sqrt{K+1}\,T^{1/12}\le\tfrac14\sqrt T$, i.e.
+\[
+  2\lvert y\rvert\delta\le\tfrac12 ,
+\]
+which is both the hypothesis of \Cref{lem:rsg_cauchy} and (a fortiori) the hypothesis
+$\lvert u\rvert\le\tfrac12$ of \Cref{lem:rsf_discrepancy_bound} and hence of
+\Cref{lem:rsg_identify}.  This is the only role of $W$ and of the second hypothesis; note that
+at $K=1$ it is weaker than the corresponding step of \Cref{lem:rsf_inner}, which additionally
+needed $\lvert\Delta\rvert\le1$.
+
+\emph{The integral.}  By \Cref{lem:rsg_identify} the numerator is
+$H(y,\delta)-\sum_{k<K}P_{k}(y)\delta^{k}$, which \Cref{lem:rsg_cauchy} bounds by
+$2e^{1/2}e^{\frac{2\pi}3\lvert y\rvert^{2}}(2\lvert y\rvert)^{K}\delta^{K}$.  By
+\Cref{lem:rs_sin_lower} the denominator has modulus at least $\sqrt2$, cancelling the Jacobian
+$\lvert1+i\rvert=\sqrt2$, and by the computation in \Cref{lem:rsf_model_conv}
+$\lvert e^{2\pi i(v-p)^{2}}\rvert\le e^{\pi/4}e^{-4\pi w'^{2}}$.  Enlarging the domain of the
+nonnegative majorant from $\lvert w\rvert\le W$ to all of $\mathbb{R}$, the left-hand side is at
+most
+\[
+  2e^{1/2}e^{\pi/4}\delta^{K}\int_{\mathbb{R}}
+    e^{-4\pi w'^{2}}\,e^{\frac{2\pi}3(A+B\lvert w'\rvert)^{2}}\,
+    \bigl(2(A+B\lvert w'\rvert)\bigr)^{K}\,dw' .
+\]
+The Gaussian and the exponential of the square combine once and for all: by
+$2AB\lvert w'\rvert\le A^{2}B^{2}+w'^{2}$,
+\[
+  \frac{2\pi}3\bigl(A+B\lvert w'\rvert\bigr)^{2}
+  \le\frac{2\pi}3A^{2}\bigl(1+B^{2}\bigr)+\frac{2\pi}3\bigl(1+B^{2}\bigr)w'^{2},
+\]
+so that $e^{-4\pi w'^{2}}e^{\frac{2\pi}3(A+B\lvert w'\rvert)^{2}}\le e^{\kappa_{0}}e^{-cw'^{2}}$
+with $\kappa_{0}=\tfrac{2\pi}3A^{2}(1+B^{2})\le4.586$ and $c\ge6.27$ as above.  Expanding the
+$K$-th power binomially and integrating termwise with
+$\int_{\mathbb{R}}\lvert w\rvert^{j}e^{-cw^{2}}dw=c^{-(j+1)/2}\Gamma\bigl(\tfrac{j+1}2\bigr)$,
+the integral is at most $e^{\kappa_{0}}S_{K}(c)$.  Since
+$2e^{1/2}e^{\pi/4}e^{4.586}\le709.5\le710$ and $\delta^{K}=T^{-K/2}$, the claim follows.
+\end{proof}
+
+The same computation, with the truncation remainder replaced by the $k$-th term itself, bounds
+the correction functions.  It is stated here, where $S_{k}$ and $c$ are available.
+
+\begin{corollary}[Explicit bound for the correction functions]
+\label{cor:rsg_correction_bound}
+\lean{Zeta.RiemannSiegel.norm_modelTerm_le}
+\uses{def:rsg_correction, lem:rsg_cauchy, lem:rsg_inner, lem:rsf_model_conv, lem:rs_sin_lower}
+For $0\le p\le1$ and every $k$,
+\[
+  \lvert M_{k}(p)\rvert\;\le\;355\,S_{k}(c),\qquad\text{hence}\qquad
+  \lvert C_{k}(p)\rvert,\ \lvert\Phi_{k}(p)\rvert\;\le\;710\,S_{k}(c).
+\]
+Numerically $710S_{0}\le503$, $710S_{1}\le1178$ and $710S_{2}\le2879$, and
+$\sum_{k<3}\lvert M_{k}(p)\rvert\le2280$.
+\end{corollary}
+
+\begin{proof}
+\uses{lem:rsg_cauchy, lem:rsf_model_conv, lem:rs_sin_lower}
+Majorise $\lvert P_{k}(y)\rvert$ by $e^{\lambda(y)}(2\lvert y\rvert)^{k}$
+(\Cref{lem:rsg_cauchy}), and combine the exponentials exactly as in the
+proof of \Cref{lem:rsg_inner}: with $w'=w+\kappa/2$, $\lvert y\rvert\le A+B\lvert w'\rvert$ and
+$\lvert\kappa\rvert\le\tfrac12$,
+\[
+  \lvert M_{k}(p)\rvert\le e^{\pi/4}e^{1/2}e^{\kappa_{0}}
+    \int_{\mathbb{R}}e^{-cw'^{2}}\bigl(2A+2B\lvert w'\rvert\bigr)^{k}dw'
+   =e^{\pi/4}e^{1/2}e^{\kappa_{0}}S_{k}(c)\le355\,S_{k}(c),
+\]
+and $\lvert C_{k}\rvert,\lvert\Phi_{k}\rvert\le2\lvert M_{k}\rvert$.  These are crude: at $k=0$
+the sharp value is $\lvert M_{0}\rvert\le\tfrac12e^{\pi/4}\le1.10$ by \Cref{lem:rsf_model_conv}.
+They are used only to discard terms in \Cref{cor:rsg_classical}.
+\end{proof}
+
+\begin{lemma}[Outer estimate at order $K$]
+\label{lem:rsg_outer}
+\lean{Zeta.RiemannSiegel.norm_integral_outer_le_of_order}
+\uses{lem:rsf_factor, lem:rs_phase_bound, lem:rs_sin_lower, lem:rsg_cauchy,
+cor:rs_remainder_explicit, lem:rsf_outer}
+Let $K\ge1$, $T\ge10^{6}$, $K+1\le T^{5/6}/64$, and assume
+\[
+  \text{(H}_{K}\text{)}\qquad Q_{K}\,T^{K/2}\;\le\;e^{\frac32W^{2}}
+  \;=\;\exp\Bigl(\tfrac32(K+1)T^{1/6}\Bigr).
+\]
+Then
+\[
+  \left\lvert\int_{\lvert w\rvert>W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-\sum_{k<K}P_{k}(y)\delta^{k}\bigr)}
+         {e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+  \right\rvert\;\le\;T^{-K/2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:rsf_factor, lem:rs_phase_bound, cor:rs_remainder_explicit, lem:rs_sin_lower,
+lem:rsg_cauchy}
+Bound the numerator by $\lvert e^{\Delta}\rvert+\sum_{k<K}\lvert P_{k}(y)\rvert\delta^{k}$ and
+treat the two parts separately; in both, \Cref{lem:rs_sin_lower} cancels the Jacobian.
+
+\emph{The true tail} is untouched by $K$: it is bounded exactly as in \Cref{lem:rsf_outer},
+giving $223\,e^{-\pi W^{2}/2}\le223\,e^{-\frac32W^{2}}$, the hypotheses of
+\Cref{lem:rs_phase_bound} and \Cref{cor:rs_remainder_explicit} holding because $\sqrt T\ge10^{3}$
+and the pointwise majorant $1100\,e^{-\pi w^{2}/2}$ being independent of $W$.  Only the value of
+$W$ at which the two-sided Gaussian tail is evaluated changes, and $W\ge3.16$ still holds.
+
+\emph{The truncated series.}  By \Cref{lem:rsg_cauchy},
+$\sum_{k<K}\lvert P_{k}(y)\rvert\delta^{k}\le e^{\lambda(y)}\sum_{k<K}(2\lvert y\rvert\delta)^{k}$,
+and here $\lvert w\rvert$ ranges to infinity, so $2\lvert y\rvert\delta$ is unbounded.
+Bounding $\delta^{k}\le1$ and
+$\lvert y\rvert\le A+B\lvert w'\rvert$ termwise, and multiplying by the model factor
+$e^{\pi/4}e^{-4\pi w'^{2}}$ and by $e^{\lambda(y)}\le e^{1/2}e^{\frac{2\pi}3\lvert y\rvert^{2}}$,
+the same combination of exponentials as in \Cref{lem:rsg_inner} gives the pointwise majorant
+\[
+  710\sum_{k<K}\bigl(2A+2B\lvert w'\rvert\bigr)^{k}\,e^{-cw'^{2}} .
+\]
+On the outer region $\lvert w'\rvert\ge W-\tfrac14$ and $(W-\tfrac14)^{2}\ge\tfrac12W^{2}$
+(valid for $W\ge1$), so half the Gaussian may be spent on the constant,
+\[
+  e^{-cw'^{2}}\le e^{-\frac c2(W-\frac14)^{2}}e^{-\frac c2w'^{2}}
+  \le e^{-\frac c4W^{2}}e^{-\frac c2w'^{2}}\le e^{-\frac32W^{2}}e^{-\frac c2w'^{2}},
+\]
+using $c/4\ge1.5675\ge\tfrac32$, and the remaining Gaussian integrated over all of $\mathbb{R}$.
+Integrating termwise as in \Cref{lem:rsg_inner} bounds this part by
+$710\bigl(\sum_{k<K}S_{k}(\tfrac c2)\bigr)e^{-\frac32W^{2}}$.
+
+\emph{Adding.}  With the Jacobian $\sqrt2\le1.415$ absorbed into the constant $320\ge1.415\cdot223$
+of the true tail, the left-hand side is at most $Q_{K}e^{-\frac32W^{2}}$, and
+(H$_{K}$) is exactly the statement that this is at most $T^{-K/2}$.
+\end{proof}
+
+\begin{remark}[The two hypotheses are effective]
+\label{rem:rsg_hypotheses}
+\uses{lem:rsg_inner, lem:rsg_outer}
+Both side conditions are explicit inequalities in $(K,T)$, and both are weak.  At $T=10^{6}$ the first reads $K+1\le10^{5}/64=1562$.  For the second,
+$T^{1/6}=10$ so (H$_{K}$) reads $Q_{K}10^{3K}\le e^{15(K+1)}$, and $\log Q_{K}$ grows like
+$\tfrac K2\log K$ against the $15K$ on the right, so it holds for every $K\le10^{7}$; at $K=3$
+the two sides are $8.1\cdot10^{12}$ and $1.1\cdot10^{26}$.  For a fixed $K$ both are discharged
+by a single numerical verification.
+
+Both are also \emph{monotone in $T$}, so verifying them at $T=10^{6}$ verifies them for every
+$T\ge10^{6}$, which is what \Cref{cor:rsg_classical} uses.  For the first this is immediate,
+$T^{5/6}/64$ being increasing.  For (H$_{K}$), take logarithms: the claim is
+$\tfrac K2\log T+\log Q_{K}\le\tfrac32(K+1)T^{1/6}$, and differentiating in $T$ the right side
+grows faster as soon as $\tfrac14(K+1)T^{-5/6}\ge\tfrac K2T^{-1}$, i.e.\
+$T^{1/6}\ge2K/(K+1)$, which holds because $T^{1/6}\ge10\ge2$.
+
+The two conditions cannot be dropped altogether: the expansion is asymptotic, not convergent,
+and $E_{K}\to\infty$.
+\end{remark}
+
+\begin{theorem}[Order-$K$ evaluation of the shifted integral]
+\label{thm:rsg_saddle}
+\lean{Zeta.RiemannSiegel.norm_contourIntegral_sub_sum_modelTerm_le}
+\uses{lem:rsf_factor, lem:rsg_inner, lem:rsg_outer, def:rsg_correction}
+Let $K\ge1$ and $T\ge10^{6}$ with $K+1\le T^{5/6}/64$ and (H$_{K}$).  Then
+\[
+  \Bigl\lvert I\bigl(\tfrac12+it,\nu+\tfrac12\bigr)
+    -(-1)^{\nu}T^{-1/4}e^{-i\left(\vartheta(t)+\frac\pi8\right)}
+      \sum_{k<K}T^{-k/2}M_{k}(p)\Bigr\rvert
+  \;\le\;E_{K}\,T^{-\frac{2K+1}4}.
+\]
+\end{theorem}
+
+\begin{proof}
+\uses{lem:rsf_factor, lem:rsg_inner, lem:rsg_outer, lem:rsg_moment_conv}
+By \Cref{lem:rsf_factor}, $I(s,a)$ equals
+$(-1)^{\nu}T^{-1/4}e^{-i(\vartheta+\frac\pi8)}$ times
+$\int_{L(1/2)}e^{2\pi i(v-p)^{2}}e^{\Delta}/(e^{i\pi v}-e^{-i\pi v})dv$, and by
+\Cref{def:rsg_correction} the subtracted sum is the same constant times
+$\int_{L(1/2)}e^{2\pi i(v-p)^{2}}\sum_{k<K}P_{k}(v-p)\delta^{k}/(e^{i\pi v}-e^{-i\pi v})dv$,
+the finitely many integrals being separately convergent by \Cref{lem:rsg_moment_conv} and
+$y=v-p$.  The factors $(-1)^{\nu}$ and $e^{-i(\vartheta+\frac\pi8)}$ have modulus $1$, so the
+left-hand side is $T^{-1/4}$ times the modulus of a single integral, which splits at
+$\lvert w\rvert=W$ into \Cref{lem:rsg_inner} and \Cref{lem:rsg_outer}:
+$710S_{K}(c)T^{-K/2}+T^{-K/2}=E_{K}T^{-K/2}$.
+\end{proof}
+
+\section{The general-order formula}
+\label{sec:rsg_formula}
+
+\begin{theorem}[The Riemann--Siegel formula to order $K$, with exact phase]
+\label{thm:rsg_formula}
+\lean{Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_sub_sum_le}
+\uses{thm:rsz_formula, thm:rsg_saddle, def:rsg_correction, thm:rsz_siegel}
+Let $K\ge1$ and $T\ge10^{6}$ with $K+1\le T^{5/6}/64$ and (H$_{K}$), and assume Siegel's
+identity \Cref{thm:rsz_siegel} at $t=2\pi T$.  Then
+\[
+  \Bigl\lvert Z(t)-\mathcal{S}(t,\nu)
+    -(-1)^{\nu-1}T^{-1/4}\,
+      2\operatorname{Re}\Bigl(e^{i\left(\theta(t)-\vartheta(t)-\frac\pi8\right)}
+        \sum_{k<K}T^{-k/2}M_{k}(p)\Bigr)\Bigr\rvert
+  \;\le\;2E_{K}\,T^{-\frac{2K+1}4}.
+\]
+\end{theorem}
+
+\begin{proof}
+\uses{thm:rsz_formula, thm:rsg_saddle, thm:rsz_siegel}
+By \Cref{thm:rsz_formula},
+$Z(t)-\mathcal{S}(t,\nu)=-2\operatorname{Re}\bigl(e^{i\theta(t)}I(s,a)\bigr)$.  Write
+$I(s,a)=(-1)^{\nu}T^{-1/4}e^{-i(\vartheta+\frac\pi8)}\sum_{k<K}T^{-k/2}M_{k}(p)+E$ with
+$\lvert E\rvert\le E_{K}T^{-\frac{2K+1}4}$ by \Cref{thm:rsg_saddle}.  Then
+\[
+  -2\operatorname{Re}\bigl(e^{i\theta}I\bigr)
+  =(-1)^{\nu-1}T^{-1/4}\,2\operatorname{Re}
+     \Bigl(e^{i(\theta-\vartheta-\frac\pi8)}\sum_{k<K}T^{-k/2}M_{k}(p)\Bigr)
+   -2\operatorname{Re}\bigl(e^{i\theta}E\bigr),
+\]
+and $\lvert2\operatorname{Re}(e^{i\theta}E)\rvert\le2\lvert E\rvert$ since $\theta(t)$ is real.
+\end{proof}
+
+In \Cref{thm:rsg_formula} the phase $\theta-\vartheta$ appears exactly, and is computable to
+any accuracy from \Cref{lem:rsf_theta} and its refinements.  Passing to the classical form (real
+coefficients $C_{k}(p)$, with $t$-dependence only through $T^{-k/2}$) is where $\theta$ must be
+expanded.
+
+\begin{remark}[The $\theta$ trap: the model expansion alone is wrong from $k=2$ on]
+\label{rem:rsg_theta_trap}
+\uses{thm:rsg_formula, lem:rsf_theta, def:rsg_correction}
+Expanding $e^{\Delta}$ alone (as sketched in \Cref{rem:rsf_next}) gives correction terms
+$T^{-(2k+1)/4}C_{k}(p)$ with $C_{0}=\Psi$.  That is correct for $k\le1$ and
+\emph{false} for $k\ge2$.  The reason is visible in \Cref{thm:rsg_formula}: the phase carried by
+the main term is $\theta-\vartheta$, not $0$, and by \Cref{lem:rsf_theta}
+\[
+  \varepsilon(t):=\theta(t)-\vartheta(t)=\frac1{48\,t}+O(t^{-3})=\frac{T^{-1}}{96\pi}+O(T^{-3}),
+\]
+which is of relative order $T^{-1}$ and therefore contributes to the coefficient of
+$T^{-1/4}\cdot T^{-1}$, i.e.\ to $C_{2}$.  Concretely, writing
+$2\operatorname{Re}(e^{i\varepsilon}e^{-i\pi/8}M_{k})=\cos\varepsilon\,C_{k}
+-\sin\varepsilon\,\Phi_{k}$ and expanding,
+\[
+  C_{k}^{\mathrm{cl}}=C_{k}-\frac{\Phi_{k-2}}{96\pi}\qquad(0\le k\le3,\ \Phi_{j}:=0\text{ for }j<0),
+\]
+the $k\le3$ restriction being because $\cos\varepsilon=1-\tfrac12\varepsilon^{2}+\cdots$ first
+contributes at $k=4$ and the $O(t^{-3})$ term of $\varepsilon$ first contributes at $k=6$.
+
+The omission is invisible at $k\le1$.  A numerical check exhibits it: fix $p$ and let $T=(\nu+p)^{2}$ with
+$\nu=200,600,2000,6000$; compute $Z-\mathcal{S}$ to $40$ digits, subtract the $k\le1$ terms and
+divide by $(-1)^{\nu-1}T^{-1/4}T^{-1}$.  The result converges to $0.005005859\ldots$ at
+$p=0.31$, whereas $C_{2}(p)=0.003354010\ldots$; the difference is
+$-\Phi_{0}(p)/(96\pi)$ to $40$ decimal places, and the corrected value agrees with Gabcke's \cite{Gabcke}
+\[
+  C_{2}^{\mathrm{cl}}=\frac{\Psi^{(6)}}{18432\,\pi^{4}}+\frac{\Psi^{(2)}}{64\,\pi^{2}}
+\]
+to the same accuracy, at $p=0.31$ and at $p=0.62$.  (The $k\le1$ terms need no correction, and
+$C_{1}=-\Psi^{(3)}/(96\pi^{2})$ agrees with the classical value to $40$ digits, an independent
+check of \Cref{lem:rsg_recursion}.  Evaluating the $N_{n}$ both by quadrature and by the
+recursion of \Cref{thm:rsg_closed}, together with the half and unit shifts, agrees to $40$
+digits.)
+\end{remark}
+
+The passage to the classical form needs one input that \Cref{lem:rsf_theta} does not provide:
+that lemma bounds $\theta-\vartheta$, whereas what is needed is its \emph{leading term}, with an
+error small enough not to disturb the coefficient of $T^{-1}$.  That strictly stronger statement
+is \Cref{lem:rsf_theta_sharp}.  It is stated in \Cref{cha:rs_first} because
+\Cref{cor:rsf_formula_sharp} needs it too and nothing in its proof uses this chapter.
+
+\begin{corollary}[Classical form to order three]
+\label{cor:rsg_classical}
+\lean{Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_sub_three_le}
+\uses{thm:rsg_formula, lem:rsf_theta, lem:rsf_theta_sharp, def:rsg_correction,
+cor:rsg_phi_closed}
+Let $T\ge10^{6}$ and assume Siegel's identity at $t=2\pi T$.  Then, with
+\[
+  C^{\mathrm{cl}}_{0}=C_{0}=\Psi,\qquad C^{\mathrm{cl}}_{1}=C_{1},\qquad
+  C^{\mathrm{cl}}_{2}=C_{2}-\frac{\Phi_{0}}{96\pi},
+\]
+all three functions of $p$ alone,
+\[
+  \Bigl\lvert Z(t)-\mathcal{S}(t,\nu)-(-1)^{\nu-1}T^{-1/4}
+    \sum_{k=0}^{2}T^{-k/2}\,C^{\mathrm{cl}}_{k}(p)\Bigr\rvert
+  \;\le\;14712\;T^{-7/4}.
+\]
+\end{corollary}
+
+\begin{proof}
+\uses{thm:rsg_formula, lem:rsf_theta, lem:rsf_theta_sharp, cor:rsg_phi_closed,
+cor:rsg_correction_bound}
+Apply \Cref{thm:rsg_formula} with $K=3$; both side conditions hold for every $T\ge10^{6}$ by
+\Cref{rem:rsg_hypotheses}, and $2E_{3}\le14708$.  It remains to replace
+$2\operatorname{Re}\bigl(e^{i(\varepsilon-\pi/8)}\sum_{k<3}T^{-k/2}M_{k}\bigr)$ by
+$\sum_{k<3}T^{-k/2}C^{\mathrm{cl}}_{k}$ at a cost of at most $4\,T^{-3/2}$; since the whole
+expression is multiplied by $T^{-1/4}$ and $T^{-1/4}T^{-3/2}=T^{-7/4}$ exactly, the total is
+$14708+4=14712$.
+
+Write $\varepsilon:=\theta-\vartheta$ and $\varepsilon_{0}:=\tfrac1{48t}=T^{-1}/(96\pi)$.  Two
+estimates on $\varepsilon$ are used: $\lvert\varepsilon\rvert\le1/(40t)$ from
+\Cref{lem:rsf_theta}, and $\lvert\varepsilon-\varepsilon_{0}\rvert\le319/(2880t^{3})+12/t^{4}$
+from \Cref{lem:rsf_theta_sharp}.  At $T\ge10^{6}$, i.e.\ $t\ge6.28\cdot10^{6}$, the second gives
+$\lvert\varepsilon-\varepsilon_{0}\rvert\le5\cdot10^{-19}$.
+
+Now $e^{i\varepsilon}=1+i\varepsilon_{0}+\rho$ with
+\[
+  \lvert\rho\rvert\le\lvert\varepsilon-\varepsilon_{0}\rvert+\tfrac12\varepsilon^{2}
+  \le\frac1{3000\,t^{2}}\le\frac{T^{-2}}{10^{5}},
+\]
+so that, using $2\operatorname{Re}\bigl(i\,e^{-i\pi/8}M_{k}\bigr)=-\Phi_{k}$,
+\[
+  2\operatorname{Re}\bigl(e^{i(\varepsilon-\pi/8)}M_{k}\bigr)
+   =C_{k}-\varepsilon_{0}\Phi_{k}+2\operatorname{Re}\bigl(\rho\,e^{-i\pi/8}M_{k}\bigr).
+\]
+Multiply by $T^{-k/2}$ and sum over $k<3$.  Of the terms $-\varepsilon_{0}\Phi_{k}T^{-k/2}$, the
+one with $k=0$ is $-\Phi_{0}T^{-1}/(96\pi)$, which is precisely the stated modification of
+$C_{2}$; the two others, and all three $\rho$-terms, are discarded.  By
+\Cref{cor:rsg_correction_bound}, $\lvert\Phi_{1}\rvert\le1178$, $\lvert\Phi_{2}\rvert\le2879$ and
+$\sum_{k<3}\lvert M_{k}\rvert\le2280$, so the discarded terms total at most
+\[
+  \frac{1178\,T^{-3/2}+2879\,T^{-2}}{96\pi}+2\cdot\frac{T^{-2}}{10^{5}}\cdot2280
+  \;\le\;3.91\,T^{-3/2}+9.6\,T^{-2}+0.05\,T^{-2}\;\le\;4\,T^{-3/2},
+\]
+using $T^{-2}\le10^{-3}T^{-3/2}$ at $T\ge10^{6}$.
+\end{proof}
+
+\begin{remark}[On the constants]
+\label{rem:rsg_constants}
+\uses{thm:rsg_saddle, thm:rsf_saddle, cor:rsg_classical}
+$E_{1}\le1179$ against the $22$ of \Cref{thm:rsf_saddle}: at $K=1$ this chapter is worse by a
+factor $54$, and \Cref{cha:rs_first} is not superseded.  The loss is entirely in
+\Cref{lem:rsg_cauchy}: the factor $e^{\lambda(y)}$, which at $K=1$ is replaced in
+\Cref{lem:rsf_inner} by the sharp $\lvert e^{\Delta}-1\rvert\le2\lvert\Delta\rvert$, costs
+$e^{\frac{2\pi}3\lvert y\rvert^{2}}$ and, through it, the degradation of the Gaussian exponent
+from $4\pi$ to $c\ge6.27$.  Taking a Cauchy radius $r=\rho/\lvert y\rvert$ with $\rho<\tfrac12$
+trades this against a factor $\rho^{-K}$ and would give $E_{1}\approx111$ at $\rho=\tfrac18$;
+the choice $\rho=\tfrac12$ is made because $\lvert u\rvert\le\tfrac12$ is already the hypothesis
+of \Cref{lem:rsf_discrepancy_bound}, so that lemma supplies every pointwise estimate.
+
+What the chapter buys is the $K$-dependence.  At $T=10^{6}$, \Cref{cor:rsz_bound} gives $6.0$,
+\Cref{cor:rsf_formula_sharp} gives $2.0\cdot10^{-7}$, and \Cref{cor:rsg_classical} gives
+$4.7\cdot10^{-7}$: at that $T$ the one extra closed-form correction $C_{2}$ does not yet pay,
+$E_{3}$ being crude for the same reason $E_{1}$ is.  The two cross at
+$T=\bigl(14712\cdot\tfrac4{25}\bigr)^{2}=5.5\cdot10^{6}$, and past it the gain grows like
+$T^{1/2}$, with the same $\lfloor\sqrt T\rfloor$ terms of the main sum.
+\end{remark}
+
+\begin{remark}[Coefficients and constants]
+\label{rem:rsg_next}
+\uses{thm:rsg_formula, cor:rsg_classical}
+First, the coefficients: \Cref{thm:rsg_closed} evaluates every $N_{n}$, hence
+every $C_{k}$, in closed form, but through a recursion whose depth is $3k$.  For the
+certification of zeros only $k\le2$ is needed, and those are written out in
+\Cref{cor:rsg_classical}.  Secondly, the constants: $E_{K}$ grows like
+$(2B)^{K}c^{-K/2}\Gamma\bigl(\tfrac K2\bigr)$, which is the correct order of growth for an
+asymptotic expansion but is far from the sharp constants of \cite{Gabcke}, obtained by a
+different treatment of the same integral.  Nothing in this chapter needs them; they would matter
+only if the expansion were pushed to $K$ large enough that $E_{K}T^{-K/2}$ stops decreasing,
+which at $T\ge10^{6}$ happens well beyond any $K$ of interest.
+\end{remark}

@@ -1,0 +1,13 @@
+{
+    "challenge_module": "Main.Challenge",
+    "solution_module": "Main.Solution",
+    "theorem_names": [
+        "Comparator.riemannHypothesisUpTo_10011"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": false
+}

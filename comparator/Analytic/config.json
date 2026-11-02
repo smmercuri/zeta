@@ -1,0 +1,15 @@
+{
+    "challenge_module": "Analytic.Challenge",
+    "solution_module": "Analytic.Solution",
+    "theorem_names": [
+        "Comparator.riemannZeta_N_eq",
+        "Comparator.norm_integral_argZeta_le_five",
+        "Comparator.riemannZeta_N_le_of_gramPoints"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": false
+}

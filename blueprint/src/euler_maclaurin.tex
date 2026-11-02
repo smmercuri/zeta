@@ -1,0 +1,1212 @@
+% Blueprint: the Euler–Maclaurin summation formula with remainder, and its
+% specialization to the Riemann zeta function.
+%
+% This file is a leanblueprint content fragment. It uses the standard
+% leanblueprint macros: \lean{} records the intended Lean declaration name,
+% \uses{} records dependency edges (by \label), and \leanok marks a statement
+% (or proof) whose Lean counterpart is complete.
+
+\chapter{Euler--Maclaurin summation with remainder}
+\label{cha:euler_maclaurin}
+
+\section{Prerequisites from mathlib}
+\label{sec:em_prereqs}
+
+All of the following are already in mathlib and are used as black boxes. They
+are recorded here only to fix notation and to make the dependency edges of the
+new results explicit.
+
+\begin{definition}[Bernoulli numbers]
+\label{def:bernoulli}
+\lean{bernoulli}
+\leanok
+The Bernoulli numbers $B_n \in \mathbb{Q}$, with the convention $B_1 = +\tfrac12$
+(mathlib's \texttt{bernoulli}; the alternative convention is \texttt{bernoulli'}).
+Only even-index values $B_{2k}$ are used below, where the two conventions agree.
+\end{definition}
+
+\begin{definition}[Bernoulli polynomials as functions]
+\label{def:bernoulliFun}
+\lean{bernoulliFun}
+\leanok
+For $k \in \mathbb{N}$, $\operatorname{bernoulliFun} k : \mathbb{R} \to \mathbb{R}$
+is the $k$-th Bernoulli polynomial $B_k(x)$ evaluated as a real function. mathlib
+provides: $B_0(x) = 1$ (\texttt{bernoulliFun\_zero}), $B_1(x) = x - \tfrac12$
+(\texttt{bernoulliFun\_one}), the derivative law
+$\frac{d}{dx} B_k(x) = k\,B_{k-1}(x)$ (\texttt{hasDerivAt\_bernoulliFun}),
+smoothness (\texttt{contDiff\_bernoulliFun}), the endpoint relation
+$B_k(1) = B_k(0)$ for $k \neq 1$ (\texttt{bernoulliFun\_endpoints\_eq\_of\_ne\_one}),
+$B_k(0) = B_k$ (\texttt{bernoulliFun\_eval\_zero}), and the vanishing mean
+$\int_0^1 B_k = 0$ for $k \neq 0$ (\texttt{integral\_bernoulliFun\_eq\_zero}).
+\end{definition}
+
+\begin{definition}[Periodized Bernoulli functions]
+\label{def:periodizedBernoulli}
+\lean{periodizedBernoulli}
+\leanok
+For $k \in \mathbb{N}$, $\widetilde{B_k} := \operatorname{periodizedBernoulli} k$
+is the $1$-periodic function on $\mathbb{R}$ (formally a function on
+\texttt{UnitAddCircle}) that agrees with $B_k(x)$ on $[0,1)$. Equivalently
+$\widetilde{B_k}(x) = B_k(\operatorname{Int.fract} x)$. It is the saw-tooth kernel
+of the Euler--Maclaurin remainder. mathlib (\texttt{Mathlib.NumberTheory.ZetaValues})
+provides its Fourier coefficients and basic regularity.
+\end{definition}
+
+\begin{theorem}[Integration by parts; mathlib]
+\label{thm:ibp}
+\lean{intervalIntegral.integral_mul_deriv_eq_deriv_mul}
+\leanok
+For $u, v$ with $u', v'$ interval-integrable on $[a,b]$,
+$\int_a^b u\,v' = u(b)v(b) - u(a)v(a) - \int_a^b u'\,v$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+In Mathlib as \texttt{intervalIntegral.integral\_mul\_deriv\_eq\_deriv\_mul}.
+\end{proof}
+
+\section{The base case: trapezoidal rule with remainder}
+\label{sec:em_base}
+
+\begin{lemma}[Unit-interval Euler--Maclaurin step]
+\label{lem:em_step}
+\lean{eulerMaclaurin_integral_unitInterval_eq}
+\leanok
+\uses{def:bernoulliFun, thm:ibp}
+Let $f : \mathbb{R} \to \mathbb{R}$ be continuously differentiable on $[0,1]$.
+Then
+\[
+  \int_0^1 f(x)\,dx
+    \;=\; \frac{f(0)+f(1)}{2} \;-\; \int_0^1 \Bigl(x-\tfrac12\Bigr) f'(x)\,dx
+    \;=\; \frac{f(0)+f(1)}{2} \;-\; \int_0^1 B_1(x)\,f'(x)\,dx .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:ibp, def:bernoulliFun}
+Apply integration by parts (\Cref{thm:ibp}) with $u(x) = B_1(x) = x-\tfrac12$ and
+$v = f$, so $u'(x) = 1$ and $v' = f'$:
+\[
+  \int_0^1 B_1(x)\,f'(x)\,dx
+  = B_1(1)f(1) - B_1(0)f(0) - \int_0^1 1\cdot f(x)\,dx
+  = \tfrac12 f(1) + \tfrac12 f(0) - \int_0^1 f(x)\,dx,
+\]
+using $B_1(1) = \tfrac12$ and $B_1(0) = -\tfrac12$. Rearranging gives the claim.
+The hypothesis that $f$ is $C^1$ on $[0,1]$ supplies the interval-integrability of
+$u'=1$ and $v'=f'$ required by \Cref{thm:ibp}.
+\end{proof}
+
+\section{The remainder term}
+\label{sec:em_remainder}
+
+\begin{definition}[Euler--Maclaurin remainder]
+\label{def:em_remainder}
+\lean{eulerMaclaurinRemainder}
+\leanok
+\uses{def:periodizedBernoulli, def:bernoulliFun}
+For $p \ge 1$, a function $f$ that is $C^p$ on $[a,b]$, define
+\[
+  R_p(f; a, b) \;:=\; \frac{(-1)^{p+1}}{p!}\int_a^b \widetilde{B_p}(x)\, f^{(p)}(x)\,dx,
+\]
+where $f^{(p)}$ is the $p$-th iterated derivative and $\widetilde{B_p}$ is the
+periodized Bernoulli function of \Cref{def:periodizedBernoulli}. To pin down the
+integrand as a function of the real variable $x$ (note $\widetilde{B_p}$ is
+formally a function on \texttt{UnitAddCircle}), we read $\widetilde{B_p}(x)$ as
+$\operatorname{bernoulliFun} p\,(\operatorname{Int.fract} x)$, which agrees with
+\texttt{periodizedBernoulli} under the quotient $\mathbb{R} \to$
+\texttt{UnitAddCircle}.
+\end{definition}
+
+\section{Order raising on a single unit interval}
+\label{sec:em_tower}
+
+The order of the remainder is raised one unit interval at a time, because on $[n,n+1]$
+the periodized kernel $\widetilde{B_k}$ coincides with the Bernoulli polynomial
+$x \mapsto B_k(x-n)$, which is $C^\infty$. Every integration by parts then satisfies the
+hypotheses of \Cref{thm:ibp}. The periodized function $\widetilde{B_k}$ itself is only
+$C^0$ (with corners at the integers), so \Cref{thm:ibp} does not apply to it directly on
+$[a,b]$.
+
+The tower is assembled from two building blocks: the base case
+(\Cref{lem:em_step} translated to $[n,n+1]$) and the order-raising
+integration-by-parts recurrence.
+
+\begin{lemma}[Per-interval base step]
+\label{lem:em_step_translate}
+\lean{eulerMaclaurin_integral_interval_eq}
+\leanok
+\uses{lem:em_step, def:bernoulliFun, thm:ibp}
+Let $n \in \mathbb{R}$ and let $f$ be continuously differentiable on $[n,n+1]$. Then
+\[
+  \int_n^{n+1} f(x)\,dx
+    \;=\; \frac{f(n)+f(n+1)}{2} \;-\; \int_n^{n+1} B_1(x-n)\,f'(x)\,dx .
+\]
+This is \Cref{lem:em_step} with the unit-translated Bernoulli kernel $B_1(x-n)$;
+the proof is the same single integration by parts, now with $u(x)=B_1(x-n)$
+(so $u'(x)=1$) and the boundary values $B_1(1)=\tfrac12$, $B_1(0)=-\tfrac12$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_step, def:bernoulliFun, thm:ibp}
+The same single integration by parts as \Cref{lem:em_step}, with $u(x)=B_1(x-n)$
+(so $u'(x)=1$) and boundary values $B_1(1)=\tfrac12$, $B_1(0)=-\tfrac12$.
+\end{proof}
+
+\begin{lemma}[Order-raising recurrence]
+\label{lem:em_recurrence}
+\lean{eulerMaclaurin_integral_bernoulliFun_smul_eq}
+\leanok
+\uses{def:bernoulliFun, def:bernoulli, thm:ibp}
+Let $n \in \mathbb{R}$, let $q \ge 1$, and let $g$ be continuously differentiable on
+$[n,n+1]$. Then, writing $\Delta g := g(n+1)-g(n)$,
+\[
+  \int_n^{n+1} B_q(x-n)\,g(x)\,dx
+    \;=\; \frac{B_{q+1}}{q+1}\,\Delta g
+        \;-\; \frac{1}{q+1}\int_n^{n+1} B_{q+1}(x-n)\,g'(x)\,dx .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:bernoulliFun, def:bernoulli, thm:ibp}
+Integrate by parts (\Cref{thm:ibp}) with $u(x)=B_{q+1}(x-n)/(q+1)$ and $v=g$, so
+that $u'(x)=B_q(x-n)$ (the derivative law $B_{q+1}'=(q+1)B_q$ of
+\Cref{def:bernoulliFun}, divided by $q+1$) and $v'=g'$. Both factors are smooth on
+$[n,n+1]$, so all four hypotheses of \Cref{thm:ibp} hold. The boundary term is
+$\tfrac1{q+1}\bigl(B_{q+1}(1)g(n+1)-B_{q+1}(0)g(n)\bigr)$, and since $q+1 \ge 2 \neq 1$
+we have $B_{q+1}(1)=B_{q+1}(0)=B_{q+1}$
+(\texttt{bernoulliFun\_endpoints\_eq\_of\_ne\_one} and
+\texttt{bernoulliFun\_eval\_zero}). Solving the integration-by-parts identity for
+$\int_n^{n+1}B_q(x-n)g(x)\,dx$ gives the claim.
+\end{proof}
+
+\begin{lemma}[Per-interval Euler--Maclaurin tower, raw form]
+\label{lem:em_unit_tower_raw}
+\lean{eulerMaclaurin_integral_interval_eq_tower}
+\leanok
+\uses{lem:em_step_translate, lem:em_recurrence, def:bernoulliFun, def:bernoulli, thm:ibp}
+Let $n \in \mathbb{R}$ and $p \ge 1$. In the role of the iterated derivatives
+$f^{(q)}$, take an explicit family of functions $F_0, F_1, \dots, F_p$ on
+$[n,n+1]$ with $F_q' = F_{q+1}$ (i.e.\ $F_{q+1}$ is the derivative of $F_q$) for
+$0 \le q < p$, each $F_q$ ($1 \le q \le p$) interval-integrable. Then, writing
+$\Delta F_q := F_q(n+1) - F_q(n)$,
+\[
+  \int_n^{n+1} F_0(x)\,dx
+  \;=\; \frac{F_0(n)+F_0(n+1)}{2}
+      \;+\; \sum_{q=1}^{p-1} \frac{(-1)^{q}\,B_{q+1}}{(q+1)!}\,\Delta F_q
+      \;+\; \frac{(-1)^{p}}{p!}\int_n^{n+1} B_p(x-n)\, F_p(x)\,dx .
+\]
+This is the per-interval tower before the even/odd collapse; specializing $F_q$ to
+$f^{(q)}$ recovers the iterated-derivative form. The collapse to even indices
+(\Cref{lem:em_unit_tower}) is a separate cosmetic step using the vanishing of
+odd-index Bernoulli numbers.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_step_translate, lem:em_recurrence, def:bernoulliFun, def:bernoulli}
+Induction on $p \ge 1$. \emph{Base $p = 1$:} the sum $\sum_{q=1}^{0}$ is empty and
+$\tfrac{(-1)^1}{1!} = -1$, so the claim is exactly the per-interval base step
+(\Cref{lem:em_step_translate}) applied to $f = F_0$, $f' = F_1$. \emph{Step
+$p \to p+1$:} apply the induction hypothesis (its derivative/integrability premises
+are the restrictions of those for $p+1$) to rewrite $\int_n^{n+1}F_0$, then expand the
+leftover order-$p$ integral $T_p := \int_n^{n+1} B_p(x-n)F_p$ by the order-raising
+recurrence (\Cref{lem:em_recurrence}) with $g = F_p$, $g' = F_{p+1}$:
+\[
+  \frac{(-1)^p}{p!}T_p
+  = \frac{(-1)^p}{p!}\Bigl(\frac{B_{p+1}}{p+1}\Delta F_p - \frac{1}{p+1}T_{p+1}\Bigr)
+  = \frac{(-1)^p B_{p+1}}{(p+1)!}\Delta F_p + \frac{(-1)^{p+1}}{(p+1)!}T_{p+1},
+\]
+using $p!\,(p+1) = (p+1)!$ and $-(-1)^p = (-1)^{p+1}$. The first summand is exactly the
+new $q = p$ term of $\sum_{q=1}^{p}$, and the second is the new leftover integral, which
+is the claim for $p+1$.
+\end{proof}
+
+\begin{lemma}[Global Euler--Maclaurin tower, raw form]
+\label{lem:em_global_raw}
+\lean{eulerMaclaurin_integral_eq_tower_sum}
+\leanok
+\uses{lem:em_unit_tower_raw, lem:em_step_translate, lem:em_recurrence, def:bernoulliFun, def:bernoulli}
+Let $a \in \mathbb{R}$, $N \in \mathbb{N}$, $p \ge 1$, and let $F_0, \dots, F_p$ be a
+family on $[a, a+N]$ with $F_q' = F_{q+1}$ for $0 \le q < p$ and each $F_q$
+($1 \le q \le p$) interval-integrable. Then
+\[
+  \int_a^{a+N} F_0(x)\,dx
+  \;=\; \sum_{n=0}^{N-1} \frac{F_0(a+n)+F_0(a+n+1)}{2}
+      \;+\; \sum_{q=1}^{p-1} \frac{(-1)^{q}\,B_{q+1}}{(q+1)!}\,\bigl(F_q(a+N) - F_q(a)\bigr)
+      \;+\; \frac{(-1)^{p}}{p!}\sum_{n=0}^{N-1}\int_{a+n}^{a+n+1} B_p(x-(a+n))\, F_p(x)\,dx .
+\]
+This is the per-interval raw tower (\Cref{lem:em_unit_tower_raw}) summed over the $N$ unit
+intervals: the integrals concatenate, the Bernoulli boundary differences telescope, and
+the order-$p$ remainder constant factors out. It is the global tower before the even/odd
+collapse and before identifying the remainder integrals with the periodized-Bernoulli
+integral of \Cref{def:em_remainder}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_unit_tower_raw}
+Apply \Cref{lem:em_unit_tower_raw} on each $[a+n, a+n+1]$ (its derivative and
+integrability premises are the restrictions of the global ones, since
+$[a+n,a+n+1]\subseteq[a,a+N]$ for $n<N$) and sum over $n = 0, \dots, N-1$. The left-hand
+sides concatenate to $\int_a^{a+N} F_0$ (mathlib
+\texttt{intervalIntegral.sum\_integral\_adjacent\_intervals}, using continuity of $F_0$).
+On the right, the trapezoidal terms collect directly; the order-$q$ boundary differences
+$\sum_{n}\bigl(F_q(a+n+1)-F_q(a+n)\bigr)$ telescope to $F_q(a+N)-F_q(a)$ (mathlib
+\texttt{Finset.sum\_range\_sub}) after exchanging the $n$- and $q$-summations; and the
+constant $\tfrac{(-1)^p}{p!}$ factors out of the remainder sum.
+\end{proof}
+
+\begin{lemma}[Global Euler--Maclaurin summation, raw form]
+\label{lem:em_sum_raw}
+\lean{eulerMaclaurin_sum_eq_tower_integral}
+\leanok
+\uses{lem:em_global_raw}
+Under the hypotheses of \Cref{lem:em_global_raw} (a family $F_0, \dots, F_p$ on $[a,a+N]$
+with $F_q' = F_{q+1}$ for $0 \le q < p$ and each $F_q$, $1 \le q \le p$, interval-integrable),
+\[
+  \sum_{n=0}^{N} F_0(a+n)
+  \;=\; \int_a^{a+N} F_0(x)\,dx \;+\; \frac{F_0(a)+F_0(a+N)}{2}
+      \;-\; \sum_{q=1}^{p-1} \frac{(-1)^{q}\,B_{q+1}}{(q+1)!}\,\bigl(F_q(a+N) - F_q(a)\bigr)
+      \;-\; \frac{(-1)^{p}}{p!}\sum_{n=0}^{N-1}\int_{a+n}^{a+n+1} B_p(x-(a+n))\, F_p(x)\,dx .
+\]
+This is the value-sum counterpart of \Cref{lem:em_global_raw}: it is the global raw tower
+rearranged so that the left-hand side is the sum of the $N+1$ sample values
+$F_0(a), \dots, F_0(a+N)$. It is the raw form of the Euler--Maclaurin summation formula
+(\Cref{thm:euler_maclaurin}), still before the even/odd Bernoulli collapse and before the
+remainder integrals are identified with the periodized-Bernoulli integral
+$R_p$ of \Cref{def:em_remainder}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_global_raw}
+Rearrange \Cref{lem:em_global_raw} for the trapezoidal sum and apply the trapezoidal
+reindexing
+\[
+  \sum_{n=0}^{N-1} \frac{F_0(a+n)+F_0(a+n+1)}{2}
+    \;=\; \sum_{n=0}^{N} F_0(a+n) \;-\; \frac{F_0(a)+F_0(a+N)}{2},
+\]
+which is an immediate induction on $N$ (the half-endpoints telescope). Substituting and
+solving for $\sum_{n=0}^{N} F_0(a+n)$ gives the claim.
+\end{proof}
+
+\section{The even/odd collapse}
+\label{sec:em_collapse}
+
+\begin{lemma}[Even/odd collapse of the Bernoulli boundary sum]
+\label{lem:bernoulli_even_collapse}
+\lean{eulerMaclaurin_sum_Ico_bernoulli_collapse}
+\leanok
+\uses{def:bernoulli}
+For any coefficient family $c : \mathbb{N} \to \mathbb{R}$ and any $p \in \mathbb{N}$,
+\[
+  \sum_{q=1}^{p-1} \frac{(-1)^{q} B_{q+1}}{(q+1)!}\, c(q)
+  \;=\; -\sum_{k=1}^{\lfloor p/2 \rfloor} \frac{B_{2k}}{(2k)!}\, c(2k-1).
+\]
+This is a purely combinatorial identity in $c$; applied with
+$c(q) = F_q(a+N) - F_q(a)$ it converts the signed alternating Bernoulli boundary sum of
+the raw towers (\Cref{lem:em_global_raw}, \Cref{lem:em_sum_raw}) into the classical
+even-index form.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:bernoulli}
+Two facts drive the collapse. First, for every $q \ge 1$ one has
+$(-1)^q B_{q+1} = -B_{q+1}$: if $q$ is odd this is immediate, and if $q$ is even then
+$q+1$ is odd and $\ge 3$, so $B_{q+1} = 0$ (the odd-index Bernoulli numbers vanish,
+\texttt{bernoulli\_eq\_zero\_of\_odd}) and both sides are $0$. Hence every summand equals
+$-\frac{B_{q+1}}{(q+1)!}c(q)$, and the terms with $q$ even vanish. Discarding them
+(\texttt{Finset.sum\_filter\_of\_ne}) leaves the sum over odd $q$, which we reindex by
+$q = 2k-1$, $k = (q+1)/2$ (a bijection of $\{q \in [1,p) : q \text{ odd}\}$ with
+$\{1, \dots, \lfloor p/2\rfloor\}$, \texttt{Finset.sum\_bij'}); the surviving term at
+$q = 2k-1$ is exactly $-\frac{B_{2k}}{(2k)!}c(2k-1)$.
+\end{proof}
+
+\begin{lemma}[Global Euler--Maclaurin summation, even-index form]
+\label{lem:em_sum_even}
+\lean{eulerMaclaurin_sum_eq_tower_integral_even}
+\leanok
+\uses{lem:em_sum_raw, lem:bernoulli_even_collapse}
+Under the hypotheses of \Cref{lem:em_sum_raw},
+\[
+  \sum_{n=0}^{N} F_0(a+n)
+  \;=\; \int_a^{a+N} F_0(x)\,dx \;+\; \frac{F_0(a)+F_0(a+N)}{2}
+      \;+\; \sum_{k=1}^{\lfloor p/2\rfloor} \frac{B_{2k}}{(2k)!}\,\bigl(F_{2k-1}(a+N) - F_{2k-1}(a)\bigr)
+      \;-\; \frac{(-1)^{p}}{p!}\sum_{n=0}^{N-1}\int_{a+n}^{a+n+1} B_p(x-(a+n))\, F_p(x)\,dx .
+\]
+This is \Cref{lem:em_sum_raw} after the even/odd collapse
+(\Cref{lem:bernoulli_even_collapse}) of its Bernoulli boundary sum; note the sign of the
+boundary sum flips to $+$. The remainder integrals are still the per-interval ones, before
+identification with the periodized-Bernoulli integral.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_sum_raw, lem:bernoulli_even_collapse}
+Apply the collapse (\Cref{lem:bernoulli_even_collapse}) with
+$c(q) = F_q(a+N) - F_q(a)$ to the Bernoulli boundary sum of \Cref{lem:em_sum_raw}; the
+overall minus sign in front of that sum turns the collapse's $-$ into $+$.
+\end{proof}
+
+\begin{lemma}[Per-interval Euler--Maclaurin tower]
+\label{lem:em_unit_tower}
+\lean{eulerMaclaurin_integral_unitInterval_eq_tower}
+\leanok
+\uses{lem:em_unit_tower_raw, lem:bernoulli_even_collapse, def:bernoulliFun, def:bernoulli, thm:ibp}
+Let $n \in \mathbb{Z}$, $p \ge 1$, and let $f$ be $C^p$ on $[n, n+1]$. Writing
+$\Delta g := g(n+1) - g(n)$,
+\[
+  \int_n^{n+1} f(x)\,dx
+  \;=\; \frac{f(n)+f(n+1)}{2}
+      \;-\; \sum_{k=1}^{\lfloor p/2\rfloor} \frac{B_{2k}}{(2k)!}\,\Delta f^{(2k-1)}
+      \;+\; \frac{(-1)^{p}}{p!}\int_n^{n+1} B_p(x-n)\, f^{(p)}(x)\,dx .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_unit_tower_raw, lem:bernoulli_even_collapse, def:bernoulliFun, def:bernoulli}
+The Lean proof reorganises the classical unrolling below: it specializes the raw
+per-interval tower (\Cref{lem:em_unit_tower_raw}) to the iterated derivatives
+$F_q = f^{(q)}$ and applies the even/odd collapse (\Cref{lem:bernoulli_even_collapse})
+to its Bernoulli boundary sum.
+
+Let $T_q := \int_n^{n+1} B_q(x-n)\,f^{(q)}(x)\,dx$ for $1 \le q \le p$, where
+$x \mapsto B_q(x-n)$ is a smooth polynomial on $[n,n+1]$.
+
+\emph{Base $p=1$.} \Cref{lem:em_step}, after the change of variables $x \mapsto x-n$
+(a unit right-translation; mathlib \texttt{intervalIntegral.integral\_comp\_sub\_right})
+and using $\widetilde{B_1}(x)=B_1(x-n)$ on $[n,n+1)$, reads
+$\int_n^{n+1} f = \tfrac{f(n)+f(n+1)}{2} - T_1$. Since $\lfloor 1/2\rfloor = 0$ the
+Bernoulli sum is empty and $\tfrac{(-1)^1}{1!}T_1 = -T_1$, so the claim holds.
+
+\emph{Recurrence for $T_q$.} For $1 \le q$, integrate $T_q$ by parts
+(\Cref{thm:ibp}) with $u(x) = B_{q+1}(x-n)/(q+1)$ and $v = f^{(q)}$, using
+$\frac{d}{dx}\frac{B_{q+1}(x-n)}{q+1} = B_q(x-n)$ (the derivative law of
+\Cref{def:bernoulliFun}). All four hypotheses of \Cref{thm:ibp} hold because both
+factors are smooth on $[n,n+1]$. The boundary term is
+$\frac{1}{q+1}\bigl(B_{q+1}(1) f^{(q)}(n+1) - B_{q+1}(0) f^{(q)}(n)\bigr)$, and since
+$q+1 \ge 2 \neq 1$ we have $B_{q+1}(1) = B_{q+1}(0) = B_{q+1}$
+(\texttt{bernoulliFun\_endpoints\_eq\_of\_ne\_one} and \texttt{bernoulliFun\_eval\_zero}).
+Hence
+\[
+  T_q \;=\; \frac{B_{q+1}}{q+1}\,\Delta f^{(q)} \;-\; \frac{1}{q+1}\,T_{q+1}.
+\]
+
+\emph{Unrolling.} Substituting $T_1$ from the recurrence into the base identity and
+iterating up to $q = p-1$, an immediate induction shows the coefficient of $T_q$ in
+$\int_n^{n+1} f$ is $\frac{(-1)^q}{q!}$, and the accumulated boundary terms are
+$-\sum_{q=1}^{p-1}\frac{(-1)^{q-1}}{q!}\cdot\frac{B_{q+1}}{q+1}\Delta f^{(q)}
+ = -\sum_{q=1}^{p-1}\frac{(-1)^{q-1}B_{q+1}}{(q+1)!}\Delta f^{(q)}$.
+Now $(-1)^{q-1}B_{q+1} = B_{q+1}$ for every $q \ge 1$: if $q+1$ is even then
+$(-1)^{q-1} = +1$; if $q+1$ is odd and $\ge 3$ then $B_{q+1} = 0$
+(odd-index Bernoulli numbers vanish), so the equality holds trivially. Therefore
+only the terms with $q+1 = 2k$ survive, contributing exactly
+$-\sum_{k=1}^{\lfloor p/2\rfloor}\frac{B_{2k}}{(2k)!}\Delta f^{(2k-1)}$, and the
+leftover term is $\frac{(-1)^p}{p!}T_p$, as claimed. \qed
+\end{proof}
+
+\section{The Euler--Maclaurin summation formula}
+\label{sec:em_main}
+
+\begin{theorem}[Euler--Maclaurin summation formula with remainder]
+\label{thm:euler_maclaurin}
+\lean{eulerMaclaurin_sum_eq}
+\leanok
+\uses{def:bernoulli, def:em_remainder, lem:em_unit_tower, lem:em_sum_even, def:periodizedBernoulli}
+Let $a \le b$ be integers, let $p \ge 1$, and let $E$ be a real Banach space, and let
+$f : \mathbb{R} \to E$ be $C^p$ on $[a,b]$. Then
+\[
+  \sum_{n=a}^{b} f(n)
+  \;=\; \int_a^b f(x)\,dx
+      \;+\; \frac{f(a)+f(b)}{2}
+      \;+\; \sum_{k=1}^{\lfloor p/2\rfloor} \frac{B_{2k}}{(2k)!}\Bigl(f^{(2k-1)}(b) - f^{(2k-1)}(a)\Bigr)
+      \;+\; R_p(f; a, b).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:em_sum_even, def:em_remainder, def:bernoulliFun, def:periodizedBernoulli}
+In Lean the global summation is carried out once at the family level
+(\Cref{lem:em_sum_even}), specialized here to $F_q = f^{(q)}$; the per-interval
+identity below (\Cref{lem:em_unit_tower}) is its mathematical content. It then only
+remains to identify the per-interval remainder integrals with $R_p$: with $a$ an
+integer, on $[a+n,a+n+1)$ the kernel $B_p(x-(a+n))$ equals $B_p(\operatorname{Int.fract} x)$
+almost everywhere, so the unit integrals concatenate to
+$\int_a^{a+N} \widetilde{B_p}(x) f^{(p)}(x)\,dx$.
+
+Sum the per-interval identity of \Cref{lem:em_unit_tower} over the integer points
+$n = a, a+1, \dots, b-1$ (a $C^p$ function on $[a,b]$ is $C^p$ on each subinterval):
+\[
+  \int_a^b f
+  = \sum_{n=a}^{b-1}\frac{f(n)+f(n+1)}{2}
+    - \sum_{k=1}^{\lfloor p/2\rfloor}\frac{B_{2k}}{(2k)!}\sum_{n=a}^{b-1}\Delta f^{(2k-1)}
+    + \frac{(-1)^p}{p!}\sum_{n=a}^{b-1}\int_n^{n+1} B_p(x-n)\,f^{(p)}(x)\,dx .
+\]
+Three telescoping/concatenation facts finish the proof.
+\begin{enumerate}
+\item \emph{Trapezoidal endpoints:}
+  $\sum_{n=a}^{b-1}\frac{f(n)+f(n+1)}{2} = \sum_{n=a}^{b} f(n) - \frac{f(a)+f(b)}{2}$.
+\item \emph{Bernoulli differences telescope:}
+  $\sum_{n=a}^{b-1}\Delta f^{(2k-1)} = \sum_{n=a}^{b-1}\bigl(f^{(2k-1)}(n+1)-f^{(2k-1)}(n)\bigr)
+   = f^{(2k-1)}(b)-f^{(2k-1)}(a)$.
+\item \emph{Remainder integrals concatenate:} on $[n,n+1)$ one has
+  $B_p(x-n) = \widetilde{B_p}(x)$ (\Cref{def:periodizedBernoulli}), so the unit
+  integrals join to $\int_a^b \widetilde{B_p}(x) f^{(p)}(x)\,dx$, whence
+  $\frac{(-1)^p}{p!}\sum_n \int_n^{n+1}B_p(x-n)f^{(p)}
+  = -\frac{(-1)^{p+1}}{p!}\int_a^b \widetilde{B_p}f^{(p)} = -R_p(f;a,b)$
+  (\Cref{def:em_remainder}).
+\end{enumerate}
+Substituting (1)--(3) gives
+$\int_a^b f = \sum_{n=a}^b f(n) - \frac{f(a)+f(b)}{2}
+ - \sum_{k}\frac{B_{2k}}{(2k)!}\bigl(f^{(2k-1)}(b)-f^{(2k-1)}(a)\bigr) - R_p(f;a,b)$,
+and rearranging for $\sum_{n=a}^b f(n)$ is exactly the assertion. \qed
+\end{proof}
+
+\begin{remark}
+\label{rem:em_side_conditions}
+\uses{thm:euler_maclaurin}
+The side conditions needed to discharge \Cref{thm:euler_maclaurin} in Lean are:
+(i) interval-integrability of each $\widetilde{B_p}\,f^{(p)}$, which follows from
+continuity of $\widetilde{B_p}$ for $p \ge 2$ and boundedness for $p=1$ together
+with $C^p$ regularity of $f$; (ii) the iterated-derivative bookkeeping relating
+$f^{(p)}$ to \texttt{iteratedDeriv}. These are routine but voluminous.
+\end{remark}
+
+\section{Complex-valued Euler--Maclaurin}
+\label{sec:em_complex}
+
+The zeta application takes $f(x) = x^{-s}$, a $\mathbb{C}$-valued function, whereas the
+classical statement is for $f : \mathbb{R} \to \mathbb{R}$. No transfer argument is needed.
+The periodized Bernoulli kernel $\widetilde{B_p}$ is a \emph{real} scalar, acting on $f^{(p)}$
+by scalar multiplication, and the Bernoulli coefficients $B_{2k}/(2k)!$ are real. So both
+\Cref{def:em_remainder} and \Cref{thm:euler_maclaurin} are stated once for $f : \mathbb{R} \to
+E$ with $E$ any real Banach space, the integral being the Bochner integral. The complex case is
+the instance $E = \mathbb{C}$.
+
+\begin{lemma}[Complex-valued Euler--Maclaurin summation]
+\label{lem:em_sum_complex}
+\lean{Complex.sum_eq}
+\leanok
+\uses{thm:euler_maclaurin, def:em_remainder}
+Let $a$ be an integer, $p \ge 1$, $N \in \mathbb{N}$ and $f : \mathbb{R} \to \mathbb{C}$ be such
+that the iterated derivatives satisfy the derivative chain $(f^{(q)})' = f^{(q+1)}$ on
+$[a, a+N]$ for $q < p$, and each $f^{(q)}$ ($1 \le q \le p$) is interval-integrable on
+$[a, a+N]$. Then
+\[
+  \sum_{n=0}^{N} f(a+n)
+  \;=\; \int_a^{a+N} f(x)\,dx \;+\; \frac{f(a)+f(a+N)}{2}
+      \;+\; \sum_{k=1}^{\lfloor p/2\rfloor} \frac{B_{2k}}{(2k)!}\bigl(f^{(2k-1)}(a+N) - f^{(2k-1)}(a)\bigr)
+      \;+\; R_p(f; a, a+N),
+\]
+the verbatim $\mathbb{C}$-valued analogue of \Cref{thm:euler_maclaurin}, with the real scalar
+action read as complex multiplication.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:euler_maclaurin}
+Instantiate \Cref{thm:euler_maclaurin} at $E = \mathbb{C}$ and rewrite the real scalar action
+as complex multiplication (\texttt{Complex.real\_smul}). The remainder is put into its
+multiplicative form $R_p(f;a,b) = \frac{(-1)^{p+1}}{p!}\int_a^b \widetilde{B_p}(x) f^{(p)}(x)\,dx$
+by \texttt{Complex.eulerMaclaurinRemainder\_eq}.
+\end{proof}
+
+\section{The power function \texorpdfstring{$x^{-s}$}{x^{-s}} and its derivatives}
+\label{sec:em_power}
+
+Throughout, $f_s : \mathbb{R} \to \mathbb{C}$ denotes $f_s(x) = (x:\mathbb{C})^{-s}$, and
+$(s)_j := \prod_{i=0}^{j-1}(s+i)$ is the rising factorial (mathlib \texttt{ascPochhammer},
+with $(s)_j = (\texttt{ascPochhammer}\ \mathbb{C}\ j).\mathrm{eval}\,s$; in particular
+$(s)_0 = 1$ and $(s)_{j+1} = (s)_j\,(s+j)$).
+
+\begin{lemma}[Iterated derivatives of $x^{-s}$]
+\label{lem:iteratedDeriv_cpow}
+\lean{Complex.iteratedDeriv_cpow_ofReal_neg}
+\leanok
+For $s \in \mathbb{C}$, $j \in \mathbb{N}$, and $x > 0$,
+\[
+  f_s^{(j)}(x) \;=\; (-1)^j\,(s)_j\,(x:\mathbb{C})^{-s-j}.
+\]
+The induction below in fact establishes the stronger \texttt{HasDerivAt} form
+$\mathrm{HasDerivAt}\,(f_s^{(j)})\,\bigl((-1)^{j+1}(s)_{j+1}(x)^{-s-(j+1)}\bigr)\,x$ on
+$x > 0$ (formalized as the companion lemma
+\texttt{Complex.hasDerivAt\_iteratedDeriv\_cpow\_ofReal\_neg}, stated as
+$\mathrm{HasDerivAt}\,(f_s^{(j)})\,(f_s^{(j+1)}(x))\,x$), which is what discharges the
+derivative-chain hypothesis of \Cref{lem:em_sum_complex} in \Cref{lem:sum_cpow}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Induction on $j$. The single-step rule is, for $x > 0$ and any exponent
+$c \in \mathbb{C}$, $\frac{d}{dx}(x:\mathbb{C})^{c} = c\,(x:\mathbb{C})^{c-1}$ as a
+\texttt{HasDerivAt} statement (mathlib \texttt{hasDerivAt\_ofReal\_cpow\_const} for
+$c \neq 0$; for $c = 0$ the function is the constant $1$ and both sides vanish). The base
+$j = 0$ is $f_s(x) = (x)^{-s}$ with $(s)_0 = 1$. For the step, the open half-line
+$x > 0$ lets us differentiate $x \mapsto (-1)^j(s)_j(x)^{-s-j}$ pointwise: the rule gives
+\[
+  (-1)^j(s)_j\,(-s-j)\,(x)^{-s-j-1}
+  = (-1)^{j+1}(s)_j(s+j)\,(x)^{-s-(j+1)}
+  = (-1)^{j+1}(s)_{j+1}\,(x)^{-s-(j+1)},
+\]
+using $-(-s-j) = s+j$ and $(s)_j(s+j) = (s)_{j+1}$. Combined with
+$f_s^{(j+1)} = (f_s^{(j)})'$ (\texttt{iteratedDeriv\_succ}) this is the claim for $j+1$.
+\end{proof}
+
+\section{The finite Euler--Maclaurin expansion of the zeta partial sums}
+\label{sec:em_zeta_finite}
+
+\begin{lemma}[Finite Euler--Maclaurin expansion of $\sum n^{-s}$]
+\label{lem:sum_cpow}
+\lean{Complex.sum_cpow_eq}
+\leanok
+\uses{lem:em_sum_complex, lem:iteratedDeriv_cpow, def:em_remainder}
+Let $s \in \mathbb{C}$ with $s \neq 1$, $M \in \mathbb{N}$, and integers $1 \le N \le R$.
+Then, with $f_s(x) = (x:\mathbb{C})^{-s}$ and order $p = 2M+1$,
+\[
+  \sum_{n=N}^{R} n^{-s}
+  = \frac{R^{1-s} - N^{1-s}}{1-s} + \frac{N^{-s}+R^{-s}}{2}
+    - \sum_{k=1}^{M}\frac{B_{2k}}{(2k)!}(s)_{2k-1}\bigl(R^{-s-(2k-1)} - N^{-s-(2k-1)}\bigr)
+    + R_{2M+1}(f_s; N, R).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_sum_complex, lem:iteratedDeriv_cpow}
+Apply \Cref{lem:em_sum_complex} with $a = N$, the number of unit intervals $R - N$, order
+$p = 2M+1$ (so $\lfloor p/2\rfloor = M$), and $f = f_s$. On $[N,R]$ with $N \ge 1$ the base
+is positive, so \Cref{lem:iteratedDeriv_cpow} supplies the derivative chain
+$(f_s^{(q)})' = f_s^{(q+1)}$, and each $f_s^{(q)}$ is continuous on $[N,R] \subset (0,\infty)$,
+hence interval-integrable. Three substitutions finish.
+\begin{enumerate}
+\item \emph{Integral:} $\int_N^R (x)^{-s}\,dx = \frac{R^{1-s}-N^{1-s}}{1-s}$ for $s \neq 1$,
+  since $\frac{d}{dx}\frac{x^{1-s}}{1-s} = (x)^{-s}$ on $x > 0$ (FTC, from the cpow
+  derivative rule).
+\item \emph{Bernoulli boundary terms:} by \Cref{lem:iteratedDeriv_cpow},
+  $f_s^{(2k-1)}(x) = -(s)_{2k-1}(x)^{-s-(2k-1)}$ (as $(-1)^{2k-1} = -1$), so the $k$-th
+  boundary term $\frac{B_{2k}}{(2k)!}\bigl(f_s^{(2k-1)}(R)-f_s^{(2k-1)}(N)\bigr)$ equals
+  $-\frac{B_{2k}}{(2k)!}(s)_{2k-1}\bigl(R^{-s-(2k-1)}-N^{-s-(2k-1)}\bigr)$.
+\item \emph{Endpoints:} $\frac{f_s(N)+f_s(R)}{2} = \frac{N^{-s}+R^{-s}}{2}$, and the
+  reindexed left-hand side $\sum_{n=0}^{R-N} f_s(N+n) = \sum_{n=N}^{R} n^{-s}$.
+\end{enumerate}
+\end{proof}
+
+\section{Specialization to the Riemann zeta function}
+\label{sec:em_zeta}
+
+Passing $R \to \infty$ in \Cref{lem:sum_cpow} and identifying the limit of the partial
+sums with $\zeta(s)$ yields the Euler--Maclaurin expansion of $\zeta$. The limit is taken
+first in the region of absolute convergence $\operatorname{Re} s > 1$
+(\Cref{lem:zeta_em_conv}), then propagated to
+$\operatorname{Re} s > -(2M+1)$, $s \neq 1$, by analytic continuation
+(\Cref{lem:zeta_em_analytic} and \Cref{thm:zeta_em}). Write
+\[
+  R_M(s,N) \;:=\; R_{2M+1}(f_s; N, \infty)
+  \;=\; \frac{1}{(2M+1)!}\int_N^{\infty} \widetilde{B}_{2M+1}(x)\,f_s^{(2M+1)}(x)\,dx
+\]
+for the improper order-$(2M+1)$ remainder (note $(-1)^{2M+2} = 1$). This integral converges
+absolutely only for $\operatorname{Re} s > -2M$; on the remaining strip
+$-(2M+1) < \operatorname{Re} s \le -2M$ the symbol $R_M(s,N)$ denotes instead the
+analytically continued value supplied by the order-$(2M+2)$ representation of
+\Cref{lem:zeta_em_analytic} (the two agree wherever both make sense).
+
+\begin{definition}[Improper Euler--Maclaurin remainder]
+\label{def:em_remainder_Ioi}
+\lean{Complex.eulerMaclaurinRemainderIoi}
+\leanok
+\uses{def:periodizedBernoulli, def:em_remainder}
+For $p \ge 1$ and $f$ that is $C^p$ on $[a,\infty)$, the improper remainder is
+\[
+  R_p^{\infty}(f; a) \;:=\; \frac{(-1)^{p+1}}{p!}\int_a^{\infty} \widetilde{B_p}(x)\, f^{(p)}(x)\,dx,
+\]
+the $b \to \infty$ limit of \Cref{def:em_remainder}, with $\widetilde{B_p}(x)$ read as
+$\operatorname{bernoulliFun} p\,(\operatorname{Int.fract} x)$ as before. In the zeta
+application $R_M(s,N) = R_{2M+1}^{\infty}(f_s; N)$.
+\end{definition}
+
+\begin{lemma}[Absolute convergence of the zeta remainder integral]
+\label{lem:integrable_rem_zeta}
+\lean{Complex.integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_cpow}
+\leanok
+\uses{def:periodizedBernoulli, lem:iteratedDeriv_cpow}
+Let $N \ge 1$ and $\operatorname{Re} s + p > 1$. Then the integrand
+$x \mapsto \widetilde{B_p}(x)\,f_s^{(p)}(x)$ of the order-$p$ remainder is (Lebesgue)
+integrable on $(N, \infty)$. Indeed the periodized Bernoulli kernel is bounded, say
+$|\widetilde{B_p}| \le C$ (it is $\operatorname{bernoulliFun} p$ composed with
+$\operatorname{Int.fract}$, and $\operatorname{bernoulliFun} p$ is continuous on the compact
+$[0,1]$), while $\|f_s^{(p)}(x)\| = |(s)_p|\,x^{-\operatorname{Re} s - p}$ by
+\Cref{lem:iteratedDeriv_cpow}; hence $\|\widetilde{B_p}(x)\,f_s^{(p)}(x)\| \le
+C\,|(s)_p|\,x^{-\operatorname{Re} s - p}$, and $x^{-\operatorname{Re} s - p}$ is integrable on
+$(N,\infty)$ because $-\operatorname{Re} s - p < -1$. In particular $R_M(s,N)$ converges
+absolutely for $\operatorname{Re} s > -2M$ (taking $p = 2M+1$), a fortiori for
+$\operatorname{Re} s > 1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:iteratedDeriv_cpow}
+Dominated convergence: the integrand is a.e.-strongly-measurable on $(N,\infty)$ (the kernel
+is measurable as $\operatorname{bernoulliFun} p \circ \operatorname{Int.fract}$, and
+$x \mapsto x^{-s-p}$ is continuous on $(0,\infty) \supseteq (N,\infty)$), and is dominated by
+the integrable $x \mapsto C\,|(s)_p|\,x^{-\operatorname{Re} s - p}$ as displayed
+(\texttt{integrableOn\_Ioi\_rpow\_of\_lt} for the dominating function, using $N > 0$ and
+$-\operatorname{Re} s - p < -1$). The pointwise bound uses
+$\|(x:\mathbb{C})^{-s-p}\| = x^{-\operatorname{Re} s - p}$ for $x > 0$
+(\texttt{Complex.norm\_cpow\_eq\_rpow\_re\_of\_pos}).
+\end{proof}
+
+\begin{lemma}[Remainder converges and the partial sums tend to $\zeta$, $\operatorname{Re} s > 1$]
+\label{lem:zeta_em_conv}
+\lean{riemannZeta_eq_of_one_lt_re}
+\leanok
+\uses{lem:sum_cpow, def:em_remainder_Ioi, lem:integrable_rem_zeta}
+For $\operatorname{Re} s > 1$ and integer $N \ge 1$, the improper integral $R_M(s,N)$
+converges and
+\[
+  \zeta(s) = \sum_{n=1}^{N-1} n^{-s} + \frac{N^{1-s}}{s-1} + \tfrac12 N^{-s}
+    + \sum_{k=1}^{M} \frac{B_{2k}}{(2k)!}\,(s)_{2k-1}\,N^{-s-(2k-1)} + R_M(s,N).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:sum_cpow, def:em_remainder_Ioi, lem:integrable_rem_zeta}
+Take $R \to \infty$ through the integers $R \ge N$ in \Cref{lem:sum_cpow}. The left-hand
+partial sums $\sum_{n=N}^{R} n^{-s}$ converge to $\sum_{n=N}^{\infty} n^{-s} =
+\zeta(s) - \sum_{n=1}^{N-1} n^{-s}$: the series $\sum_n n^{-s}$ is summable for
+$\operatorname{Re} s > 1$ (\texttt{Complex.summable\_one\_div\_nat\_cpow}), its total sum is
+$\zeta(s)$ (\texttt{zeta\_eq\_tsum\_one\_div\_nat\_add\_one\_cpow}, since the $n=0$ term
+$0^{-s}$ vanishes), and $\sum_{n \in [N,R]} = \sum_{n<R+1} - \sum_{n<N}$ tends to the tail.
+On the right-hand side, every power of $R$ has an exponent of negative real part
+($\operatorname{Re}(1-s) < 0$, $\operatorname{Re}(-s) < 0$,
+$\operatorname{Re}(-s-(2k-1)) < 0$), so $\|R^{c}\| = R^{\operatorname{Re} c} \to 0$
+(\texttt{Complex.norm\_cpow\_eq\_rpow\_re\_of\_pos} and \texttt{tendsto\_rpow\_neg\_atTop});
+hence $\frac{R^{1-s}-N^{1-s}}{1-s} \to \frac{-N^{1-s}}{1-s} = \frac{N^{1-s}}{s-1}$, the
+endpoint term $\to \tfrac12 N^{-s}$, and the Bernoulli sum $\to +\sum_k \frac{B_{2k}}{(2k)!}
+(s)_{2k-1} N^{-s-(2k-1)}$ (the $R$-half of each difference vanishes, flipping the sign). The
+finite remainder $R_{2M+1}(f_s; N, R)$ converges to $R_M(s,N)$ because its integrand is
+integrable on $(N,\infty)$ (\Cref{lem:integrable_rem_zeta}), so
+$\int_N^R \to \int_N^{\infty}$ (\texttt{intervalIntegral\_tendsto\_integral\_Ioi}). Equating
+the two limits (uniqueness of limits) and solving for $\zeta(s)$ gives the claim.
+\end{proof}
+
+The remainder $R_M(s,N) = R^{\infty}_{2M+1}(f_s; N)$ converges absolutely only for
+$\operatorname{Re} s > -2M$ (\Cref{lem:integrable_rem_zeta} with $p = 2M+1$). To reach the
+full strip $\operatorname{Re} s > -(2M+1)$ we replace the order-$(2M+1)$ integral by an
+\emph{order-$(2M+2)$} representation obtained from one integration by parts; that integral
+converges on the larger strip and is analytic there, which is what the identity theorem
+needs. We first record the integration-by-parts identity, then the analyticity, then the
+identity-theorem continuation.
+
+\begin{lemma}[One integration by parts: order $2M+1 \to 2M+2$]
+\label{lem:rem_ibp}
+\lean{Complex.eulerMaclaurinRemainderIoi_succ_eq}
+\leanok
+\uses{def:em_remainder_Ioi, lem:integrable_rem_zeta, lem:iteratedDeriv_cpow, def:bernoulli, def:bernoulliFun, lem:em_recurrence, lem:em_global_raw}
+Let $N \ge 1$ and $\operatorname{Re} s > -2M$ (so the order-$(2M+1)$ remainder integral
+converges, \Cref{lem:integrable_rem_zeta}). Writing
+\[
+  t_{M+1}(s,N) := \frac{B_{2M+2}}{(2M+2)!}\,(s)_{2M+1}\,N^{-s-(2M+1)}
+\]
+for the first omitted even Bernoulli term, one has
+\[
+  R^{\infty}_{2M+1}(f_s; N) \;=\; t_{M+1}(s,N) \;+\; R^{\infty}_{2M+2}(f_s; N),
+\]
+where (recall $(-1)^{2M+2}=1$ and $(-1)^{2M+3}=-1$, so the two improper remainders are)
+\[
+  R^{\infty}_{2M+1}(f_s; N) = \frac{1}{(2M+1)!}\int_N^{\infty}\widetilde{B}_{2M+1}\,f_s^{(2M+1)},
+  \qquad
+  R^{\infty}_{2M+2}(f_s; N) = -\frac{1}{(2M+2)!}\int_N^{\infty}\widetilde{B}_{2M+2}\,f_s^{(2M+2)} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:em_remainder_Ioi, lem:integrable_rem_zeta, lem:iteratedDeriv_cpow, def:bernoulli, def:bernoulliFun, lem:em_recurrence, lem:em_global_raw}
+Both integrals converge absolutely (\Cref{lem:integrable_rem_zeta}: the order-$(2M+1)$
+integrand for $\operatorname{Re} s + (2M+1) > 1$, i.e.\ $\operatorname{Re} s > -2M$; the
+order-$(2M+2)$ integrand for $\operatorname{Re} s + (2M+2) > 1$, a fortiori). It therefore
+suffices to prove the displayed identity for the truncated integral on $[N,R]$ and pass
+$R \to \infty$ (\texttt{intervalIntegral\_tendsto\_integral\_Ioi}, as in
+\Cref{lem:zeta_em_conv}), the $R$-boundary contribution vanishing as below.
+
+\emph{Integration by parts on $[N,R]$.} The kernel $\widetilde{B}_{2M+2}$ is $C^1$ on each
+unit subinterval with $\frac{d}{dx}\widetilde{B}_{2M+2}(x) = (2M+2)\,\widetilde{B}_{2M+1}(x)$
+away from the integers (the derivative law $B_{k}' = k B_{k-1}$ of \Cref{def:bernoulliFun}
+applied to $\widetilde{B}_{k}(x) = B_k(\operatorname{Int.fract} x)$, whose jump-free
+continuity for index $2M+2 \ge 2 \ne 1$ comes from
+\texttt{bernoulliFun\_endpoints\_eq\_of\_ne\_one}); it is moreover globally continuous. Thus
+on $[N,R]$, integrating $\int_N^R \widetilde{B}_{2M+1}\,f_s^{(2M+1)}$ by parts with
+$u = \widetilde{B}_{2M+2}/(2M+2)$ (so $u' = \widetilde{B}_{2M+1}$) and $v = f_s^{(2M+1)}$
+(so $v' = f_s^{(2M+2)}$, \Cref{lem:iteratedDeriv_cpow}) gives
+\[
+  \int_N^R \widetilde{B}_{2M+1}\,f_s^{(2M+1)}
+  = \Bigl[\tfrac{\widetilde{B}_{2M+2}}{2M+2}\,f_s^{(2M+1)}\Bigr]_N^R
+    - \frac{1}{2M+2}\int_N^R \widetilde{B}_{2M+2}\,f_s^{(2M+2)} .
+\]
+This is the per-unit-interval recurrence \Cref{lem:em_recurrence} summed over
+$[N,R]$ exactly as in \Cref{lem:em_global_raw} (the interior boundary contributions
+telescope and the periodized kernel is read on $[n,n+1)$ as $B_q(x-n)$), so no new
+integration-by-parts hypothesis beyond those already discharged there is needed.
+
+\emph{Boundary terms.} At an integer $x$, $\operatorname{Int.fract} x = 0$, so
+$\widetilde{B}_{2M+2}(x) = B_{2M+2}(0) = B_{2M+2}$ (\texttt{bernoulliFun\_eval\_zero}). At
+$x = N$ the boundary value is $\tfrac{B_{2M+2}}{2M+2}\,f_s^{(2M+1)}(N)
+= \tfrac{B_{2M+2}}{2M+2}\,\bigl(-(s)_{2M+1}N^{-s-(2M+1)}\bigr)$ by \Cref{lem:iteratedDeriv_cpow}
+(as $(-1)^{2M+1} = -1$). At $x = R$ the value is
+$\tfrac{B_{2M+2}}{2M+2}\,f_s^{(2M+1)}(R)$, whose norm is
+$\tfrac{|B_{2M+2}|}{2M+2}|(s)_{2M+1}|R^{-\operatorname{Re}s-(2M+1)} \to 0$ as $R \to \infty$,
+since $\operatorname{Re} s + (2M+1) > 0$ (\texttt{Complex.norm\_cpow\_eq\_rpow\_re\_of\_pos},
+\texttt{tendsto\_rpow\_neg\_atTop}). Hence in the limit
+\[
+  \int_N^{\infty} \widetilde{B}_{2M+1}\,f_s^{(2M+1)}
+  = \frac{B_{2M+2}}{2M+2}\,(s)_{2M+1}\,N^{-s-(2M+1)}
+    - \frac{1}{2M+2}\int_N^{\infty}\widetilde{B}_{2M+2}\,f_s^{(2M+2)} .
+\]
+Dividing by $(2M+1)!$ and using $(2M+2)\,(2M+1)! = (2M+2)!$ turns the first term into
+$t_{M+1}(s,N)$; the second term is $-\frac{1}{(2M+2)!}\int_N^{\infty}\widetilde{B}_{2M+2}\,f_s^{(2M+2)}$,
+which is exactly $R^{\infty}_{2M+2}(f_s;N)$ by \Cref{def:em_remainder_Ioi}. Hence
+$R^{\infty}_{2M+1}(f_s;N) = t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s;N)$, the claim.
+\end{proof}
+
+\begin{lemma}[Holomorphy of the order-$p$ remainder integral]
+\label{lem:rem_holo}
+\lean{Complex.differentiableOn_eulerMaclaurinRemainderIoi_cpow}
+\leanok
+\uses{def:em_remainder_Ioi, lem:integrable_rem_zeta, lem:iteratedDeriv_cpow}
+Fix integers $N \ge 1$ and $p \ge 1$. The map
+$s \mapsto R^{\infty}_{p}(f_s; N)$ is holomorphic on the open half-plane
+$\Omega_p := \{s : \operatorname{Re} s > 1 - p\}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:integrable_rem_zeta, lem:iteratedDeriv_cpow}
+By \Cref{lem:iteratedDeriv_cpow}, $f_s^{(p)}(x) = (-1)^p (s)_p\, x^{-s-p}$ on $x>0$, so
+\[
+  R^{\infty}_{p}(f_s; N)
+  = \frac{(-1)^{p+1}}{p!}\,(-1)^p (s)_p \int_N^{\infty} \widetilde{B}_p(x)\, x^{-s-p}\,dx
+  = -\frac{(s)_p}{p!}\,J_p(s), \qquad J_p(s) := \int_N^{\infty}\widetilde{B}_p(x)\,x^{-s-p}\,dx .
+\]
+The prefactor $-(s)_p/p! = -(\operatorname{ascPochhammer}\,p)(s)/p!$ is a polynomial in $s$,
+hence entire; it remains to show $J_p$ is holomorphic on $\Omega_p$.
+
+This is differentiation under the integral sign, identical in form to mathlib's holomorphy
+of the Mellin transform (\texttt{mellin\_hasDerivAt\_of\_isBigO\_rpow}, which is itself an
+application of \texttt{hasDerivAt\_integral\_of\_dominated\_loc\_of\_deriv\_le}). Fix
+$s_0 \in \Omega_p$ and pick $\sigma_1$ with $1 - p < \sigma_1 < \operatorname{Re} s_0$; let
+$V := \{s : \operatorname{Re} s > \sigma_1\}$, an open neighbourhood of $s_0$ contained in
+$\Omega_p$, and choose a ball $\overline{B}(s_0, r) \subseteq V$. We verify the hypotheses
+of \texttt{hasDerivAt\_integral\_of\_dominated\_loc\_of\_deriv\_le} on $\overline{B}(s_0,r)$
+with integrand $G(s,x) = \widetilde{B}_p(x)\,x^{-s-p}$ and $s$-derivative
+$\partial_s G(s,x) = -\widetilde{B}_p(x)\,x^{-s-p}\log x$:
+\begin{itemize}
+\item \emph{Integrability of $G(s,\cdot)$} for each $s$ in the ball: this is
+  \Cref{lem:integrable_rem_zeta} (the kernel is bounded and
+  $\|x^{-s-p}\| = x^{-\operatorname{Re}s - p}$ is integrable on $(N,\infty)$ because
+  $\operatorname{Re} s + p > \sigma_1 + p > 1$); a.e.-strong-measurability of both $G$ and
+  $\partial_s G$ in $x$ comes from \texttt{measurable\_fract} and continuity of
+  $x \mapsto x^{-s-p}$ and $x \mapsto \log x$ on $(0,\infty)$.
+\item \emph{$s$-derivative}: for $x > 0$ fixed, $s \mapsto x^{-s-p} = \exp(-(s+p)\log x)$ is
+  entire with derivative $-x^{-s-p}\log x$ (\texttt{hasStrictDerivAt\_const\_cpow} for
+  $z \mapsto x^{z}$, which has derivative $x^{z}\log x$, composed with the affine
+  $s \mapsto -s-p$ via the chain rule), giving $\partial_s G(s,x)$ as stated.
+\item \emph{Uniform domination}: with $C := \sup_{[0,1]}|B_p|$ the kernel bound
+  (\Cref{lem:integrable_rem_zeta}), for all $s \in \overline{B}(s_0,r) \subseteq V$ and all
+  $x \ge N$,
+  \[
+    \|\partial_s G(s,x)\| \le C\,|\log x|\,x^{-\operatorname{Re}s - p}
+      \le C\,(\log x)\,x^{-\sigma_1 - p} =: h(x),
+  \]
+  and $h$ is integrable on $(N,\infty)$ since $\sigma_1 + p > 1$ (the logarithmic factor is
+  absorbed: $\int_N^{\infty} x^{-a}\log x\,dx < \infty$ for $a > 1$; concretely dominate
+  $\log x \le x^{\varepsilon}$ and use $\sigma_1 + p - \varepsilon > 1$ for small
+  $\varepsilon$, \texttt{integrableOn\_Ioi\_rpow\_of\_lt}).
+\end{itemize}
+The lemma yields $\operatorname{HasDerivAt} J_p (\textstyle\int_N^\infty \partial_s G(s_0,x)\,dx)\,s_0$,
+so $J_p$ is complex-differentiable at every $s_0 \in \Omega_p$; differentiability throughout
+the open $\Omega_p$ gives holomorphy. Multiplying by the entire prefactor proves the claim.
+\end{proof}
+
+\begin{definition}[Analytic Euler--Maclaurin right-hand side for $\zeta$]
+\label{def:zeta_em_rhs}
+\lean{zetaEMExpansion}
+\leanok
+\uses{def:em_remainder_Ioi}
+For integers $N \ge 1$, $M \ge 0$ and $s \in \mathbb{C}$, define
+\[
+  E_M(s,N) := \sum_{n=1}^{N-1} n^{-s} + \frac{N^{1-s}}{s-1} + \tfrac12 N^{-s}
+    + \sum_{k=1}^{M} \frac{B_{2k}}{(2k)!}\,(s)_{2k-1}\,N^{-s-(2k-1)}
+    + t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s; N),
+\]
+with $t_{M+1}(s,N) = \frac{B_{2M+2}}{(2M+2)!}(s)_{2M+1}N^{-s-(2M+1)}$ and
+$R^{\infty}_{2M+2}(f_s;N)$ the order-$(2M+2)$ improper remainder
+(\Cref{def:em_remainder_Ioi}). The last two summands together are the analytically continued
+remainder $R_M(s,N) := t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s;N)$; by \Cref{lem:rem_ibp} they
+equal $R^{\infty}_{2M+1}(f_s;N)$ wherever the latter converges
+($\operatorname{Re} s > -2M$).
+\end{definition}
+
+\begin{lemma}[Analyticity of the remainder representation on $\operatorname{Re} s > -(2M+1)$]
+\label{lem:zeta_em_analytic}
+\lean{analyticOnNhd_zetaEMExpansion}
+\leanok
+\uses{def:zeta_em_rhs, lem:rem_holo, lem:iteratedDeriv_cpow}
+For integer $N \ge 1$, the function $s \mapsto E_M(s,N)$ of \Cref{def:zeta_em_rhs} is
+holomorphic on the punctured strip
+$U_M := \{\operatorname{Re} s > -(2M+1)\}\setminus\{1\}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:zeta_em_rhs, lem:rem_holo}
+$E_M(\cdot,N)$ is a finite sum of summands each holomorphic on $U_M$:
+\begin{itemize}
+\item each $n^{-s} = \exp(-s\log n)$ ($1 \le n \le N-1$) is entire, being a composition of
+  the entire exponential with a linear map (\texttt{Complex.cpow} of a positive real base is
+  entire in the exponent);
+\item $N^{1-s}/(s-1)$ is holomorphic away from $s = 1$ (entire numerator over the nonzero
+  denominator on $U_M$), and $\tfrac12 N^{-s}$ is entire;
+\item each Bernoulli term $\frac{B_{2k}}{(2k)!}(s)_{2k-1}N^{-s-(2k-1)}$ ($1 \le k \le M$) and
+  the term $t_{M+1}(s,N)$ are products of the polynomial $(s)_{j} = (\operatorname{ascPochhammer}\,j)(s)$
+  with the entire exponential $N^{-s-j}$, hence entire;
+\item the remainder $R^{\infty}_{2M+2}(f_s;N)$ is holomorphic on
+  $\Omega_{2M+2} = \{\operatorname{Re} s > 1 - (2M+2)\} = \{\operatorname{Re} s > -(2M+1)\}
+  \supseteq U_M$ by \Cref{lem:rem_holo} with $p = 2M+2$.
+\end{itemize}
+Sums and products of holomorphic functions are holomorphic, so $E_M(\cdot,N)$ is holomorphic
+on $U_M$ (\texttt{DifferentiableOn.analyticOnNhd} packages this as analyticity on the open
+set $U_M$).
+\end{proof}
+
+\begin{theorem}[Euler--Maclaurin expansion of $\zeta$]
+\label{thm:zeta_em}
+\lean{riemannZeta_eq}
+\leanok
+\uses{lem:zeta_em_conv, lem:zeta_em_analytic, lem:rem_ibp, def:zeta_em_rhs}
+For $s \in \mathbb{C}$ with $\operatorname{Re} s > -(2M+1)$ and $s \neq 1$, and for
+$N \ge 1$,
+\[
+  \zeta(s) = \sum_{n=1}^{N-1} n^{-s} + \frac{N^{1-s}}{s-1} + \tfrac12 N^{-s}
+    + \sum_{k=1}^{M} \frac{B_{2k}}{(2k)!}\,(s)_{2k-1}\,N^{-s-(2k-1)} + R_{M}(s,N),
+\]
+equivalently $\zeta(s) = E_M(s,N)$, where $(s)_{j} = s(s+1)\cdots(s+j-1)$ is the rising
+factorial, $f_s^{(j)}(x) = (-1)^j (s)_j\, x^{-s-j}$ (\Cref{lem:iteratedDeriv_cpow}), and
+$R_M(s,N) = t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s;N)$ is the analytically continued remainder
+(\Cref{def:zeta_em_rhs}).
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:zeta_em_conv, lem:zeta_em_analytic, lem:rem_ibp, def:zeta_em_rhs}
+Work on the open set $U = \{\operatorname{Re} s > -(2M+1)\}\setminus\{1\}$. It is
+preconnected: the half-plane $\{\operatorname{Re} s > -(2M+1)\}$ is convex
+(\texttt{convex\_halfSpace\_re\_gt}), hence connected, and deleting the single point $s=1$
+from a connected open subset of $\mathbb{C} \cong \mathbb{R}^2$ leaves it connected (a path
+between two points may be perturbed off $1$). Both sides of the asserted identity are
+holomorphic on $U$:
+\begin{itemize}
+\item $\zeta$ is holomorphic on $U$: it is differentiable at every $s \ne 1$
+  (\texttt{differentiableAt\_riemannZeta});
+\item $E_M(\cdot,N)$ is holomorphic on $U$ by \Cref{lem:zeta_em_analytic}.
+\end{itemize}
+On the sub-half-plane $W := \{\operatorname{Re} s > 1\} \subseteq U$ they agree: there
+$\operatorname{Re} s > 1 > -2M$, so by \Cref{lem:rem_ibp} the continued remainder
+$R_M(s,N) = t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s;N)$ equals the convergent order-$(2M+1)$
+remainder $R^{\infty}_{2M+1}(f_s;N)$, whence $E_M(s,N)$ coincides with the right-hand side of
+\Cref{lem:zeta_em_conv}, which equals $\zeta(s)$. Since $W$ is open and nonempty, $\zeta$ and
+$E_M(\cdot,N)$ agree on a neighbourhood of any chosen $s_\star \in W$, i.e.\ they are
+eventually equal at $s_\star$. The identity theorem
+(\texttt{AnalyticOnNhd.eqOn\_of\_preconnected\_of\_eventuallyEq}, with the preconnected $U$,
+both functions analytic on $U$, and eventual equality at $s_\star \in U$) propagates the
+agreement to all of $U$. This is the claim for every $s \in U$, i.e.\ for
+$\operatorname{Re} s > -(2M+1)$, $s \ne 1$.
+\end{proof}
+
+\section{The Olver--Borwein error bound}
+\label{sec:em_error_bound}
+
+This section proves the sharp tail estimate \Cref{thm:zeta_error_bound}, the bound
+implemented as \texttt{zeta\_error\_bound} in \texttt{python/src/euler\_maclaurin/zeta\_values.py}. Throughout write
+$m := M+1$, so the relevant even index is $2m = 2M+2$ and the convergence strip
+$\operatorname{Re} s > -(2M+1)$ reads $\operatorname{Re} s + 2m > 1$. The remainder of
+\Cref{thm:zeta_em} is, by \Cref{def:zeta_em_rhs},
+\[
+  R_M(s,N) \;=\; t_{M+1}(s,N) + R^{\infty}_{2M+2}(f_s; N),
+  \qquad
+  t_{M+1}(s,N) = \frac{B_{2M+2}}{(2M+2)!}\,(s)_{2M+1}\,N^{-s-(2M+1)} .
+\]
+
+The triangle inequality on this split is insufficient: bounding
+$|R^{\infty}_{2M+2}| \le K\,|t_{M+1}|$ only gives $|R_M| \le (1+K)|t_{M+1}|$, weaker than the
+claim. The sharp constant comes from first collapsing the split back into a \emph{single}
+integral of the \emph{centered} kernel $\widetilde{B}_{2m} - B_{2m}$, whose period-mean is
+exactly $-B_{2m}$, and then exploiting that this centered kernel has constant sign with the
+oscillatory part beating the weight $x^{-a}$ in the right direction.
+
+\begin{lemma}[Centered-kernel representation of the remainder]
+\label{lem:rem_centered}
+\lean{zetaRemainder_eq_integral_bernoulliFun_fract_sub}
+\leanok
+\uses{def:zeta_em_rhs, def:em_remainder_Ioi, lem:iteratedDeriv_cpow, lem:integrable_rem_zeta, def:periodizedBernoulli, def:bernoulli}
+Let $N \ge 1$, $M \ge 0$, $s \in \mathbb{C}$ with $\operatorname{Re} s > -(2M+1)$, and set
+$m := M+1$. Then
+\[
+  R_M(s,N) \;=\; -\frac{(s)_{2m}}{(2m)!}\int_N^{\infty}
+      \bigl(\widetilde{B}_{2m}(x) - B_{2m}\bigr)\, x^{-s-2m}\,dx,
+\]
+where $\widetilde{B}_{2m}(x) = \operatorname{bernoulliFun}(2m)\,(\operatorname{Int.fract} x)$ and
+the integral converges absolutely (\Cref{lem:integrable_rem_zeta}, since
+$\operatorname{Re} s + 2m > 1$).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:zeta_em_rhs, def:em_remainder_Ioi, lem:iteratedDeriv_cpow, lem:integrable_rem_zeta}
+By \Cref{lem:iteratedDeriv_cpow}, $f_s^{(2m)}(x) = (-1)^{2m}(s)_{2m}\,x^{-s-2m}
+= (s)_{2m}\,x^{-s-2m}$, so by \Cref{def:em_remainder_Ioi} (with $p = 2m$, $(-1)^{2m+1} = -1$)
+\[
+  R^{\infty}_{2M+2}(f_s; N) = -\frac{1}{(2m)!}\int_N^{\infty}\widetilde{B}_{2m}(x)\,f_s^{(2m)}(x)\,dx
+  = -\frac{(s)_{2m}}{(2m)!}\int_N^{\infty}\widetilde{B}_{2m}(x)\,x^{-s-2m}\,dx,
+\]
+the integral converging absolutely for $\operatorname{Re} s + 2m > 1$
+(\Cref{lem:integrable_rem_zeta}). On that strip both $\int_N^{\infty}\widetilde{B}_{2m}(x)x^{-s-2m}dx$
+and $\int_N^{\infty} x^{-s-2m}dx$ converge, so we may split
+$\widetilde{B}_{2m} = B_{2m} + (\widetilde{B}_{2m} - B_{2m})$ linearly. The constant part is
+evaluated by the fundamental theorem of calculus,
+\[
+  \int_N^{\infty} x^{-s-2m}\,dx = \frac{N^{1-s-2m}}{s+2m-1}
+  \qquad(\text{antiderivative } \tfrac{x^{1-s-2m}}{1-s-2m};\ \text{boundary at } \infty
+  \text{ vanishes as } \operatorname{Re}(1-s-2m) < 0),
+\]
+and using $\dfrac{(s)_{2m}}{s+2m-1} = (s)_{2m-1} = (s)_{2M+1}$ together with $1-2m = -(2M+1)$,
+\[
+  -\frac{(s)_{2m}}{(2m)!}\,B_{2m}\,\frac{N^{1-s-2m}}{s+2m-1}
+  = -\frac{B_{2M+2}}{(2M+2)!}\,(s)_{2M+1}\,N^{-s-(2M+1)} = -t_{M+1}(s,N).
+\]
+Hence $R^{\infty}_{2M+2}(f_s;N) = -t_{M+1}(s,N) - \frac{(s)_{2m}}{(2m)!}
+\int_N^{\infty}(\widetilde{B}_{2m}-B_{2m})\,x^{-s-2m}\,dx$. Adding $t_{M+1}(s,N)$, the two
+$t_{M+1}$ terms cancel and the claim follows from $R_M = t_{M+1} + R^{\infty}_{2M+2}$
+(\Cref{def:zeta_em_rhs}).
+\end{proof}
+
+\begin{lemma}[Sign and cosine--Fourier expansion of the centered Bernoulli kernel]
+\label{lem:bernoulli_centered_fourier}
+\lean{bernoulliFun_sub_self_eq_tsum_cos}
+\leanok
+\uses{def:bernoulliFun, def:periodizedBernoulli, def:bernoulli}
+Let $m \ge 1$ and $A_m := \dfrac{2\,(2m)!}{(2\pi)^{2m}} > 0$. For all $x \in \mathbb{R}$,
+\[
+  \widetilde{B}_{2m}(x) - B_{2m}
+    = (-1)^{m+1} A_m \sum_{k=1}^{\infty}\frac{\cos(2\pi k x) - 1}{k^{2m}} .
+\]
+Consequently the centered kernel has constant sign $(-1)^m$ (i.e.
+$(-1)^m\bigl(\widetilde{B}_{2m}(x) - B_{2m}\bigr) \ge 0$ for all $x$), and
+\[
+  \bigl|\widetilde{B}_{2m}(x) - B_{2m}\bigr|
+    = A_m \sum_{k=1}^{\infty}\frac{1 - \cos(2\pi k x)}{k^{2m}} ,
+\]
+each summand being nonnegative.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:bernoulliFun, def:periodizedBernoulli, def:bernoulli}
+For $x \in [0,1]$ mathlib's Fourier expansion of the Bernoulli polynomials
+(\texttt{hasSum\_one\_div\_nat\_pow\_mul\_cos}, the cosine specialisation of
+\texttt{hasSum\_one\_div\_nat\_pow\_mul\_fourier}, valid as $2m \ge 2$) gives
+\[
+  \sum_{n=1}^{\infty}\frac{1}{n^{2m}}\bigl(e^{2\pi i n x} + e^{-2\pi i n x}\bigr)
+  = -\frac{(2\pi i)^{2m}}{(2m)!}\,B_{2m}(x).
+\]
+The bracket is $2\cos(2\pi n x)$ and $(2\pi i)^{2m} = (-1)^m (2\pi)^{2m}$, so
+\[
+  B_{2m}(x) = (-1)^{m+1}\,\frac{2\,(2m)!}{(2\pi)^{2m}}\sum_{n=1}^{\infty}\frac{\cos(2\pi n x)}{n^{2m}}
+            = (-1)^{m+1} A_m \sum_{n=1}^{\infty}\frac{\cos(2\pi n x)}{n^{2m}}, \qquad x \in [0,1].
+\]
+Taking $x = 0$ (where $\cos = 1$ and $\sum n^{-2m} = \zeta(2m)$) gives
+$B_{2m} = B_{2m}(0) = (-1)^{m+1} A_m\,\zeta(2m)$. Subtracting and using
+$\widetilde{B}_{2m}(x) = B_{2m}(\operatorname{Int.fract} x)$ with $\operatorname{Int.fract} x \in [0,1)$
+(and periodicity, both sides being $1$-periodic) gives the displayed identity for all
+$x \in \mathbb{R}$. Since $\cos(2\pi k x) - 1 \le 0$ for every $k$, the series has sign
+$(-1)^{m+1}\cdot(\le 0) = (-1)^m\cdot(\ge 0)$, whence the constant-sign claim; and
+$|\widetilde{B}_{2m}(x) - B_{2m}| = A_m\sum_k (1-\cos(2\pi k x))/k^{2m}$ because each term
+$1 - \cos(2\pi k x) \ge 0$.
+\end{proof}
+
+\begin{lemma}[Period-mean of the centered kernel]
+\label{lem:bernoulli_centered_mean}
+\lean{integral_abs_bernoulliFun_sub_self}
+\leanok
+\uses{lem:bernoulli_centered_fourier, def:bernoulliFun}
+For $m \ge 1$, $\displaystyle\int_0^1 \bigl|\widetilde{B}_{2m}(x) - B_{2m}\bigr|\,dx = |B_{2m}|$.
+(In Lean the integrand uses the Bernoulli polynomial $B_{2m}(x)$, which coincides with
+$\widetilde{B}_{2m}(x)$ on $[0,1)$, hence the integrals agree.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:bernoulli_centered_fourier, def:bernoulliFun}
+The centered kernel has constant sign (\Cref{lem:bernoulli_centered_fourier}), so
+\[
+  \int_0^1 \bigl|\widetilde{B}_{2m}(x) - B_{2m}\bigr|\,dx
+  = \left|\int_0^1 \bigl(\widetilde{B}_{2m}(x) - B_{2m}\bigr)\,dx\right|
+  = \left|\int_0^1 B_{2m}(x)\,dx - B_{2m}\right| = |0 - B_{2m}| = |B_{2m}|,
+\]
+using $\widetilde{B}_{2m} = B_{2m}\circ\operatorname{Int.fract}$ agreeing with $B_{2m}$ on $[0,1)$
+and the vanishing mean $\int_0^1 B_{2m} = 0$ (\texttt{integral\_bernoulliFun\_eq\_zero}, as
+$2m \ne 0$).
+\end{proof}
+
+\begin{lemma}[Pólya positivity of the cosine integral]
+\label{lem:polya_cos}
+\lean{integral_Ioi_cos_mul_rpow_nonneg}
+\leanok
+For an integer $N \ge 1$, a real $a > 1$, and an integer $k \ge 1$,
+\[
+  \int_N^{\infty}\cos(2\pi k x)\,x^{-a}\,dx \;\ge\; 0 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is the one new analytic input (Pólya, 1918): the cosine transform of a
+nonnegative decreasing function is nonnegative.
+
+In Lean the argument is run on the conjugate \emph{sine} integral, which is more convenient
+because $\sin(2\pi k x)$ \emph{vanishes} at $x=N$ (as $kN \in \mathbb{Z}$), so its sign-constant
+half-periods $[N+\tfrac{j}{2k}, N+\tfrac{j+1}{2k}]$ start exactly at $N$. Integration by parts on
+$[N,R]$ gives
+\[
+  \int_N^{R}\cos(2\pi k x)\,x^{-a}\,dx
+  = \frac{\sin(2\pi k R)}{2\pi k}R^{-a}
+    + \frac{a}{2\pi k}\int_N^{R}\sin(2\pi k x)\,x^{-(a+1)}\,dx,
+\]
+the boundary term at $N$ vanishing since $\sin(2\pi k N)=0$; letting $R\to\infty$ (the boundary
+term at $R$ is $O(R^{-a})\to 0$) yields
+$\int_N^{\infty}\cos(2\pi k x)x^{-a}dx = \frac{a}{2\pi k}\int_N^{\infty}\sin(2\pi k x)x^{-(a+1)}dx$,
+so it suffices to prove $\int_N^{\infty}\sin(2\pi k x)\,x^{-(a+1)}\,dx \ge 0$ (formalized as
+\texttt{integral\_Ioi\_sin\_mul\_rpow\_nonneg}). Write $\psi(x) := x^{-(a+1)}$, positive,
+decreasing, and integrable on $(N,\infty)$ (as $a+1 > 1$), so $\psi\sin(2\pi k\cdot)$ is absolutely
+integrable. Split $(N,\infty)$ into the half-periods
+$I_j := \bigl[N + \tfrac{j}{2k}, N + \tfrac{j+1}{2k}\bigr]$, $j \ge 0$; since $kN \in \mathbb{Z}$,
+on $I_j$ we have $\sin(2\pi k x) = (-1)^j\bigl|\sin(2\pi k x)\bigr|$ (constant sign $(-1)^j$,
+starting positive on $I_0$ because $\sin$ vanishes at the left endpoint $N$). Put
+\[
+  c_j := \int_{I_j}\psi(x)\,|\sin(2\pi k x)|\,dx \ge 0,
+  \qquad\text{so}\qquad
+  \int_{N+\frac{j}{2k}}^{N+\frac{j+1}{2k}}\sin(2\pi k x)\,\psi(x)\,dx = (-1)^j c_j .
+\]
+The shift $x \mapsto x + \tfrac{1}{2k}$ maps $I_j$ to $I_{j+1}$ and preserves $|\sin(2\pi k x)|$
+(as $\sin(\theta+\pi) = -\sin\theta$), so
+$c_{j+1} = \int_{I_j}\psi\bigl(x+\tfrac1{2k}\bigr)|\sin(2\pi k x)|\,dx \le c_j$ because $\psi$ is
+decreasing. Hence the truncated integrals $\int_N^{N+\frac{n}{2k}}\sin(2\pi k x)\psi(x)\,dx
+= \sum_{j<n}(-1)^j c_j$ are the partial sums of an alternating series with antitone nonnegative
+terms; they converge to the improper integral (by
+\texttt{intervalIntegral\_tendsto\_integral\_Ioi}, the upper limit $N+\tfrac{n}{2k}\to\infty$).
+By \texttt{Antitone.alternating\_series\_le\_tendsto} the empty even partial sum ($n=0$) is
+$\le$ the limit, i.e. $0 \le \int_N^{\infty}\sin(2\pi k x)\psi(x)\,dx$.
+\end{proof}
+
+\begin{lemma}[Weighted averaging bound for the centered kernel]
+\label{lem:centered_kernel_avg}
+\lean{integral_Ioi_abs_bernoulliFun_fract_sub_mul_rpow_le}
+\leanok
+\uses{lem:bernoulli_centered_fourier, lem:bernoulli_centered_mean, lem:polya_cos}
+For $m \ge 1$, integer $N \ge 1$, and real $a > 1$,
+\[
+  \int_N^{\infty}\bigl|\widetilde{B}_{2m}(x) - B_{2m}\bigr|\,x^{-a}\,dx
+    \;\le\; |B_{2m}| \int_N^{\infty} x^{-a}\,dx .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:bernoulli_centered_fourier, lem:bernoulli_centered_mean, lem:polya_cos}
+By \Cref{lem:bernoulli_centered_fourier}, $|\widetilde{B}_{2m}(x) - B_{2m}|
+= A_m \sum_{k\ge1}(1-\cos(2\pi k x))/k^{2m}$ with all summands nonnegative, where
+$A_m\,\zeta(2m) = |B_{2m}|$ (\Cref{lem:bernoulli_centered_mean}, equivalently from the $x=0$
+value in \Cref{lem:bernoulli_centered_fourier}). Multiplying by the nonnegative weight
+$x^{-a}$ and integrating termwise on $(N,\infty)$ (justified by Tonelli, all terms being
+nonnegative and measurable),
+\[
+  \int_N^{\infty}\bigl|\widetilde{B}_{2m} - B_{2m}\bigr|\,x^{-a}\,dx
+  = A_m \sum_{k=1}^{\infty}\frac{1}{k^{2m}}\int_N^{\infty}\bigl(1 - \cos(2\pi k x)\bigr)x^{-a}\,dx .
+\]
+Splitting the inner integral and using $\sum_k k^{-2m} = \zeta(2m)$,
+\[
+  = A_m\,\zeta(2m)\int_N^{\infty} x^{-a}\,dx
+    - A_m \sum_{k=1}^{\infty}\frac{1}{k^{2m}}\int_N^{\infty}\cos(2\pi k x)\,x^{-a}\,dx
+  \;\le\; |B_{2m}|\int_N^{\infty} x^{-a}\,dx,
+\]
+since each $\int_N^{\infty}\cos(2\pi k x)\,x^{-a}\,dx \ge 0$ by \Cref{lem:polya_cos}, so the
+subtracted sum is $\ge 0$. (Both $\int_N^{\infty} x^{-a}dx = N^{1-a}/(a-1)$ and the rearranged
+series converge, $a > 1$.)
+\end{proof}
+
+\begin{theorem}[Borwein error bound]
+\label{thm:zeta_error_bound}
+\lean{norm_zetaRemainder_le}
+\leanok
+\uses{thm:zeta_em, lem:rem_centered, lem:centered_kernel_avg, lem:iteratedDeriv_cpow}
+With the notation of \Cref{thm:zeta_em} and $\operatorname{Re} s > -(2M+1)$, the
+remainder satisfies
+\[
+  \bigl| R_M(s, N) \bigr| \;\le\;
+    \left| \frac{s + 2M+1}{\operatorname{Re} s + 2M + 1} \right| \cdot \bigl| t_{M+1} \bigr|,
+  \qquad
+  t_{M+1} = \frac{B_{2M+2}}{(2M+2)!}\,(s)_{2M+1}\,N^{-s-(2M+1)},
+\]
+i.e. the tail is controlled by the first omitted Bernoulli term scaled by the explicit
+constant $K := \bigl|\tfrac{s+2M+1}{\operatorname{Re} s+2M+1}\bigr| \ge 1$ (note
+$K = |(s)_{2M+2}| / (|(s)_{2M+1}|\,(\operatorname{Re} s+2M+1))$, since
+$(s)_{2M+2} = (s)_{2M+1}(s+2M+1)$). This is the bound implemented as \texttt{zeta\_error\_bound} in
+\texttt{python/src/euler\_maclaurin/zeta\_values.py}.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:rem_centered, lem:centered_kernel_avg, lem:iteratedDeriv_cpow}
+Write $m := M+1$, so $2m = 2M+2$ and $a := \operatorname{Re} s + 2m = \operatorname{Re} s + 2M+2
+> 1$ (as $\operatorname{Re} s > -(2M+1)$). By the centered-kernel representation
+(\Cref{lem:rem_centered}) and $\|x^{-s-2m}\| = x^{-\operatorname{Re} s - 2m} = x^{-a}$ for
+$x > 0$ (\texttt{Complex.norm\_cpow\_eq\_rpow\_re\_of\_pos}), the triangle inequality for the
+Bochner integral gives
+\[
+  \bigl|R_M(s,N)\bigr|
+  = \frac{|(s)_{2m}|}{(2m)!}\left|\int_N^{\infty}\bigl(\widetilde{B}_{2m}(x)-B_{2m}\bigr)x^{-s-2m}\,dx\right|
+  \le \frac{|(s)_{2m}|}{(2m)!}\int_N^{\infty}\bigl|\widetilde{B}_{2m}(x)-B_{2m}\bigr|\,x^{-a}\,dx .
+\]
+(Here the complex oscillation of $x^{-s-2m}$ plays no role: it is absorbed by the modulus,
+leaving the real exponent $a$.) Applying the weighted averaging bound
+(\Cref{lem:centered_kernel_avg}) and $\int_N^{\infty} x^{-a}dx = N^{1-a}/(a-1)$,
+\[
+  \bigl|R_M(s,N)\bigr|
+  \le \frac{|(s)_{2m}|}{(2m)!}\,|B_{2m}|\,\frac{N^{1-a}}{a-1}
+  = \frac{|(s)_{2M+2}|\,|B_{2M+2}|}{(2M+2)!}\cdot\frac{N^{-\operatorname{Re} s-(2M+1)}}{\operatorname{Re} s+2M+1},
+\]
+using $a - 1 = \operatorname{Re} s + 2M+1$ and $1 - a = -\operatorname{Re} s - (2M+1)$. Finally,
+expanding $K\,|t_{M+1}|$ with $|(s)_{2M+2}| = |(s)_{2M+1}|\,|s+2M+1|$,
+\[
+  K\,|t_{M+1}|
+  = \frac{|s+2M+1|}{\operatorname{Re} s+2M+1}\cdot\frac{|B_{2M+2}|}{(2M+2)!}\,|(s)_{2M+1}|\,N^{-\operatorname{Re} s-(2M+1)}
+  = \frac{|(s)_{2M+2}|\,|B_{2M+2}|}{(2M+2)!}\cdot\frac{N^{-\operatorname{Re} s-(2M+1)}}{\operatorname{Re} s+2M+1},
+\]
+which is exactly the right-hand side above. Hence $|R_M(s,N)| \le K\,|t_{M+1}|$, as claimed.
+\end{proof}
+
+\begin{remark}[log-Gamma and Hardy's $Z$]
+\label{rem:log_gamma}
+The companion results for $\log\Gamma$ (Euler--Maclaurin / Stirling expansion) and
+for Hardy's $Z(t) = e^{i\theta(t)}\zeta(\tfrac12+it)$ with the Riemann--Siegel
+$\theta$ follow the same template: apply \Cref{thm:euler_maclaurin} to
+$f(x) = \log x$ and track the analogous remainder bound. These are implemented in
+\texttt{python/src/euler\_maclaurin/gamma\_values.py} and
+\texttt{python/src/euler\_maclaurin/zeta\_zeros.py}.
+\end{remark}

@@ -1,0 +1,1410 @@
+% Blueprint: the order-zero Riemann--Siegel formula for Hardy's Z.
+%
+% References: \cite{Siegel1932}; \cite{Edwards} Ch.~7; \cite{Gabcke},
+% \cite{AriasDeReyna2011} for the sharp constants at higher order.
+
+\chapter{The order-zero Riemann--Siegel formula}
+\label{cha:rs_zero}
+
+Throughout this chapter $t>0$ is real,
+\[
+  s:=\tfrac12+it,\qquad T:=\frac{t}{2\pi},\qquad \nu:=\lfloor\sqrt T\rfloor ,
+\]
+$\theta$ is the Riemann--Siegel theta function of \Cref{def:nf_theta}, $Z$ is Hardy's
+function of \Cref{def:hz_Z}, and $I(s,a)$ is the contour integral of
+\Cref{def:rs_integral}.  We write $\overline{z}$ for complex conjugation.
+
+The proved chain \Cref{thm:rsz_reduction} $\to$ \Cref{thm:rsz_formula} $\to$
+\Cref{cor:rsz_bound} uses exactly two facts from \Cref{cha:riemann_siegel}:
+\Cref{cor:rs_partial_sum}, which says
+\[
+  I\bigl(s,\nu+\tfrac12\bigr)-I\bigl(s,\tfrac12\bigr)=\sum_{n=1}^{\nu}n^{-s},
+\]
+and \Cref{cor:rs_remainder_explicit}, which bounds $I(s,\nu+\tfrac12)$ by $95\,T^{-1/4}$.
+\Cref{sec:rsz_siegel}, which proves Siegel's identity, draws on considerably more of
+that chapter: the kernel and its residues (\Cref{def:rs_kernel},
+\Cref{lem:rs_kernel_residue}), the contour and the branch (\Cref{def:rs_line},
+\Cref{def:rs_power}, \Cref{lem:rs_branch_ok}), the constancy of
+$\operatorname{Re}(e^{i\pi/4}x)$ along $L(a)$ (\Cref{lem:rs_rotate}), the Gaussian modulus
+(\Cref{lem:rs_gauss_modulus}), integrability (\Cref{prop:rs_integrable}), the whole rectangle
+argument of \Cref{thm:rs_shift}, and the elementary identity of \Cref{rem:rs_numerics}.
+
+\section{The main sum and the exact reduction}
+\label{sec:rsz_reduction}
+
+\begin{definition}[The Riemann--Siegel main sum]
+\label{def:rsz_main_sum}
+\lean{Zeta.RiemannSiegel.mainSum}
+\leanok
+\uses{def:nf_theta}
+For $t\in\mathbb{R}$ and $\nu\in\mathbb{N}$ set
+\[
+  \mathcal{S}(t,\nu)\;:=\;2\sum_{n=1}^{\nu}\frac{\cos\bigl(\theta(t)-t\log n\bigr)}{\sqrt n}
+  \;\in\;\mathbb{R}.
+\]
+\end{definition}
+
+The following identity is the entire content of the passage from the contour to the main
+sum.  It is unconditional, it holds for every $\nu$, and it is exact: no error term has
+been discarded.
+
+\begin{theorem}[Exact reduction]
+\label{thm:rsz_reduction}
+\lean{Zeta.RiemannSiegel.mainSum_eq_two_re_exp_mul_contourIntegral_sub}
+\leanok
+\uses{def:rsz_main_sum, cor:rs_partial_sum, def:rs_integral}
+For every $t\in\mathbb{R}$ and every $\nu\in\mathbb{N}$, with $s=\tfrac12+it$,
+\[
+  \mathcal{S}(t,\nu)\;=\;
+  2\operatorname{Re}\Bigl(e^{i\theta(t)}\,I\bigl(s,\nu+\tfrac12\bigr)\Bigr)
+  -2\operatorname{Re}\Bigl(e^{i\theta(t)}\,I\bigl(s,\tfrac12\bigr)\Bigr).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{cor:rs_partial_sum}
+By \Cref{cor:rs_partial_sum},
+$I(s,\nu+\tfrac12)-I(s,\tfrac12)=\sum_{n=1}^{\nu}n^{-s}$.  Multiplying by
+$e^{i\theta(t)}$ and taking twice the real part, it suffices to check that for every
+integer $n\ge1$
+\[
+  2\operatorname{Re}\bigl(e^{i\theta(t)}n^{-s}\bigr)
+  =\frac{2\cos\bigl(\theta(t)-t\log n\bigr)}{\sqrt n}.
+\]
+Since $n$ is a positive real, the principal power satisfies
+$n^{-s}=e^{-s\log n}=n^{-1/2}e^{-it\log n}$, so
+$e^{i\theta(t)}n^{-s}=n^{-1/2}e^{i(\theta(t)-t\log n)}$, whose real part is
+$n^{-1/2}\cos(\theta(t)-t\log n)$.
+\end{proof}
+
+\begin{remark}[The residual term]
+\label{rem:rsz_left}
+\Cref{thm:rsz_reduction} isolates the whole difficulty.  For $t\ge32\pi$ and the
+particular choice $\nu=\lfloor\sqrt T\rfloor$, the term
+$2\operatorname{Re}(e^{i\theta}I(s,\nu+\tfrac12))$ is bounded by $2\cdot95\,T^{-1/4}$ by
+\Cref{cor:rs_remainder_explicit}; the term $2\operatorname{Re}(e^{i\theta}I(s,\tfrac12))$
+is independent of $\nu$ and is \emph{not} small: it is, up to sign, all of $Z(t)$.
+Identifying it is \Cref{thm:rsz_siegel}.
+\end{remark}
+
+\section{Siegel's identity}
+\label{sec:rsz_siegel}
+
+The residual $I(s,\tfrac12)$ left by \Cref{thm:rsz_reduction} is, up to sign, all of
+$\zeta(s)$.  Identifying it is Siegel's theorem \cite{Siegel1932} (see also \cite{Edwards},
+\S7.9):
+\[
+  \zeta\bigl(\tfrac12+it\bigr)\;=\;-\,I\bigl(s,\tfrac12\bigr)
+     \;-\;e^{-2i\theta(t)}\,\overline{I\bigl(s,\tfrac12\bigr)} ,
+\]
+which is \Cref{thm:rsz_siegel}, stated and proved at the end of this section.  The section
+first records the equivalent general-$s$ form and the shape of the difficulty
+(\Cref{rem:rsz_general}--\Cref{rem:rsz_cancellation}), and then carries out Riemann's proof
+in three steps: the closed form of an auxiliary Mordell integral
+(\Cref{sec:rsz_mordell}), a Mellin transform that crosses the strip
+(\Cref{sec:rsz_mellin}), and the assembly (\Cref{sec:rsz_proof}).
+
+\begin{remark}[Equivalent general-$s$ form: the approximate functional equation]
+\label{rem:rsz_general}
+\uses{thm:rsz_siegel, cor:rs_partial_sum}
+Let $\chi(s)=2^{s}\pi^{s-1}\sin\bigl(\tfrac{\pi s}2\bigr)\Gamma(1-s)$ be the factor of the
+functional equation, so that $\zeta(s)=\chi(s)\zeta(1-s)$, and let
+\[
+  \widetilde I(s,a)\;:=\;\overline{I\bigl(\overline{s},a\bigr)}
+\]
+be the \emph{mirror} contour integral: the integral of $x^{-s}\widetilde G(x)$, with
+$\widetilde G(x)=e^{-i\pi x^{2}}/(e^{-i\pi x}-e^{i\pi x})$, over the line of slope $-1$
+through $a$, this being exactly the complex conjugate of the $I$-integral by
+$x\mapsto\overline x$.  The general form of Siegel's identity is
+\begin{equation}
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)+\chi(s)\,\widetilde I\bigl(1-s,\tfrac12\bigr)=0
+  \qquad(s\in\mathbb{C}\setminus\{1\}).
+  \label{eq:rsz_siegel_general}
+\end{equation}
+Conjugating \Cref{cor:rs_partial_sum} at $1-\overline s$ gives the mirror shift identity
+$\sum_{n=1}^{\nu}n^{s-1}=\widetilde I(1-s,\nu+\tfrac12)-\widetilde I(1-s,\tfrac12)$, and
+substituting both shift identities into \eqref{eq:rsz_siegel_general} yields the
+approximate functional equation in its exact form,
+\[
+  \zeta(s)=\sum_{n\le\nu}n^{-s}+\chi(s)\sum_{n\le\nu}n^{s-1}
+     -I\bigl(s,\nu+\tfrac12\bigr)-\chi(s)\,\widetilde I\bigl(1-s,\nu+\tfrac12\bigr).
+\]
+On the critical line $1-\overline s=s$, so $\widetilde I(1-s,\tfrac12)=\overline{I(s,\tfrac12)}$,
+and $\chi(\tfrac12+it)=e^{-2i\theta(t)}$; thus \eqref{eq:rsz_siegel_general} specialises
+to \Cref{thm:rsz_siegel}.  Conversely \eqref{eq:rsz_siegel_general} follows from its
+restriction to the critical line only by analytic continuation, which is why the
+higher-order chapters use the general form.
+Two cautions about the shape of \eqref{eq:rsz_siegel_general}.  First, $\chi$ has poles:
+the poles of $\Gamma(1-s)$ at $s=1,2,3,\dots$ are cancelled by the zeros of
+$\sin(\pi s/2)$ only at the \emph{even} integers, so $\chi$ is meromorphic with simple
+poles at $s=1,3,5,\dots$.  At those odd $s\ge3$ the product
+$\chi(s)\widetilde I(1-s,\tfrac12)$ is of the form $\infty\cdot0$ (the identity forces
+$\widetilde I(1-s,\tfrac12)$ to vanish there), so \eqref{eq:rsz_siegel_general} is
+read on $\mathbb{C}\setminus\{1,3,5,\dots\}$ and extended to the odd integers by
+continuity.  \Cref{rem:rsz_hankel_mirror} rewrites the offending product in a form,
+$(2\pi)^{s}/2\Gamma(s)$ times an integral, that is free of these spurious poles.  Secondly,
+the left-hand side of
+\eqref{eq:rsz_siegel_general} is meromorphic on all of $\mathbb{C}$ (the
+map $s\mapsto I(s,a)$ is entire for each fixed $a$, and $\zeta$ and $\chi$ are
+meromorphic) and the right-hand side is $0$; since two meromorphic functions on the
+connected domain $\mathbb{C}$ that agree on a nonempty open set agree everywhere, it
+suffices to prove \eqref{eq:rsz_siegel_general} on any nonempty open set.
+\end{remark}
+
+\begin{remark}[Sign check]
+\label{rem:rsz_signcheck}
+The sign in \eqref{eq:rsz_siegel_general} is forced: it is the unique one for which the
+displayed approximate functional equation has the classical shape
+$\zeta=\sum n^{-s}+\chi(s)\sum n^{s-1}+\text{small}$.  Equivalently, writing
+$K(s):=\lim_{a\to\infty}I(s,a)$ along $a\in\tfrac12+\mathbb{Z}_{\ge0}$ (a limit which
+exists for $\operatorname{Re}s>1$ because $I(s,\nu+\tfrac12)=\sum_{n\le\nu}n^{-s}+I(s,\tfrac12)$
+by \Cref{cor:rs_partial_sum}), the identity \eqref{eq:rsz_siegel_general} reads
+$K(s)=-\chi(s)\widetilde I(1-s,\tfrac12)$, and, after one application of the functional
+equation, also $I(s,\tfrac12)=-\chi(s)\widetilde K(1-s)$.
+\end{remark}
+
+\begin{lemma}[The far-contour limit]
+\label{lem:rsz_limit}
+\lean{Zeta.RiemannSiegel.tendsto_contourIntegral_atTop_nhds_riemannZeta_add_contourIntegral_half}
+\leanok
+\uses{def:rs_integral, cor:rs_partial_sum}
+For $\operatorname{Re}s>1$ the limit $K(s)$ of \Cref{rem:rsz_signcheck} exists, and
+\[
+  \lim_{\nu\to\infty}I\bigl(s,\nu+\tfrac12\bigr)\;=\;\zeta(s)+I\bigl(s,\tfrac12\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{cor:rs_partial_sum}
+By \Cref{cor:rs_partial_sum}, $I(s,\nu+\tfrac12)=\sum_{n=1}^{\nu}n^{-s}+I(s,\tfrac12)$ for every
+$\nu\ge0$.  For $\operatorname{Re}s>1$ the Dirichlet series converges to $\zeta(s)$, so its
+partial sums tend to $\zeta(s)$; adding the constant $I(s,\tfrac12)$ preserves the limit.
+\end{proof}
+
+Together with \Cref{rem:rsz_signcheck} this puts \Cref{thm:rsz_siegel}, on the half-plane
+$\operatorname{Re}s>1$, in the equivalent form $K(s)=-\chi(s)\widetilde I(1-s,\tfrac12)$: the
+content of the identity is the \emph{evaluation of the far-contour limit}, stated in terms of
+$I$ alone, with no deformation and no Hankel ray.  This is what \Cref{prop:rsz_general_half}
+establishes; its proof evaluates $\zeta(s)+I(s,\tfrac12)$ directly, by \Cref{thm:rsz_mellin}.
+\Cref{lem:rsz_limit} is what makes \eqref{eq:rsz_siegel_general} recognisable as an
+approximate functional equation, and \Cref{rem:rsz_cancellation} refers to it.
+
+\subsection{The Hankel-ray representation}
+
+The first ingredient collapses the two-dimensional contour integral $I(s,\tfrac12)$ into a
+single integral over the positive reals, with the factor $\sin(\pi s/2)$ of $\chi(s)$
+already visible.  It is the analogue, for the Riemann--Siegel kernel, of the passage from
+Riemann's Hankel loop to $\Gamma(1-s)\zeta(s)$.
+
+It is convenient to prove it in two independent halves.  The contour $L(\tfrac12)$ is first
+moved onto the diagonal $L(0)$ (\Cref{lem:rsz_deform}), and the two Hankel rays that make up
+$L(0)$ are then evaluated directly (\Cref{lem:rsz_rays}).  This replaces the classical
+indented contour: the hypothesis $\sigma<0$ makes $x^{-s}G(x)$ absolutely integrable
+\emph{through} the pole of $G$ at the origin, so no arc need be excised, and the deformation
+can be run as a limit of contours that each avoid the pole.
+
+\begin{definition}[The Hankel ray integral]
+\label{def:rsz_phi}
+\lean{Zeta.RiemannSiegel.hankelIntegral}
+\leanok
+For $s\in\mathbb{C}$ set
+\[
+  \Phi(s)\;:=\;\int_{0}^{\infty}\frac{\rho^{-s}\,e^{-\pi\rho^{2}}}
+       {\sin\bigl(\pi\rho\,e^{i\pi/4}\bigr)}\,d\rho .
+\]
+\end{definition}
+
+\begin{lemma}[Convergence of $\Phi$]
+\label{lem:rsz_phi_conv}
+\lean{Zeta.RiemannSiegel.integrableOn_hankelIntegrand}
+\leanok
+\uses{def:rsz_phi}
+For $s=\sigma+i\tau$ with $\sigma<0$ the integral $\Phi(s)$ converges absolutely.
+\end{lemma}
+
+\begin{proof}
+\leanok
+For $\rho>0$ the point $\rho e^{i\pi/4}$ has imaginary part $\rho/\sqrt2>0$, hence is not an
+integer, so the integrand is continuous on $(0,\infty)$.  By the identity
+$\lvert\sin(u+iv)\rvert^{2}=\sin^{2}u+\sinh^{2}v$ of \Cref{rem:rs_numerics},
+\[
+  \bigl\lvert\sin(\pi\rho e^{i\pi/4})\bigr\rvert\;\ge\;\sinh(\pi\rho/\sqrt2)\;\ge\;\pi\rho/\sqrt2 ,
+\]
+so the integrand is $O\bigl(\rho^{-\sigma-1}e^{-\pi\rho^{2}}\bigr)$.  That majorant is
+integrable on $(0,\infty)$: at the origin because $-\sigma-1>-1$, which is exactly the
+hypothesis $\sigma<0$, and at infinity because of the Gaussian.
+\end{proof}
+
+\begin{lemma}[The two Hankel rays]
+\label{lem:rsz_rays}
+\lean{Zeta.RiemannSiegel.contourIntegral_zero_eq_neg_exp_mul_sin_mul_hankelIntegral}
+\leanok
+\uses{def:rsz_phi, lem:rsz_phi_conv, def:rs_integral, def:rs_kernel, def:rs_line, def:rs_power}
+Let $\sigma<0$.  Then $x\mapsto x^{-s}G(x)$ is absolutely integrable along $L(0)$, and
+\[
+  I(s,0)\;=\;-\,e^{i\pi(1+s)/4}\,\sin\Bigl(\frac{\pi s}{2}\Bigr)\,\Phi(s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rs_line, def:rs_power, lem:rsz_phi_conv}
+By \Cref{def:rs_line}, $L(0)(w)=\sqrt2\,w\,e^{i\pi/4}$, so the contour through the origin is
+the union of the outgoing ray $\{\rho e^{i\pi/4}:\rho>0\}$, traversed for $w>0$, and the
+incoming ray $\{\rho e^{-3i\pi/4}:\rho>0\}$, traversed for $w<0$; in both cases
+$\rho=\sqrt2\lvert w\rvert$.
+
+On both rays $x^{2}=i\rho^{2}$, so the Gaussian factor of the kernel is
+$e^{i\pi x^{2}}=e^{-\pi\rho^{2}}$, and the denominator of $G$ is $2i\sin(\pi\rho e^{i\pi/4})$ on
+the outgoing ray; on the incoming ray it is its negative, because $G(-x)=-G(x)$,
+immediate from \Cref{def:rs_kernel}.  For the power, \Cref{def:rs_power} gives
+$\arg_{\Omega}(\rho e^{i\pi/4})=\tfrac\pi4$ and $\arg_{\Omega}(\rho e^{-3i\pi/4})=-\tfrac{3\pi}4$,
+whence
+\[
+  (\rho e^{i\pi/4})^{-s}=\rho^{-s}e^{-i\pi s/4},\qquad
+  (\rho e^{-3i\pi/4})^{-s}=\rho^{-s}e^{3i\pi s/4}.
+\]
+Thus the integrand along $L(0)$ is $\rho^{-s}e^{-\pi\rho^{2}}/\bigl(2i\sin(\pi\rho e^{i\pi/4})\bigr)$
+times the constant $e^{-i\pi s/4}$ on the outgoing ray and times $-e^{3i\pi s/4}$ on the incoming
+one; in particular its modulus is a constant multiple of that of the integrand of $\Phi$, so
+absolute integrability along $L(0)$ is \Cref{lem:rsz_phi_conv} in the substitution
+$\rho=\sqrt2\lvert w\rvert$, which contributes the Jacobian $\sqrt2$.
+
+Collecting the two rays and the velocity $1+i=\sqrt2\,e^{i\pi/4}$ of the parametrisation, the two
+factors $\sqrt2$ cancel and
+\[
+  I(s,0)=e^{i\pi/4}\,\frac{e^{-i\pi s/4}-e^{3i\pi s/4}}{2i}\,\Phi(s)
+       =-\,e^{i\pi(1+s)/4}\sin\Bigl(\frac{\pi s}{2}\Bigr)\Phi(s),
+\]
+using $e^{-i\pi s/4}-e^{3i\pi s/4}=e^{i\pi s/4}\bigl(e^{-i\pi s/2}-e^{i\pi s/2}\bigr)
+=-2i\,e^{i\pi s/4}\sin(\pi s/2)$.
+\end{proof}
+
+The deformation onto $L(0)$ needs one estimate that \Cref{cha:riemann_siegel} does not supply.
+Its bound \Cref{lem:rs_sin_lower}, $\lvert\sin\pi x\rvert\ge\tfrac{\sqrt2}2$ along $L(a)$, holds only for half-integer $a$
+and is false as $a\to0$, since $L(0)$ passes through the zero of $\sin(\pi\cdot)$ at the origin.
+
+\begin{lemma}[Lower bound for the kernel denominator on the near contours]
+\label{lem:rsz_sin_lb}
+\lean{Zeta.RiemannSiegel.norm_sin_pi_mul_line_ge_min}
+\leanok
+\uses{def:rs_line}
+For $0\le a\le\tfrac12$ and every $w\in\mathbb{R}$, writing $x=L(a)(w)$,
+\[
+  \lvert\sin(\pi x)\rvert\;\ge\;\min\bigl(\tfrac12,\lvert x\rvert\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $x=u+iv$ with $u=a+w$ and $v=w$, and recall
+$\lvert\sin\pi x\rvert^{2}=\sin^{2}(\pi u)+\sinh^{2}(\pi v)$ (\Cref{rem:rs_numerics}), so that
+$\lvert\sin\pi x\rvert\ge\pi\lvert v\rvert$ and $\lvert\sin\pi x\rvert\ge\lvert\sin\pi u\rvert$.
+
+If $\lvert v\rvert\ge\tfrac14$ then $\lvert\sin\pi x\rvert\ge\pi/4>\tfrac12$ and there is nothing
+more to prove.  So assume $\lvert v\rvert<\tfrac14$; then $u=a+v\in(-\tfrac14,\tfrac34)$.  If
+$u\le\tfrac12$ then $\lvert u\rvert\le\tfrac12$, and Jordan's inequality gives
+$\lvert\sin\pi u\rvert\ge2\lvert u\rvert$; combined with
+$\lvert\sin\pi x\rvert\ge\pi\lvert v\rvert\ge2\lvert v\rvert$ this yields
+$2\lvert\sin\pi x\rvert^{2}\ge4u^{2}+4v^{2}=4\lvert x\rvert^{2}$, so
+$\lvert\sin\pi x\rvert\ge\sqrt2\,\lvert x\rvert\ge\lvert x\rvert$.  (Note that the two bounds must
+be \emph{averaged}, not added: each controls only one of $u,v$, so they give the factor $\sqrt2$
+and not $2$.  The factor $1$ is all the statement needs.)
+If instead $u>\tfrac12$ then $t:=\pi u-\tfrac\pi2\in(0,\tfrac\pi4)$ and
+$\sin(\pi u)=\cos t\ge1-\tfrac{t^{2}}2\ge1-\tfrac{\pi^{2}}{32}\ge\tfrac12$, using $\pi<4$.
+\end{proof}
+
+\begin{lemma}[Moving the contour onto the diagonal]
+\label{lem:rsz_deform}
+\lean{Zeta.RiemannSiegel.contourIntegral_zero_eq_contourIntegral_half}
+\leanok
+\uses{def:rs_integral, def:rs_line, def:rs_power, prop:rs_integrable, lem:rs_kernel_residue, lem:rs_branch_ok, lem:rs_gauss_modulus, lem:rsz_sin_lb, thm:rs_shift}
+For $\sigma<0$ one has $I\bigl(s,\tfrac12\bigr)=I(s,0)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{prop:rs_integrable, lem:rs_kernel_residue, lem:rs_branch_ok, lem:rs_gauss_modulus, lem:rsz_sin_lb, thm:rs_shift}
+\emph{Step 1: all crossing points in $(0,\tfrac12]$ give the same integral.}  Let
+$0<b\le a\le\tfrac12$.  First, the integrand is absolutely integrable along $L(a)$ for every such
+$a$: by \Cref{lem:rsz_sin_lb} and $\lvert L(a)(w)\rvert\ge a/\sqrt2$ the
+kernel denominator is bounded below by the positive constant $\min(\tfrac12,a/\sqrt2)$, and with that
+in place the proof of \Cref{prop:rs_integrable} applies verbatim, the constant $\tfrac{\sqrt2}2$ of
+the half-integer case being replaced by that constant.
+
+Now argue as in \Cref{thm:rs_shift}.  In the rotated coordinate $z=e^{i\pi/4}x$ the two contours
+become the vertical lines $\operatorname{Re}z=b/\sqrt2$ and $\operatorname{Re}z=a/\sqrt2$, and the
+rotated integer $e^{i\pi/4}n$ has abscissa $n/\sqrt2$.  No integer lies in $[b,a]$, because
+$[b,a]\subseteq(0,\tfrac12]$ and the least positive integer is $1$; hence on the closed rectangle
+with those vertical sides and horizontal sides at heights $\pm H$ the integrand is holomorphic:
+the branch by \Cref{lem:rs_branch_ok}, since $\operatorname{Re}z\ge b/\sqrt2>0$ there, and the kernel
+by \Cref{lem:rs_kernel_residue}.  Cauchy's theorem for a rectangle therefore returns $0$ where
+\Cref{thm:rs_shift} returned a residue.  The horizontal sides vanish as $H\to\infty$ by the Gaussian
+estimate used there (\Cref{lem:rs_gauss_modulus}), and each vertical side converges to the
+corresponding contour integral by dominated convergence, using the integrability just established.
+Hence $I(s,a)=I(s,b)$.
+
+\emph{Step 2: the crossing point may be sent to $0$.}  It suffices to exhibit a function
+$g\in L^{1}(\mathbb{R})$ with
+\[
+  \bigl\lvert L(a)(w)^{-s}\,G\bigl(L(a)(w)\bigr)\bigr\rvert\;\le\;g(w)
+  \qquad\bigl(0<a\le\tfrac12,\ w\ne0\bigr),
+\]
+for then, since $L(a)(w)\to L(0)(w)$ as $a\to0$ and the integrand is continuous at $L(0)(w)$ for
+$w\ne0$ (there $L(0)(w)$ is neither an integer nor on the branch cut, its rotation
+$e^{i\pi/4}L(0)(w)=\sqrt2\,w\,i$ being purely imaginary and nonzero), dominated convergence along
+any sequence $a_{n}\downarrow0$ gives $I(s,a_{n})\to I(s,0)$, while $I(s,a_{n})=I(s,\tfrac12)$ for
+all $n$ by Step 1.
+
+For the majorant, write $x=L(a)(w)$, so that $\lvert w\rvert\le\lvert x\rvert\le\tfrac12+2\lvert w\rvert$.
+By \Cref{lem:rs_branch_ok} the argument of the power contributes at most
+$e^{3\pi\lvert\tau\rvert/4}$; by \Cref{lem:rsz_sin_lb},
+\[
+  \frac1{2\lvert\sin\pi x\rvert}\;\le\;\frac1{2\min(\tfrac12,\lvert x\rvert)}\;\le\;1+\frac1{2\lvert x\rvert};
+\]
+and the Gaussian factor is $e^{-2\pi(a+w)w}\le e^{-2\pi w^{2}+\pi\lvert w\rvert}$ because
+$a\le\tfrac12$.  Hence, with $p:=-\sigma>0$,
+\[
+  \bigl\lvert x^{-s}G(x)\bigr\rvert\;\le\;e^{3\pi\lvert\tau\rvert/4}
+     \Bigl(\lvert x\rvert^{p}+\tfrac12\lvert x\rvert^{p-1}\Bigr)e^{-2\pi w^{2}+\pi\lvert w\rvert}.
+\]
+Now $\lvert x\rvert^{p}\le e^{p(1/2+2\lvert w\rvert)}$ and
+$\lvert x\rvert^{p-1}\le\lvert w\rvert^{p-1}+e^{(p+1)(1/2+2\lvert w\rvert)}$, the first by
+$\log t\le t-1$ and $\lvert x\rvert\le\tfrac12+2\lvert w\rvert$, the second by monotonicity of
+$t\mapsto t^{p-1}$ (increasing if $p\ge1$, in which case the upper bound on $\lvert x\rvert$ is
+used and again converted to an exponential, and decreasing if $p<1$, in which case the lower bound
+$\lvert x\rvert\ge\lvert w\rvert$ is used).  Absorbing every linear term into the Gaussian, this
+gives a majorant of the shape
+\[
+  g(w)=C\bigl(1+\lvert w\rvert^{p-1}\bigr)e^{-\pi w^{2}+B\lvert w\rvert},
+  \qquad C=C(s),\quad B=2p+2+\pi,
+\]
+which is integrable: the term without the power is the Gaussian majorant of the proof of
+\Cref{thm:rs_remainder_bound}, and the term with it
+is integrable at the origin precisely because $p-1>-1$, i.e.\ because $\sigma<0$, and at infinity
+because of the Gaussian.  Note that the singular factor cannot be avoided: it is the trace of the
+pole of $G$ at the origin, and it is integrable only under the hypothesis $\sigma<0$.
+\end{proof}
+
+\begin{lemma}[Hankel-ray representation of $I(s,\tfrac12)$]
+\label{lem:rsz_hankel}
+\lean{Zeta.RiemannSiegel.contourIntegral_half_eq_neg_exp_mul_sin_mul_hankelIntegral}
+\leanok
+\uses{lem:rsz_rays, lem:rsz_deform, def:rsz_phi}
+Let $s=\sigma+i\tau$ with $\sigma<0$.  Then $\Phi(s)$ converges absolutely and
+\[
+  I\bigl(s,\tfrac12\bigr)\;=\;-\,e^{i\pi(1+s)/4}\,\sin\Bigl(\frac{\pi s}{2}\Bigr)\,\Phi(s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_rays, lem:rsz_deform}
+Combine \Cref{lem:rsz_deform} with \Cref{lem:rsz_rays}.
+\end{proof}
+
+\begin{remark}[Where the mirror half sits]
+\label{rem:rsz_hankel_mirror}
+\uses{lem:rsz_hankel, rem:rsz_general}
+Conjugating \Cref{lem:rsz_hankel} at $\overline{1-s}$ gives, for $\operatorname{Re}s>1$,
+\[
+  \widetilde I\bigl(1-s,\tfrac12\bigr)
+    =-\,e^{-i\pi(2-s)/4}\cos\Bigl(\frac{\pi s}{2}\Bigr)
+      \int_{0}^{\infty}\frac{\rho^{s-1}e^{-\pi\rho^{2}}}{\sin(\pi\rho e^{-i\pi/4})}\,d\rho ,
+\]
+and, since
+$\chi(s)\cos\bigl(\tfrac{\pi s}2\bigr)=2^{s-1}\pi^{s-1}\Gamma(1-s)\sin(\pi s)
+=\dfrac{(2\pi)^{s}}{2\,\Gamma(s)}$,
+the general identity \eqref{eq:rsz_siegel_general} is, for $\operatorname{Re}s>1$,
+equivalent to the concrete Mellin-type statement
+\[
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)
+   =\frac{(2\pi)^{s}e^{-i\pi(2-s)/4}}{2\,\Gamma(s)}
+     \int_{0}^{\infty}\frac{\rho^{s-1}e^{-\pi\rho^{2}}}{\sin(\pi\rho e^{-i\pi/4})}\,d\rho .
+\]
+The two representations are valid on the disjoint half-planes $\operatorname{Re}s<0$ and
+$\operatorname{Re}s>1$, and matching them across the strip is the analytic heart of
+\Cref{thm:rsz_siegel}.  The displayed Mellin-type statement is
+\Cref{thm:rsz_mellin} and the mirror evaluation above is \Cref{lem:rsz_mirror}; the crossing
+is carried out in \Cref{sec:rsz_mellin} by a Mellin transform in an auxiliary variable, not
+by any further movement of the contour in $x$.
+\end{remark}
+
+\subsection{Gaussian structure of the kernel}
+
+The remaining two ingredients are needed again, unchanged, by the saddle-point chapters.
+
+\begin{lemma}[Half-plane Gaussian expansions of $G$]
+\label{lem:rsz_expansion}
+\lean{Zeta.RiemannSiegel.kernel_eq_tsum_of_im_neg, Zeta.RiemannSiegel.kernel_eq_neg_tsum_of_im_pos}
+\leanok
+\uses{def:rs_kernel}
+For $\operatorname{Im}x<0$,
+\[
+  G(x)\;=\;e^{-i\pi/4}\sum_{k\ge0}\exp\Bigl(i\pi\bigl(x-\tfrac{2k+1}2\bigr)^{2}\Bigr),
+\]
+and for $\operatorname{Im}x>0$,
+\[
+  G(x)\;=\;-\,e^{-i\pi/4}\sum_{k\ge0}\exp\Bigl(i\pi\bigl(x+\tfrac{2k+1}2\bigr)^{2}\Bigr),
+\]
+both series converging absolutely, and locally uniformly on the respective open
+half-planes.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Let $\operatorname{Im}x<0$.  Then $\lvert e^{-2\pi ix}\rvert=e^{2\pi\operatorname{Im}x}<1$,
+so from $e^{i\pi x}-e^{-i\pi x}=e^{i\pi x}\bigl(1-e^{-2\pi ix}\bigr)$ and the geometric
+series,
+\[
+  G(x)=e^{i\pi x^{2}-i\pi x}\sum_{k\ge0}e^{-2\pi ikx}
+      =\sum_{k\ge0}\exp\bigl(i\pi\bigl(x^{2}-(2k+1)x\bigr)\bigr).
+\]
+Completing the square, $x^{2}-(2k+1)x=\bigl(x-\tfrac{2k+1}2\bigr)^{2}-\tfrac{(2k+1)^{2}}4$,
+so the $k$-th term is $e^{-i\pi(2k+1)^{2}/4}\exp\bigl(i\pi(x-\tfrac{2k+1}2)^{2}\bigr)$.
+Now $(2k+1)^{2}=4k(k+1)+1\equiv1\pmod 8$ because $k(k+1)$ is even, so
+$e^{-i\pi(2k+1)^{2}/4}=e^{-i\pi/4}$ for every $k$, which gives the first formula.  The
+series converges absolutely and locally uniformly because
+$\lvert e^{-2\pi ikx}\rvert=e^{2\pi k\operatorname{Im}x}$ is a geometric series with ratio
+$<1$, locally uniformly in the open lower half-plane.
+
+For $\operatorname{Im}x>0$ the same computation applies to
+$e^{i\pi x}-e^{-i\pi x}=-e^{-i\pi x}\bigl(1-e^{2\pi ix}\bigr)$, with
+$\lvert e^{2\pi ix}\rvert<1$; it produces $x^{2}+(2k+1)x$ in the exponent and an overall
+minus sign.
+\end{proof}
+
+\begin{lemma}[The basic Gaussian contour integral]
+\label{lem:rsz_gauss_integral}
+\lean{Zeta.RiemannSiegel.integral_exp_pi_mul_I_mul_line_sub_sq}
+\leanok
+\uses{def:rs_line}
+For every real $a$ and every \emph{complex} $c$,
+\[
+  \int_{L(a)}e^{i\pi(x-c)^{2}}\,dx
+  \;=\;(1+i)\int_{\mathbb{R}}\exp\Bigl(i\pi\bigl(L(a)(w)-c\bigr)^{2}\Bigr)dw
+  \;=\;e^{i\pi/4} .
+\]
+In particular the value does not depend on $a$ or $c$.  Only the reality of $a$, which fixes
+the contour, is used.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Put $c':=a-c$ and substitute $\rho:=\sqrt2\,w$, so that
+$x-c=c'+\rho e^{i\pi/4}$ and $dx=(1+i)\,dw=e^{i\pi/4}d\rho$.  Then
+\[
+  i\pi(x-c)^{2}=i\pi c'^{2}+2\pi i c'\rho\,e^{i\pi/4}-\pi\rho^{2}
+  =i\pi c'^{2}-\pi(\rho-\alpha)^{2}+\pi\alpha^{2},\qquad \alpha:=c'e^{3i\pi/4},
+\]
+and $\pi\alpha^{2}=\pi c'^{2}e^{3i\pi/2}=-i\pi c'^{2}$, so the two constants cancel
+exactly and
+\[
+  \int_{L(a)}e^{i\pi(x-c)^{2}}dx=e^{i\pi/4}\int_{\mathbb{R}}e^{-\pi(\rho-\alpha)^{2}}d\rho
+  =e^{i\pi/4},
+\]
+the last step because $\int_{\mathbb{R}}e^{-\pi(\rho-\alpha)^{2}}d\rho=1$ for every
+\emph{complex} $\alpha$.  This is a contour shift, not translation invariance of Lebesgue
+measure, and mathlib supplies it ready-made: \texttt{integral\_cexp\_quadratic}, in
+\texttt{Mathlib/Analysis/SpecialFunctions/Gaussian/FourierTransform.lean}, states that
+$\int_{\mathbb{R}}e^{bx^{2}+cx+d}\,dx=(\pi/-b)^{1/2}e^{\,d-c^{2}/4b}$ whenever
+$\operatorname{Re}b<0$, for arbitrary complex $c,d$.  Applied with $b=-\pi$,
+$c=2\pi ic'e^{i\pi/4}$ and $d=i\pi c'^{2}$ it returns $e^{i\pi c'^{2}}e^{-i\pi c'^{2}}=1$
+directly, so a formalization needs neither the substitution $\rho=\sqrt2\,w$ nor a separate
+appeal to $\int_{\mathbb{R}}e^{-\pi u^{2}}du=1$: it can be run in the variable $w$ of
+\Cref{def:rs_line} as it stands.
+\end{proof}
+
+\begin{remark}[Why the modulus bound of \Cref{cha:riemann_siegel} is not enough here]
+\label{rem:rsz_cancellation}
+\uses{lem:rsz_expansion, lem:rsz_gauss_integral}
+On $L(a)$ the modulus of $G$ is enormous: by \Cref{lem:rsz_expansion} the term $k=0$ alone
+has modulus $e^{\pi a(a-1)/2}$ at the point $w=-a/2$, whereas for $\operatorname{Re}u>1$ the
+integral $I(u,a)$ stays bounded as $a\to\infty$, since
+$I(u,\nu+\tfrac12)=\sum_{n\le\nu}n^{-u}+I(u,\tfrac12)$ by \Cref{cor:rs_partial_sum} and the
+partial sums converge.  (On the critical line itself no such boundedness holds: there
+$\sum_{n\le\nu}n^{-1/2-it}$ grows like $\nu^{1/2}$, and it is the \emph{ratio} of that
+growth to $e^{\pi a(a-1)/2}$ that is the point.)  \Cref{lem:rsz_gauss_integral} is exactly the
+mechanism: each Gaussian in the expansion integrates, along the slope-$1$ line, to the
+single constant $e^{i\pi/4}$, the factor $e^{\pi c'^{2}/2}$ from the peak being cancelled by
+the oscillation.  Any attempt to bound \Cref{thm:rsz_siegel} by moduli is therefore
+hopeless; only the exact Gaussian evaluations can be used.  This is also why
+\Cref{cha:riemann_siegel} bounds $I(s,\nu+\tfrac12)$ only under the hypothesis
+$T\le2a^{2}$, which keeps the contour at or beyond the saddle.
+\end{remark}
+
+\subsection{Riemann's Mordell integral}
+\label{sec:rsz_mordell}
+
+The whole proof rests on one auxiliary function of a \emph{complex} parameter $u$: the
+contour integral of the kernel against the exponential $e^{-2\pi iux}$ rather than against
+the power $x^{-s}$.  Unlike $I(s,a)$ it can be evaluated in closed form by elementary means,
+because the exponential, unlike the power, interacts with both of the two structural
+symmetries of $G$: the quasi-periodicity $G(x+1)=e^{2\pi ix}G(x)$ and the pole at every
+integer.  This is the integral $\varPhi(\tau,u)$ studied by Kronecker and Mordell, at the
+parameter $\tau$ that Riemann needed; see \cite{Siegel1932} \S1.
+
+Two of the three ingredients are already available: \Cref{lem:rs_kernel_residue} for the
+residue and \Cref{thm:rs_shift} for the contour shift across it.  The third is
+\Cref{lem:rsz_gauss_integral}, which is stated for a complex centre precisely for this use.
+
+\begin{definition}[The Mordell integral]
+\label{def:rsz_mordell}
+\lean{Zeta.RiemannSiegel.mordellIntegral}
+\leanok
+\uses{def:rs_line, def:rs_kernel}
+For $u\in\mathbb{C}$ and $a\in\tfrac12+\mathbb{Z}_{\ge0}$ set
+\[
+  N(u,a)\;:=\;\int_{L(a)}e^{-2\pi iux}G(x)\,dx
+    \;=\;(1+i)\int_{\mathbb{R}}e^{-2\pi iuL(a)(w)}\,G\bigl(L(a)(w)\bigr)\,dw ,
+\]
+and write $N(u):=N(u,\tfrac12)$.
+\end{definition}
+
+\begin{lemma}[Convergence]
+\label{lem:rsz_mordell_conv}
+\lean{Zeta.RiemannSiegel.integrable_mordellIntegrand}
+\leanok
+\uses{def:rsz_mordell, lem:rs_gauss_modulus, lem:rs_sin_lower, lem:rs_rotate}
+For every $u\in\mathbb{C}$ and every $a\in\tfrac12+\mathbb{Z}_{\ge0}$ the integrand of
+$N(u,a)$ is absolutely integrable on $\mathbb{R}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rs_gauss_modulus, lem:rs_sin_lower, lem:rs_rotate}
+As in \Cref{prop:rs_integrable}, $\lvert G(L(a)(w))\rvert\le\tfrac1{\sqrt2}e^{\pi a^{2}}
+e^{-\pi w^{2}}$, using \Cref{lem:rs_gauss_modulus} for the numerator and
+\Cref{lem:rs_sin_lower} for the denominator.  By \Cref{lem:rs_rotate},
+$\lvert L(a)(w)\rvert\le a+2\lvert w\rvert$, so
+$\lvert e^{-2\pi iuL(a)(w)}\rvert\le e^{2\pi\lvert u\rvert(a+2\lvert w\rvert)}$.  A Gaussian
+times an exponential of a linear function is integrable.  Note that, in contrast with
+\Cref{prop:rs_integrable}, no branch of a power is involved, so the hypothesis $a>0$ is not
+needed here; it appears only because \Cref{thm:rs_shift} is stated for half-integers.
+\end{proof}
+
+\begin{lemma}[First difference equation: the Gaussian shift]
+\label{lem:rsz_mordell_gauss}
+\lean{Zeta.RiemannSiegel.mordellIntegral_sub_mordellIntegral_add_one}
+\leanok
+\uses{def:rsz_mordell, lem:rsz_gauss_integral, lem:rsz_mordell_conv}
+For every $u\in\mathbb{C}$ and $a\in\tfrac12+\mathbb{Z}_{\ge0}$,
+\[
+  N(u,a)-N(u+1,a)\;=\;e^{i\pi/4}\,e^{-i\pi\left(u+\frac12\right)^{2}} .
+\]
+In particular the difference does not depend on $a$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_gauss_integral, lem:rsz_mordell_conv}
+Both integrals converge absolutely by \Cref{lem:rsz_mordell_conv}, so they may be
+subtracted under the integral sign:
+\[
+  N(u,a)-N(u+1,a)=\int_{L(a)}\bigl(1-e^{-2\pi ix}\bigr)e^{-2\pi iux}G(x)\,dx .
+\]
+The pole of $G$ is cancelled exactly: by \Cref{def:rs_kernel},
+\[
+  \bigl(1-e^{-2\pi ix}\bigr)G(x)
+  =\frac{e^{-i\pi x}\bigl(e^{i\pi x}-e^{-i\pi x}\bigr)e^{i\pi x^{2}}}
+        {e^{i\pi x}-e^{-i\pi x}}
+  =e^{i\pi x^{2}-i\pi x},
+\]
+an entire function.  Hence the integrand is $e^{i\pi(x^{2}-(2u+1)x)}$, and completing the
+square,
+\[
+  x^{2}-(2u+1)x=\Bigl(x-\bigl(u+\tfrac12\bigr)\Bigr)^{2}-\bigl(u+\tfrac12\bigr)^{2}.
+\]
+Now apply \Cref{lem:rsz_gauss_integral} with the complex centre $c=u+\tfrac12$.  (This is
+where the complex centre is indispensable: $u$ is the variable of the difference equation
+and is complex throughout.)
+\end{proof}
+
+\begin{lemma}[Second difference equation: the pole shift]
+\label{lem:rsz_mordell_pole}
+\lean{Zeta.RiemannSiegel.mordellIntegral_sub_exp_mul_mordellIntegral_add_one}
+\leanok
+\uses{def:rsz_mordell, thm:rs_shift, lem:rs_kernel_residue, lem:rsz_mordell_conv}
+For every $u\in\mathbb{C}$,
+\[
+  N(u)-e^{2\pi iu}\,N(u+1)\;=\;1 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:rs_shift, lem:rs_kernel_residue, lem:rsz_mordell_conv}
+The comparison is between the contours $L(\tfrac12)$ and $L(\tfrac32)$, which enclose the
+single pole $x=1$ of $G$.  The rectangle argument of \Cref{thm:rs_shift} applies with the
+integrand $x^{-s}G(x)$ replaced by $f_{u}(x):=e^{-2\pi iux}G(x)$; that argument takes the
+integrand as a parameter, and its three hypotheses hold here.
+\begin{enumerate}
+  \item \emph{Holomorphy off the pole.}  $f_{u}$ is holomorphic on the closed strip
+        $\tfrac12\le\operatorname{Re}(e^{i\pi/4}x)\sqrt2\le\tfrac32$ minus $\{1\}$, because
+        $e^{-2\pi iux}$ is entire and $G$ is holomorphic off $\mathbb{Z}$
+        (\Cref{lem:rs_kernel_residue}).  This is strictly easier than for $x^{-s}G(x)$, where
+        the branch of the power had to be controlled as well; in particular no analogue of
+        \Cref{lem:rs_branch_ok} is needed.
+  \item \emph{Simple pole with a computable residue.}  By \Cref{lem:rs_kernel_residue},
+        $\lim_{x\to1}(x-1)G(x)=\tfrac1{2\pi i}$, so
+        $\lim_{x\to1}(x-1)f_{u}(x)=e^{-2\pi iu}/2\pi i$, the value of $e^{-2\pi iux}$ at
+        $x=1$ times that residue.
+  \item \emph{Decay of the horizontal sides.}  By the proof of \Cref{lem:rsz_mordell_conv}
+        the integrand is bounded by a Gaussian in $w$ times an exponential of a linear
+        function, uniformly for $\operatorname{Re}x$ in the compact interval
+        $[\tfrac12,\tfrac32]$, so the horizontal sides tend to $0$.
+\end{enumerate}
+Hence
+\[
+  N(u,\tfrac32)-N(u,\tfrac12)\;=\;2\pi i\cdot\frac{e^{-2\pi iu}}{2\pi i}\;=\;e^{-2\pi iu}.
+\]
+On the other hand $L(\tfrac32)(w)=L(\tfrac12)(w)+1$ for every $w$ (the two contours differ
+by the translation $x\mapsto x+1$ in the \emph{same} parameter $w$), and $G(x+1)=e^{2\pi ix}G(x)$, directly from \Cref{def:rs_kernel} since
+$e^{i\pi(x+1)^{2}}=-e^{i\pi x^{2}}e^{2\pi ix}$ and $e^{\pm i\pi(x+1)}=-e^{\pm i\pi x}$.
+Therefore
+\[
+  N(u,\tfrac32)=\int_{L(\frac12)}e^{-2\pi iu(x+1)}G(x+1)\,dx
+    =e^{-2\pi iu}\int_{L(\frac12)}e^{-2\pi i(u-1)x}G(x)\,dx=e^{-2\pi iu}N(u-1).
+\]
+Combining, $e^{-2\pi iu}N(u-1)-N(u)=e^{-2\pi iu}$, i.e.\ $N(u-1)=e^{2\pi iu}N(u)+1$;
+replacing $u$ by $u+1$ and using $e^{2\pi i(u+1)}=e^{2\pi iu}$ gives the claim.
+\end{proof}
+
+\begin{theorem}[Closed form of the Mordell integral]
+\label{thm:rsz_mordell}
+\lean{Zeta.RiemannSiegel.mordellIntegral_eq}
+\leanok
+\uses{lem:rsz_mordell_gauss, lem:rsz_mordell_pole}
+For every $u\in\mathbb{C}\setminus\mathbb{Z}$,
+\[
+  N(u)\;=\;\int_{L(\frac12)}e^{-2\pi iux}G(x)\,dx
+      \;=\;\frac{e^{-i\pi u^{2}}-e^{-i\pi u}}{e^{i\pi u}-e^{-i\pi u}} .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_mordell_gauss, lem:rsz_mordell_pole}
+Eliminate $N(u+1)$ between the two difference equations.  By
+\Cref{lem:rsz_mordell_gauss}, $N(u+1)=N(u)-e^{i\pi/4}e^{-i\pi(u+\frac12)^{2}}$; substituting
+into \Cref{lem:rsz_mordell_pole},
+\[
+  N(u)\bigl(1-e^{2\pi iu}\bigr)\;=\;1-e^{2\pi iu}e^{i\pi/4}e^{-i\pi(u+\frac12)^{2}} .
+\]
+Since $-i\pi(u+\tfrac12)^{2}=-i\pi u^{2}-i\pi u-\tfrac{i\pi}4$, the second term on the right
+is $e^{-i\pi u^{2}}e^{2\pi iu-i\pi u}=e^{-i\pi u^{2}+i\pi u}$, so
+\[
+  N(u)\bigl(1-e^{2\pi iu}\bigr)\;=\;1-e^{-i\pi u^{2}+i\pi u} .
+\]
+For $u\notin\mathbb{Z}$ the factor $1-e^{2\pi iu}$ is nonzero; dividing and multiplying
+numerator and denominator by $e^{-i\pi u}$ gives the stated form.  (Both sides are in fact
+entire, as the numerator vanishes at every integer; the ray of \Cref{sec:rsz_mellin} meets
+$\mathbb{Z}$ only at $0$.)
+\end{proof}
+
+\begin{remark}[Normalisation]
+\label{rem:rsz_mordell_numeric}
+\uses{thm:rsz_mordell}
+The closed form holds for every $a\in(0,1)$, since the argument uses only that the pole $x=0$
+lies to the left of $L(a)$ and $x=1$ to its right.  Literature normalisations of the
+Mordell integral differ.  The Gaussian here has parameter $\pi$, whereas the model
+integral $M(p)$ of \Cref{cha:rs_first} has parameter $2\pi$: they are different members of
+Mordell's family and neither closed form implies the other.
+\end{remark}
+
+\subsection{The Mellin transform along the diagonal ray}
+\label{sec:rsz_mellin}
+
+The passage from \Cref{thm:rsz_mordell} to $\zeta$ is Riemann's, and it is the step that
+crosses the strip.  One multiplies the identity of \Cref{thm:rsz_mordell} by $u^{-s}$ and
+integrates $u$ over the ray $e^{-i\pi/4}(0,\infty)$.  Three things then happen at once:
+\begin{itemize}
+  \item the geometric part of $N(u)$ becomes $\sum_{n\ge1}n^{s-1}=\zeta(1-s)$;
+  \item the exponential $e^{-2\pi iux}$ inside the contour integral is a Mellin kernel in
+        $u$, and integrating it against $u^{-s}$ produces $\Gamma(1-s)$ times $x^{s-1}$,
+        so the contour integral $\int_{L(1/2)}e^{-2\pi iux}G(x)dx$ turns into
+        $\int_{L(1/2)}x^{s-1}G(x)\,dx=I(1-s,\tfrac12)$;
+  \item the Gaussian part of $N(u)$ becomes a Hankel-ray integral of the mirror kernel.
+\end{itemize}
+No contour in $x$ is moved.  The ray is forced: it must lie in the lower half-plane for the
+geometric series to converge, and $e^{-i\pi/4}$ is the unique direction for which the
+resulting exponential rate is positive \emph{uniformly along $L(a)$}, by
+\Cref{lem:rs_rotate}, which says that $\operatorname{Re}(e^{i\pi/4}x)=a/\sqrt2$ is
+\emph{constant} on $L(a)$.  It is that constancy which makes the double integral absolutely
+convergent, hence Fubini applicable.
+
+Throughout this subsection $\omega:=e^{-i\pi/4}$, $s=\sigma+i\tau$ and $\sigma<0$, and for
+$F:\mathbb{C}\to\mathbb{C}$ we abbreviate
+\[
+  \mathcal{R}F(s)\;:=\;\omega\int_{0}^{\infty}(\rho\omega)^{-s}F(\rho\omega)\,d\rho ,
+\]
+the integral of $u^{-s}F(u)$ over the ray, with $(\rho\omega)^{-s}$ the principal branch
+(legitimate since $\arg(\rho\omega)=-\tfrac\pi4$).
+
+\begin{lemma}[The $\Gamma$-integral with a complex rate]
+\label{lem:rsz_gamma_cplx}
+\lean{Complex.integral_cpow_neg_mul_exp_neg_mul_Ioi}
+\leanok
+For $b\in\mathbb{C}$ with $\operatorname{Re}b>0$ and $s\in\mathbb{C}$ with
+$\operatorname{Re}s<1$,
+\[
+  \int_{0}^{\infty}\rho^{-s}e^{-b\rho}\,d\rho\;=\;\Gamma(1-s)\,b^{\,s-1},
+\]
+the power being the principal branch.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Mathlib's \texttt{Complex.integral\_cpow\_mul\_exp\_neg\_mul\_Ioi},
+$\int_{(0,\infty)}t^{a-1}e^{-rt}dt=(1/r)^{a}\Gamma(a)$ under $0<\operatorname{Re}a$ and $r>0$,
+is exactly this statement at $a=1-s$ (whose hypothesis $0<\operatorname{Re}(1-s)$ is the
+$\operatorname{Re}s<1$ above), but only for a \emph{real} rate $r$.  The extension is by the
+identity theorem in $b$, not by rotating the ray.  Fix $s$ with $\sigma<1$ and let
+$H:=\{b:\operatorname{Re}b>0\}$, an open connected set.  The right-hand side is holomorphic
+on $H$.  For the left-hand side, on a compact $K\subset H$ one has
+$\operatorname{Re}b\ge\delta>0$ and $\lvert b\rvert\le R$, so
+$\lvert\rho^{-s}e^{-b\rho}\rvert\le\rho^{-\sigma}e^{\tau\arg\rho}e^{-\delta\rho}
+=\rho^{-\sigma}e^{-\delta\rho}$ and
+$\lvert\partial_{b}(\rho^{-s}e^{-b\rho})\rvert=\rho^{1-\sigma}e^{-\rho\operatorname{Re}b}
+\le\rho^{1-\sigma}e^{-\delta\rho}$, both
+integrable on $(0,\infty)$ because $-\sigma>-1$; differentiation under the integral sign
+(mathlib's \texttt{hasDerivAt\_integral\_of\_dominated\_loc\_of\_deriv\_le}) makes the
+left-hand side holomorphic on $H$ too.  The two agree on $(0,\infty)\subset H$, a set with a
+limit point in $H$, hence on all of $H$.
+
+In Lean the identity theorem is applied at $b=1$, the accumulating points being the reals
+$1+\varepsilon/2$; the ball on which the dominating functions are used is
+$\lvert b-b_{0}\rvert<\delta:=\tfrac12\operatorname{Re}b_{0}$, on which
+$\operatorname{Re}b\ge\delta$.  The half-plane is convex, hence preconnected.  Both the
+statement above and the strict generalisation of
+\texttt{Complex.integral\_cpow\_mul\_exp\_neg\_mul\_Ioi} that it specialises,
+\texttt{Complex.integral\_cpow\_mul\_exp\_neg\_mul\_Ioi'}, live in the \texttt{Complex}
+namespace in \texttt{Zeta/Analysis/SpecialFunctions/GammaIntegral.lean}, together with the
+absolute convergence \texttt{Complex.integrableOn\_cpow\_mul\_exp\_neg\_mul\_Ioi}.
+\end{proof}
+
+\begin{definition}[The mirror Hankel ray integral]
+\label{def:rsz_phi_mirror}
+\lean{Zeta.RiemannSiegel.mirrorHankelIntegral}
+\leanok
+\uses{def:rsz_phi}
+For $s\in\mathbb{C}$ set
+\[
+  \widetilde\Phi(s)\;:=\;\int_{0}^{\infty}
+     \frac{\rho^{-s}e^{-\pi\rho^{2}}}{\sin\bigl(\pi\rho e^{-i\pi/4}\bigr)}\,d\rho
+   \;=\;\overline{\Phi(\overline{s})} ,
+\]
+the complex conjugate of \Cref{def:rsz_phi}.  It converges absolutely for
+$\operatorname{Re}s<0$, by \Cref{lem:rsz_phi_conv} and conjugation.  It is the second equality
+that is taken as the Lean definition, exactly as for $\widetilde I$ in \Cref{def:rsz_mirror}:
+defining the mirror by conjugation transports everything proved about $\Phi$ to
+$\widetilde\Phi$.
+\end{definition}
+
+\begin{lemma}[The geometric term]
+\label{lem:rsz_ray_zeta}
+\lean{Zeta.RiemannSiegel.rayIntegral_inv_one_sub_exp}
+\leanok
+\uses{lem:rsz_gamma_cplx}
+For $\sigma<0$,
+\[
+  \mathcal{R}\Bigl(u\mapsto\frac1{1-e^{2\pi iu}}\Bigr)(s)
+    \;=\;-\,(2\pi)^{s-1}e^{i\pi(s-1)/2}\,\Gamma(1-s)\,\zeta(1-s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_gamma_cplx}
+On the ray, $\operatorname{Im}(\rho\omega)=-\rho/\sqrt2<0$, so
+$\lvert e^{2\pi i\rho\omega}\rvert=e^{\sqrt2\pi\rho}>1$ and
+\[
+  \frac1{1-e^{2\pi iu}}=\frac{-e^{-2\pi iu}}{1-e^{-2\pi iu}}
+    =-\sum_{n\ge1}e^{-2\pi inu},\qquad u=\rho\omega,
+\]
+with $\lvert e^{-2\pi in\rho\omega}\rvert=e^{-2\pi n\rho\operatorname{Re}(i\omega)}
+=e^{-\sqrt2\pi n\rho}$, since $i\omega=e^{i\pi/4}$.  The series may be integrated term by
+term because
+$\sum_{n\ge1}\int_{0}^{\infty}\rho^{-\sigma}e^{-\sqrt2\pi n\rho}d\rho
+=\Gamma(1-\sigma)\sum_{n\ge1}(\sqrt2\pi n)^{\sigma-1}<\infty$, the last sum converging
+precisely because $1-\sigma>1$.  By \Cref{lem:rsz_gamma_cplx} with
+$b=2\pi in\omega=2\pi ne^{i\pi/4}$, whose real part $\sqrt2\pi n$ is positive,
+\[
+  \omega\int_{0}^{\infty}(\rho\omega)^{-s}e^{-2\pi in\rho\omega}d\rho
+   =\omega^{1-s}\Gamma(1-s)\bigl(2\pi ne^{i\pi/4}\bigr)^{s-1}
+   =(2\pi n)^{s-1}e^{i\pi(s-1)/2}\Gamma(1-s),
+\]
+using $(\rho\omega)^{-s}=\rho^{-s}\omega^{-s}$ (valid as $\rho>0$) and
+$\omega^{1-s}\bigl(e^{i\pi/4}\bigr)^{s-1}=e^{i\pi(s-1)/4}e^{i\pi(s-1)/4}=e^{i\pi(s-1)/2}$.
+Summing over $n$ and using $\sum_{n\ge1}n^{s-1}=\zeta(1-s)$, legitimate because
+$\operatorname{Re}(1-s)>1$, gives the claim with the overall minus sign of the geometric
+expansion.
+\end{proof}
+
+\begin{lemma}[The contour term]
+\label{lem:rsz_ray_contour}
+\lean{Zeta.RiemannSiegel.rayIntegral_mordellIntegral}
+\leanok
+\uses{def:rsz_mordell, lem:rsz_gamma_cplx, lem:rs_rotate, def:rs_power, def:rs_integral,
+prop:rs_integrable}
+For $\sigma<0$,
+\[
+  \mathcal{R}\bigl(u\mapsto N(u)\bigr)(s)
+    \;=\;(2\pi)^{s-1}e^{i\pi(s-1)/2}\,\Gamma(1-s)\,I\bigl(1-s,\tfrac12\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_gamma_cplx, lem:rs_rotate, def:rs_power, prop:rs_integrable}
+Write out $N$ and apply Fubini on $(0,\infty)\times\mathbb{R}$.  Absolute convergence is the
+point, and it is where the choice of ray pays: with $x=L(\tfrac12)(w)$,
+\[
+  \bigl\lvert e^{-2\pi i\rho\omega x}\bigr\rvert
+   =e^{-2\pi\rho\operatorname{Re}(i\omega x)}=e^{-2\pi\rho\operatorname{Re}(e^{i\pi/4}x)}
+   =e^{-\pi\rho/\sqrt2},
+\]
+\emph{independently of $w$}, by \Cref{lem:rs_rotate}.  Together with
+$\lvert(\rho\omega)^{-s}\rvert=\rho^{-\sigma}e^{-\pi\tau/4}$ and the Gaussian bound
+$\lvert G(x)\rvert\le\tfrac1{\sqrt2}e^{\pi/4}e^{-\pi w^{2}}$ of \Cref{prop:rs_integrable},
+the modulus of the double integrand is at most a constant times
+$\rho^{-\sigma}e^{-\pi\rho/\sqrt2}e^{-\pi w^{2}}$, which is integrable since $-\sigma>-1$.
+
+For fixed $x$ the inner integral is \Cref{lem:rsz_gamma_cplx} with
+$b=2\pi i\omega x=2\pi e^{i\pi/4}x$, whose real part is $2\pi\cdot\tfrac1{2\sqrt2}>0$:
+\[
+  \omega\int_{0}^{\infty}(\rho\omega)^{-s}e^{-2\pi i\rho\omega x}d\rho
+   =\omega^{1-s}\Gamma(1-s)\bigl(2\pi e^{i\pi/4}x\bigr)^{s-1}
+   =(2\pi)^{s-1}e^{i\pi(s-1)/4}\Gamma(1-s)\,\omega^{1-s}\,x^{s-1},
+\]
+where $\bigl(e^{i\pi/4}x\bigr)^{s-1}=e^{i\pi(s-1)/4}x^{s-1}$ is exactly the defining relation
+of the branch of \Cref{def:rs_power}.  This is the one place where the slanted branch
+of \Cref{def:rs_power} is needed: it is the branch in which the identity holds without a
+correction.  Since
+$\omega^{1-s}=e^{i\pi(s-1)/4}$ the prefactor is $(2\pi)^{s-1}e^{i\pi(s-1)/2}\Gamma(1-s)$, and
+$\int_{L(1/2)}x^{s-1}G(x)dx=I(1-s,\tfrac12)$ by \Cref{def:rs_integral}.
+\end{proof}
+
+\begin{lemma}[The Gaussian term]
+\label{lem:rsz_ray_hankel}
+\lean{Zeta.RiemannSiegel.rayIntegral_mirrorKernel}
+\leanok
+\uses{def:rsz_phi_mirror}
+For $\sigma<0$,
+\[
+  \mathcal{R}\Bigl(u\mapsto\frac{e^{-i\pi u^{2}}}{e^{i\pi u}-e^{-i\pi u}}\Bigr)(s)
+   \;=\;\frac{e^{i\pi(s-1)/4}}{2i}\,\widetilde\Phi(s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rsz_phi_mirror}
+Substitute $u=\rho\omega$.  Then $u^{2}=-i\rho^{2}$, so $e^{-i\pi u^{2}}=e^{-\pi\rho^{2}}$,
+and $e^{i\pi u}-e^{-i\pi u}=2i\sin(\pi\rho\omega)$.  With
+$(\rho\omega)^{-s}=\rho^{-s}\omega^{-s}$ the integral is
+$\omega^{1-s}(2i)^{-1}\widetilde\Phi(s)$, and $\omega^{1-s}=e^{i\pi(s-1)/4}$.  Absolute
+convergence is \Cref{def:rsz_phi_mirror}.  (The Lean statement carries no hypothesis on $s$ at
+all: the two integrands are proportional by a constant, so off $\sigma<0$ both sides degenerate to
+the junk value $0$ together.)
+\end{proof}
+
+\begin{theorem}[The Mellin form of Siegel's identity]
+\label{thm:rsz_mellin}
+\lean{Zeta.RiemannSiegel.riemannZeta_add_contourIntegral_half_eq}
+\leanok
+\uses{thm:rsz_mordell, lem:rsz_ray_zeta, lem:rsz_ray_contour, lem:rsz_ray_hankel}
+For $\operatorname{Re}s>1$,
+\[
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)
+   \;=\;\frac{(2\pi)^{s}e^{-i\pi(2-s)/4}}{2\,\Gamma(s)}\,\widetilde\Phi(1-s)
+   \;=\;\frac{(2\pi)^{s}e^{-i\pi(2-s)/4}}{2\,\Gamma(s)}
+        \int_{0}^{\infty}\frac{\rho^{s-1}e^{-\pi\rho^{2}}}{\sin(\pi\rho e^{-i\pi/4})}\,d\rho .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:rsz_mordell, lem:rsz_ray_zeta, lem:rsz_ray_contour, lem:rsz_ray_hankel}
+Let first $\sigma<0$.  By \Cref{thm:rsz_mordell},
+\[
+  N(u)=\frac1{1-e^{2\pi iu}}+\frac{e^{-i\pi u^{2}}}{e^{i\pi u}-e^{-i\pi u}}
+  \qquad(u\notin\mathbb{Z}),
+\]
+since $\frac1{1-e^{2\pi iu}}=\frac{-e^{-i\pi u}}{e^{i\pi u}-e^{-i\pi u}}$.  The ray meets
+$\mathbb{Z}$ only at the endpoint $\rho=0$, a null set, so the identity may be multiplied by
+$u^{-s}$ and integrated over the ray.  Each of the three resulting integrals converges
+absolutely and separately for $\sigma<0$: for the two singular ones because near $u=0$ both
+$\frac1{1-e^{2\pi iu}}$ and $\frac{e^{-i\pi u^{2}}}{e^{i\pi u}-e^{-i\pi u}}$ have a simple
+pole, so their integrands are $O(\rho^{-\sigma-1})$ and $-\sigma-1>-1$; this is exactly the
+hypothesis $\sigma<0$, and it is the only reason for it.  At the other end there is no issue
+at all: as $\rho\to\infty$ the geometric term decays like $e^{-\sqrt2\pi\rho}$, the Gaussian
+term like $e^{-\pi\rho^{2}}$ and $N$, being their sum, likewise, against the merely polynomial
+$\rho^{-\sigma}$.  Applying
+\Cref{lem:rsz_ray_contour} on the left and \Cref{lem:rsz_ray_zeta},
+\Cref{lem:rsz_ray_hankel} on the right, and abbreviating
+$B(s):=(2\pi)^{s-1}e^{i\pi(s-1)/2}\Gamma(1-s)$,
+\[
+  B(s)\,I\bigl(1-s,\tfrac12\bigr)
+   =-B(s)\,\zeta(1-s)+\frac{e^{i\pi(s-1)/4}}{2i}\widetilde\Phi(s),
+\]
+that is
+\begin{equation}
+  B(s)\Bigl[\zeta(1-s)+I\bigl(1-s,\tfrac12\bigr)\Bigr]
+   =\frac{e^{i\pi(s-1)/4}}{2i}\,\widetilde\Phi(s)\qquad(\sigma<0).
+  \label{eq:rsz_mellin_raw}
+\end{equation}
+Now replace $s$ by $1-s$, so that the hypothesis $\sigma<0$ becomes
+$\operatorname{Re}s>1$.  Then $B(1-s)=(2\pi)^{-s}e^{-i\pi s/2}\Gamma(s)$ and the right-hand
+side is $e^{-i\pi s/4}\widetilde\Phi(1-s)/2i$, so
+\[
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)
+   =\frac{(2\pi)^{s}e^{i\pi s/2}e^{-i\pi s/4}}{2i\,\Gamma(s)}\widetilde\Phi(1-s)
+   =\frac{(2\pi)^{s}e^{i\pi s/4}e^{-i\pi/2}}{2\,\Gamma(s)}\widetilde\Phi(1-s),
+\]
+using $1/i=e^{-i\pi/2}$, and $e^{i\pi s/4}e^{-i\pi/2}=e^{i\pi(s-2)/4}=e^{-i\pi(2-s)/4}$.
+Finally $\widetilde\Phi(1-s)=\int_{0}^{\infty}\rho^{s-1}e^{-\pi\rho^{2}}
+/\sin(\pi\rho e^{-i\pi/4})d\rho$ by \Cref{def:rsz_phi_mirror}.
+\end{proof}
+
+\subsection{Proof of Siegel's identity}
+\label{sec:rsz_proof}
+
+The two objects of \Cref{rem:rsz_general} are now given names for the formalization.
+
+\begin{definition}[The mirror contour integral and the functional-equation factor]
+\label{def:rsz_mirror}
+\lean{Zeta.RiemannSiegel.mirrorContourIntegral, Complex.chi}
+\leanok
+\uses{def:rs_integral}
+For $s\in\mathbb{C}$ and $a\in\tfrac12+\mathbb{Z}_{\ge0}$ set
+\[
+  \widetilde I(s,a):=\overline{I\bigl(\overline{s},a\bigr)},
+  \qquad
+  \chi(s):=\pi^{s-\frac12}\,
+     \frac{\Gamma\bigl(\frac{1-s}2\bigr)}{\Gamma\bigl(\frac s2\bigr)} .
+\]
+The first is a literal transcription of \Cref{rem:rsz_general}; in particular $\widetilde I$
+needs no second contour and no second branch of the power, being defined by conjugation from
+$I$.
+
+The second differs from the formula $2^{s}\pi^{s-1}\sin(\pi s/2)\Gamma(1-s)$ of
+\Cref{rem:rsz_general}, and the quotient form is the one formalized.  The two agree as
+meromorphic functions
+(\Cref{lem:rsz_chi}), but mathlib's \texttt{Complex.Gamma} takes the junk value $0$ at its
+poles, so the product form evaluates to $\bigl(\cdots\bigr)\cdot0\cdot0=0$ at every even
+integer $s\ge2$, where the true value is not $0$ (for instance $\chi(2)=-2\pi^{2}$).  Under
+the product form \Cref{thm:rsz_general} would assert $\zeta(2)+I(2,\tfrac12)=0$, which is
+false: $\widetilde I(-1,\tfrac12)=\widetilde\Phi(-1)=\tfrac18+\tfrac i{4\pi}$ by
+\Cref{lem:rsz_mirror}, and $\zeta(2)+I(2,\tfrac12)=-\chi(2)\widetilde I(-1,\tfrac12)
+=\tfrac{\pi^{2}}4+\tfrac{\pi i}2$.  The quotient form has no such defect (in Lean it is taken in Deligne's normalisation
+$\chi(s)=\Gamma_{\mathbb{R}}(1-s)/\Gamma_{\mathbb{R}}(s)$, which is the same function with no
+exclusions, the displayed form being \texttt{Complex.chi\_eq\_cpow\_mul\_Gamma\_div\_Gamma}):
+$1/\Gamma$ is entire, so the only junk values are at the
+poles of $\Gamma\bigl(\frac{1-s}2\bigr)$, namely $s=1,3,5,\dots$, which is exactly the set
+excluded in \Cref{thm:rsz_general}; and at $s=0,-2,-4,\dots$ the junk value $1/\Gamma(0)=0$
+of the denominator agrees with the true value $\chi(s)=0$.
+\end{definition}
+
+\begin{lemma}[The mirror integral in Hankel form]
+\label{lem:rsz_mirror}
+\lean{Zeta.RiemannSiegel.mirrorContourIntegral_one_sub_eq}
+\leanok
+\uses{lem:rsz_hankel, def:rsz_phi_mirror, def:rsz_mirror}
+For $\operatorname{Re}s>1$,
+\[
+  \widetilde I\bigl(1-s,\tfrac12\bigr)
+   \;=\;-\,e^{-i\pi(2-s)/4}\cos\Bigl(\frac{\pi s}{2}\Bigr)\,\widetilde\Phi(1-s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_hankel, def:rsz_phi_mirror}
+By definition $\widetilde I(1-s,\tfrac12)=\overline{I(1-\overline{s},\tfrac12)}$, and
+$\operatorname{Re}(1-\overline s)=1-\operatorname{Re}s<0$, so \Cref{lem:rsz_hankel} applies at
+$z=1-\overline s$ and gives
+$I(z,\tfrac12)=-e^{i\pi(1+z)/4}\sin(\pi z/2)\Phi(z)$.  Conjugating,
+$\overline{e^{i\pi(2-\overline s)/4}}=e^{-i\pi(2-s)/4}$,
+$\overline{\sin(\pi(1-\overline s)/2)}=\sin(\pi(1-s)/2)=\cos(\pi s/2)$, and
+$\overline{\Phi(1-\overline s)}=\widetilde\Phi(1-s)$ by \Cref{def:rsz_phi_mirror}.
+\end{proof}
+
+\begin{lemma}[Two identities for $\chi$]
+\label{lem:rsz_chi}
+\lean{Complex.chi_mul_cos, Complex.chi_eq_two_cpow_mul_cpow_mul_sin_mul_Gamma}
+\leanok
+\uses{def:rsz_mirror}
+Let $\chi$ be as in \Cref{def:rsz_mirror}.  Then
+\begin{equation}
+  \chi(s)\cos\Bigl(\frac{\pi s}2\Bigr)=\frac{(2\pi)^{s}}{2\,\Gamma(s)}
+    \qquad\bigl(s\notin\{1,3,5,\dots\}\bigr),
+  \label{eq:rsz_chi_cos}
+\end{equation}
+\begin{equation}
+  \chi(s)=2^{s}\pi^{s-1}\sin\Bigl(\frac{\pi s}2\Bigr)\Gamma(1-s)
+    \qquad\bigl(s\notin\{2,4,6,\dots\}\bigr).
+  \label{eq:rsz_chi_prod}
+\end{equation}
+Each exclusion is necessary under mathlib's junk-value convention: at $s=3,5,\dots$ the
+left side of \eqref{eq:rsz_chi_cos} is $0$ (both factors
+are) while the right side is not, and at $s=2,4,6,\dots$ the right side of
+\eqref{eq:rsz_chi_prod} is $0$ while the left side is not (for instance both sides of
+\eqref{eq:rsz_chi_prod} at $s=2$ are $-2\pi^{2}$ and $0$).  The two excluded sets are
+different, and both are sharp: at the \emph{odd} positive integers, where $\Gamma(1-s)$ is
+also singular, both sides of \eqref{eq:rsz_chi_prod} do vanish, so those points need not be
+excluded and are not.
+\end{lemma}
+
+\begin{proof}
+\leanok
+For \eqref{eq:rsz_chi_cos}, first dispose of $s\in\{0,-1,-2,\dots\}$: there $\Gamma(s)$ is
+singular, so the right side is $(2\pi)^{s}/(2\cdot0)=0$, and the left side vanishes too:
+at $s=0,-2,-4,\dots$ because $\Gamma(s/2)$ is singular and $\chi$ has it in the
+\emph{denominator}, at $s=-1,-3,-5,\dots$ because $\cos(\pi s/2)=0$.  Off that set both
+$\Gamma(s)$ and $\Gamma(s/2)$ are nonzero, so one may clear denominators: multiplying by
+$2\,\Gamma(s)\,\Gamma(s/2)\,\pi^{\frac12-s}$ and using $(2\pi)^{s}\pi^{\frac12-s}
+=2^{s}\sqrt\pi$, the claim becomes
+\[
+  2\,\Gamma(s)\,\Gamma\Bigl(\tfrac{1-s}2\Bigr)\cos\Bigl(\tfrac{\pi s}2\Bigr)
+  \;=\;2^{s}\sqrt\pi\;\Gamma\Bigl(\tfrac s2\Bigr).
+\]
+Legendre duplication (mathlib's
+\texttt{Complex.Gamma\_mul\_Gamma\_add\_half}, $\Gamma(z)\Gamma(z+\tfrac12)
+=2^{1-2z}\sqrt\pi\,\Gamma(2z)$) at $z=\tfrac s2$ gives
+$\Gamma(s)=2^{s-1}\Gamma\bigl(\tfrac s2\bigr)\Gamma\bigl(\tfrac{s+1}2\bigr)/\sqrt\pi$, so the
+left side is
+$2^{s}\pi^{-1/2}\Gamma\bigl(\tfrac s2\bigr)\cdot
+\Gamma\bigl(\tfrac{s+1}2\bigr)\Gamma\bigl(\tfrac{1-s}2\bigr)\cos\bigl(\tfrac{\pi s}2\bigr)$,
+and reflection (\texttt{Complex.Gamma\_mul\_Gamma\_one\_sub}) at $z=\tfrac{1+s}2$, whose
+partner is $1-z=\tfrac{1-s}2$, gives
+$\Gamma\bigl(\tfrac{s+1}2\bigr)\Gamma\bigl(\tfrac{1-s}2\bigr)
+=\pi/\sin\bigl(\tfrac{\pi(1+s)}2\bigr)=\pi/\cos\bigl(\tfrac{\pi s}2\bigr)$.  The two cosines
+cancel and $2^{s}\pi^{-1/2}\Gamma(\tfrac s2)\cdot\pi=2^{s}\sqrt\pi\,\Gamma(\tfrac s2)$, as
+required.  The only division here is by $\cos(\pi s/2)$, in the reflection formula as
+rearranged; it is legitimate exactly off $s\in\{1,3,5,\dots\}$, and that is where the
+excluded set of \eqref{eq:rsz_chi_cos} comes from.
+
+For \eqref{eq:rsz_chi_prod}, duplication at $z=\tfrac{1-s}2$ gives
+$\Gamma\bigl(\tfrac{1-s}2\bigr)\Gamma\bigl(1-\tfrac s2\bigr)=2^{s}\sqrt\pi\,\Gamma(1-s)$,
+and reflection at $z=\tfrac s2$ gives $\sin(\pi s/2)\Gamma\bigl(1-\tfrac s2\bigr)
+=\pi/\Gamma\bigl(\tfrac s2\bigr)$, a division by $\Gamma(s/2)$, legitimate because
+$\Gamma$ vanishes nowhere and, at the poles $s=0,-2,-4,\dots$ of $\Gamma(s/2)$, both sides
+of \eqref{eq:rsz_chi_prod} are $0$ by the same inspection as above.  Whence
+\[
+  2^{s}\pi^{s-1}\sin\Bigl(\tfrac{\pi s}2\Bigr)\Gamma(1-s)
+   =\pi^{s-\frac32}\sin\Bigl(\tfrac{\pi s}2\Bigr)
+     \Gamma\Bigl(\tfrac{1-s}2\Bigr)\Gamma\Bigl(1-\tfrac s2\Bigr)
+   =\pi^{s-\frac12}\frac{\Gamma\bigl(\tfrac{1-s}2\bigr)}{\Gamma\bigl(\tfrac s2\bigr)}
+   =\chi(s).
+\]
+The division by $\sin(\pi s/2)$ that this rearrangement conceals is legitimate exactly off the
+even integers, and the nonpositive ones are the case $\Gamma(s/2)$ singular already disposed
+of; that is where the excluded set of \eqref{eq:rsz_chi_prod} comes from.
+
+Both identities are formalized through Deligne's archimedean factor
+$\Gamma_{\mathbb{R}}(s)=\pi^{-s/2}\Gamma(s/2)$ of mathlib's \texttt{Gamma/Deligne.lean}, which
+packages duplication and reflection together.  One has
+$\chi(s)=\Gamma_{\mathbb{R}}(1-s)/\Gamma_{\mathbb{R}}(s)$ identically (with no exclusions,
+since $\pi^{w}$ never vanishes), and mathlib's reflection formula
+$\Gamma_{\mathbb{R}}(s)/\Gamma_{\mathbb{R}}(1-s)=\Gamma_{\mathbb{C}}(s)\cos(\pi s/2)$, valid
+for $s\notin\{-1,-3,-5,\dots\}$, is \eqref{eq:rsz_chi_cos} on inversion and, read at $1-s$
+instead of at $s$, is \eqref{eq:rsz_chi_prod}.  Reading it at $1-s$ is exactly what produces
+the excluded set $\{2,4,6,\dots\}$ rather than $\{1,2,3,\dots\}$.
+\end{proof}
+
+\begin{remark}[The functional equation is not used]
+\label{rem:rsz_chi_fe}
+\uses{lem:rsz_chi, rem:rsz_general}
+\Cref{rem:rsz_general} characterises $\chi$ by $\zeta(s)=\chi(s)\zeta(1-s)$, and
+\eqref{eq:rsz_chi_prod} identifies \Cref{def:rsz_mirror} with the classical formula, so the
+$\chi$ of this section is the classical one.  But the functional equation itself is nowhere
+used below: \Cref{prop:rsz_general_half} uses only \eqref{eq:rsz_chi_cos} and
+\Cref{lem:rsz_chi_theta} uses only \Cref{def:rsz_mirror}.  This is worth recording because
+mathlib's \texttt{riemannZeta\_one\_sub} carries the hypotheses $s\ne-n$ $(n\in\mathbb{N})$
+and $s\ne1$, which after the substitution $s\mapsto1-s$ exclude $s=0$ and
+$s\in\{1,2,3,\dots\}$; none of that has to be managed here.  It is also what makes
+\Cref{thm:rsz_general} a second proof of the functional equation, as
+\cite{Siegel1932} observes: on $\sigma=\tfrac12$ the two contour terms are complex
+conjugates, so $\pi^{-s/2}\Gamma(s/2)\zeta(s)$ is real there.
+\end{remark}
+
+\begin{proposition}[Siegel's identity on $\operatorname{Re}s>1$]
+\label{prop:rsz_general_half}
+\lean{Zeta.RiemannSiegel.riemannZeta_add_contourIntegral_add_chi_mul_mirror_eq_zero_of_one_lt}
+\leanok
+\uses{thm:rsz_mellin, lem:rsz_mirror, lem:rsz_chi, def:rsz_mirror}
+For $\operatorname{Re}s>1$ with $s\notin\{3,5,7,\dots\}$,
+\[
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)+\chi(s)\,\widetilde I\bigl(1-s,\tfrac12\bigr)=0 .
+\]
+\end{proposition}
+
+\begin{proof}
+\uses{thm:rsz_mellin, lem:rsz_mirror, lem:rsz_chi}
+\leanok
+By \Cref{lem:rsz_mirror} and then \eqref{eq:rsz_chi_cos},
+\[
+  -\chi(s)\widetilde I\bigl(1-s,\tfrac12\bigr)
+   =e^{-i\pi(2-s)/4}\,\chi(s)\cos\Bigl(\frac{\pi s}2\Bigr)\widetilde\Phi(1-s)
+   =\frac{(2\pi)^{s}e^{-i\pi(2-s)/4}}{2\Gamma(s)}\widetilde\Phi(1-s),
+\]
+which is $\zeta(s)+I(s,\tfrac12)$ by \Cref{thm:rsz_mellin}.  The second step is the only one
+that needs $s\notin\{3,5,7,\dots\}$: at those points $\chi$ has a simple pole, while
+$\cos(\pi s/2)$ and hence $\widetilde I(1-s,\tfrac12)$ vanish, so the product
+$\chi(s)\widetilde I(1-s,\tfrac12)$ is of the form $\infty\cdot0$ and the statement as
+displayed has no content there.  These points stay excluded in \Cref{thm:rsz_general}; see
+\Cref{rem:rsz_general}, which explains why the natural domain of
+\eqref{eq:rsz_siegel_general} is $\mathbb{C}\setminus\{1,3,5,\dots\}$ and gives a pole-free
+rewriting.  $\Gamma(s)$ is finite and nonvanishing throughout $\operatorname{Re}s>1$.
+\end{proof}
+
+\begin{lemma}[$I(\cdot,a)$ is entire]
+\label{lem:rsz_entire}
+\lean{Zeta.RiemannSiegel.differentiable_contourIntegral}
+\leanok
+\uses{def:rs_integral, prop:rs_integrable, lem:rs_power_modulus, lem:rs_rotate}
+For each $a\in\tfrac12+\mathbb{Z}_{\ge0}$ the map $s\mapsto I(s,a)$ is entire, and hence so
+is $s\mapsto\widetilde I(1-s,a)=\overline{I(1-\overline s,a)}$.
+
+In Lean the hypothesis is taken in the same form as for
+\texttt{integrable\_contourIntegrand}, namely a lower bound $c>0$ for the kernel denominator
+along the contour, with the two corollaries
+\texttt{differentiable\_contourIntegral\_of\_eq\_add\_half} (half-integer $a$, the statement
+above) and \texttt{differentiable\_contourIntegral\_of\_le\_half} ($0<a\le\tfrac12$, which is
+the case $a=\tfrac12$ that \Cref{thm:rsz_general} uses).  The mirror half is
+\texttt{differentiable\_mirrorContourIntegral\_one\_sub}.
+\end{lemma}
+
+\begin{proof}
+\uses{prop:rs_integrable, lem:rs_power_modulus, lem:rs_rotate}
+\leanok
+Differentiation under the integral sign.  For each $w$ the integrand
+$s\mapsto L(a)(w)^{-s}G(L(a)(w))$ is entire, with $s$-derivative
+$-\operatorname{Log}L(a)(w)\cdot L(a)(w)^{-s}G(L(a)(w))$.  On a compact set of $s$-values,
+$\lvert\sigma\rvert\le A$ and $\lvert\tau\rvert\le A$, the bounds of
+\Cref{prop:rs_integrable} give
+$\lvert L(a)(w)^{-s}\rvert\le\lvert L(a)(w)\rvert^{-\sigma}e^{3\pi A/4}$ with
+$a/\sqrt2\le\lvert L(a)(w)\rvert\le a+2\lvert w\rvert$ (\Cref{lem:rs_rotate}), so the
+integrand and its $s$-derivative are both dominated by
+$C_{A}\bigl(1+\lvert w\rvert\bigr)^{A}\bigl(1+\bigl\lvert\log(a+2\lvert
+w\rvert)\bigr\rvert+\lvert\log(a/\sqrt2)\rvert\bigr)e^{-\pi w^{2}}$, which is integrable.
+Mathlib's \texttt{hasDerivAt\_integral\_of\_dominated\_loc\_of\_deriv\_le} then gives
+differentiability at every $s$.  Conjugation reverses no analyticity here because it is
+applied twice: $s\mapsto\overline{I(1-\overline s,a)}$ is a composition of two conjugations
+with an entire map.
+\end{proof}
+
+\begin{theorem}[Siegel's identity, general form]
+\label{thm:rsz_general}
+\lean{Zeta.RiemannSiegel.riemannZeta_add_contourIntegral_add_chi_mul_mirror_eq_zero}
+\leanok
+\uses{prop:rsz_general_half, lem:rsz_entire, def:rsz_mirror}
+Identity \eqref{eq:rsz_siegel_general} holds for every
+$s\in\mathbb{C}\setminus\{1,3,5,7,\dots\}$:
+\[
+  \zeta(s)+I\bigl(s,\tfrac12\bigr)+\chi(s)\,\widetilde I\bigl(1-s,\tfrac12\bigr)=0 .
+\]
+\end{theorem}
+
+\begin{proof}
+\uses{prop:rsz_general_half, lem:rsz_entire}
+\leanok
+Let $U:=\mathbb{C}\setminus\{1,3,5,7,\dots\}$.  This is the complement of a discrete set in
+$\mathbb{C}$, hence open and connected.  On $U$ the function
+$F(s):=\zeta(s)+I(s,\tfrac12)+\chi(s)\widetilde I(1-s,\tfrac12)$ is holomorphic: $\zeta$ is
+holomorphic off $s=1$; $\chi$ is holomorphic on $U$ because, in the quotient form of
+\Cref{def:rsz_mirror}, $1/\Gamma$ is \emph{entire} and the only poles of
+$\Gamma\bigl(\frac{1-s}2\bigr)$ are at $\frac{1-s}2\in\{0,-1,-2,\dots\}$, i.e.\ at
+$s\in\{1,3,5,\dots\}$ (the product form would need an argument that the poles of
+$\Gamma(1-s)$ at the even integers are cancelled by the zeros of $\sin(\pi s/2)$); and both
+contour integrals are entire
+by \Cref{lem:rsz_entire}.  By \Cref{prop:rsz_general_half}, $F$ vanishes on
+$\{\operatorname{Re}s>1\}\cap U$, which is open and nonempty.  By the identity theorem
+$F\equiv0$ on $U$.
+\end{proof}
+
+\begin{lemma}[$\chi$ on the critical line]
+\label{lem:rsz_chi_theta}
+\lean{Complex.chi_half_add_mul_I}
+\leanok
+\uses{def:rsz_mirror, def:nf_theta}
+For every real $t\ge0$, $\chi\bigl(\tfrac12+it\bigr)=e^{-2i\theta(t)}$.
+\end{lemma}
+
+\begin{proof}
+\uses{def:rsz_mirror, def:nf_theta}
+\leanok
+Directly from \Cref{def:rsz_mirror} at $s=\tfrac12+it$; the quotient form makes the lemma a
+computation with no $\Gamma$ identity at all:
+\[
+  \chi\bigl(\tfrac12+it\bigr)=\pi^{it}\,
+    \frac{\Gamma\bigl(\tfrac14-\tfrac{it}2\bigr)}{\Gamma\bigl(\tfrac14+\tfrac{it}2\bigr)} ,
+\]
+because $\tfrac12\bigl(1-(\tfrac12+it)\bigr)=\tfrac14-\tfrac{it}2$ and
+$\tfrac12\bigl(\tfrac12+it\bigr)=\tfrac14+\tfrac{it}2$.  The restriction $t\ge0$ is inherited
+from \Cref{def:nf_theta}, which defines $\theta$ by a continuous branch along the segment
+$[0,T]$; nothing in the argument needs it.
+Write $z:=\log\Gamma\bigl(\tfrac14+\tfrac{it}2\bigr)$ along the branch of
+\Cref{def:nf_theta}.  Since $\Gamma$ is real on $(0,\infty)$,
+$\Gamma\bigl(\tfrac14-\tfrac{it}2\bigr)=\overline{\Gamma\bigl(\tfrac14+\tfrac{it}2\bigr)}
+=e^{\overline z}$, so the quotient is $e^{\overline z-z}=e^{-2i\operatorname{Im}z}$.  By
+\Cref{def:nf_theta}, $\operatorname{Im}z=\theta(t)+\tfrac t2\log\pi$, whence the quotient is
+$e^{-2i\theta(t)}\pi^{-it}$, and the factor $\pi^{it}$ cancels.
+\end{proof}
+
+\begin{theorem}[Siegel's identity, critical line]
+\label{thm:rsz_siegel}
+\lean{Zeta.RiemannSiegel.riemannZeta_eq_neg_contourIntegral_sub}
+\leanok
+\uses{def:rs_integral, def:nf_theta, def:rsz_mirror, thm:rsz_general, lem:rsz_chi_theta}
+For every $t>0$, with $s=\tfrac12+it$,
+\[
+  \zeta(s)\;=\;-\,I\bigl(s,\tfrac12\bigr)\;-\;e^{-2i\theta(t)}\,\overline{I\bigl(s,\tfrac12\bigr)} .
+\]
+\end{theorem}
+
+\begin{proof}
+\uses{thm:rsz_general, lem:rsz_chi_theta}
+\leanok
+The point $s=\tfrac12+it$ lies in the set $U$ of \Cref{thm:rsz_general}, since its real part
+is $\tfrac12$.  There $1-s=\tfrac12-it=\overline s$, so
+$\overline{1-s}=s$ and therefore
+\[
+  \widetilde I\bigl(1-s,\tfrac12\bigr)=\overline{I\bigl(\overline{1-s},\tfrac12\bigr)}
+    =\overline{I\bigl(s,\tfrac12\bigr)} .
+\]
+Substituting this and \Cref{lem:rsz_chi_theta} into \Cref{thm:rsz_general} and solving for
+$\zeta(s)$ gives the claim.
+\end{proof}
+
+\begin{remark}[Two routes that do not work, and why]
+\label{rem:rsz_routes}
+\uses{lem:rsz_hankel, lem:rsz_expansion, lem:rsz_gauss_integral, rem:rsz_hankel_mirror,
+thm:rsz_mellin}
+Both of the obvious attacks on the crossing fail.
+\begin{enumerate}
+  \item \emph{Rotating the Hankel ray.}  \Cref{lem:rsz_hankel} represents $I(s,\tfrac12)$ by
+        an integral along the ray $e^{i\pi/4}(0,\infty)$ and
+        \Cref{rem:rsz_hankel_mirror} represents the mirror half by one along
+        $e^{-i\pi/4}(0,\infty)$, so it is tempting to rotate one into the other, collecting
+        the residues at the positive integers in between.  The residue bookkeeping is
+        correct (the residue at $n$ is $n^{s-1}/\pi$, because $e^{-i\pi n^{2}}=(-1)^{n}$
+        cancels the $(-1)^{n}/\pi$ of $1/\sin$, and the sum is $2i\zeta(1-s)$), but the
+        rotation is meaningless: on $z=te^{i\pi/4}$ one has $z^{2}=it^{2}$, so the mirror
+        Gaussian $e^{-i\pi z^{2}}$ becomes $e^{+\pi t^{2}}$ and the integral diverges.  The two
+        Hankel representations
+        live on rays that can never be deformed into one another, whatever the truncation.
+  \item \emph{Term-by-term expansion of the kernel.}  Inserting \Cref{lem:rsz_expansion} into
+        $I(s,a)$ and integrating term by term against $x^{-s}$ does not close either.  The
+        expansion is valid only on a half-plane, so the contour must be split at $w=0$ and
+        each term becomes an \emph{incomplete} Gaussian moment, not the closed value
+        $e^{i\pi/4}$ of \Cref{lem:rsz_gauss_integral}; and the individual terms are enormous
+        (by \Cref{rem:rsz_cancellation} the $k=0$ term alone has modulus
+        $e^{\pi a(a-1)/2}$), so no rearrangement can be justified by moduli.
+\end{enumerate}
+\Cref{thm:rsz_mellin} introduces a \emph{second} variable.  The
+Mellin transform in $u$ never moves the contour in $x$, and the only convergence that has to
+be checked is the one supplied by \Cref{lem:rs_rotate}: $\operatorname{Re}(e^{i\pi/4}x)$ is
+constant on $L(a)$.  The entire-function identity
+$G(x)+\widetilde G(x)=\sin(\pi x^{2})/\sin(\pi x)$ of \Cref{rem:rs_mirror} plays no role: it
+cannot, since neither $G$ nor $\widetilde G$ is integrable against $x^{-s}$ on the other's
+contour.
+\end{remark}
+
+\section{The order-zero formula}
+\label{sec:rsz_formula}
+
+\begin{theorem}[Order-zero Riemann--Siegel formula, exact form]
+\label{thm:rsz_formula}
+\lean{Zeta.RiemannSiegel.hardyZ_eq_mainSum_sub}
+\leanok
+\uses{thm:rsz_reduction, thm:rsz_siegel, def:hz_Z, def:rsz_main_sum}
+For every $t>0$ and every $\nu\in\mathbb{N}$, with $s=\tfrac12+it$,
+\[
+  Z(t)\;=\;\mathcal{S}(t,\nu)\;-\;2\operatorname{Re}
+     \Bigl(e^{i\theta(t)}\,I\bigl(s,\nu+\tfrac12\bigr)\Bigr).
+\]
+\end{theorem}
+
+\begin{proof}
+\uses{thm:rsz_siegel, thm:rsz_reduction}
+\leanok
+Abbreviate $\theta=\theta(t)$ and $J=I(s,\tfrac12)$.  Multiplying \Cref{thm:rsz_siegel} by
+$e^{i\theta}$ gives
+\[
+  e^{i\theta}\zeta(s)=-e^{i\theta}J-e^{-i\theta}\overline{J}
+   =-\bigl(e^{i\theta}J+\overline{e^{i\theta}J}\bigr)
+   =-2\operatorname{Re}\bigl(e^{i\theta}J\bigr),
+\]
+a real number.  By \Cref{def:hz_Z}, $Z(t)=\operatorname{Re}\bigl(e^{i\theta}\zeta(s)\bigr)$,
+so $Z(t)=-2\operatorname{Re}(e^{i\theta}J)$.  Adding \Cref{thm:rsz_reduction} gives the
+claim.
+\end{proof}
+
+\begin{remark}[Axioms]
+\label{rem:rsz_conditional}
+\uses{thm:rsz_formula, cor:rsz_bound, thm:rsz_siegel}
+\Cref{thm:rsz_formula} and \Cref{cor:rsz_bound} take Siegel's identity from
+\Cref{thm:rsz_siegel}, under the hypothesis $t>0$ that it requires.  \Cref{cha:rs_zero} and
+\Cref{cha:rs_first} depend on no axioms beyond
+\texttt{propext}, \texttt{Classical.choice} and \texttt{Quot.sound}.
+\end{remark}
+
+\begin{remark}[Realness of $Z$]
+\label{rem:rsz_realness}
+\uses{thm:rsz_siegel}
+The computation in the proof shows that $e^{i\theta(t)}\zeta(\tfrac12+it)$ is real, i.e.\
+that $Z(t)=e^{i\theta(t)}\zeta(\tfrac12+it)$ and not merely its real part.  The same fact
+appears inside the proof of
+\texttt{hardyZ\_eq\_zero\_iff\_riemannZeta}, via the realness of $\xi$ on the critical line.
+\Cref{thm:rsz_formula} uses only the definition of $Z$ as a real part.
+\end{remark}
+
+\begin{corollary}[Order-zero bound]
+\label{cor:rsz_bound}
+\lean{Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_le_hundredNinety, Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_le_threeHundredTwo}
+\leanok
+\uses{thm:rsz_formula, cor:rs_remainder_explicit}
+Let $t\ge32\pi$, $T=t/2\pi$ and $\nu=\lfloor\sqrt T\rfloor$.  Then
+\[
+  \bigl\lvert Z(t)-\mathcal{S}(t,\nu)\bigr\rvert\;\le\;190\,T^{-1/4}\;\le\;302\,t^{-1/4}.
+\]
+\end{corollary}
+
+\begin{proof}
+\uses{thm:rsz_formula, cor:rs_remainder_explicit}
+\leanok
+By \Cref{thm:rsz_formula} the difference equals
+$-2\operatorname{Re}\bigl(e^{i\theta(t)}I(s,\nu+\tfrac12)\bigr)$, whose modulus is at most
+$2\lvert I(s,\nu+\tfrac12)\rvert$ because $\lvert e^{i\theta(t)}\rvert=1$.  Since
+$\nu\le\sqrt T<\nu+1$, \Cref{cor:rs_remainder_explicit} applies with $a=\nu+\tfrac12$ and
+gives $\lvert I(s,\nu+\tfrac12)\rvert\le95\,T^{-1/4}\le151\,t^{-1/4}$.  Double both
+constants.
+\end{proof}
+
+\begin{remark}[Cost and accuracy]
+\label{rem:rsz_next}
+\uses{cor:rsz_bound}
+\Cref{cor:rsz_bound} evaluates $Z(t)$ to within $190\,T^{-1/4}$ using
+$\lfloor\sqrt{T}\rfloor$ terms, against the $\Theta(t)$ terms per point of the
+Euler--Maclaurin evaluation of \Cref{cha:hardy_z}.  This alone does not certify zeros: the
+error $190\,T^{-1/4}$ exceeds the typical size of $Z$ until $T$ is astronomically large.  The
+following chapters make two independent improvements.
+\begin{itemize}
+  \item The constant.  As \Cref{rem:rs_constant} explains, essentially all of the factor
+        $95$ is the price $e^{B^{2}/4\pi}\le37.12$ of crossing the real axis at
+        $\nu+\tfrac12$ rather than at the saddle $\sqrt T$.  Recovering it produces the
+        classical zeroth correction term
+        $(-1)^{\nu-1}T^{-1/4}\Psi(p)$, $\Psi(p)=\cos(2\pi(p^{2}-p-\tfrac1{16}))/\cos(2\pi p)$,
+        with $p=\sqrt T-\nu$.
+  \item The order.  Subtracting $\Psi$ leaves $O(T^{-3/4})$, and the general saddle-point
+        expansion leaves $O(T^{-(2K+1)/4})$ after $K$ correction terms; see
+        \cite{Gabcke} and \cite{AriasDeReyna2011} for explicit constants.
+\end{itemize}
+Both improvements keep \Cref{thm:rsz_reduction} and \Cref{thm:rsz_siegel} untouched: they
+refine only the treatment of $I(s,\nu+\tfrac12)$, which \Cref{thm:rsz_formula} isolates as
+the exact error.
+\end{remark}

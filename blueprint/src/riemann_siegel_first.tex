@@ -1,0 +1,1939 @@
+% Blueprint: the first-order Riemann--Siegel formula for Hardy's Z.
+%
+% \Cref{cha:riemann_siegel} built the contour integral $I(s,a)$ and bounded it by
+% $95\,T^{-1/4}$; \Cref{cha:rs_zero} converted that into the order-zero formula
+%
+%     Z(t) = S(t,\nu) - 2 Re( e^{i\theta(t)} I(s,\nu+1/2) ),   |error| <= 190 T^{-1/4}.
+%
+% This chapter evaluates the exact error $I(s,\nu+\tfrac12)$ to within $O(T^{-3/4})$. The gain
+% is two orders in $T$ and the removal of the factor $e^{B^2/4\pi}\le37.12$ of
+% \Cref{rem:rs_constant}, which is the classical correction term $(-1)^{\nu-1}T^{-1/4}\Psi(p)$.
+%
+% The final statement \Cref{cor:rsf_formula_sharp} takes Siegel's identity \Cref{thm:rsz_siegel}
+% as a hypothesis, as \Cref{thm:rsz_formula} does (the explicit-hypothesis convention of
+% \Cref{rem:rsz_conditional}). \Cref{thm:rsf_saddle}, the analytic content, is unconditional.
+%
+% Every constant in a numbered statement is explicit: the thresholds ($T\ge10^{6}$) and the
+% constants ($21$, $22$, $45$, $179$) are chosen to make each verification a short explicit
+% computation.
+%
+% \Cref{thm:rsf_model_closed} derives the closed form of the model integral from a pair of
+% contour relations, a unit shift (one residue) and a half shift (one exact Gaussian integral
+% plus one partial-fraction identity), which together determine $M$ algebraically. See
+% \Cref{rem:rsf_why_algebraic}.
+%
+% REFERENCES.  \cite{Siegel1932}; \cite{Edwards} Ch.~7; \cite{Gabcke} and
+% \cite{AriasDeReyna2011} for sharp constants at higher order.
+
+\chapter{The first-order Riemann--Siegel formula}
+\label{cha:rs_first}
+
+Throughout this chapter $t>0$ is real and
+\[
+  s:=\tfrac12+it,\qquad T:=\frac{t}{2\pi},\qquad \nu:=\lfloor\sqrt T\rfloor,
+  \qquad p:=\sqrt T-\nu\in[0,1),\qquad a:=\nu+\tfrac12 .
+\]
+$\theta$ is the Riemann--Siegel theta function of \Cref{def:nf_theta}, $Z$ is Hardy's function
+of \Cref{def:hz_Z}, $I(s,a)$ is the contour integral of \Cref{def:rs_integral},
+$L(a)$ is the slanted line of \Cref{def:rs_line}, and $\mathcal{S}(t,\nu)$ is the main sum of
+\Cref{def:rsz_main_sum}.
+
+\Cref{cor:rsz_bound} evaluates $Z$ to within $190\,T^{-1/4}$.  The whole of that error is the
+single explicit quantity $-2\operatorname{Re}(e^{i\theta(t)}I(s,a))$ isolated by
+\Cref{thm:rsz_formula}, and \Cref{rem:rs_constant} identifies where the loss occurs: the bound
+\Cref{thm:rs_remainder_bound} discards the oscillation of the integrand and pays
+$e^{B^{2}/4\pi}\le37.12$ for crossing the real axis at the half-integer $a$ rather than at the
+saddle $\sqrt T$.  This chapter does not bound $I(s,a)$; it \emph{evaluates} it.  The result is
+\[
+  \bigl\lvert Z(t)-\mathcal{S}(t,\nu)-(-1)^{\nu-1}T^{-1/4}\Psi(p)\bigr\rvert\;\le\;45\,T^{-3/4}
+  \qquad(T\ge10^{6}),
+\]
+where $\Psi$ is the correction function of \Cref{def:rsf_correction}.
+
+The chapter has two independent halves.  \Cref{sec:rsf_model} evaluates, in closed form, the
+\emph{model integral} $M(p)$, the contour integral that survives when the true integrand is
+replaced by its Gaussian model at the saddle.  This is pure contour algebra.  \Cref{sec:rsf_saddle} then shows
+that the true integrand differs from that model by an explicitly bounded factor, which is
+where the $T^{-1/2}$ gain is produced.  \Cref{sec:rsf_formula} assembles the two.
+
+\section{The model integral and its closed form}
+\label{sec:rsf_model}
+
+\begin{definition}[The model integral]
+\label{def:rsf_model}
+\lean{Zeta.RiemannSiegel.modelIntegral}
+\leanok
+\uses{def:rs_line}
+For $p\in\mathbb{C}$ set
+\[
+  M(p)\;:=\;\int_{L(1/2)}\frac{e^{2\pi i(v-p)^{2}}}{e^{i\pi v}-e^{-i\pi v}}\,dv
+  \;=\;(1+i)\int_{\mathbb{R}}
+     \frac{e^{2\pi i\left(L(\tfrac12)(w)-p\right)^{2}}}
+          {e^{i\pi L(\frac12)(w)}-e^{-i\pi L(\frac12)(w)}}\,dw .
+\]
+\end{definition}
+
+The contour is the \emph{half-integer} line $L(\tfrac12)$, so the denominator is bounded below
+by \Cref{lem:rs_sin_lower} exactly as in \Cref{cha:riemann_siegel}; no new lower bound is
+needed anywhere in this chapter.
+
+\begin{lemma}[Absolute convergence, with an explicit bound]
+\label{lem:rsf_model_conv}
+\lean{Zeta.RiemannSiegel.integrable_modelIntegrand, Zeta.RiemannSiegel.norm_modelIntegral_le}
+\leanok
+\uses{def:rsf_model, def:rs_line, lem:rs_sin_lower, lem:rs_gauss_modulus}
+For every $p\in\mathbb{C}$ the integrand of \Cref{def:rsf_model} is absolutely integrable, and
+the convergence is locally uniform in $p$.  For $p\in\mathbb{R}$,
+\[
+  \lvert M(p)\rvert\;\le\;\tfrac12\,e^{\pi\left(\frac12-p\right)^{2}} .
+\]
+In particular $\lvert M(p)\rvert\le\tfrac12e^{\pi/4}\le1.10$ for $0\le p\le1$.
+\end{lemma}
+
+Integrability is asserted for complex $p$ because \Cref{lem:rsf_half_shift},
+\Cref{lem:rsf_unit_shift} and \Cref{thm:rsf_model_closed} are stated for $p\in\mathbb{C}$ and
+their proofs split the integral; the quantitative bound is needed only for real $p$, which is
+the only case \Cref{sec:rsf_saddle} uses.
+
+\begin{proof}
+\leanok
+\uses{lem:rs_sin_lower, lem:rs_gauss_modulus}
+Write $v=L(\tfrac12)(w)=(\tfrac12+w)+iw$ and $\kappa:=\tfrac12-p$, so that
+$v-p=(\kappa+w)+iw$.  By \Cref{lem:rs_gauss_modulus} applied to $2(v-p)^{2}$ (equivalently,
+by $\lvert e^{z}\rvert=e^{\operatorname{Re}z}$ and
+$\operatorname{Re}\bigl(2\pi i(v-p)^{2}\bigr)=-4\pi\operatorname{Re}(v-p)\operatorname{Im}(v-p)$),
+\[
+  \bigl\lvert e^{2\pi i(v-p)^{2}}\bigr\rvert=e^{-4\pi(\kappa+w)w}
+  =e^{\pi\kappa^{2}}e^{-4\pi\left(w+\frac\kappa2\right)^{2}} .
+\]
+By \Cref{lem:rs_sin_lower} the denominator has modulus at least $\sqrt2$, and the Jacobian
+$\lvert1+i\rvert=\sqrt2$ cancels it.  Hence
+\[
+  \lvert M(p)\rvert\;\le\;e^{\pi\kappa^{2}}\int_{\mathbb{R}}e^{-4\pi\left(w+\frac\kappa2\right)^{2}}dw
+  \;=\;e^{\pi\kappa^{2}}\cdot\tfrac12 ,
+\]
+since $\int_{\mathbb{R}}e^{-4\pi u^{2}}du=\tfrac12$ by \texttt{integral\_gaussian} after the
+substitution $u\mapsto u/2$.  For $0\le p\le1$ one has $\lvert\kappa\rvert\le\tfrac12$, and
+$e^{\pi/4}\le2.194$.
+
+For complex $p=\xi+i\eta$ the same computation gives
+$\operatorname{Re}\bigl(2\pi i(v-p)^{2}\bigr)
+ =-4\pi\bigl(\tfrac12+w-\xi\bigr)(w-\eta)=-4\pi w^{2}+O_{p}(\lvert w\rvert)$,
+still a Gaussian, so the integrand is absolutely integrable there too, and the majorant may be
+taken uniform for $p$ in any compact set, which is the locally uniform convergence used in
+\Cref{rem:rsf_removable}.  Only the numerical value of the constant depends on $p$ being real.
+\end{proof}
+
+The closed form rests on three elementary ingredients: one exact Gaussian integral, one
+partial-fraction identity, and one residue.
+
+\begin{lemma}[The rescaled Gaussian contour integral]
+\label{lem:rsf_gauss}
+\lean{Zeta.RiemannSiegel.integral_exp_two_pi_mul_I_mul_line_sub_sq}
+\leanok
+\uses{def:rs_line, lem:rsz_gauss_integral}
+For every $a\in\mathbb{R}$ and every $c\in\mathbb{C}$,
+\[
+  \int_{L(a)}e^{2\pi i(v-c)^{2}}\,dv
+  \;=\;(1+i)\int_{\mathbb{R}}\exp\Bigl(2\pi i\bigl(L(a)(w)-c\bigr)^{2}\Bigr)dw
+  \;=\;\frac{1+i}{2}\;=\;\frac{e^{i\pi/4}}{\sqrt2} .
+\]
+In particular the value depends on neither $a$ nor $c$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsz_gauss_integral, def:rs_line}
+This is \Cref{lem:rsz_gauss_integral} with the Gaussian rescaled, and it is proved the same
+way.  Put $c':=a-c$, so that $L(a)(w)-c=c'+\sqrt2\,w\,e^{i\pi/4}$ and
+\[
+  2\pi i\bigl(L(a)(w)-c\bigr)^{2}
+   =2\pi ic'^{2}+4\sqrt2\,\pi i\,c'\,e^{i\pi/4}w-4\pi w^{2},
+\]
+using $\bigl(\sqrt2e^{i\pi/4}\bigr)^{2}=2i$.  By \texttt{integral\_cexp\_quadratic} (mathlib,
+\texttt{Analysis/SpecialFunctions/Gaussian/FourierTransform.lean}) with $b=-4\pi$,
+$c=4\sqrt2\pi ic'e^{i\pi/4}$ and $d=2\pi ic'^{2}$, whose hypothesis $\operatorname{Re}b<0$ holds,
+\[
+  \int_{\mathbb{R}}e^{-4\pi w^{2}+4\sqrt2\pi ic'e^{i\pi/4}w+2\pi ic'^{2}}dw
+   =\Bigl(\frac{\pi}{4\pi}\Bigr)^{1/2}e^{\,2\pi ic'^{2}-\frac{\left(4\sqrt2\pi ic'e^{i\pi/4}\right)^{2}}{-16\pi}}
+   =\tfrac12\,e^{2\pi ic'^{2}}e^{-2\pi ic'^{2}}=\tfrac12 ,
+\]
+because $\bigl(4\sqrt2\pi ic'e^{i\pi/4}\bigr)^{2}=32\pi^{2}i^{2}c'^{2}e^{i\pi/2}=-32\pi^{2}c'^{2}i$,
+so that, with $4b=-16\pi$,
+\[
+  -\frac{c^{2}}{4b}=\frac{c^{2}}{16\pi}=\frac{-32\pi^{2}c'^{2}i}{16\pi}=-2\pi ic'^{2},
+\]
+and the two constants cancel exactly.  (Note the sign: it is $-c^{2}/4b$ that enters, so the
+quotient is $-2\pi ic'^{2}$ and not $+2\pi ic'^{2}$.)  Multiplying by the velocity $1+i$ gives
+$(1+i)/2$.
+
+As a check independent of \texttt{integral\_cexp\_quadratic}: substituting $x=\sqrt2\,v$ in
+\Cref{lem:rsz_gauss_integral}, which gives $\int_{L(a)}e^{i\pi(x-c)^{2}}dx=e^{i\pi/4}$, turns
+$i\pi x^{2}$ into $2\pi iv^{2}$ and contributes $dx=\sqrt2\,dv$, whence
+$\int e^{2\pi i(v-c)^{2}}dv=e^{i\pi/4}/\sqrt2=(1+i)/2$.
+\end{proof}
+
+\begin{lemma}[Partial fractions for the kernel denominator]
+\label{lem:rsf_partial}
+\lean{Complex.exp_neg_two_pi_mul_I_div_sub_eq}
+\leanok
+For every $v\in\mathbb{C}$ with $e^{i\pi v}\ne e^{-i\pi v}$,
+\[
+  \frac{e^{-2\pi iv}}{e^{i\pi v}-e^{-i\pi v}}
+  \;=\;\frac{1}{e^{i\pi v}-e^{-i\pi v}}\;-\;e^{-i\pi v} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Subtract: the left side minus the first term on the right is
+$\dfrac{e^{-2\pi iv}-1}{e^{i\pi v}-e^{-i\pi v}}$, and
+$e^{-2\pi iv}-1=-e^{-i\pi v}\bigl(e^{i\pi v}-e^{-i\pi v}\bigr)$.
+\end{proof}
+
+\begin{lemma}[Half shift]
+\label{lem:rsf_half_shift}
+\lean{Zeta.RiemannSiegel.modelIntegral_add_half}
+\leanok
+\uses{def:rsf_model, lem:rsf_gauss, lem:rsf_partial, lem:rsf_model_conv}
+For every $p\in\mathbb{C}$,
+\[
+  M\bigl(p+\tfrac12\bigr)\;=\;i\,e^{2\pi ip}\,M(p)\;-\;\frac{i\,e^{i\pi/8}\,e^{i\pi p}}{\sqrt2} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_gauss, lem:rsf_partial, lem:rsf_model_conv}
+The Gaussian has the quasi-period
+\[
+  e^{2\pi i\left(v-p-\frac12\right)^{2}}
+  =e^{2\pi i(v-p)^{2}}\,e^{-2\pi i(v-p)}\,e^{i\pi/2}
+  =i\,e^{2\pi ip}\,e^{2\pi i(v-p)^{2}}\,e^{-2\pi iv},
+\]
+by expanding $\bigl(v-p-\tfrac12\bigr)^{2}=(v-p)^{2}-(v-p)+\tfrac14$.  Substituting this into
+\Cref{def:rsf_model} and applying \Cref{lem:rsf_partial} to the factor
+$e^{-2\pi iv}/(e^{i\pi v}-e^{-i\pi v})$ splits the integral in two:
+\[
+  M\bigl(p+\tfrac12\bigr)=i\,e^{2\pi ip}\Bigl[\,M(p)-J(p)\Bigr],\qquad
+  J(p):=\int_{L(1/2)}e^{2\pi i(v-p)^{2}}e^{-i\pi v}\,dv .
+\]
+Both pieces converge absolutely: the first by \Cref{lem:rsf_model_conv}, the second because
+$\lvert e^{-i\pi v}\rvert=e^{\pi w}$ is dominated by the Gaussian factor computed in the proof
+of \Cref{lem:rsf_model_conv}, so the splitting is legitimate.
+
+It remains to evaluate $J$, and it is a pure Gaussian.  Completing the square in the exponent,
+with $z:=v-p$,
+\[
+  2\pi iz^{2}-i\pi(z+p)=2\pi i\Bigl(z-\tfrac14\Bigr)^{2}-\frac{i\pi}{8}-i\pi p ,
+\]
+because $2\pi i\bigl(z^{2}-\tfrac z2\bigr)=2\pi i\bigl(z-\tfrac14\bigr)^{2}-\tfrac{2\pi i}{16}$.
+Hence, by \Cref{lem:rsf_gauss} with $c=p+\tfrac14$,
+\[
+  J(p)=e^{-i\pi/8}e^{-i\pi p}\int_{L(1/2)}e^{2\pi i\left(v-p-\frac14\right)^{2}}dv
+      =e^{-i\pi/8}e^{-i\pi p}\cdot\frac{e^{i\pi/4}}{\sqrt2}
+      =\frac{e^{i\pi/8}e^{-i\pi p}}{\sqrt2}.
+\]
+Finally $i\,e^{2\pi ip}\cdot\dfrac{e^{i\pi/8}e^{-i\pi p}}{\sqrt2}=\dfrac{i\,e^{i\pi/8}e^{i\pi p}}{\sqrt2}$.
+\end{proof}
+
+\begin{lemma}[Unit shift]
+\label{lem:rsf_unit_shift}
+\lean{Zeta.RiemannSiegel.modelIntegral_add_modelIntegral_add_one}
+\leanok
+\uses{def:rsf_model, lem:rsf_model_conv, lem:rs_kernel_residue, lem:rs_rotate, thm:rs_shift}
+For every $p\in\mathbb{C}$,
+\[
+  M(p)+M(p+1)\;=\;e^{2\pi ip^{2}} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rs_kernel_residue, lem:rs_rotate, thm:rs_shift, lem:rsf_model_conv}
+Write $m_{p}(v):=e^{2\pi i(v-p)^{2}}\bigl/\bigl(e^{i\pi v}-e^{-i\pi v}\bigr)$.  Two observations.
+
+\emph{First, the rectangle of \Cref{thm:rs_shift} applies to $m_{p}$ as it stands.}  Pass to the
+rotated coordinate $z=e^{i\pi/4}v$, in which $L(\alpha)$ is the vertical line
+$\operatorname{Re}z=\alpha/\sqrt2$ (\Cref{lem:rs_rotate}); on the closed rectangle with vertical
+sides at $\tfrac12/\sqrt2$ and $\tfrac32/\sqrt2$ and horizontal sides at heights $\pm H$ the only
+singularity of $m_{p}$ is $v=1$, since the singularities of $1/(e^{i\pi v}-e^{-i\pi v})$ are
+exactly the integers (\Cref{lem:rs_kernel_residue}) and $1$ is the only one with
+$\tfrac12\le v\le\tfrac32$.  The horizontal sides vanish as $H\to\infty$ by the Gaussian estimate
+of \Cref{lem:rsf_model_conv}, and the two vertical sides converge to $\int_{L(3/2)}m_{p}$ and
+$\int_{L(1/2)}m_{p}$, both contours being half-integral so that \Cref{lem:rs_sin_lower} bounds the
+denominator.  The two contours used are $L(\tfrac12)$ and $L(\tfrac32)$.
+
+\emph{Second, translation by $1$ reverses the sign.}  Since
+$\bigl(v+1-p\bigr)^{2}=(v-p)^{2}+2(v-p)+1$ and
+$e^{i\pi(v+1)}-e^{-i\pi(v+1)}=-\bigl(e^{i\pi v}-e^{-i\pi v}\bigr)$,
+\[
+  m_{p}(v+1)=-e^{4\pi i(v-p)}e^{2\pi i}\,m_{p}(v)=-\,m_{p-1}(v),
+\]
+the last step because
+$2\pi i(v-p)^{2}+4\pi i(v-p)=2\pi i\bigl(v-(p-1)\bigr)^{2}-2\pi i$.
+Since $L(\alpha+1)(w)=L(\alpha)(w)+1$, this gives
+$\int_{L(3/2)}m_{p}=\int_{L(1/2)}m_{p}(v+1)\,dv=-M(p-1)$ with no change of variables.
+
+Now move the contour from $L(\tfrac12)$ to $L(\tfrac32)$, crossing the single pole $v=1$.  The
+residue of $1/(e^{i\pi v}-e^{-i\pi v})$ at $v=n$ is $1/\bigl(2\pi i(-1)^{n}\bigr)$
+(\Cref{lem:rs_kernel_residue}), so the residue of $m_{p}$ at $v=1$ is
+$-e^{2\pi i(1-p)^{2}}/(2\pi i)$, and the rectangle argument of \Cref{thm:rs_shift} gives
+\[
+  \int_{L(3/2)}m_{p}-\int_{L(1/2)}m_{p}=2\pi i\cdot\frac{-e^{2\pi i(1-p)^{2}}}{2\pi i}
+  =-e^{2\pi i(1-p)^{2}} .
+\]
+Combining, $-M(p-1)-M(p)=-e^{2\pi i(1-p)^{2}}$, i.e.
+$M(p-1)+M(p)=e^{2\pi i(1-p)^{2}}$.  Replacing $p$ by $p+1$ and using
+$e^{2\pi i(-p)^{2}}=e^{2\pi ip^{2}}$ gives the stated form.
+\end{proof}
+
+\begin{theorem}[Closed form of the model integral]
+\label{thm:rsf_model_closed}
+\lean{Zeta.RiemannSiegel.two_mul_cos_mul_modelIntegral}
+\leanok
+\uses{lem:rsf_half_shift, lem:rsf_unit_shift}
+For every $p\in\mathbb{C}$,
+\[
+  2\cos(2\pi p)\,M(p)\;=\;e^{2\pi i\left(p^{2}-p\right)}\;+\;\sqrt2\,e^{5i\pi/8}\,\sin(\pi p).
+\]
+Equivalently, whenever $\cos(2\pi p)\ne0$,
+\[
+  M(p)=\frac{e^{2\pi i\left(p^{2}-p\right)}+\sqrt2\,e^{5i\pi/8}\sin(\pi p)}{2\cos(2\pi p)} .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_half_shift, lem:rsf_unit_shift}
+Apply \Cref{lem:rsf_half_shift} twice.  First at $p$, then at $p+\tfrac12$, using
+$e^{2\pi i\left(p+\frac12\right)}=-e^{2\pi ip}$ and $e^{i\pi\left(p+\frac12\right)}=i\,e^{i\pi p}$:
+\begin{align*}
+  M(p+1)&=i\,e^{2\pi i\left(p+\frac12\right)}M\bigl(p+\tfrac12\bigr)
+          -\frac{i\,e^{i\pi/8}e^{i\pi\left(p+\frac12\right)}}{\sqrt2}\\
+        &=-i\,e^{2\pi ip}\Bigl[i\,e^{2\pi ip}M(p)-\frac{i\,e^{i\pi/8}e^{i\pi p}}{\sqrt2}\Bigr]
+          +\frac{e^{i\pi/8}e^{i\pi p}}{\sqrt2}\\
+        &=e^{4\pi ip}M(p)+\frac{e^{i\pi/8}}{\sqrt2}\bigl(e^{i\pi p}-e^{3i\pi p}\bigr).
+\end{align*}
+By \Cref{lem:rsf_unit_shift} the left-hand side is also $e^{2\pi ip^{2}}-M(p)$.  Equating and
+collecting the terms in $M(p)$,
+\[
+  \bigl(1+e^{4\pi ip}\bigr)M(p)
+   =e^{2\pi ip^{2}}-\frac{e^{i\pi/8}}{\sqrt2}\bigl(e^{i\pi p}-e^{3i\pi p}\bigr).
+\]
+Now $1+e^{4\pi ip}=2e^{2\pi ip}\cos(2\pi p)$ and
+\[
+  e^{i\pi p}-e^{3i\pi p}=-e^{2i\pi p}\bigl(e^{i\pi p}-e^{-i\pi p}\bigr)=-2i\,e^{2\pi ip}\sin(\pi p),
+\]
+so, after dividing the common factor $e^{2\pi ip}$ (which never vanishes),
+\[
+  2\cos(2\pi p)M(p)=e^{2\pi i\left(p^{2}-p\right)}+\frac{2i\,e^{i\pi/8}}{\sqrt2}\sin(\pi p),
+\]
+and $2i\,e^{i\pi/8}/\sqrt2=\sqrt2\,e^{i\pi/2}e^{i\pi/8}=\sqrt2\,e^{5i\pi/8}$.
+\end{proof}
+
+\begin{remark}[Why this argument needs no continuation, and where the classical one does]
+\label{rem:rsf_why_algebraic}
+\uses{thm:rsf_model_closed, lem:rsf_half_shift, lem:rsf_unit_shift}
+Neither functional equation alone determines $M$.  \Cref{lem:rsf_unit_shift} determines $M$ only
+up to a function $h$ with $h(p+1)=-h(p)$, and \Cref{lem:rsf_half_shift} only up to a solution of
+its own homogeneous equation; a growth argument to kill the ambiguity is exactly what the
+classical treatments supply, and it is what forces them through a Liouville or
+Phragm\'en--Lindel\"of step.  The point of \Cref{thm:rsf_model_closed} is that the two relations
+are \emph{incompatible} in a useful way: iterating the half shift twice computes $M(p+1)$ in
+terms of $M(p)$ with coefficient $e^{4\pi ip}$, whereas the unit shift computes the same
+quantity with coefficient $-1$.  At each fixed $p$ these are two linear equations in the two
+unknowns $M(p)$ and $M(p+1)$; eliminating $M(p+1)$ leaves the single linear equation
+$\bigl(1+e^{4\pi ip}\bigr)M(p)=\cdots$, i.e.\ an \emph{algebraic} identity at that $p$.
+
+The coefficient $1+e^{4\pi ip}$ is \emph{not} everywhere nonzero: it vanishes exactly at
+$p\in\tfrac14+\tfrac12\mathbb{Z}$, which is exactly where $\cos(2\pi p)$ vanishes.  This is a
+feature, not an obstruction, and it is why \Cref{thm:rsf_model_closed} is stated in product
+form.  At such a $p$ the two equations are consistent only if their right-hand sides agree, and
+since $M(p)$ and $M(p+1)$ do exist and do satisfy both, that agreement is forced; this is
+the assertion $0=e^{2\pi i(p^{2}-p)}+\sqrt2e^{5i\pi/8}\sin(\pi p)$ verified by hand in
+\Cref{rem:rsf_removable}.  So the product form holds at every $p$ without case distinction, and
+the proof of \Cref{thm:rsf_model_closed} divides only by $e^{2\pi ip}$, which is nonvanishing.
+
+Consequently every step of \Cref{sec:rsf_model} is a finite computation, valid pointwise, and
+uses neither that $M$ is entire nor how it grows.
+\end{remark}
+
+\begin{remark}[$M$ is entire, and the quotient is not singular]
+\label{rem:rsf_removable}
+\uses{thm:rsf_model_closed}
+The integral of \Cref{def:rsf_model} converges locally uniformly in $p$, so $M$ is entire;
+the quotient form of \Cref{thm:rsf_model_closed} therefore has removable singularities at the
+zeros $p\in\tfrac14+\tfrac12\mathbb{Z}$ of $\cos(2\pi p)$, where the numerator must vanish too.
+It does: at $p=\tfrac14$ the numerator is
+$e^{2\pi i\left(\frac1{16}-\frac14\right)}+\sqrt2e^{5i\pi/8}\sin\tfrac\pi4
+ =e^{-3i\pi/8}+e^{5i\pi/8}=0$.
+This is why the product form is the statement to formalize, and why
+\Cref{def:rsf_correction} below defines the correction function through $M$; the classical
+quotient $\cos\bigl(2\pi(p^{2}-p-\tfrac1{16})\bigr)/\cos(2\pi p)$, which is
+literally $0/0$ at $p=\tfrac14$ and $p=\tfrac34$.  The two agree wherever the latter is defined
+(\Cref{cor:rsf_correction_closed}).
+\end{remark}
+
+\begin{definition}[The correction function]
+\label{def:rsf_correction}
+\lean{Zeta.RiemannSiegel.correction}
+\leanok
+\uses{def:rsf_model}
+For $p\in\mathbb{R}$ set
+\[
+  \Psi(p)\;:=\;2\operatorname{Re}\Bigl(e^{-i\pi/8}M(p)\Bigr).
+\]
+\end{definition}
+
+\begin{corollary}[Closed form and bound for $\Psi$]
+\label{cor:rsf_correction_closed}
+\lean{Zeta.RiemannSiegel.cos_mul_correction, Zeta.RiemannSiegel.abs_correction_le}
+\leanok
+\uses{def:rsf_correction, thm:rsf_model_closed, lem:rsf_model_conv}
+For every $p\in\mathbb{R}$,
+\[
+  \cos(2\pi p)\,\Psi(p)\;=\;\cos\Bigl(2\pi\bigl(p^{2}-p-\tfrac1{16}\bigr)\Bigr),
+\]
+so that $\Psi(p)=\cos\bigl(2\pi(p^{2}-p-\tfrac1{16})\bigr)/\cos(2\pi p)$ whenever
+$\cos(2\pi p)\ne0$.  Moreover $\lvert\Psi(p)\rvert\le e^{\pi/4}\le2.20$ for $0\le p\le1$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:rsf_model_closed, lem:rsf_model_conv}
+Multiply \Cref{thm:rsf_model_closed} by $e^{-i\pi/8}$:
+\[
+  2\cos(2\pi p)\,e^{-i\pi/8}M(p)
+  =e^{2\pi i\left(p^{2}-p-\frac1{16}\right)}+\sqrt2\,e^{i\pi/2}\sin(\pi p),
+\]
+using $e^{-i\pi/8}=e^{-2\pi i/16}$ and $e^{5i\pi/8}e^{-i\pi/8}=e^{i\pi/2}$.  For real $p$ the
+second summand is $i\sqrt2\sin(\pi p)$, which is purely imaginary; taking real parts and using
+that $\cos(2\pi p)$ is real gives the identity.  The bound is
+$\lvert\Psi(p)\rvert\le2\lvert M(p)\rvert\le e^{\pi\left(\frac12-p\right)^{2}}\le e^{\pi/4}$ by
+\Cref{lem:rsf_model_conv}.
+\end{proof}
+
+\section{The saddle-point reduction}
+\label{sec:rsf_saddle}
+
+Throughout this section $t>0$, and $T,\nu,p,a,s$ are as at the head of the chapter.  Write
+\[
+  \vartheta(t)\;:=\;\frac t2\log\frac t{2\pi}-\frac t2-\frac\pi8
+  \;=\;\pi T\log T-\pi T-\frac\pi8
+\]
+for the leading Stirling phase (\texttt{Zeta.RiemannSiegel.leadingTheta}, whose
+\texttt{leadingTheta\_add\_pi\_div\_eight} is the identity $\vartheta+\tfrac\pi8=\pi T(\log T-1)$
+used throughout), and, for $x=L(a)(w)$ on the contour,
+\[
+  y\;:=\;x-\sqrt T,\qquad v\;:=\;y+p\;=\;x-\nu .
+\]
+As $w$ runs over $\mathbb{R}$, $v$ runs over $L(\tfrac12)$, since $a-\nu=\tfrac12$: the
+substitution $x\mapsto x-\nu$ carries the contour of $I(s,a)$ onto the contour of $M(p)$
+exactly.
+
+\begin{definition}[The saddle discrepancy]
+\label{def:rsf_discrepancy}
+\lean{Zeta.RiemannSiegel.saddleDiscrepancy, Zeta.RiemannSiegel.leadingTheta}
+\leanok
+\uses{def:rs_line, def:rs_power}
+For $t>0$ and $w\in\mathbb{R}$ put, with $x=L(a)(w)$ and $y=x-\sqrt T$,
+\[
+  \Delta(w)\;:=\;i\pi x^{2}-s\operatorname{Log}x
+     +\tfrac14\log T+i\Bigl(\vartheta(t)+\tfrac\pi8\Bigr)-2\pi iy^{2},
+\]
+where $\operatorname{Log}$ is the branch of \Cref{def:rs_power}.  In Lean, $\Delta$ is a function
+of the point $x$ (it depends on the contour only through $x$), and the contour enters at the
+point of use, as $\Delta(L(a)(w))$.
+\end{definition}
+
+$\Delta$ is defined as a difference of logarithms, not as a series; the following identity is
+therefore exact and unconditional by construction, and it is the pivot of the section.
+
+\begin{lemma}[Exact factorisation of the integrand]
+\label{lem:rsf_factor}
+\lean{Zeta.RiemannSiegel.saddleFactor,
+Zeta.RiemannSiegel.integrand_eq_modelFun_mul,
+Zeta.RiemannSiegel.contourIntegrand_eq_modelIntegrand_mul,
+Zeta.RiemannSiegel.contourIntegral_eq_modelIntegrand_mul,
+Zeta.RiemannSiegel.contourIntegral_sub_mul_modelIntegral}
+\leanok
+\uses{def:rsf_discrepancy, def:rs_integral, def:rs_power, def:rs_kernel, def:rsf_model, prop:rs_integrable}
+For $t>0$ and every $w\in\mathbb{R}$, with $x=L(a)(w)$ and $v=x-\nu$,
+\[
+  x^{-s}\,e^{i\pi x^{2}}\;=\;T^{-1/4}\,e^{-i\left(\vartheta(t)+\frac\pi8\right)}\,
+     e^{2\pi i(v-p)^{2}}\,e^{\Delta(w)},
+  \qquad
+  \frac{1}{e^{i\pi x}-e^{-i\pi x}}=\frac{(-1)^{\nu}}{e^{i\pi v}-e^{-i\pi v}} .
+\]
+Consequently
+\[
+  I(s,a)\;=\;(-1)^{\nu}\,T^{-1/4}\,e^{-i\left(\vartheta(t)+\frac\pi8\right)}
+    \int_{L(1/2)}\frac{e^{2\pi i(v-p)^{2}}\,e^{\Delta}}{e^{i\pi v}-e^{-i\pi v}}\,dv ,
+\]
+and therefore
+\[
+  I(s,a)-(-1)^{\nu}T^{-1/4}e^{-i\left(\vartheta(t)+\frac\pi8\right)}M(p)
+   =(-1)^{\nu}T^{-1/4}e^{-i\left(\vartheta(t)+\frac\pi8\right)}
+     \int_{L(1/2)}\frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)}{e^{i\pi v}-e^{-i\pi v}}\,dv .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rsf_discrepancy, def:rs_power, def:rs_kernel, def:rsf_model, prop:rs_integrable}
+The first display is \Cref{def:rsf_discrepancy} rearranged: $x^{-s}e^{i\pi x^{2}}
+=\exp\bigl(i\pi x^{2}-s\operatorname{Log}x\bigr)$ by \Cref{def:rs_power}, and adding and
+subtracting the three explicit terms of $\Delta$ turns that into
+$\exp\bigl(-\tfrac14\log T-i(\vartheta+\tfrac\pi8)+2\pi iy^{2}+\Delta\bigr)$; finally
+$y=v-p$ because $v=x-\nu$ and $\sqrt T=\nu+p$.  The second display is
+$\sin\bigl(\pi(v+\nu)\bigr)=(-1)^{\nu}\sin(\pi v)$ together with
+$e^{i\pi x}-e^{-i\pi x}=2i\sin(\pi x)$ and $(-1)^{-\nu}=(-1)^{\nu}$.  Multiplying the two and
+integrating over the contour (the substitution $x\mapsto x-\nu$ maps $L(a)$ onto
+$L(\tfrac12)$ and preserves $dw$) gives the second claim, the interchange being legitimate by
+\Cref{prop:rs_integrable}.  Subtracting \Cref{def:rsf_model} gives the third.
+\end{proof}
+
+In Lean the second display is unconditional (pulling the constant out of the integral), and
+\Cref{prop:rs_integrable} is used for the third, where the two
+integrals are separated (\texttt{integrable\_modelIntegrand\_mul\_exp\_saddleDiscrepancy}, which
+transports integrability back along the first display).  The recurring constant
+$(-1)^{\nu}T^{-1/4}e^{-i\left(\vartheta+\frac\pi8\right)}$ is named
+\texttt{saddleFactor}; it is explicit, and \Cref{thm:rsf_saddle} uses only that its modulus is
+$T^{-1/4}$.
+
+So the entire first-order problem is the single estimate
+$\bigl\lvert\int_{L(1/2)}e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)\bigl/(e^{i\pi v}-e^{-i\pi v})\,dv\bigr\rvert
+ \le 22\,T^{-1/2}$, and $\Delta$ is small precisely because $\sqrt T$ is a saddle.
+
+\begin{lemma}[Series form and explicit bound for $\Delta$]
+\label{lem:rsf_discrepancy_bound}
+\lean{Zeta.RiemannSiegel.saddleDiscrepancy_eq_tsum,
+Zeta.RiemannSiegel.saddleDiscrepancy_eq_log_sub_logTaylor,
+Zeta.RiemannSiegel.norm_saddleDiscrepancy_le}
+\leanok
+\uses{def:rsf_discrepancy, def:rs_power, lem:rs_branch_ok}
+Let $t>0$, $u:=y/\sqrt T$ and suppose $\lvert u\rvert\le\tfrac12$.  Then
+\[
+  \Delta(w)\;=\;-\tfrac12\log(1+u)\;-\;2\pi iT\sum_{k\ge3}\frac{(-1)^{k-1}u^{k}}{k},
+\]
+with $\log$ the principal branch, and consequently
+\[
+  \lvert\Delta(w)\rvert\;\le\;\frac{1}{\sqrt T}\Bigl(\lvert y\rvert+\frac{4\pi}{3}\lvert y\rvert^{3}\Bigr).
+\]
+\end{lemma}
+
+The series identity is formalized in the parametrisation $x=\sqrt T(1+u)$ in which its proof is
+written, and in two equivalent forms: the tail as the tsum above
+(\texttt{saddleDiscrepancy\_eq\_tsum}), and the tail as
+$\log(1+u)-\texttt{Complex.logTaylor}\,3\,u$, i.e.\ as
+$\log(1+u)-\bigl(u-\tfrac{u^{2}}2\bigr)$ (\texttt{saddleDiscrepancy\_eq\_log\_sub\_logTaylor}).  The
+second is the one the bound uses, because mathlib's \texttt{norm\_log\_sub\_logTaylor\_le} supplies
+exactly the tail estimate below, including its factor $\tfrac13$; the cruder
+$\lvert u\rvert^{3}/(1-\lvert u\rvert)$ would triple the constant $21$ of \Cref{lem:rsf_inner}.
+
+\begin{proof}
+\leanok
+\uses{def:rsf_discrepancy, lem:rs_branch_ok}
+Write $x=\sqrt T(1+u)$.  Since $\lvert u\rvert\le\tfrac12$ the point $1+u$ lies in the open right
+half-plane, so $\operatorname{Log}x=\tfrac12\log T+\log(1+u)$ with the principal branch on the
+right (the branch of \Cref{def:rs_power} agrees with the principal one near the positive real
+axis, by \Cref{lem:rs_branch_ok}), and $\log(1+u)=\sum_{k\ge1}(-1)^{k-1}u^{k}/k$ converges.
+With $s=\tfrac12+2\pi iT$,
+\begin{align*}
+  i\pi x^{2}-s\operatorname{Log}x
+  &=i\pi T\bigl(1+2u+u^{2}\bigr)-\tfrac12\Bigl(\tfrac12\log T+\log(1+u)\Bigr)
+    -2\pi iT\Bigl(\tfrac12\log T+\log(1+u)\Bigr)\\
+  &=i\pi T-i\pi T\log T-\tfrac14\log T
+    +\Bigl[2\pi iTu+i\pi Tu^{2}-2\pi iT\log(1+u)\Bigr]-\tfrac12\log(1+u).
+\end{align*}
+In the bracket, $-2\pi iT\log(1+u)=-2\pi iTu+i\pi Tu^{2}-2\pi iT\sum_{k\ge3}(-1)^{k-1}u^{k}/k$,
+so the terms linear in $u$ cancel and the quadratic ones combine to
+$2\pi iTu^{2}=2\pi iy^{2}$.  Since $i\pi T-i\pi T\log T=-i\bigl(\vartheta(t)+\tfrac\pi8\bigr)$
+and $-\tfrac14\log T$ is the remaining explicit term, \Cref{def:rsf_discrepancy} leaves exactly
+the stated series.
+
+For the bound, $\lvert\log(1+u)\rvert\le\lvert u\rvert/(1-\lvert u\rvert)\le2\lvert u\rvert$ and
+\[
+  \Bigl\lvert\sum_{k\ge3}\frac{(-1)^{k-1}u^{k}}{k}\Bigr\rvert
+  \le\frac{\lvert u\rvert^{3}}{3}\sum_{j\ge0}\lvert u\rvert^{j}
+  =\frac{\lvert u\rvert^{3}}{3(1-\lvert u\rvert)}\le\frac{2\lvert u\rvert^{3}}{3},
+\]
+both for $\lvert u\rvert\le\tfrac12$.  Hence
+$\lvert\Delta\rvert\le\lvert u\rvert+\tfrac{4\pi}{3}T\lvert u\rvert^{3}$, and
+$T\lvert u\rvert^{3}=\lvert y\rvert^{3}/\sqrt T$, $\lvert u\rvert=\lvert y\rvert/\sqrt T$.
+\end{proof}
+
+The estimate now splits at $\lvert w\rvert=W:=T^{1/12}$.  Inside, $\Delta$ is small and
+$\lvert e^{\Delta}-1\rvert\le\lvert\Delta\rvert e^{\lvert\Delta\rvert}$ is integrated against a
+Gaussian; outside, the two terms $e^{\Delta}$ and $1$ are bounded separately and both tails are
+super-polynomially small.  The choice $W=T^{1/12}$ is made so that both halves are comfortable:
+$W^{3}/\sqrt T=T^{-1/4}\to0$ controls the inner region, while $e^{-\pi W^{2}/2}=e^{-\frac\pi2T^{1/6}}$
+crushes the outer one.
+
+\begin{lemma}[Inner estimate]
+\label{lem:rsf_inner}
+\lean{Zeta.RiemannSiegel.splitRadius, Zeta.RiemannSiegel.norm_integral_inner_le,
+integral_abs_mul_exp_neg_mul_sq, integral_sq_mul_exp_neg_mul_sq,
+integral_abs_pow_three_mul_exp_neg_mul_sq, integral_exp_neg_mul_sq_mul_poly}
+\leanok
+\uses{lem:rsf_discrepancy_bound, lem:rsf_model_conv, lem:rs_sin_lower}
+Let $T\ge10^{6}$ and $W:=T^{1/12}$.  Then
+\[
+  \left\lvert\int_{\lvert w\rvert\le W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+  \right\rvert\;\le\;\frac{21}{\sqrt T}.
+\]
+(The proof establishes on the way that $\lvert y\rvert/\sqrt T\le\tfrac12$ and
+$\lvert\Delta(w)\rvert\le1$ for every $w$ with $\lvert w\rvert\le W$; these are the two hypotheses
+under which \Cref{lem:rsf_discrepancy_bound} and $\lvert e^{\Delta}-1\rvert\le2\lvert\Delta\rvert$
+apply.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_discrepancy_bound, lem:rs_sin_lower, lem:rsf_model_conv}
+Put $\kappa:=\tfrac12-p\in(-\tfrac12,\tfrac12]$, so $v-p=(\kappa+w)+iw$ and
+$\lvert y\rvert=\lvert v-p\rvert\le\lvert\kappa\rvert+\sqrt2\lvert w\rvert
+\le\tfrac12+\sqrt2\lvert w\rvert$.
+
+\emph{The two pointwise hypotheses.}  For $\lvert w\rvert\le W$ this gives
+$\lvert y\rvert\le\tfrac12+\sqrt2\,T^{1/12}$, and the function
+$T\mapsto\bigl(\tfrac12+\sqrt2T^{1/12}\bigr)/\sqrt T$ is decreasing; at $T=10^{6}$ it equals
+$4.972/1000\le\tfrac12$, so $\lvert u\rvert\le\tfrac12$ throughout and
+\Cref{lem:rsf_discrepancy_bound} applies.  With the same numbers,
+\[
+  \lvert\Delta\rvert\le\frac{1}{\sqrt T}\Bigl(\lvert y\rvert+\frac{4\pi}{3}\lvert y\rvert^{3}\Bigr)
+  \le\frac{4.972+\frac{4\pi}{3}(4.972)^{3}}{1000}\le\frac{4.98+514.9}{1000}\le0.52\le1
+\]
+at $T=10^{6}$, and the middle expression is again decreasing in $T$ (its numerator grows like
+$T^{1/4}$ against $T^{1/2}$).  Hence $e^{\lvert\Delta\rvert}\le e$ on the inner region.
+
+The Lean proof states both claims uniformly in $T$, and this is the only place where the
+exponent $\tfrac1{12}$ is used.  Substituting $\sqrt T=W^{6}$
+(\texttt{splitRadius\_pow\_six}) and $W\ge3.16$ (\texttt{le\_splitRadius}, from
+$3.16^{12}\le10^{6}$) turns the two claims into the polynomial inequalities
+$\tfrac12+1.415W\le W^{6}/2$ and
+$\bigl(\tfrac12+1.415W\bigr)+\tfrac{4\pi}{3}\bigl(\tfrac12+1.415W\bigr)^{3}\le W^{6}$ in the
+single variable $W$, both of which follow from $3.16^{6-k}W^{k}\le W^{6}$ for $k\le3$; the
+irrational constants are cleared once by $\sqrt2\le1.415$ and $\tfrac{4\pi}{3}\le4.1888$.
+
+\emph{The integral.}  By \Cref{lem:rs_sin_lower} the denominator has modulus at least $\sqrt2$,
+which cancels the Jacobian $\lvert1+i\rvert=\sqrt2$; by the computation in the proof of
+\Cref{lem:rsf_model_conv},
+$\lvert e^{2\pi i(v-p)^{2}}\rvert=e^{\pi\kappa^{2}}e^{-4\pi\left(w+\frac\kappa2\right)^{2}}\le
+e^{\pi/4}e^{-4\pi\left(w+\frac\kappa2\right)^{2}}$; and
+$\lvert e^{\Delta}-1\rvert\le\lvert\Delta\rvert e^{\lvert\Delta\rvert}\le e\lvert\Delta\rvert$.
+(The formalization uses mathlib's \texttt{Complex.norm\_exp\_sub\_one\_le}, which gives the
+slightly better $\lvert e^{\Delta}-1\rvert\le2\lvert\Delta\rvert$ under the same hypothesis
+$\lvert\Delta\rvert\le1$; the constant $e$ below may therefore be read as $2$ throughout, which is
+what leaves enough slack to bound $e^{\pi/4}$ by the crude $e\le2.72$.)
+Enlarging the domain of the (nonnegative) majorant from $\lvert w\rvert\le W$ to $\mathbb{R}$ and
+substituting $w'=w+\tfrac\kappa2$, for which
+$\lvert y\rvert\le\tfrac12+\sqrt2\bigl(\lvert w'\rvert+\tfrac14\bigr)\le A+B\lvert w'\rvert$ with
+$A:=0.854$ and $B:=1.415$, the left-hand side is at most
+\[
+  \frac{e\,e^{\pi/4}}{\sqrt T}\int_{\mathbb{R}}e^{-4\pi w'^{2}}
+    \Bigl(A+B\lvert w'\rvert+\tfrac{4\pi}{3}\bigl(A+B\lvert w'\rvert\bigr)^{3}\Bigr)dw' .
+\]
+The four Gaussian moments needed are
+$\int e^{-4\pi w^{2}}dw=\tfrac12$, $\int\lvert w\rvert e^{-4\pi w^{2}}dw=\tfrac1{4\pi}$,
+$\int w^{2}e^{-4\pi w^{2}}dw=\tfrac1{16\pi}$ and
+$\int\lvert w\rvert^{3}e^{-4\pi w^{2}}dw=\tfrac1{16\pi^{2}}$.  All four are supplied, for a general
+Gaussian weight $e^{-bw^{2}}$, by \texttt{integral\_exp\_neg\_mul\_sq\_mul\_poly}, which
+integrates the whole bracket in one step.  Expanding the cube,
+\[
+  \int e^{-4\pi w^{2}}\bigl(A+B\lvert w\rvert\bigr)^{3}dw
+  =\frac{A^{3}}2+\frac{3A^{2}B}{4\pi}+\frac{3AB^{2}}{16\pi}+\frac{B^{3}}{16\pi^{2}}
+  \le0.312+0.247+0.103+0.018\le0.68,
+\]
+and $\int e^{-4\pi w^{2}}(A+B\lvert w\rvert)dw=\tfrac A2+\tfrac{B}{4\pi}\le0.427+0.113\le0.54$.
+Hence the bracket integrates to at most $0.54+\tfrac{4\pi}{3}(0.68)\le0.54+2.85\le3.39$, while
+$e\cdot e^{\pi/4}\le2.719\cdot2.194\le5.97$.  The product is $5.97\cdot3.39\le20.3\le21$.
+\end{proof}
+
+\begin{lemma}[Outer estimate]
+\label{lem:rsf_outer}
+\lean{Zeta.RiemannSiegel.norm_integral_outer_le, Zeta.RiemannSiegel.norm_saddleFactor,
+integral_Ioi_exp_neg_mul_sq_le, integral_compl_Icc_exp_neg_mul_sq_le}
+\leanok
+\uses{lem:rsf_factor, lem:rs_phase_bound, lem:rs_sin_lower, lem:rsf_model_conv, cor:rs_remainder_explicit}
+Let $T\ge10^{6}$ and $W:=T^{1/12}$.  Then
+\[
+  \left\lvert\int_{\lvert w\rvert>W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+  \right\rvert\;\le\;\frac{1}{\sqrt T} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_factor, lem:rs_phase_bound, lem:rs_sin_lower, cor:rs_remainder_explicit, lem:rsf_model_conv}
+Bound $\lvert e^{\Delta}-1\rvert\le\lvert e^{\Delta}\rvert+1$ and treat the two resulting
+integrals separately; in both, \Cref{lem:rs_sin_lower} cancels the Jacobian as before.
+
+\emph{The model tail.}  By the computation in \Cref{lem:rsf_model_conv} and
+$\lvert\kappa\rvert\le\tfrac12$, the model integrand is at most
+$e^{\pi/4}e^{-4\pi w'^{2}}/\sqrt2$ in modulus, with $w'=w+\tfrac\kappa2$.  On the outer region
+$\lvert w'\rvert\ge W-\tfrac14$, and $\bigl(W-\tfrac14\bigr)^{2}\ge\tfrac{W^{2}}2$ already for
+$W\ge1$, so \emph{half} the exponent may be spent on the constant,
+$e^{-4\pi w'^{2}}\le e^{-\pi W^{2}}e^{-2\pi w'^{2}}$, and the remaining Gaussian integrated over
+all of $\mathbb{R}$:
+\[
+  \int_{\lvert w\rvert>W}\bigl\lvert e^{2\pi i(v-p)^{2}}\bigr\rvert dw
+  \le\frac{e^{\pi/4}}{\sqrt2}\,e^{-\pi W^{2}}\int_{\mathbb{R}}e^{-2\pi w'^{2}}dw'
+  =\frac{e^{\pi/4}}{\sqrt2}\,e^{-\pi W^{2}}\sqrt{\tfrac12}
+  \le1.93\cdot0.708\,e^{-\pi W^{2}}\le1.37\,e^{-\pi W^{2}/2},
+\]
+since the model tail decays like $e^{-\pi W^{2}}$, twice as fast as the true one, this crude
+split suffices.  (The formalization uses $e^{\pi/4}\le2.72$ and
+$\sqrt2\ge1.414$ for $e^{\pi/4}/\sqrt2\le1.93$.)
+
+\emph{The true tail.}  By \Cref{lem:rsf_factor} the first integrand is, in modulus,
+$T^{1/4}\bigl\lvert x^{-s}e^{i\pi x^{2}}\bigr\rvert=T^{1/4}\lvert x\rvert^{-1/2}e^{\varphi(w)}$
+with $\varphi$ as in \Cref{lem:rs_phase_bound}, the factor $T^{1/4}$ being $1/\lvert
+\text{saddle factor}\rvert$ (\texttt{norm\_saddleFactor}).  The hypotheses of \Cref{lem:rs_phase_bound} and
+of \Cref{cor:rs_remainder_explicit} hold, since $\sqrt T\ge10^{3}$: there $a=\nu+\tfrac12\ge
+\sqrt T-\tfrac12\ge999.5$, $T\le2a^{2}$, and $\lvert T-a^{2}\rvert=\lvert\sqrt T-a\rvert
+(\sqrt T+a)\le a+\tfrac14$, so $B=2\pi\lvert T-a^{2}\rvert/a\le2\pi\bigl(1+\tfrac1{4a}\bigr)
+\le6.29$.  Together with $T^{1/4}\cdot2^{1/4}a^{-1/2}/\sqrt2=\bigl(2^{1/4}/\sqrt2\bigr)
+\sqrt{\sqrt T/a}\le1.001$ and, by $B\lvert w\rvert\le\tfrac{\pi w^{2}}2+\tfrac{B^{2}}{2\pi}$
+(arithmetic--geometric mean) with $B^{2}/2\pi\le7$ and $e^{7}\le1097$, this gives the pointwise
+majorant $1100\,e^{-\pi w^{2}/2}$.  Hence, by the two-sided Gaussian tail
+$\int_{\lvert w\rvert>c}e^{-bw^{2}}dw\le e^{-bc^{2}}/(bc)$ (\texttt{integral\_compl\_Icc\_exp\_neg\_mul\_sq\_le},
+itself the one-sided $\int_{c}^{\infty}e^{-bw^{2}}dw\le e^{-bc^{2}}/(2bc)$ doubled),
+\[
+  T^{1/4}\int_{\lvert w\rvert>W}\lvert x\rvert^{-1/2}e^{\varphi(w)}dw
+  \le1100\int_{\lvert w\rvert>W}e^{-\pi w^{2}/2}dw
+  \le1100\,\frac{2e^{-\pi W^{2}/2}}{\pi W}\le223\,e^{-\pi W^{2}/2},
+\]
+the last step by $\pi\ge3.14$ and $W\ge3.16$.
+
+\emph{Uniformity in $T$.}  Adding the two tails and the Jacobian $\lvert1+i\rvert=\sqrt2\le1.415$,
+the left-hand side is at most $1.415(223+1.37)e^{-\pi W^{2}/2}\le320\,e^{-\pi W^{2}/2}$, so
+everything reduces, as in \Cref{lem:rsf_inner} and again uniformly in $T$, to the
+single-variable inequality
+\[
+  320\,W^{6}\;\le\;e^{\pi W^{2}/2}\qquad(W\ge3.16),
+\]
+$W^{6}=\sqrt T$ by \texttt{splitRadius\_pow\_six}.  This follows from the single term
+$x^{n}/n!\le e^{x}$ of the exponential series at $n=14$, $x=\pi W^{2}/2$: it asks exactly that
+$320\cdot14!\cdot2^{14}\le\pi^{14}W^{22}$, and $320\cdot14!\cdot2^{14}\le3.80\cdot10^{17}$ while
+$3.14^{14}\cdot3.16^{22}\ge8.91\cdot10^{17}$, a margin of a factor $2.3$.  Any $n$ below $10$
+is too weak here.
+\end{proof}
+
+\begin{theorem}[First-order evaluation of the shifted integral]
+\label{thm:rsf_saddle}
+\lean{Zeta.RiemannSiegel.norm_contourIntegral_sub_modelIntegral_le}
+\leanok
+\uses{lem:rsf_factor, lem:rsf_inner, lem:rsf_outer, def:rsf_model}
+Let $T\ge10^{6}$.  Then
+\[
+  \Bigl\lvert I\bigl(\tfrac12+it,\nu+\tfrac12\bigr)
+    -(-1)^{\nu}\,T^{-1/4}\,e^{-i\left(\vartheta(t)+\frac\pi8\right)}\,M(p)\Bigr\rvert
+  \;\le\;22\,T^{-3/4} .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_factor, lem:rsf_inner, lem:rsf_outer}
+By \Cref{lem:rsf_factor} the left-hand side equals $T^{-1/4}$ times the modulus of
+$\int_{L(1/2)}e^{2\pi i(v-p)^{2}}(e^{\Delta}-1)\bigl/(e^{i\pi v}-e^{-i\pi v})\,dv$, the factors
+$(-1)^{\nu}$ and $e^{-i(\vartheta+\pi/8)}$ having modulus $1$.  Split that integral at
+$\lvert w\rvert=W=T^{1/12}$ and add \Cref{lem:rsf_inner} and \Cref{lem:rsf_outer}:
+$21\,T^{-1/2}+T^{-1/2}=22\,T^{-1/2}$.
+\end{proof}
+
+\subsection{The sharp saddle estimate}
+\label{sec:rsf_sharp}
+
+The constants of \Cref{sec:rsf_saddle} exceed the true error by a factor of about $1470$, and
+the threshold $T\ge10^{6}$ comes from a single step:
+
+\begin{remark}[Numerical size of the first-order error]
+\label{rem:rsf_measured}
+\uses{thm:rsf_saddle}
+Sampling $|Z(t)-\mathcal S(t,\nu)+(-1)^{\nu}T^{-1/4}\Psi(p)|\cdot T^{3/4}$ over
+$t\in[14,3\cdot10^{3}]$ gives a supremum of $0.0307$, already flat from $t=20$ upward, against
+the $45$ that the crude chain yields for it ($2\cdot22$ from \Cref{thm:rsf_saddle}, plus
+$<0.01$ for the phase swap).  The discrepancy is one identifiable step: the true
+first-order error is the next classical coefficient
+$C_{1}(p)=-\Psi'''(p)/(96\pi^{2})$, and $96\pi^{2}=947$ is a Gaussian moment \emph{carrying a
+phase}; \Cref{lem:rsf_inner} bounds $\lvert e^{\Delta}-1\rvert$ and integrates
+$\lvert\Delta\rvert$ in absolute value, which discards the cancellation that produces the
+$1/(96\pi^{2})$.  The remaining factor of $1.55$ is everything else in the chain.  Separately,
+$\max_{p}\lvert\Psi'''(p)\rvert=28.9904$, attained at $p=0$; and the residual after removing the
+$C_{1}$ term is $\le0.00542\,T^{-5/4}$ uniformly for $t\ge14$.
+
+The threshold is unrelated to any of that: $T\ge10^{6}$ enters only through
+$W=T^{1/12}\ge3.16$, which is what \Cref{lem:rsf_outer} needs for
+$320\,W^{6}\le e^{\pi W^{2}/2}$, and $3.16^{12}=9.9\cdot10^{5}$.
+\end{remark}
+
+The target of this subsection \emph{retains} the coefficient $C_{1}(p)$:
+\begin{equation}
+  \Bigl\lvert Z(t)-\mathcal S(t,\nu)
+     +(-1)^{\nu}T^{-1/4}\bigl(\Psi(p)-C_{1}(p)\,T^{-1/2}\bigr)\Bigr\rvert
+   \;\le\;R\,T^{-5/4}
+   \qquad(T\ge16),
+  \label{eq:rsf_sharp_target}
+\end{equation}
+with $R\le\tfrac{25}4$.  This form is strictly stronger than the one with $C_{1}$ dropped, it
+is what the next order of the expansion (\Cref{cha:rs_general}) needs, and its main term
+depends on no bound for $\Psi'''$, the one ingredient of the chain that the majorants available
+here cannot supply sharply.  See \Cref{rem:rsf_psi3_refuted}.  The dropped form is recorded
+separately as \Cref{cor:rsf_formula_drop}, at the cost $\tfrac{13}{10}T^{-3/4}$; the true
+coefficient is $0.0306$.
+
+\subsubsection*{What fixes the Taylor radius, and hence the threshold}
+
+The expansion parameter is $u=y/\sqrt T$, and the inner region $\lvert w\rvert\le W$ is chosen
+so that $\lvert u\rvert\le\rho$ there.  Since $\lvert y\rvert\le\lvert c\rvert+\sqrt2\lvert
+w\rvert$ with $\lvert c\rvert\le\tfrac12$, this forces $W\le(\rho\sqrt T-\tfrac12)/\sqrt2$, and
+the model half of the outer tail is then of size $e^{-4\pi(W-1/4)^{2}}$ (the true half is
+governed by the phase $\varphi$; see \Cref{rem:rsf_outer_sharp_trap}).  That trade-off
+suggests taking $\rho$ as large as possible, but the following constraint bounds it:
+
+\begin{remark}[The exponent budget: $\rho<\tfrac34$ is necessary]
+\label{rem:rsf_radius}
+\uses{lem:rsf_discrepancy_bound}
+On the inner region the third Taylor term is bounded through
+$\lvert e^{\Delta}-1-\Delta\rvert\le\tfrac12\lvert\Delta\rvert^{2}e^{\lvert\Delta\rvert}$, and
+the factor $e^{\lvert\Delta\rvert}$ is integrated against the Gaussian weight
+$\lvert e^{2\pi iy^{2}}\rvert$.  By the computation of \Cref{lem:rsf_discrepancy_bound}, run at a general radius $\rho$ in
+place of the $\tfrac12$ at which that lemma is stated,
+\[
+  \lvert\Delta\rvert\;\le\;\frac{\zeta}{1-\rho}
+     \Bigl(\tfrac12\lvert y\rvert+\tfrac{2\pi}3\lvert y\rvert^{3}\Bigr),
+  \qquad\zeta:=T^{-1/2},
+\]
+while \Cref{lem:rsf_kernel_gauss} gives $\lvert e^{2\pi iy^{2}}\rvert
+=e^{2\pi c^{2}}e^{-2\pi\lvert y\rvert^{2}}$.  Using $\zeta\lvert y\rvert\le\rho$ in the cubic
+term only,
+\[
+  \lvert\Delta\rvert-2\pi\lvert y\rvert^{2}
+  \;\le\;\frac{\rho}{2(1-\rho)}
+     \;-\;2\pi\lvert y\rvert^{2}\Bigl(1-\frac{\rho}{3(1-\rho)}\Bigr),
+\]
+so the Gaussian survives \emph{if and only if} $\rho<3(1-\rho)$, i.e.\ $\rho<\tfrac34$.  At
+$\rho=\tfrac34$ exactly the two exponents cancel to leading order and the inner integral is not
+$O(\zeta^{2})$ at all: numerically its $\zeta^{-2}$-normalised value is $781$ at $T=8$, $2085$ at
+$T=16$ and $4657$ at $T=50$; it grows with $T$ before eventually turning over, so no uniform
+constant exists in the range of interest.  This is a constraint on the method, and it is why
+the radius here is $\rho=\tfrac12$.
+\end{remark}
+
+With $\rho=\tfrac12$ the surviving Gaussian is $e^{-\frac{4\pi}3\lvert y\rvert^{2}}$ and the
+prefactor is $e^{1/2}$.  $\rho=\tfrac12$ is also the radius at which
+\Cref{lem:rsf_discrepancy_bound} is stated, and since the inner region is where
+$\lvert u\rvert\le\rho$ is needed, taking $\rho$ equal to that radius makes $W$ as large as it
+can be, which makes the two tail terms negligible.  Choosing $W$ from $\rho=\tfrac49$ while
+keeping the bounds of \Cref{lem:rsf_discrepancy_bound} trades a larger $e^{\Delta}-1-\Delta$
+term against smaller tails and lowers the total from $2.96$ to $2.63$; this subsection uses
+$\rho=\tfrac12$.
+
+The threshold is then set by the outer tail alone.  With
+$\rho=\tfrac12$ the $\zeta^{-2}$-normalised total $R_{\mathrm{in}}+R_{\mathrm{out}}$ is
+$5.42$ at $t=50$, $3.73$ at $t=63$, $3.08$ at $t=80$ and $2.96$ at $t=100$, against an asymptote
+of $2.95$: past $t\approx100$ there is nothing left to gain.  We therefore take
+\[
+  T\ge16,\qquad\text{i.e.}\qquad t\ge32\pi=100.53\ldots,
+\]
+which is already the threshold carried by several statements of \Cref{cha:rs_zero}.  Below it the
+Euler--Maclaurin certificate \Cref{thm:hz_Z_bound} holds for every $t$ (at $t<32\pi$ its
+cutoff $N'$ is a handful of terms), so it covers the range $t<32\pi$.  The Riemann--Siegel
+formula is used at large $t$.
+
+\begin{remark}[The range $t\ge14$ is out of reach of this method]
+\label{rem:rsf_range}
+\uses{lem:rsf_outer_sharp, thm:hz_Z_bound}
+No choice of constants in this subsection gives a bound usable for every $t\ge14$.  The
+obstruction is geometric and precedes every estimate.  The model half of \Cref{lem:rsf_outer_sharp} is governed by $A:=W-\tfrac14$, and
+$A>0$ requires $\rho\sqrt T>\tfrac12+\tfrac{\sqrt2}4$.  At $\rho=\tfrac12$ that is $t>18.3$, and
+at the limiting radius $\rho\to\tfrac34$ of \Cref{rem:rsf_radius} it is still $t>8.2$: below
+those values the ``outer'' region reaches into the bulk of the Gaussian and the tail bound is
+vacuous, whatever the constants.  Even where it is not vacuous the Gaussian scale
+$e^{-4\pi A^{2}}$ that the geometry supplies (a scale, not a proved bound, cf.\
+\Cref{rem:rsf_outer_sharp_trap}) is too large to be useful:
+\[
+  \begin{array}{c|cccccccc}
+    t & 14 & 20 & 30 & 50 & 63 & 80 & 32\pi & 150\\\hline
+    2Te^{-4\pi A^{2}} & \text{vacuous} & 6.3 & 6.7 & 2.3 & 0.71 & 0.11 & 8.3\cdot10^{-3}
+      & 6.1\cdot10^{-6}
+  \end{array}
+\]
+At $t=14$ one has $\sqrt T=1.49$ and $W=0.174$, so the inner region on which the expansion is
+valid captures only $62\%$ of the Gaussian mass: there is no separation of scales at $T=2.2$ to
+expand in, and the saddle method gives nothing.  This is a statement about the method:
+\Cref{rem:rsf_measured} records that the actual residual is $\le0.0054\,T^{-5/4}$ uniformly
+for $t\ge14$.
+
+The range $t\ge14$ is covered by composition: \Cref{thm:hz_Z_bound} holds for every $t$ and
+covers $14\le t<32\pi$, and \Cref{cor:rsf_formula_sharp} covers $t\ge32\pi$.
+\end{remark}
+
+\begin{definition}[Weighted model moments]
+\label{def:rsf_moment}
+\lean{Zeta.RiemannSiegel.modelMoment}
+\leanok
+\uses{def:rsf_model}
+For $n\in\mathbb{N}$ and $p\in\mathbb{R}$ set
+\[
+  N_{n}(p):=\int_{L(1/2)}\frac{(v-p)^{n}e^{2\pi i(v-p)^{2}}}{e^{i\pi v}-e^{-i\pi v}}\,dv ,
+\]
+so that $N_{0}=M$ is the model integral of \Cref{def:rsf_model}.  Convergence for every $n$ is
+\Cref{lem:rsf_model_conv} with the polynomial factor absorbed into the Gaussian.
+\end{definition}
+
+\begin{lemma}[Convergence of the moments]
+\label{lem:rsf_moment_conv}
+\lean{Zeta.RiemannSiegel.integrable_modelMomentIntegrand}
+\leanok
+\uses{def:rsf_moment, lem:rsf_model_conv}
+For every $n\in\mathbb{N}$ and every $p\in\mathbb{C}$ the integral defining $N_{n}(p)$ converges
+absolutely, uniformly for $p$ in a bounded set: the majorant of
+\texttt{norm\_modelMomentIntegrand\_le} depends on $p$ only through a bound $\lVert p\rVert\le P$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_model_conv}
+On $L(\tfrac12)$, $\lvert v-p\rvert\le\lvert c\rvert+\sqrt2\lvert w\rvert$ with $c=\tfrac12-p$, so
+the extra factor is polynomial in $\lvert w\rvert$ while the majorant of \Cref{lem:rsf_model_conv}
+is $e^{\pi/4}e^{-4\pi(w+c/2)^{2}}/\sqrt2$; a polynomial times a Gaussian is integrable
+(\Cref{lem:rsf_gauss_moments}).  It is stated separately from \Cref{def:rsf_moment} because the
+Lean development uses it as a hypothesis of every differentiation under the integral sign below.
+\end{proof}
+
+The next lemma is elementary and is used at every estimate below.  It expresses the kernel
+majorant in the single variable $\lvert y\rvert$; the chain of \Cref{sec:rsf_saddle} works with
+a Gaussian in $w+\tfrac c2$ against a polynomial in $\lvert c\rvert+\sqrt2\lvert w\rvert$.
+
+\begin{lemma}[The kernel majorant is a Gaussian in $\lvert y\rvert$]
+\label{lem:rsf_kernel_gauss}
+\lean{Zeta.RiemannSiegel.norm_line_sub_ofReal_sq, Zeta.RiemannSiegel.norm_line_sub_ofReal_le',
+Zeta.RiemannSiegel.norm_line_sub_ofReal_ge,
+Zeta.RiemannSiegel.norm_exp_two_pi_mul_I_mul_line_sub_sq'}
+\leanok
+\uses{def:rs_line, def:rsf_model}
+Let $p\in\mathbb{R}$, $c:=\tfrac12-p$, let $v=\tfrac12+(1+i)w$ run over $L(\tfrac12)$, put
+$y:=v-p$ and $\xi:=w+\tfrac c2$.  Then
+\[
+  y=\tfrac{c}2(1-i)+(1+i)\xi,\qquad
+  \lvert y\rvert^{2}=2\xi^{2}+\tfrac{c^{2}}2,\qquad
+  \bigl\lvert e^{2\pi iy^{2}}\bigr\rvert
+    =e^{\pi c^{2}}e^{-4\pi\xi^{2}}
+    =e^{2\pi c^{2}}e^{-2\pi\lvert y\rvert^{2}} ,
+\]
+and consequently $\lvert y\rvert\le\sqrt2\,\lvert\xi\rvert+\tfrac{\lvert c\rvert}{\sqrt2}$ and
+$\lvert y\rvert\ge\tfrac{\lvert c\rvert}{\sqrt2}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rs_line}
+$y=c+(1+i)w$ and $w=\xi-\tfrac c2$ give the first display.  For the second, the two summands
+$\tfrac c2(1-i)$ and $(1+i)\xi$ are \emph{orthogonal}: $\operatorname{Re}\bigl(\tfrac
+c2(1-i)\overline{(1+i)\xi}\bigr)=\tfrac{c\xi}2\operatorname{Re}\bigl((1-i)^{2}\bigr)=0$ since
+$(1-i)^{2}=-2i$, so
+\[
+  \lvert y\rvert^{2}=\Bigl\lvert\tfrac c2(1-i)\Bigr\rvert^{2}+\bigl\lvert(1+i)\xi\bigr\rvert^{2}
+    =\tfrac{c^{2}}4\lvert1-i\rvert^{2}+2\xi^{2}=\tfrac{c^{2}}2+2\xi^{2} .
+\]
+The cross term vanishes identically.  For the third, write $y=(c+w)+iw$, so that $y^{2}=\bigl((c+w)^{2}-w^{2}\bigr)+2iw(c+w)$
+and hence, using $\operatorname{Re}(iz)=-\operatorname{Im}z$,
+\[
+  \operatorname{Re}\bigl(2\pi iy^{2}\bigr)=-2\pi\operatorname{Im}\bigl(y^{2}\bigr)
+   =-4\pi w(c+w)=-4\pi\Bigl(w+\tfrac c2\Bigr)^{2}+\pi c^{2}=-4\pi\xi^{2}+\pi c^{2} .
+\]
+Substituting $\xi^{2}=\tfrac12\bigl(\lvert y\rvert^{2}-\tfrac{c^{2}}2\bigr)$ from the second
+display gives the last form.  The final inequality is the triangle inequality on the first
+display, and the lower bound is $\lvert y\rvert^{2}\ge\tfrac{c^{2}}2$.
+\end{proof}
+
+\begin{lemma}[$M$ and $\Psi$ are bounded]
+\label{lem:rsf_correction_bound}
+\lean{Zeta.RiemannSiegel.norm_modelIntegral_le, Zeta.RiemannSiegel.norm_modelIntegral_le',
+Zeta.RiemannSiegel.abs_correction_le, Zeta.RiemannSiegel.abs_correction_le'}
+\leanok
+\uses{def:rsf_correction, lem:rsf_moment_conv, lem:rsf_kernel_gauss}
+For every $p\in[0,1]$,
+\[
+  \lvert M(p)\rvert\;\le\;\tfrac{11}{10},\qquad\lvert\Psi(p)\rvert\;\le\;\tfrac{11}5 .
+\]
+The bound on $M$ itself, and not only on $\Psi$, is what
+\Cref{cor:rsf_formula_sharp} needs: the phase swap there multiplies a \emph{complex} modulus,
+and $\lvert\Psi\rvert\le2\lvert M\rvert$ runs the wrong way to supply it.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rsf_correction, lem:rsf_moment_conv, lem:rsf_kernel_gauss}
+The bound on $M$ in the general form $\lvert M(p)\rvert\le e^{\pi c^{2}}/2$, $c=\tfrac12-p$, is
+\texttt{norm\_modelIntegral\_le} (\texttt{Zeta/RiemannSiegel/Model.lean}).  Its proof is the
+step used everywhere below: by \Cref{lem:rs_sin_lower} the denominator has modulus at least
+$\sqrt2$ and cancels the Jacobian $\lvert1+i\rvert=\sqrt2$, so by \Cref{lem:rsf_kernel_gauss}
+$\lvert M\rvert\le e^{\pi c^{2}}\int_{\mathbb{R}}e^{-4\pi\xi^{2}}d\xi=e^{\pi c^{2}}/2$.  For
+$\lvert c\rvert\le\tfrac12$ (i.e.\ $p\in[0,1]$) this is at most
+$e^{\pi/4}/2=1.0966\le\tfrac{11}{10}$.
+Then $\lvert\Psi\rvert=\lvert2\operatorname{Re}(e^{-i\pi/8}M)\rvert\le2\lvert
+M\rvert\le\tfrac{11}5$.  The restriction to $p\in[0,1]$ is needed: $e^{\pi c^{2}}$ is
+unbounded in $p$, and only $p=\sqrt T-\nu\in[0,1)$ is ever used.  The true supremum is
+$\Psi(0)=\cos(\pi/8)=0.924$;
+a bound below $2$ would use $\lvert e^{i\pi v}-e^{-i\pi v}\rvert\ge2\sinh(\pi\lvert
+w\rvert)$ away from the real axis, sharper than the uniform $\sqrt2$ of \Cref{lem:rs_sin_lower}.
+\end{proof}
+
+\begin{lemma}[The moments are derivatives of $M$]
+\label{lem:rsf_moment_deriv}
+\lean{Zeta.RiemannSiegel.hasDerivAt_modelMomentIntegrand,
+Zeta.RiemannSiegel.hasDerivAt_modelMoment, Zeta.RiemannSiegel.differentiable_modelMoment,
+Zeta.RiemannSiegel.hasDerivAt_modelIntegral,
+Zeta.RiemannSiegel.iteratedDeriv_three_modelIntegral,
+Zeta.RiemannSiegel.iteratedDeriv_three_correction}
+\leanok
+\uses{def:rsf_moment, def:rsf_model, lem:rsf_moment_conv, lem:rsz_entire}
+Every $N_{n}$ is differentiable in $p$, with
+\[
+  N_{n}'(p)=-n\,N_{n-1}(p)-4\pi i\,N_{n+1}(p)
+\]
+(the term $n=0$ being killed by its own coefficient); this single recursion is
+\texttt{hasDerivAt\_modelMoment} and is what is formalized.  Iterating it three times from
+$M=N_{0}$ gives, in particular, that $M$ is three times continuously differentiable in $p$
+(which is all that is used), and
+\[
+  M'(p)=-4\pi i\,N_{1}(p),\qquad
+  M'''(p)=48\pi^{2}\,N_{1}(p)+64\pi^{3}i\,N_{3}(p).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:rsf_moment, lem:rsf_model_conv}
+Differentiation under the integral sign, in the same form as \Cref{lem:rsz_entire}: the
+integrand is entire in $p$ and, on any bounded set of $p$, it and its $p$-derivatives are
+dominated by a fixed Gaussian in $w$ times a polynomial of degree at most $n+3$, by
+\Cref{lem:rsf_moment_conv}; only $n\le3$ is needed, so no uniformity in $n$ is claimed.  For the identities, write $q=v-p$, so $\partial_{p}=-\partial_{q}$
+on functions of $q$, and
+\[
+  \partial_{q}e^{2\pi iq^{2}}=4\pi iq\,e^{2\pi iq^{2}},\quad
+  \partial_{q}^{2}=\bigl(4\pi i-16\pi^{2}q^{2}\bigr)e^{2\pi iq^{2}},\quad
+  \partial_{q}^{3}=-\bigl(48\pi^{2}q+64\pi^{3}iq^{3}\bigr)e^{2\pi iq^{2}} .
+\]
+Negating the first and third (one and three factors of $-1$) and integrating gives the claim.
+\end{proof}
+
+\begin{lemma}[The linear coefficient is a third derivative]
+\label{lem:rsf_c1}
+\lean{Zeta.RiemannSiegel.neg_half_modelMoment_one_sub_eq,
+Zeta.RiemannSiegel.neg_iteratedDeriv_three_correction_div_eq}
+\leanok
+\uses{lem:rsf_moment_deriv, def:rsf_moment}
+For every $p$,
+\[
+  -\tfrac12 N_{1}(p)-\tfrac{2\pi i}{3}N_{3}(p)\;=\;-\frac{M'''(p)}{96\pi^{2}},
+\]
+and consequently $2\operatorname{Re}\bigl(e^{-i\pi/8}\bigl(-\tfrac12N_{1}-\tfrac{2\pi
+i}{3}N_{3}\bigr)\bigr)=-\Psi'''(p)/(96\pi^{2})=C_{1}(p)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_moment_deriv}
+Solve the two identities of \Cref{lem:rsf_moment_deriv} for the combination.  Writing
+$a\,M'+b\,M'''=-\tfrac12N_{1}-\tfrac{2\pi i}{3}N_{3}$ and matching $N_{3}$ gives
+$64\pi^{3}i\,b=-\tfrac{2\pi i}{3}$, i.e.\ $b=-1/(96\pi^{2})$; matching $N_{1}$ then gives
+$-4\pi i\,a+48\pi^{2}b=-\tfrac12$, i.e.\ $-4\pi i\,a-\tfrac12=-\tfrac12$, so \emph{$a=0$}.  The
+vanishing of $a$, an identity between the two displays, is the reason the classical $C_{1}$
+involves $\Psi'''$ alone.  The
+second claim follows by applying $2\operatorname{Re}(e^{-i\pi/8}\cdot)$, which commutes with
+$\partial_{p}$ and sends $M$ to $\Psi$ by \Cref{def:rsf_correction}.
+\end{proof}
+
+\begin{definition}[The first classical coefficient]
+\label{def:rsf_c1}
+\lean{Zeta.RiemannSiegel.correctionLinear, Zeta.RiemannSiegel.correctionLinear_eq}
+\leanok
+\uses{lem:rsf_c1, def:rsf_correction}
+For $p\in\mathbb{R}$ put
+\[
+  C_{1}(p)\;:=\;2\operatorname{Re}\Bigl(e^{-i\pi/8}\bigl(-\tfrac12N_{1}(p)-\tfrac{2\pi
+  i}3N_{3}(p)\bigr)\Bigr)\;=\;-\frac{\Psi'''(p)}{96\pi^{2}} ,
+\]
+the two expressions agreeing by \Cref{lem:rsf_c1}.  The moment form is the definition, because it
+is the one that appears in \Cref{thm:rsf_saddle_sharp}; the $\Psi'''$ form is the
+identification with the classical coefficient.
+\end{definition}
+
+\begin{lemma}[Absolute Gaussian moments to order six]
+\label{lem:rsf_gauss_moments}
+\lean{integral_abs_pow_add_two_mul_exp_neg_mul_sq, integral_abs_pow_even_mul_exp_neg_mul_sq,
+integral_abs_pow_odd_mul_exp_neg_mul_sq, integral_pow_four_mul_exp_neg_mul_sq,
+integral_pow_six_mul_exp_neg_mul_sq, integral_exp_neg_mul_sq_mul_even_poly}
+\leanok
+For $b>0$ and $k\in\mathbb{N}$, $\int_{\mathbb{R}}\lvert w\rvert^{k}e^{-bw^{2}}dw$ is finite and
+given by the usual recursion $I_{k+2}=\tfrac{k+1}{2b}I_{k}$, $I_{0}=\sqrt{\pi/b}$, $I_{1}=1/b$,
+whence the closed forms
+$I_{2m}=\tfrac{(2m)!}{4^{m}m!}\sqrt{\pi/b}\,b^{-m}$ and $I_{2m+1}=m!\,b^{-(m+1)}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+One integration by parts, exactly as for the cases $k\le3$ already recorded in
+\texttt{Zeta/Analysis/SpecialFunctions/Gaussian.lean}; the two-step induction needs no
+$\Gamma$-function.  Only $k\le6$ is used below, and only at the two arguments $b=4\pi$ and
+$b=\tfrac{8\pi}3$.
+\end{proof}
+
+\begin{lemma}[A crude bound for $\Psi'''$]
+\label{lem:rsf_psi3}
+\lean{Zeta.RiemannSiegel.norm_iteratedDeriv_three_modelIntegral_le,
+Zeta.RiemannSiegel.norm_iteratedDeriv_three_modelIntegral_le',
+Zeta.RiemannSiegel.abs_iteratedDeriv_three_correction_le,
+Zeta.RiemannSiegel.abs_correctionLinear_le}
+\leanok
+\uses{def:rsf_correction, def:rsf_c1, lem:rsf_moment_deriv, lem:rsf_kernel_gauss,
+lem:rsf_gauss_moments}
+For every $p\in[0,1]$,
+\[
+  \lvert M'''(p)\rvert\;\le\;\sqrt2\,e^{\pi/4}\bigl(20\pi+10\pi^{2}+\pi^{3}\bigr)
+    \;=\;597.20\ldots\;\le\;610 ,
+\]
+hence $\lvert\Psi'''(p)\rvert\le1220$ and $\lvert
+C_{1}(p)\rvert\le1220/(96\pi^{2})\le\tfrac{13}{10}$.  As with
+\Cref{lem:rsf_correction_bound}, the restriction to $p\in[0,1]$ is needed:
+the majorant below carries a factor $e^{\pi c^{2}}$ with $c=\tfrac12-p$, which is unbounded in
+$p$, and $\Psi'''$ grows.  Only $p=\sqrt T-\nu\in[0,1)$ is ever used.  The bound on
+$M'''$ itself is again what \Cref{cor:rsf_formula_sharp} needs.
+\end{lemma}
+
+\begin{proof}
+\uses{def:rsf_correction, lem:rsf_moment_deriv, lem:rsf_kernel_gauss, lem:rsf_gauss_moments}
+\leanok
+The quotient $\Psi=\cos\bigl(2\pi(p^{2}-p-\tfrac1{16})\bigr)/\cos(2\pi p)$ of
+\Cref{cor:rsf_correction_closed} has numerator and denominator both vanishing at
+$p=\tfrac14,\tfrac34$, so the proof uses
+$\Psi'''=2\operatorname{Re}\bigl(e^{-i\pi/8}M'''\bigr)$ from
+\Cref{lem:rsf_moment_deriv}, so that, by \Cref{lem:rs_sin_lower} (denominator $\ge\sqrt2$)
+against the Jacobian $\lvert1+i\rvert=\sqrt2$, which cancel exactly,
+\[
+  \lvert\Psi'''\rvert\;\le\;2\lvert M'''\rvert
+  \;\le\;2\int_{\mathbb{R}}\bigl(48\pi^{2}\lvert y\rvert+64\pi^{3}\lvert y\rvert^{3}\bigr)
+     \bigl\lvert e^{2\pi iy^{2}}\bigr\rvert\,dw .
+\]
+Now apply \Cref{lem:rsf_kernel_gauss}: substitute $\lvert e^{2\pi iy^{2}}\rvert=e^{\pi
+c^{2}}e^{-4\pi\xi^{2}}$, use $\lvert y\rvert^{3}=\lvert y\rvert^{2}\lvert y\rvert$ with the
+\emph{exact} $\lvert y\rvert^{2}=2\xi^{2}+\tfrac{c^{2}}2$ and the linear bound $\lvert
+y\rvert\le\sqrt2\bigl(\lvert\xi\rvert+\tfrac{\lvert c\rvert}2\bigr)$, so that each of the two
+moments is integrated against a cubic in $\lvert\xi\rvert$ times $e^{-4\pi\xi^{2}}$.  Every
+coefficient is positive and increasing in $\lvert c\rvert$, so each is maximised over $p\in[0,1]$
+at $\lvert c\rvert=\tfrac12$; with $I_{0}=\tfrac12$, $I_{1}=\tfrac1{4\pi}$,
+$I_{2}=\tfrac1{16\pi}$, $I_{3}=\tfrac1{16\pi^{2}}$ at $b=4\pi$
+(\Cref{lem:rsf_gauss_moments}) this gives
+\[
+  \lvert N_{1}\rvert\le e^{\pi c^{2}}\sqrt2\Bigl(\tfrac18+\tfrac1{4\pi}\Bigr),
+  \qquad
+  \lvert N_{3}\rvert\le e^{\pi c^{2}}\sqrt2\Bigl(\tfrac1{64}+\tfrac1{16\pi}
+    +\tfrac1{8\pi^{2}}\Bigr),
+\]
+whence, by $M'''=48\pi^{2}N_{1}+64\pi^{3}iN_{3}$ and $e^{\pi c^{2}}\le e^{\pi/4}$,
+\[
+  \lvert M'''\rvert\;\le\;48\pi^{2}\lvert N_{1}\rvert+64\pi^{3}\lvert N_{3}\rvert
+  \;\le\;\sqrt2\,e^{\pi/4}\bigl(20\pi+10\pi^{2}+\pi^{3}\bigr)\;=\;597.196\ldots
+\]
+(the four fractions collapse to $6\pi^{2}+12\pi$ and $\pi^{3}+4\pi^{2}+8\pi$).  The numeral
+$610$ is that value rounded up, which leaves room in the numerical step
+$\sqrt2\,e^{\pi/4}\le1.415\cdot\tfrac{11}5$, $20\pi+10\pi^{2}+\pi^{3}\le193$.  Finally $\lvert\Psi'''\rvert\le2\lvert M'''\rvert\le1220$ and
+$1220/(96\pi^{2})=1.2876\le\tfrac{13}{10}$.
+\end{proof}
+
+\begin{remark}[Why $29$ is out of reach here, and what it would take]
+\label{rem:rsf_psi3_refuted}
+\uses{lem:rsf_psi3}
+The true bound is $\max_{p}\lvert\Psi'''(p)\rvert=28.9904$, attained at $p=0$ and $p=1$, so
+\Cref{lem:rsf_psi3} is off by a factor of $42$.  Sharper majorants do not close this gap.
+Every route below begins from $\lvert\Psi'''\rvert\le2\lvert M'''\rvert$ and differs only in
+how $M'''$ is bounded; the ceiling is the numerical supremum over $p$ of each route's bound:
+\[
+  \begin{array}{lcc}
+    \text{route} & \text{ceiling} & \lvert C_{1}\rvert\\\hline
+    \text{termwise in }\lvert c\rvert+\sqrt2\lvert w\rvert & 1684 & 1.78\\
+    \text{\Cref{lem:rsf_psi3} as proved above (stated as $1220$)} & 1194 & 1.26\\
+    \text{termwise with the exact }\lvert y\rvert & 900 & 0.95\\
+    \text{combined polynomial }48\pi^{2}y+64\pi^{3}iy^{3} & 706 & 0.75\\
+    \text{combined, and denominator }2\sqrt{\cos^{2}\pi w+\sinh^{2}\pi w} & 381 & 0.40\\\hline
+    \text{true value} & 28.99 & 0.0306
+  \end{array}
+\]
+Even the last row (combined polynomial \emph{and} the sharp denominator) stops a factor of
+$13$ short.  The reason is structural: $\Psi'''$ is small by \emph{oscillatory cancellation} in
+$\int e^{2\pi iy^{2}}$, which no bound through $\lvert\int\rvert\le\int\lvert\cdot\rvert$
+detects.  A bound near $29$ needs interval arithmetic on the closed form of
+\Cref{cor:rsf_correction_closed}.  \eqref{eq:rsf_sharp_target} and \Cref{thm:rsf_saddle_sharp}
+retain $C_{1}$, and \Cref{lem:rsf_psi3} enters the main statement only through the phase-swap
+term of \Cref{cor:rsf_formula_sharp} and the dropped form \Cref{cor:rsf_formula_drop}.
+
+The route of the fourth row cannot reach $29$ either: its first inequality,
+$\lvert\Psi'''\rvert\le96\pi^{2}\lvert N_{1}\rvert+128\pi^{3}\lvert N_{3}\rvert$, evaluates to
+$137.0$ at $p=0$ with the exact moduli $\lvert N_{1}(0)\rvert=0.1099537$,
+$\lvert N_{3}(0)\rvert=0.0082658$.
+\end{remark}
+
+\subsubsection*{The three contributions}
+
+Throughout what follows $T\ge16$, $\zeta:=T^{-1/2}\le\tfrac14$,
+\[
+  W\;:=\;\frac{\sqrt T-1}{2\sqrt2}\;=\;\frac{\tfrac12\sqrt T-\tfrac12}{\sqrt2},
+\]
+and $c=\tfrac12-p\in[-\tfrac12,\tfrac12]$, $y=v-p$, $\xi=w+\tfrac c2$ as in
+\Cref{lem:rsf_kernel_gauss}.  For $\lvert w\rvert\le W$ one has $\lvert y\rvert\le\lvert
+c\rvert+\sqrt2\lvert w\rvert\le\tfrac12+\bigl(\tfrac12\sqrt T-\tfrac12\bigr)=\tfrac12\sqrt T$,
+i.e.\ $\lvert u\rvert=\lvert y\rvert/\sqrt T\le\tfrac12$ \emph{exactly}, so
+\Cref{lem:rsf_discrepancy_bound} applies on the whole inner region with no further hypothesis;
+and $\lvert w\rvert>W$ gives $\lvert\xi\rvert\ge W-\tfrac14$.
+
+\begin{lemma}[Splitting off the linear part of $\Delta$]
+\label{lem:rsf_delta_split}
+\lean{Zeta.RiemannSiegel.saddleLinear,
+Zeta.RiemannSiegel.norm_saddleDiscrepancy_sub_linear_le}
+\leanok
+\uses{lem:rsf_discrepancy_bound}
+Let $u=y/\sqrt T$ with $\lvert u\rvert\le\tfrac12$ and
+$P_{1}(y):=-\tfrac y2-\tfrac{2\pi i}{3}y^{3}$.  Then
+\[
+  \bigl\lvert\Delta-\zeta P_{1}(y)\bigr\rvert
+  \;\le\;\Bigl(\tfrac12\lvert y\rvert^{2}+\pi\lvert y\rvert^{4}\Bigr)\zeta^{2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_discrepancy_bound}
+From the series of \Cref{lem:rsf_discrepancy_bound}, $\Delta=-\tfrac12\log(1+u)-2\pi
+iT\sum_{k\ge3}(-1)^{k-1}u^{k}/k$.  Its $\zeta$-linear part is $-\tfrac12u$ from the logarithm
+and $-2\pi iTu^{3}/3$ from the $k=3$ term, and $u=y\zeta$, $Tu^{3}=y^{3}\zeta$, so together they
+are $\zeta P_{1}(y)$.  What is left is $-\tfrac12\bigl(\log(1+u)-u\bigr)$, of modulus at most
+$\tfrac12\cdot\lvert u\rvert^{2}/\bigl(2(1-\lvert u\rvert)\bigr)\le\tfrac12\lvert u\rvert^{2}
+=\tfrac12\lvert y\rvert^{2}\zeta^{2}$, together with the tail $k\ge4$, of modulus at most
+$2\pi T\lvert u\rvert^{4}/\bigl(4(1-\lvert u\rvert)\bigr)\le\pi T\lvert u\rvert^{4}
+=\pi\lvert y\rvert^{4}\zeta^{2}$, both using $1/(1-\lvert u\rvert)\le2$.
+\end{proof}
+
+\begin{lemma}[The exponent budget at radius $\tfrac12$]
+\label{lem:rsf_delta_exp}
+\lean{Zeta.RiemannSiegel.norm_saddleDiscrepancy_le',
+Zeta.RiemannSiegel.exp_norm_saddleDiscrepancy_mul_exp_le}
+\leanok
+\uses{lem:rsf_discrepancy_bound, lem:rsf_kernel_gauss}
+With $\lvert u\rvert\le\tfrac12$ as above,
+\[
+  \lvert\Delta\rvert\;\le\;\tfrac12+\tfrac{2\pi}3\lvert y\rvert^{2},
+  \qquad\text{hence}\qquad
+  e^{\lvert\Delta\rvert}\bigl\lvert e^{2\pi iy^{2}}\bigr\rvert
+    \;\le\;e^{1/2}e^{2\pi c^{2}}e^{-\frac{4\pi}3\lvert y\rvert^{2}} .
+\]
+The second display is formalized in the geometry-free form
+$e^{\lvert\Delta\rvert}e^{-2\pi\lvert y\rvert^{2}}\le e^{1/2}e^{-\frac{4\pi}3\lvert
+y\rvert^{2}}$, which carries no hypothesis tying $y$ to the contour; the peak $e^{2\pi c^{2}}$
+is supplied where it is needed by \texttt{norm\_exp\_two\_pi\_mul\_I\_mul\_line\_sub\_sq'} of
+\Cref{lem:rsf_kernel_gauss}.  Splitting it this way is what keeps the exponent budget separate
+from the contour geometry.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_discrepancy_bound, lem:rsf_kernel_gauss}
+\Cref{lem:rsf_discrepancy_bound} gives $\lvert\Delta\rvert\le\zeta\bigl(\lvert
+y\rvert+\tfrac{4\pi}3\lvert y\rvert^{3}\bigr)$.  In the first term $\zeta\lvert
+y\rvert=\lvert u\rvert\le\tfrac12$; in the second, write $\tfrac{4\pi}3\zeta\lvert
+y\rvert^{3}=\tfrac{4\pi}3\lvert u\rvert\cdot\lvert y\rvert^{2}\le\tfrac{2\pi}3\lvert
+y\rvert^{2}$.  Multiply by $\lvert e^{2\pi iy^{2}}\rvert=e^{2\pi c^{2}}e^{-2\pi\lvert
+y\rvert^{2}}$ from \Cref{lem:rsf_kernel_gauss} and use
+$\tfrac{2\pi}3-2\pi=-\tfrac{4\pi}3$.  The surviving Gaussian is what
+\Cref{rem:rsf_radius} predicts: the factor is $1-\rho/(3(1-\rho))=\tfrac23$ at
+$\rho=\tfrac12$.
+\end{proof}
+
+\begin{lemma}[Sharp inner estimate]
+\label{lem:rsf_inner_sharp}
+\lean{Zeta.RiemannSiegel.norm_integral_inner_sub_linear_le}
+\leanok
+\uses{lem:rsf_delta_split, lem:rsf_delta_exp, lem:rsf_kernel_gauss, lem:rsf_gauss_moments,
+lem:rs_sin_lower}
+For $T\ge16$,
+\[
+  \left\lvert\int_{\lvert w\rvert\le W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+   \;-\;\zeta\int_{\lvert w\rvert\le W}
+    \frac{e^{2\pi i(v-p)^{2}}\,P_{1}(y)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw\right\rvert
+  \;\le\;\frac{299}{100}\,\zeta^{2} ,
+\]
+the two contributions being $\tfrac{31}{100}\zeta^{2}$ from $\Delta-\zeta P_{1}$ and
+$\tfrac83\zeta^{2}$ from $e^{\Delta}-1-\Delta$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_delta_split, lem:rsf_delta_exp, lem:rsf_kernel_gauss, lem:rsf_gauss_moments,
+lem:rs_sin_lower}
+Write $e^{\Delta}-1-\zeta P_{1}(y)
+=\bigl(\Delta-\zeta P_{1}(y)\bigr)+\bigl(e^{\Delta}-1-\Delta\bigr)$ and bound the two in absolute
+value; by \Cref{lem:rs_sin_lower} the denominator has modulus at least $\sqrt2$ and cancels the
+Jacobian $\lvert1+i\rvert=\sqrt2$ exactly, so in both cases the weight is
+$\lvert e^{2\pi iy^{2}}\rvert$ and the region may be enlarged to all of $\mathbb{R}$.
+
+\emph{First term.}  By \Cref{lem:rsf_delta_split} and \Cref{lem:rsf_kernel_gauss} it is at most
+\[
+  \zeta^{2}e^{\pi c^{2}}\int_{\mathbb{R}}
+    \Bigl(\tfrac12\lvert y\rvert^{2}+\pi\lvert y\rvert^{4}\Bigr)e^{-4\pi\xi^{2}}\,d\xi ,
+  \qquad \lvert y\rvert^{2}=2\xi^{2}+\tfrac{c^{2}}2 ,
+\]
+an \emph{even} polynomial in $\xi$ of degree $4$ against $e^{-4\pi\xi^{2}}$: with
+$I_{0}=\tfrac12,\;I_{2}=\tfrac1{16\pi},\;I_{4}=\tfrac3{128\pi^{2}}$ at $b=4\pi$
+(\Cref{lem:rsf_gauss_moments}) the integral is
+$\bigl(\tfrac1{16\pi}+\tfrac{c^{2}}8\bigr)+\bigl(\tfrac3{32\pi}+\tfrac{c^{2}}8+\tfrac{\pi
+c^{4}}8\bigr)$, increasing in $\lvert c\rvert$, so the whole term is at most its value at
+$\lvert c\rvert=\tfrac12$, namely $0.29999\,\zeta^{2}\le\tfrac{31}{100}\zeta^{2}$.
+
+\emph{Second term.}  $\lvert e^{z}-1-z\rvert\le\tfrac12\lvert z\rvert^{2}e^{\lvert z\rvert}$ at
+$z=\Delta$, so by \Cref{lem:rsf_delta_exp} and \Cref{lem:rsf_discrepancy_bound} it is at most
+\[
+  \tfrac12\zeta^{2}e^{1/2}e^{2\pi c^{2}}\int_{\mathbb{R}}
+    \Bigl(\lvert y\rvert+\tfrac{4\pi}3\lvert y\rvert^{3}\Bigr)^{2}
+    e^{-\frac{4\pi}3\lvert y\rvert^{2}}\,d\xi
+  =\tfrac12\zeta^{2}e^{1/2}e^{\frac{4\pi}3c^{2}}\int_{\mathbb{R}}
+    \Bigl(\lvert y\rvert^{2}+\tfrac{8\pi}3\lvert y\rvert^{4}
+      +\tfrac{16\pi^{2}}9\lvert y\rvert^{6}\Bigr)e^{-\frac{8\pi}3\xi^{2}}\,d\xi ,
+\]
+having used $e^{-\frac{4\pi}3\lvert y\rvert^{2}}
+=e^{-\frac{2\pi}3c^{2}}e^{-\frac{8\pi}3\xi^{2}}$.  This is again an even polynomial, now of
+degree $6$, against $e^{-b\xi^{2}}$ with $b=\tfrac{8\pi}3$, so
+\Cref{lem:rsf_gauss_moments} evaluates it in closed form; it is increasing in $\lvert c\rvert$
+and its value at $\lvert c\rvert=\tfrac12$ is $2.6537\,\zeta^{2}\le\tfrac83\zeta^{2}$.  This is
+the dominant contribution of the whole subsection, and \Cref{rem:rsf_R} says where the remaining
+slack in it sits.
+
+Adding, $\tfrac{31}{100}+\tfrac83=\tfrac{893}{300}=2.9767\ldots\le\tfrac{299}{100}$.
+
+Three points where the formalization differs from the display above.  The
+two integrals are formalized as the \emph{single} integral of $e^{\Delta}-1-\zeta P_{1}(y)$
+against the model integrand, which is equal by linearity over the compact inner region and is the
+form the assembly consumes.  The bound $\lvert e^{z}-1-z\rvert\le\tfrac12\lvert
+z\rvert^{2}e^{\lvert z\rvert}$ is a gap in Mathlib, whose unrestricted bound
+\texttt{norm\_exp\_sub\_sum\_le\_norm\_mul\_exp} loses the factorial and so is a factor of
+$2$ too weak here; it is supplied by \texttt{Complex.norm\_exp\_sub\_one\_sub\_id\_le'}.
+Finally, the formalization substitutes $\lvert y\rvert^{2}\le2\xi^{2}+\tfrac18$ pointwise
+(legitimate because every coefficient above is positive), and the two peaks $e^{\pi c^{2}}$ and $e^{\frac{4\pi}3c^{2}}$
+are bounded once and for all by the numerals $e^{\pi/4}\le\tfrac{11}5$ and
+$e^{1/2+\pi/3}\le\tfrac{47}{10}$.  The resulting proved constant is $2.956$, still below
+$\tfrac{299}{100}$.
+\end{proof}
+
+The linear term of \Cref{lem:rsf_inner_sharp} is integrated \emph{exactly} over
+$\mathbb{R}$, which makes it a moment.  Its difference from the integral over the inner region
+is the following tail.
+
+\begin{lemma}[The linear term outside the inner region]
+\label{lem:rsf_linear_tail}
+\lean{Zeta.RiemannSiegel.norm_integral_linear_tail_le,
+Zeta.RiemannSiegel.norm_integral_linear_add_iteratedDeriv_three_modelIntegral_le,
+integral_compl_Icc_abs_mul_exp_neg_mul_sq,
+integral_compl_Icc_abs_pow_three_mul_exp_neg_mul_sq,
+integral_compl_Icc_sq_mul_exp_neg_mul_sq_le,
+integral_compl_Icc_exp_neg_mul_sq_mul_poly_comp_add_right_le}
+\leanok
+\uses{lem:rsf_kernel_gauss, lem:rsf_gauss_moments, lem:rs_sin_lower, def:rsf_moment}
+For $T\ge16$,
+\[
+  \left\lvert\zeta\int_{\lvert w\rvert>W}
+    \frac{e^{2\pi i(v-p)^{2}}\,P_{1}(y)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw\right\rvert
+  \;\le\;\frac{\zeta^{2}}{200},
+\]
+and consequently, by \Cref{def:rsf_moment} and \Cref{lem:rsf_c1},
+\[
+  \left\lvert\zeta\int_{\lvert w\rvert\le W}
+    \frac{e^{2\pi i(v-p)^{2}}P_{1}(y)}{e^{i\pi v}-e^{-i\pi v}}(1+i)\,dw
+    \;+\;\frac{M'''(p)}{96\pi^{2}}\zeta\right\rvert\;\le\;\frac{\zeta^{2}}{200}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_kernel_gauss, lem:rsf_gauss_moments, lem:rs_sin_lower, lem:rsf_c1}
+The full-line integral is $-\tfrac12N_{1}-\tfrac{2\pi i}3N_{3}=-M'''/(96\pi^{2})$ by
+\Cref{def:rsf_moment} and \Cref{lem:rsf_c1}, so the second display follows from the first.  For
+the first, the denominator and Jacobian cancel as before and, by \Cref{lem:rsf_kernel_gauss},
+$\lvert w\rvert>W$ implies $\lvert\xi\rvert\ge W-\tfrac14$, so the tail is at most
+\[
+  \zeta e^{\pi c^{2}}\int_{\lvert\xi\rvert\ge W-1/4}
+    \Bigl(\tfrac12\lvert y\rvert+\tfrac{2\pi}3\lvert y\rvert^{3}\Bigr)e^{-4\pi\xi^{2}}d\xi ,
+\]
+a polynomial of degree $3$ in $\lvert\xi\rvert$ (via $\lvert y\rvert^{3}=\lvert
+y\rvert^{2}\lvert y\rvert$ and $\lvert y\rvert\le\sqrt2\lvert\xi\rvert+\tfrac{\lvert
+c\rvert}{\sqrt2}$, exactly as in \Cref{lem:rsf_psi3}) against a Gaussian tail.  Each
+$\int_{\lvert\xi\rvert\ge A}\lvert\xi\rvert^{k}e^{-4\pi\xi^{2}}d\xi$ with $A:=W-\tfrac14$ is
+bounded by $A^{k-1}e^{-4\pi A^{2}}/(2\pi)$ for $1\le k\le3$ and by $e^{-4\pi A^{2}}/(4\pi A)$ for
+$k=0$, by the substitution $\xi\mapsto\xi^{2}$.  These require $A\ge\tfrac12$ and not merely
+$A>0$: the exact values are $e^{-4\pi A^{2}}/(4\pi)$ for $k=1$ and $e^{-4\pi A^{2}}\bigl(\tfrac{
+A^{2}}{4\pi}+\tfrac1{16\pi^{2}}\bigr)$ for $k=3$, so the stated form needs
+$A^{2}\ge\tfrac1{4\pi}$, i.e.\ $A\ge0.283$, and $k=2$ needs $A\ge0.2$.  For $T\ge16$,
+$A\ge0.81$ by the computation in \Cref{lem:rsf_outer_sharp}, so all three hold.
+At $T=16$, $W=1.06066$ and
+$A=0.81066$, and the whole expression is $1.03\cdot10^{-3}\zeta^{2}$; it is decreasing in $T$
+because the Gaussian factor $e^{-4\pi A^{2}}$ beats the single factor $\zeta^{-1}=\sqrt T$, so
+$\tfrac1{200}$ holds throughout $T\ge16$.
+
+Three points where the formalization differs from the display above.  The
+four monomial tails are packaged once, as
+\texttt{integral\_compl\_Icc\_exp\_neg\_mul\_sq\_mul\_poly\_le}: for $b>0$ and $bA^{2}\ge1$,
+\[
+  \int_{\lvert\xi\rvert\ge A}e^{-b\xi^{2}}
+     \bigl(c_{0}+c_{1}\lvert\xi\rvert+c_{2}\xi^{2}+c_{3}\lvert\xi\rvert^{3}\bigr)d\xi
+  \;\le\;\frac{e^{-bA^{2}}}{b}
+     \Bigl(\frac{c_{0}}A+c_{1}+2c_{2}A+2c_{3}A^{2}\Bigr),
+\]
+which at $b=4\pi$ is exactly the four bounds quoted above, the three separate thresholds
+$A\ge\tfrac1{\sqrt{4\pi}},\,\tfrac1{\sqrt{8\pi}}$ collapsing into the single hypothesis
+$bA^{2}\ge1$; the odd tails are \emph{exact} ($e^{-bA^{2}}/b$ and
+$e^{-bA^{2}}(A^{2}/b+1/b^{2})$, the latter from the elementary antiderivative
+$-(\xi^{2}/2b+1/2b^{2})e^{-b\xi^{2}}$), and only $c_{2}$ is estimated, through
+$\xi^{2}\le\lvert\xi\rvert^{3}/A$ on the tail.  The translation of both the integrand and the
+region (the region $\lvert w\rvert>W$ is not symmetric in $\xi=w+\tfrac c2$) is done once,
+in \texttt{setIntegral\_comp\_add\_right\_le\_of\_nonneg}, at the radius $A=W-\tfrac14$.
+Secondly, the coefficients of the cubic
+$\tfrac12\lvert y\rvert+\tfrac{2\pi}3\lvert y\rvert^{3}$ in $\lvert\xi\rvert$, namely
+$\tfrac{\sqrt2\pi}{48}+\tfrac{\sqrt2}8$, $\tfrac{\sqrt2\pi}4+\tfrac{\sqrt2}2$, $\sqrt2\pi$ and
+$\tfrac{4\sqrt2\pi}3$, are replaced by the rationals
+$\tfrac{27}{100},\tfrac{182}{100},\tfrac{445}{100},\tfrac{593}{100}$, so that everything
+downstream is rational.  Finally the monotonicity is run in $A$: for
+$A\ge\tfrac{81}{100}$ one has $\sqrt T\le5A$ and
+$\tfrac{c_{0}}A+c_{1}+2c_{2}A+2c_{3}A^{2}\le27A^{2}$, so the whole expression is at most
+$135\,A^{3}e^{-4\pi A^{2}}\zeta^{2}$, and $A^{3}e^{-4\pi A^{2}}$ is decreasing there by
+$e^{x}\ge(1+\tfrac x3)^{3}$ applied at $x=4\pi(A^{2}-A_{0}^{2})$; since
+$4\pi(\tfrac{81}{100})^{2}\ge8$ and $e^{8}\ge2900$, the value at $A_{0}=\tfrac{81}{100}$ is below
+$\pi/110$, which is the target.  The proved constant is $0.62\cdot\tfrac1{200}$.
+\end{proof}
+
+\begin{lemma}[Sharp outer estimate]
+\label{lem:rsf_outer_sharp}
+\lean{Zeta.RiemannSiegel.norm_integral_outer_le',
+Zeta.RiemannSiegel.norm_contourIntegrand_le',
+integral_compl_Icc_exp_neg_mul_sq_comp_add_right_le}
+\leanok
+\uses{lem:rs_sin_lower, lem:rs_sin_lower_sharp, lem:rsf_kernel_gauss, lem:rs_gauss_modulus,
+lem:rs_rotate, lem:rs_power_modulus, lem:rs_phase_sharp, lem:rsf_factor}
+For $T\ge16$,
+\[
+  \left\lvert\int_{\lvert w\rvert>W}
+    \frac{e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)}{e^{i\pi v}-e^{-i\pi v}}\,(1+i)\,dw
+  \right\rvert\;\le\;\frac{\zeta^{2}}{20}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rs_sin_lower, lem:rs_sin_lower_sharp, lem:rsf_kernel_gauss, lem:rs_gauss_modulus,
+lem:rs_rotate, lem:rs_power_modulus, lem:rs_phase_sharp, lem:rsf_factor}
+On $\lvert w\rvert>W$ bound $e^{\Delta}$ and $1$ separately: the first through the Gaussian
+modulus of the \emph{original} integrand, which is valid outside the Taylor radius, the second
+directly.  Formally, $\lvert1+i\rvert=\sqrt2$ and
+$\lvert e^{\Delta}-1\rvert\le\lvert e^{\Delta}\rvert+1$ split the left-hand side into a
+\emph{true tail} and a \emph{model tail}, each integrable by \Cref{prop:rs_integrable} and
+\Cref{def:rsf_model} respectively; they will be bounded by
+$\tfrac1{25}\zeta^{2}+\tfrac1{200}\zeta^{2}$ and $\tfrac1{200}\zeta^{2}$.
+
+Throughout put $s:=\sqrt T\ge4$ and $A:=W-\tfrac14$, and record four consequences of
+$a=\nu+\tfrac12$, $\sqrt T=\nu+p$, $p\in[0,1)$, namely $\lvert s-a\rvert\le\tfrac12$ and hence
+\begin{equation}\label{eq:rsf_outer_sharp_data}
+  a\ge s-\tfrac12\ge\tfrac72,\qquad
+  \lvert\varepsilon\rvert\le\frac1a+\frac1{4a^{2}}\le\frac{15}{49},\qquad
+  B=2\pi a\lvert\varepsilon\rvert\le\frac{15\pi}7,\qquad
+  T\le2a^{2},
+\end{equation}
+where $\varepsilon:=T/a^{2}-1$; these are four separate consequences of
+$\lvert T-a^{2}\rvert=\lvert s-a\rvert(s+a)\le\tfrac12(2a+\tfrac12)=a+\tfrac14$, which bounds
+$\lvert\varepsilon\rvert$ by $\tfrac1a+\tfrac1{4a^{2}}$ and $B$ by $2\pi+\tfrac\pi{2a}$
+(\emph{not} by $2\pi a$ times the rounded $\tfrac{15}{49}$, which is useless for large $a$),
+both decreasing in $a\ge\tfrac72$.  Also
+$2a^{2}-T\ge2(s-\tfrac12)^{2}-s^{2}=s^{2}-2s+\tfrac12>0$ for $s\ge4$.  Also
+$W=\tfrac{s-1}{2\sqrt2}\ge\tfrac{3\sqrt2}4=1.06066\ldots$ and $A\ge\tfrac{81}{100}$, both
+increasing in $s$, and $\tfrac Wa\le\tfrac1{2\sqrt2}$ because $s-1<a$.
+
+\emph{The model tail} (the summand $1$).  Denominator and Jacobian cancel as before, and by
+\Cref{lem:rsf_kernel_gauss} the region $\lvert w\rvert>W$ lies in $\lvert\xi\rvert\ge
+W-\tfrac{\lvert c\rvert}2\ge A$, so this half is at most
+\[
+  e^{\pi c^{2}}\int_{\lvert\xi\rvert\ge A}e^{-4\pi\xi^{2}}\,d\xi
+  \;\le\;e^{\pi/4}\,\frac{e^{-4\pi A^{2}}}{4\pi A} ,
+\]
+using the elementary Gaussian tail $\int_{\lvert\xi\rvert\ge A}e^{-b\xi^{2}}d\xi\le
+e^{-bA^{2}}/(bA)$.
+
+\emph{The true tail} (the summand $e^{\Delta}$).  By \Cref{lem:rsf_factor} the integrand is
+$T^{1/4}$ times the modulus of the original one, so with $x=L(a)(w)$,
+\[
+  \sqrt2\,\Bigl\lvert\frac{e^{2\pi i(v-p)^{2}}e^{\Delta}}{e^{i\pi v}-e^{-i\pi v}}\Bigr\rvert
+  \;=\;\sqrt2\,T^{1/4}\,\frac{\lvert x\rvert^{-1/2}e^{\varphi(w)}}
+       {\lvert e^{i\pi x}-e^{-i\pi x}\rvert}
+  \;\le\;P\,e^{\varphi(w)-\pi\lvert w\rvert},
+  \qquad P:=\frac{100}{99}\sqrt2\;2^{1/4}\,T^{1/4}a^{-1/2},
+\]
+by \Cref{lem:rs_power_modulus} and \Cref{lem:rs_gauss_modulus} (which is what defines $\varphi$),
+$\lvert x\rvert\ge a/\sqrt2$ (\Cref{lem:rs_rotate}) and \Cref{lem:rs_sin_lower_sharp}, the last
+applicable because $\lvert w\rvert\ge W\ge1$.  Note
+$P\le\tfrac{100}{99}\sqrt2\,2^{1/4}(s/a)^{1/2}\le\tfrac{100}{99}\sqrt2\,2^{1/4}(8/7)^{1/2}
+\le\tfrac{19}{10}$.
+
+We claim that, with $\beta:=\tfrac{23}4$,
+\begin{equation}\label{eq:rsf_outer_sharp_pointwise}
+  \varphi(w)-\pi\lvert w\rvert\;\le\;
+  \begin{cases}
+    -\beta w^{2}, & w\ge-\tfrac a2,\ \lvert w\rvert\ge W,\\[2pt]
+    -\pi w^{2}, & w\le-\tfrac a2 .
+  \end{cases}
+\end{equation}
+The second line is the second display of \Cref{lem:rs_phase_sharp}, whose hypothesis
+$T\ge\tfrac2\pi a^{2}$ holds because $T/a^{2}=1+\varepsilon\ge1-\tfrac{15}{49}=\tfrac{34}{49}
+\ge\tfrac2\pi$; the extra $-\pi\lvert w\rvert$ is discarded.  For the first line, divide by
+$\lvert w\rvert>0$: by the first display of \Cref{lem:rs_phase_sharp} it suffices that
+\[
+  F(\lvert w\rvert)\;:=\;(2\pi-\beta)\lvert w\rvert
+    +\bigl(1-\lvert\varepsilon\rvert\bigr)\frac{2\pi a\lvert w\rvert}{a+\lvert w\rvert}
+  \;\ge\;B-\pi .
+\]
+Both summands are increasing in $\lvert w\rvert$ (the first because $\beta<2\pi$, the second
+because $2\pi a\lvert w\rvert/(a+\lvert w\rvert)=2\pi a/(1+a/\lvert w\rvert)$), so it is enough
+to check it at $\lvert w\rvert=W$, where $\tfrac{aW}{a+W}=\tfrac W{1+W/a}\ge\tfrac{73}{100}W$
+because $\tfrac Wa\le\tfrac1{2\sqrt2}$ and $\tfrac{2\sqrt2}{2\sqrt2+1}=0.73879\ldots$.  With
+\eqref{eq:rsf_outer_sharp_data} and $W\ge\tfrac{3\sqrt2}4$,
+\[
+  F(W)\;\ge\;\Bigl(2\pi-\frac{23}4\Bigr)\frac{3\sqrt2}4
+      +\frac{34}{49}\cdot\frac{73}{100}\cdot2\pi\cdot\frac{3\sqrt2}4
+  \;=\;0.5655\ldots+3.3758\ldots\;=\;3.941\ldots
+  \;\ge\;\frac{8\pi}7\;\ge\;B-\pi .
+\]
+
+Integrating \eqref{eq:rsf_outer_sharp_pointwise} over the two regions and using the same
+Gaussian tail as above,
+\[
+  \sqrt2\int_{\lvert w\rvert>W}\Bigl\lvert
+    \frac{e^{2\pi i(v-p)^{2}}e^{\Delta}}{e^{i\pi v}-e^{-i\pi v}}\Bigr\rvert dw
+  \;\le\;P\Bigl(\int_{\lvert w\rvert\ge W}e^{-\beta w^{2}}dw
+    +\int_{\lvert w\rvert\ge a/2}e^{-\pi w^{2}}dw\Bigr)
+  \;\le\;P\Bigl(\frac{e^{-\beta W^{2}}}{\beta W}+\frac{2e^{-\pi a^{2}/4}}{\pi a}\Bigr).
+\]
+
+\emph{The three numerical steps.}  It suffices that each of the three terms is at most
+$\tfrac1{25}\zeta^{2}$, $\tfrac1{200}\zeta^{2}$, $\tfrac1{200}\zeta^{2}$ respectively, since
+$\tfrac1{25}+\tfrac1{200}+\tfrac1{200}=\tfrac1{20}$ and $\zeta^{2}=T^{-1}$.  Using
+$P\le\tfrac{19}{10}$ these are
+\[
+  \tfrac{95}2\,T\le\beta We^{\beta W^{2}},\qquad
+  \tfrac{760\,T}{\pi a}\le e^{\pi a^{2}/4},\qquad
+  200\,e^{\pi/4}\,T\le4\pi Ae^{4\pi A^{2}} .
+\]
+Each is an inequality between a quadratic in $s$ and $e^{cs^{2}(1+o(1))}$, and each is verified
+at $s=4$ with room: $760\le3929$, $1106\le15065$, $7019\le39285$.  For the passage to general
+$s\ge4$ all three reduce, as in \Cref{lem:rsf_linear_tail}, to the monotonicity of
+$Ne^{-cN^{2}}$ run in the \emph{radius}: $\beta W^{2}=\tfrac{23}{32}(s-1)^{2}$
+and $T=s^{2}$, so the first is $\tfrac{95}2s^{2}\le\tfrac{23(s-1)}{8\sqrt2}
+e^{23(s-1)^{2}/32}$; the second has $a\ge s-\tfrac12$ and $T\le(a+\tfrac12)^{2}$; and the third
+is the statement already used in \Cref{lem:rsf_linear_tail}, that $s\le5A$ for
+$A\ge\tfrac{81}{100}$, after which it reads
+$5000\,e^{\pi/4}A\le4\pi e^{4\pi A^{2}}$ and follows from $e^{4\pi A^{2}}/A$ being increasing on
+$A\ge(8\pi)^{-1/2}$.
+
+\emph{Four points where the formalization differs from the display above.}
+First, the two constants are rounded so that everything downstream is rational: $P$ by
+$\tfrac{19}{10}$ and the peak $e^{\pi/4}$ of the model numerator by $\tfrac{11}5$.  The pointwise
+majorant for the true tail is isolated as \texttt{norm\_contourIntegrand\_le'}, which carries
+\emph{both} sharp ingredients (the denominator through \Cref{lem:rs_sin_lower_sharp} and the
+phase, unexpanded) and assumes only $a>0$ on $a$, the half-integrality being irrelevant once
+$\lvert w\rvert\ge1$.  Secondly, the far-side Gaussian is integrated over the
+\emph{symmetric} region $\lvert w\rvert\ge\tfrac a2$, which contains $w\le-\tfrac a2$; this is the
+factor $2$ already present in the display.  Thirdly, each of the three numerical steps is run at a
+rational threshold radius ($W\ge\tfrac{106}{100}$, $a\ge\tfrac72$ and
+$A\ge\tfrac{81}{100}$) through the antitonicity of $x\mapsto xe^{-bx^{2}}$ past $bx^{2}\ge1$,
+which is a single lemma proved from $1+x\le e^{x}$ and replaces three separate calculus arguments;
+after $s\le\tfrac{3772}{1000}W$, $T\le\tfrac{64}{49}a^{2}$ and $s\le5A$ the three steps read
+\[
+  130\,We^{-\beta W^{2}}\le1,\qquad
+  1000\,ae^{-\pi a^{2}/4}\le\pi,\qquad
+  3000\,Ae^{-4\pi A^{2}}\le\pi ,
+\]
+and hold at the thresholds with the crude $e^{6}\ge403$ and $e^{8}\ge2900$, the three left-hand
+sides being $0.35$, $1.21$ and $0.84$ there.  Finally $\lvert\varepsilon\rvert\le\tfrac{15}{49}$ is
+used in the cleared form $49(a+\tfrac14)\le15a^{2}$, an \emph{equality} at $a=\tfrac72$, and the
+monotonicity of $F$ is not proved as such: $\tfrac{aW}{a+W}\ge\tfrac{73}{100}W$ is obtained
+directly from $\lvert w\rvert\ge W$ and $2\sqrt2\,W\le a$, which is all that
+\eqref{eq:rsf_outer_sharp_pointwise} needs.
+\end{proof}
+
+\begin{remark}[Why the constant of \Cref{lem:rsf_outer} does not carry over]
+\label{rem:rsf_outer_sharp_trap}
+\uses{lem:rsf_outer_sharp, lem:rs_phase_sharp, lem:rsf_outer}
+Carrying the constant of \Cref{lem:rsf_outer} through the larger $W$ would suggest the chain
+$\le2e^{-4\pi A^{2}}\le2e^{-T/2}\le\tfrac{11}{1000}\zeta^{2}$ for the left-hand side of
+\Cref{lem:rsf_outer_sharp}.  \emph{The first inequality is false}, and the error is one of
+shape: the true tail is
+governed by $e^{\varphi}$, and at $\lvert w\rvert=W$ the sharp value of $\varphi$ is
+$\approx-0.9\cdot4\pi W^{2}$, whereas $4\pi A^{2}=4\pi W^{2}-2\pi W+\tfrac\pi4$ tends to
+$4\pi W^{2}$ relatively.  The two therefore cross, and the claimed bound fails for all large
+$T$: at $T=225$ with $p=0.99$ the left-hand side is $2.5\cdot10^{-119}$ against
+$2e^{-4\pi A^{2}}=5.7\cdot10^{-121}$, and at $T=400$ the discrepancy is a factor
+$4.5\cdot10^{9}$.  The final bound of \Cref{lem:rsf_outer_sharp} holds:
+\Cref{rem:rsf_R} records that the true supremum of the left-hand side is
+$2.2\cdot10^{-5}\zeta^{2}$, five hundred times below the $\tfrac1{20}$ proved above.  Its proof
+uses \Cref{lem:rs_sin_lower_sharp} and \Cref{lem:rs_phase_sharp}: at the sharp splitting radius,
+$\lvert w\rvert=W$ is $O(1)$ and \emph{both} of the concessions that \Cref{lem:rsf_outer} could
+afford (the constant $\sqrt2$ for the denominator and the half-exponent $-\pi w^{2}$) lose
+factors $e^{\pi W}$ and $e^{3\pi W^{2}}$ respectively.
+\end{remark}
+
+\begin{theorem}[Sharp first-order evaluation of the shifted integral]
+\label{thm:rsf_saddle_sharp}
+\lean{Zeta.RiemannSiegel.norm_contourIntegral_sub_modelIntegral_sub_moment_le}
+\leanok
+\uses{lem:rsf_factor, lem:rsf_inner_sharp, lem:rsf_linear_tail, lem:rsf_outer_sharp, lem:rsf_c1}
+Let $T\ge16$, i.e.\ $t\ge32\pi$.  Then
+\[
+  \Bigl\lvert I\bigl(\tfrac12+it,\nu+\tfrac12\bigr)
+    -(-1)^{\nu}T^{-1/4}e^{-i\left(\vartheta+\frac\pi8\right)}
+      \Bigl(M(p)-\frac{M'''(p)}{96\pi^{2}}\,T^{-1/2}\Bigr)\Bigr\rvert
+  \;\le\;\frac{61}{20}\,T^{-5/4}.
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_factor, lem:rsf_inner_sharp, lem:rsf_linear_tail, lem:rsf_outer_sharp}
+\Cref{lem:rsf_factor} is unchanged: the left-hand side is $T^{-1/4}$ times the modulus of
+$\int_{L(1/2)}e^{2\pi i(v-p)^{2}}\bigl(e^{\Delta}-1\bigr)\bigl/(e^{i\pi v}-e^{-i\pi v})\,dv$
+with the term $-M'''\zeta/(96\pi^{2})$ subtracted, the factors $(-1)^{\nu}$ and
+$e^{-i(\vartheta+\pi/8)}$ having modulus $1$.  Split at $\lvert w\rvert=W$ and add three
+estimates: \Cref{lem:rsf_inner_sharp} on the inner region ($\tfrac{299}{100}\zeta^{2}$),
+\Cref{lem:rsf_linear_tail} to replace the truncated linear integral by the full moment and hence
+by $-M'''\zeta/(96\pi^{2})$ ($\tfrac1{200}\zeta^{2}$), and \Cref{lem:rsf_outer_sharp} on the
+outer region ($\tfrac1{20}\zeta^{2}$).  The sum is
+$\tfrac{299}{100}+\tfrac1{200}+\tfrac1{20}=\tfrac{3045}{1000}\le\tfrac{61}{20}$, and the
+prefactor $T^{-1/4}$ turns $\zeta^{2}=T^{-1}$ into $T^{-5/4}$.
+\end{proof}
+
+\begin{corollary}[Sharp first-order formula]
+\label{cor:rsf_formula_sharp}
+\lean{Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_sub_correction_sub_correctionLinear_le}
+\uses{thm:rsf_saddle_sharp, lem:rsf_c1, def:rsf_c1, lem:rsf_psi3, lem:rsf_correction_bound,
+lem:rsf_theta_sharp, thm:rsz_formula}
+\leanok
+For every $t\ge32\pi$, with $T=t/2\pi$, $\nu=\lfloor\sqrt T\rfloor$ and $p=\sqrt T-\nu$, and
+assuming Siegel's identity \Cref{thm:rsz_siegel} at $t$,
+\[
+  \Bigl\lvert Z(t)-\mathcal S(t,\nu)
+    +(-1)^{\nu}T^{-1/4}\bigl(\Psi(p)+C_{1}(p)T^{-1/2}\bigr)\Bigr\rvert
+  \;\le\;\frac{25}4\,T^{-5/4},
+\]
+equivalently $Z(t)-\mathcal S(t,\nu)=(-1)^{\nu-1}T^{-1/4}\bigl(\Psi(p)+C_{1}(p)T^{-1/2}\bigr)
++O\bigl(T^{-5/4}\bigr)$, which is the classical expansion to order one.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:rsf_saddle_sharp, lem:rsf_c1, lem:rsf_psi3, lem:rsf_correction_bound,
+lem:rsf_theta_sharp}
+Feed \Cref{thm:rsf_saddle_sharp} into \Cref{thm:rsz_formula}.  Taking $2\operatorname{Re}\bigl(e^{i\theta}\cdot\bigr)$ doubles the error of
+\Cref{thm:rsf_saddle_sharp}, giving $\tfrac{61}{10}T^{-5/4}$, and turns the retained term
+$-M'''(p)T^{-1/2}/(96\pi^{2})$ into $+C_{1}(p)T^{-3/4}$ by \Cref{lem:rsf_c1} and
+\Cref{def:rsf_c1}: since $\zeta=T^{-1/2}$ is \emph{real},
+$2\operatorname{Re}\bigl(e^{-i\pi/8}(M-M'''\zeta/(96\pi^{2}))\bigr)=\Psi+\zeta\,C_{1}$, the sign
+being that of $C_{1}=-\Psi'''/(96\pi^{2})$ and not of the subtraction.  This is why the retained
+coefficient enters the display of this corollary with a $+$; it is also the sign of the classical
+expansion, $Z-\mathcal S=(-1)^{\nu-1}T^{-1/4}(C_{0}+C_{1}T^{-1/2}+\cdots)$; numerically, at
+$t=10^{3},5\cdot10^{3},2\cdot10^{4}$ the residual $\cdot\,T^{5/4}$ is $\approx-0.005$ with
+$+C_{1}$ and $O(1)$ with $-C_{1}$.
+
+It remains to replace the phase $\theta$ produced by \Cref{thm:rsz_formula} by the Stirling phase
+$\vartheta$ carried by \Cref{thm:rsf_saddle_sharp}.  By \Cref{lem:rsf_theta_sharp},
+\[
+  \lvert\theta-\vartheta\rvert\;\le\;\frac1{48t}+\frac{319}{2880\,t^{3}}+\frac{12}{t^{4}} ,
+\]
+and at $t=32\pi$ the last two terms are $1.1\cdot10^{-7}$ and $1.2\cdot10^{-7}$ against a main
+term of $2.1\cdot10^{-4}$, i.e.\ $0.11\%$; they are bounded by
+$\tfrac1{100}\cdot\tfrac1{48t}$ for $t\ge32\pi$, so $\lvert\theta-\vartheta\rvert
+\le\tfrac{1.01}{48t}$.  Hence $\lvert e^{i(\theta-\vartheta)}-1\rvert\le\lvert\theta-\vartheta
+\rvert$.  The quantity the phase swap multiplies is a \emph{complex} modulus and not
+$\lvert\Psi+C_{1}T^{-1/2}\rvert$: replacing $e^{i\theta}$ by $e^{i\vartheta}$ in
+$2\operatorname{Re}\bigl(e^{i\theta}X\bigr)$ costs at most $2\lvert X\rvert\,\lvert
+e^{i(\theta-\vartheta)}-1\rvert$, where here
+$X=(-1)^{\nu}T^{-1/4}e^{-i(\vartheta+\pi/8)}\bigl(M(p)-M'''(p)\zeta/(96\pi^{2})\bigr)$, so
+$\lvert X\rvert=T^{-1/4}\bigl\lvert M-M'''\zeta/(96\pi^{2})\bigr\rvert$.  It would be circular to
+bound this by $\lvert\Psi+C_{1}T^{-1/2}\rvert$, since
+$\lvert\Psi+C_{1}T^{-1/2}\rvert\le2\lvert M-M'''\zeta/(96\pi^{2})\rvert$ runs the wrong way; this
+is exactly why \Cref{lem:rsf_correction_bound} and \Cref{lem:rsf_psi3} are stated for $M$ and
+$M'''$ and not only for $\Psi$ and $C_{1}$.  With
+$\lvert M\rvert\le\tfrac{11}{10}$ (\Cref{lem:rsf_correction_bound}),
+$\lvert M'''\rvert\le610$ (\Cref{lem:rsf_psi3}) and $\zeta=T^{-1/2}\le\tfrac14$,
+\[
+  2\lvert X\rvert\;\le\;2T^{-1/4}\Bigl(\tfrac{11}{10}
+     +\tfrac{610}{96\pi^{2}}\cdot\tfrac14\Bigr)
+  \;\le\;2T^{-1/4}\bigl(1.1+0.1610\bigr)\;\le\;\tfrac{13}5\,T^{-1/4},
+\]
+and with $t=2\pi T$ the phase-swap term is at most $\tfrac{13}5T^{-1/4}\cdot\tfrac{1.01}{96\pi
+T}=R_{\theta}T^{-5/4}$ with
+$R_{\theta}=\tfrac{13\cdot1.01}{5\cdot96\pi}=0.0087\ldots\le\tfrac1{50}$.  Altogether $\tfrac{61}{10}+\tfrac1{50}=\tfrac{153}{25}=6.12\le\tfrac{25}4$.
+
+This is the only place where \Cref{lem:rsf_psi3} enters, and it enters only through
+$\lvert M'''\rvert\zeta/(96\pi^{2})\le0.17$ inside $R_{\theta}$, not as a coefficient of the main
+term: a ceiling ten times worse would change $R_{\theta}$ to $0.03$ and leave the conclusion
+intact.  This is the reason for retaining $C_{1}$.
+\end{proof}
+
+\begin{corollary}[First-order formula with $C_{1}$ dropped]
+\label{cor:rsf_formula_drop}
+\lean{Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_sub_correction_le}
+\leanok
+\uses{cor:rsf_formula_sharp, lem:rsf_psi3}
+For every $t\ge32\pi$, in the notation of \Cref{cor:rsf_formula_sharp},
+\[
+  \Bigl\lvert Z(t)-\mathcal S(t,\nu)+(-1)^{\nu}T^{-1/4}\Psi(p)\Bigr\rvert
+  \;\le\;\frac{13}{10}\,T^{-3/4}+\frac{25}4\,T^{-5/4}.
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{cor:rsf_formula_sharp, lem:rsf_psi3}
+Triangle inequality on \Cref{cor:rsf_formula_sharp} with
+$\lvert C_{1}(p)\rvert T^{-1/4}T^{-1/2}\le\tfrac{13}{10}T^{-3/4}$ from \Cref{lem:rsf_psi3}.  The
+coefficient $\tfrac{13}{10}$ is crude: the true value is $0.0306$
+(\Cref{rem:rsf_measured}), and closing that gap is the interval-arithmetic problem of
+\Cref{rem:rsf_psi3_refuted}.  \Cref{cor:rsf_formula_sharp}, which retains $C_{1}(p)$, is
+sharper.
+\end{proof}
+
+\begin{remark}[Where the remaining slack is]
+\label{rem:rsf_R}
+\uses{lem:rsf_inner_sharp, lem:rsf_outer_sharp, thm:rsf_saddle_sharp}
+The true suprema below are computed numerically.  Normalised by $\zeta^{2}$ and taken at their suprema over $T\ge16$ and
+$\lvert c\rvert\le\tfrac12$, the four contributions bounded by $\tfrac{61}{20}$ in
+\Cref{thm:rsf_saddle_sharp} are
+\[
+  \begin{array}{lcc}
+    & \text{bound proved} & \text{true supremum}\\\hline
+    \Delta-\zeta P_{1}\ (\Cref{lem:rsf_inner_sharp}) & 0.310 & 0.300\\
+    e^{\Delta}-1-\Delta\ (\Cref{lem:rsf_inner_sharp}) & 2.667 & 0.953\\
+    \text{linear tail }(\Cref{lem:rsf_linear_tail}) & 0.005 & 0.0005\\
+    \text{outer }(\Cref{lem:rsf_outer_sharp}) & 0.050 & 0.000022\\\hline
+    \text{total} & 3.032 & 1.254
+  \end{array}
+\]
+(the first column sums to $3.032$; \Cref{thm:rsf_saddle_sharp} adds the two inner rows through
+the rounded $\tfrac{299}{100}$ of \Cref{lem:rsf_inner_sharp} and so reaches $3.045$, and both
+are below $\tfrac{61}{20}$)
+against a numerical value of $0.0054$ for the whole left-hand side of
+\Cref{cor:rsf_formula_sharp}.  So the chain above is a factor $2.4$ from what \emph{these} majorants can give and a
+factor $10^{3}$ from the true value, and both gaps sit in one place: the term
+$e^{\Delta}-1-\Delta$.  The factor $2.4$ is the cost of replacing $e^{\lvert\Delta\rvert}$ by
+its worst case $e^{1/2}$ together with the widened Gaussian $e^{-\frac{4\pi}3\lvert y\rvert^{2}}$
+across the \emph{whole} inner region, when in the bulk $\lvert w\rvert=O(1)$ one has
+$\lvert\Delta\rvert=O(\zeta)$ and neither concession is needed; splitting the inner region once
+more, at $\lvert y\rvert\asymp1$, would recover most of it and is the cheapest available
+improvement.  The factor $10^{3}$ is again oscillatory cancellation and is not available to any
+absolute-value bound, exactly as in \Cref{rem:rsf_psi3_refuted}.  For orientation,
+\Cref{cor:rsf_formula_sharp} gives $0.195$ at $t=32\pi$, $1.1\cdot10^{-2}$ at $t=10^{3}$ and
+$6.2\cdot10^{-4}$ at $t=10^{4}$.
+\end{remark}
+
+\begin{remark}[Relation to \Cref{thm:rsf_saddle}]
+\label{rem:rsf_supersede}
+\uses{thm:rsf_saddle_sharp, cor:rsf_formula_sharp, cor:rsf_formula_drop, thm:rsf_saddle}
+\Cref{cor:rsf_formula_drop} has the shape of the formula of \Cref{sec:rsf_saddle}, with
+constant $\tfrac{13}{10}+\tfrac{25}4T^{-1/2}$ against $45$, and threshold $t\ge32\pi$ against
+$T\ge10^{6}$.  \Cref{cor:rsf_formula_sharp} is stronger again, and is the statement
+\Cref{cha:rs_general} builds on; that chapter also uses \Cref{thm:rsf_saddle},
+\Cref{lem:rsf_inner} and \Cref{lem:rsf_outer} directly.  Of the ingredients,
+\Cref{lem:rsf_delta_split} and \Cref{lem:rsf_delta_exp} carry \Cref{lem:rsf_discrepancy_bound}
+one order further at its radius $\tfrac12$, \Cref{lem:rsf_linear_tail} has no counterpart in
+\Cref{sec:rsf_saddle}, and \Cref{lem:rsf_outer_sharp}, although it is \Cref{lem:rsf_outer} at a
+different radius, needs two further inputs from \Cref{cha:riemann_siegel}
+(\Cref{lem:rs_sin_lower_sharp} and \Cref{lem:rs_phase_sharp});
+\Cref{rem:rsf_outer_sharp_trap} records why.  \Cref{lem:rsf_moment_deriv} is differentiation under the integral
+sign in $p$, for which \Cref{lem:rsz_entire} (\texttt{Zeta/RiemannSiegel/Entire.lean}) is the
+template in $s$.
+\end{remark}
+
+\section{The first-order formula}
+\label{sec:rsf_formula}
+
+One more input is needed: \Cref{thm:rsf_saddle} produces the \emph{Stirling} phase
+$\vartheta$, whereas \Cref{thm:rsz_formula} produces the true $\theta$.  The difference is
+$O(t^{-1})$ and is absorbed with room to spare, but it must be quantified.
+
+\begin{lemma}[Leading Stirling form of $\theta$]
+\label{lem:rsf_theta}
+\lean{Zeta.RiemannSiegel.abs_riemannSiegelTheta_sub_leading_le}
+\leanok
+\uses{def:nf_theta, lem:hz_theta_log, thm:hz_loggamma_em, thm:hz_loggamma_bound}
+Write $\vartheta_{0}(t):=\dfrac t2\log\dfrac t{2\pi}-\dfrac t2-\dfrac\pi8$.  For $t\ge10^{3}$,
+\[
+  \bigl\lvert\theta(t)-\vartheta_{0}(t)\bigr\rvert\;\le\;\frac1{40\,t} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hz_theta_log, thm:hz_loggamma_em, thm:hz_loggamma_bound}
+Put $w_{t}:=\tfrac14+\tfrac{it}2$ and let $S_{M}$ denote the order-$M$ Stirling polynomial and
+$R_{M}$ the corresponding remainder, so that $\log\Gamma=S_{M}+R_{M}$
+(\Cref{cha:gamma_stirling}).  By \texttt{riemannSiegelTheta\_eq\_im\_logGamma},
+$\theta(t)=\operatorname{Im}\log\Gamma(w_{t})-\tfrac t2\log\pi$, so, writing
+$\widetilde\theta_{M}(t):=\operatorname{Im}S_{M}(w_{t})-\tfrac t2\log\pi$, the error splits into
+two \emph{independent} contributions,
+\[
+  \theta(t)-\vartheta_{0}(t)
+  \;=\;\underbrace{\bigl(\widetilde\theta_{M}(t)-\vartheta_{0}(t)\bigr)}_{\text{(i) elementary}}
+  \;+\;\underbrace{\operatorname{Im}R_{M}(w_{t})}_{\text{(ii) remainder}} ,
+\]
+and \emph{both} must be bounded: the Stirling polynomial itself contributes at orders $t^{-1}$
+and $t^{-3}$, and those contributions are not covered by any bound on the remainder.  Take
+$M=2$.
+
+\emph{(i) The elementary part.}  $\widetilde\theta_{2}(t)-\vartheta_{0}(t)$ is an explicit
+elementary function of $t$: the imaginary part of
+$\bigl(w-\tfrac12\bigr)\log w-w+\tfrac12\log2\pi$ together with the Bernoulli terms of $S_{2}$,
+evaluated at $w=w_{t}$, minus the three terms of $\vartheta_{0}$.  Its expansion in $t^{-1}$
+begins $\tfrac1{48t}$, but the shift $\operatorname{Re}w_{t}=\tfrac14$ also contributes at order
+$t^{-1}$ (for instance $\operatorname{Im}\tfrac1{12w_{t}}=-\tfrac{t/2}{12\lvert w_{t}\rvert^{2}}$
+differs from $-\tfrac1{6t}$), so every such contribution must be collected before any
+estimate is made.  Carrying out that finite computation and bounding the finitely many
+resulting terms of order $t^{-3}$ and beyond crudely gives, for $t\ge10^{3}$,
+\[
+  \bigl\lvert\widetilde\theta_{2}(t)-\vartheta_{0}(t)\bigr\rvert\;\le\;\frac1{45\,t}.
+\]
+The slack is generous: the true value is $\tfrac1{48t}\bigl(1+O(t^{-2})\bigr)$, and
+$\tfrac1{45}-\tfrac1{48}=\tfrac1{720}$ dominates every discarded term by many orders of
+magnitude once $t\ge10^{3}$.
+
+\emph{(ii) The remainder.}  Recall from \Cref{cha:gamma_stirling} that
+$\rho_{M}(w)=\int_{0}^{\infty}R^{\psi}_{2M+1}(w+\tau)\,d\tau$ with
+$\lVert R^{\psi}_{p}(z)\rVert\le p!\,(2\pi)^{-(p-1)}\lVert z\rVert^{-p}$, and that
+\texttt{norm\_logGammaRemainderIoi\_le} majorises $\lVert w+\tau\rVert$ from below by
+$\operatorname{Re}w+\tau$.  That real-part majorant is useless here: $\operatorname{Re}w_{t}$
+is pinned at $\tfrac14$, so the resulting bound does not decay in $t$ at all.  Use the
+two elementary lower bounds
+\[
+  \lVert w+\tau\rVert\ge\lVert w\rVert,\qquad
+  \lVert w+\tau\rVert\ge\operatorname{Re}w+\tau\ge\tau
+  \qquad(\operatorname{Re}w>0,\ \tau>0),
+\]
+whose sum gives $\lVert w+\tau\rVert\ge\tfrac12(\lVert w\rVert+\tau)$ and hence, with
+$p=2M+1$,
+\[
+  \lVert\rho_{M}(w)\rVert\le\frac{p!\,2^{p}}{(2\pi)^{p-1}}
+    \int_{0}^{\infty}(\lVert w\rVert+\tau)^{-p}\,d\tau
+  =\frac{(2M+1)!\;2^{2M+1}}{2M\,(2\pi)^{2M}}\,\lVert w\rVert^{-2M}.
+\]
+The factor $2^{2M+1}$ is the price of the crude midpoint bound, and cannot simply be dropped:
+at $w=is$ one has $\int_{0}^{\infty}\lVert w+\tau\rVert^{-5}d\tau=\tfrac23 s^{-4}$, already
+larger than the $\tfrac14 s^{-4}$ that the sharp-looking constant $5!/(4(2\pi)^{4})$ would
+require.  At $M=2$,
+\[
+  \bigl\lvert\operatorname{Im}R_{2}(w_{t})\bigr\rvert\le\lVert R_{2}(w_{t})\rVert
+   \le\frac{5!\cdot2^{5}}{4(2\pi)^{4}}\,\lVert w_{t}\rVert^{-4}
+   =\frac{960}{(2\pi)^{4}}\,\lVert w_{t}\rVert^{-4},
+\]
+and since $\lVert w_{t}\rVert\ge t/2$ and $(2\pi)^{4}\ge6^{4}=1296$,
+\[
+  \bigl\lvert\operatorname{Im}R_{2}(w_{t})\bigr\rvert
+  \le\frac{960}{(2\pi)^{4}}\cdot\frac{16}{t^{4}}
+  =\frac{15360}{(2\pi)^{4}\,t^{4}}\le\frac{12}{t^{4}}\le\frac{1}{360\,t},
+\]
+the last step because $t\ge10^{3}$ gives $t^{3}\ge10^{9}\ge12\cdot360$.
+
+\emph{Total.}  Adding (i) and (ii),
+$\tfrac1{45t}+\tfrac1{360t}=\tfrac{8}{360t}+\tfrac1{360t}=\tfrac{9}{360t}=\tfrac1{40t}$.
+
+The threshold $t\ge10^{3}$ makes step (i) a crude verification;
+\Cref{lem:rsf_theta_sharp} removes it.  The remainder bound used in (ii) is the
+$\lVert\cdot\rVert^{-2M}$ form of
+\texttt{norm\_logGammaRemainderIoi\_le}, namely
+\texttt{norm\_logGammaRemainderIoi\_le'}.  The wrapper
+\texttt{riemannSiegelThetaStirlingErrorBound} records the weaker
+$\bigl(\tfrac14+N\bigr)^{-2M}$ form, which uses only the real part of the argument and is
+therefore bounded in $t$.
+\end{proof}
+
+\begin{lemma}[Leading term of the Stirling phase error]
+\label{lem:rsf_theta_sharp}
+\lean{Zeta.RiemannSiegel.abs_riemannSiegelTheta_sub_leading_sub_inv_le,
+Zeta.RiemannSiegel.abs_riemannSiegelTheta_sub_leading_le'}
+\leanok
+\uses{lem:rsf_theta, thm:hz_loggamma_em, thm:hz_loggamma_bound}
+For every $t>0$,
+\[
+  \Bigl\lvert\theta(t)-\vartheta_{0}(t)-\frac1{48\,t}\Bigr\rvert
+  \;\le\;\frac{319}{2880\,t^{3}}+\frac{12}{t^{4}} ,
+\]
+and consequently $\lvert\theta(t)-\vartheta_{0}(t)\rvert\le\tfrac{101}{4800\,t}
+=\tfrac{1.01}{48\,t}$ for $t\ge32\pi$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:rsf_theta, thm:hz_loggamma_em, thm:hz_loggamma_bound}
+This is the proof of \Cref{lem:rsf_theta} with its two final weakenings undone, and with the
+threshold $t\ge10^{3}$ (which that proof used only to make its last two steps crude) removed
+along with them.  In step~(i) there, the four centred errors of the $M=2$ Stirling polynomial at
+$w_{t}=\tfrac14+\tfrac{it}2$ are bounded by
+$\tfrac1{64t^{3}}+\tfrac1{32t^{3}}+\tfrac1{24t^{3}}+\tfrac1{45t^{3}}=\tfrac{319}{2880t^{3}}$
+around the exact leading value $\tfrac1{16t}+\tfrac1{8t}-\tfrac1{6t}=\tfrac1{48t}$, and only
+afterwards is the whole of step~(i) weakened to $\tfrac1{45t}$; in step~(ii) the remainder is
+bounded by $\tfrac{320}{27}t^{-4}\le12t^{-4}$ before that is weakened to $\tfrac1{360t}$.  Both
+weakenings must be undone, the second especially: $1/(360t)$ is of the same order as the term
+$1/(48t)$ being isolated, so the form quoted in \Cref{lem:rsf_theta} cannot pin the coefficient of
+$T^{-1}$ at all.
+
+Each of the four centred estimates and the remainder bound holds for \emph{every} $t>0$, and none
+of them needs a threshold: the two logarithmic and arctangent estimates rest on
+$x-x^{2}\le\log(1+x)\le x$ and $y-y^{3}\le\arctan y\le y$ for $x,y\ge0$, the first Bernoulli term
+is exact ($24t^{3}\le96t\lvert w_{t}\rvert^{2}$ reduces to $0\le6t$), the second is
+$\tfrac1{360}\lvert w_{t}\rvert^{-3}\le\tfrac1{360}(t/2)^{-3}$, and the remainder is the
+$\lVert\cdot\rVert^{-4}$ bound of step~(ii) above.  The consequence at $t\ge32\pi$ needs
+$\tfrac{319}{2880t^{2}}+\tfrac{12}{t^{3}}\le\tfrac1{4800}$, which holds from $t\ge50$ onwards; at
+$t=32\pi$ the left-hand side is $2.3\cdot10^{-5}$ against $2.1\cdot10^{-4}$.
+\Cref{cor:rsf_formula_sharp} requires the threshold $t\ge32\pi$, which is the reason this lemma
+is stated for all $t>0$.
+\end{proof}
+
+\begin{remark}[What has been gained]
+\label{rem:rsf_gain}
+\uses{cor:rsf_formula_sharp, cor:rsf_formula_drop, cor:rsz_bound}
+\Cref{cor:rsz_bound} gives $190\,T^{-1/4}$ from $\lfloor\sqrt T\rfloor$ terms;
+\Cref{cor:rsf_formula_sharp} gives $\tfrac{25}4T^{-5/4}$ from the same $\lfloor\sqrt T\rfloor$
+terms plus two explicit closed-form corrections.  The gain is a factor $\asymp30\,T$: at
+$T=10^{6}$ the error drops from $6.0$ to $2.0\cdot10^{-7}$, and the latter is what makes
+certification of individual zeros feasible, since the typical size of $Z$ near a Gram point is
+$O(1)$.  With $C_{1}$ dropped, \Cref{cor:rsf_formula_drop} still gives $4.1\cdot10^{-5}$ there.
+Note that both the removal of the factor $e^{B^{2}/4\pi}\le37.12$ of
+\Cref{rem:rs_constant} and the \emph{first} $T^{-1/2}$ of the gain come from the same source:
+\Cref{lem:rsf_factor} keeps the oscillation of the integrand exactly, and only the
+\emph{discrepancy from the Gaussian model} is estimated by moduli; the second $T^{-1/2}$ is the
+retained $C_{1}$.
+\end{remark}
+
+\begin{remark}[What comes next]
+\label{rem:rsf_next}
+\uses{cor:rsf_formula_sharp}
+The general-order formula replaces the single Gaussian model of \Cref{lem:rsf_factor} by its
+Taylor expansion to order $K$ in $u=y/\sqrt T$, producing correction terms
+$T^{-(2k+1)/4}C_{k}(p)$ for $k\le K$ and a remainder $O\bigl(T^{-(2K+1)/4}\bigr)$;
+$C_{0}=\Psi$.  Two features of this chapter are what make that induction available.  First,
+\Cref{lem:rsf_discrepancy_bound} already exhibits $\Delta$ as an explicit convergent series in
+$u$ whose $k$-th term carries $T^{1-k/2}$, so the higher $C_{k}$ are obtained by expanding
+$e^{\Delta}$, with no new contour work.  Secondly, every $C_{k}$ is a contour integral
+against the \emph{same} kernel $1/(e^{i\pi v}-e^{-i\pi v})$ and a polynomial times the same
+Gaussian, so \Cref{lem:rsf_half_shift} and \Cref{lem:rsf_unit_shift} (both statements about
+that kernel alone) generalise directly and evaluate the $C_{k}$ in closed form algebraically.  See \cite{Gabcke} and \cite{AriasDeReyna2011} for the
+explicit constants to target.
+\end{remark}

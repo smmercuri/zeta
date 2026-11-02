@@ -1,0 +1,1492 @@
+% Blueprint: Lehman's bound for the integral of S(T)
+%
+%   | ∫_{t1}^{t2} S(t) dt | ≤ A + B log t2,    for t2 > t1 > 168 π,
+%
+% where π S(t) = arg ζ(½+it) is the function `argZeta` of
+% `n_formula.tex` (\Cref{def:nf_S}). This is the analytic engine of Turing's
+% method for certifying the zero count N(T): a pointwise bound |S(g_m)| < 1 at a
+% Gram point g_m is extracted from this integral bound, forcing the integer
+% N(g_m) to its expected value and hence certifying RH up to height g_m.
+%
+% The inequality (\Cref{thm:lb_main}) is reduced, via Littlewood's lemma, to upper
+% and lower bounds on the auxiliary integral I(t) = ∫_{½}^{∞} log|ζ(σ+it)| dσ. The
+% upper bound uses a Dirichlet-truncation strip bound for ζ; the lower bound uses
+% the Hadamard/partial-fraction expansion of ζ'/ζ and a zero-pairing estimate with
+% the separable constant c = 5/2.
+%
+% References: Titchmarsh, *The theory of the Riemann zeta-function* (2nd ed.),
+% §9.9 \cite{TitchmarshZeta}; Lehman, *On the distribution of zeros of the Riemann
+% zeta-function* \cite{Lehman1970}; Trudgian, *Improvements to Turing's method*
+% \cite{TrudgianTuring}.
+
+\chapter{Lehman's bound for the integral of \texorpdfstring{$S(T)$}{S(T)}}
+\label{cha:lehman_bound}
+
+The function $S(t) = \tfrac1\pi\arg\zeta(\tfrac12+it)$ (the
+\texttt{argZeta} of \Cref{cha:n_formula}, \Cref{def:nf_S})
+oscillates and is only $O(\log t)$ in size pointwise. Its \emph{integral},
+however, exhibits strong cancellation and is bounded essentially by a single
+logarithm. The goal of this chapter is the explicit such bound, due to Lehman
+\cite{Lehman1970} and sharpened by Trudgian \cite{TrudgianTuring}:
+\[
+  \left|\int_{t_1}^{t_2} S(t)\,dt\right| \;\le\; A + B\log t_2,
+  \qquad t_2 > t_1 > 168\pi .
+\]
+
+This is the analytic heart of \emph{Turing's method}. Given a good Gram point
+$g_m \ge 168\pi$, write $N(g_m) = m+1+S(g_m)$ (\Cref{thm:N_formula}); the value
+$S(g_m)$ is an integer. Applying the bound above over a forward window
+$[g_m,g_{m+k}]$, together with the exact identity
+$S(t) = S(g_m) - \tfrac1\pi(\theta(t)-\theta(g_m)) + \nu(t)$ (with $\nu$ the
+zero-count in $(g_m,t]$, a rearrangement of \Cref{thm:N_formula}), forces
+$S(g_m) < 1$; combined with $S(g_m)\ge 0$ from the located zeros below $g_m$ this
+pins $N(g_m)$ to its expected value and certifies that every zero of $\zeta$ up
+to height $g_m$ is simple and on the critical line. The bridge lemma packaging
+this deduction is a separate downstream chapter; the present chapter supplies
+its analytic input.
+
+\section{Statement}
+\label{sec:lb_statement}
+
+\begin{theorem}[Lehman's bound]
+\label{thm:lb_main}
+\lean{norm_integral_argZeta_le}
+\leanok
+\uses{def:nf_S, lem:lb_littlewood, lem:lb_I_upper, lem:lb_I_lower}
+For all reals $t_1,t_2$ with $168\pi < t_1 < t_2$,
+\[
+  \left|\int_{t_1}^{t_2} S(t)\,dt\right| \;\le\; A + B\log\frac{t_2}{2\pi},
+  \qquad (A,B) = (2.30,\,0.128) .
+\]
+These are Lehman's original constants \cite{Lehman1970}; Trudgian
+\cite{TrudgianTuring} later sharpened them to $(2.067,\,0.059)$ (with $\log t_2$
+in place of $\log(t_2/2\pi)$) by optimising the strip parameters and using
+Booker's refinement. We target Lehman's constants, which are weaker and so
+require neither the parameter optimisation nor Booker's refinement.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_littlewood, lem:lb_I_upper, lem:lb_I_lower}
+See \Cref{sec:lb_proof} for the exposition; formalised as
+\lean{norm_integral_argZeta_le}.
+\end{proof}
+
+The normalisation $\log(t_2/2\pi)$ versus $\log t_2$ shifts only the additive
+constant ($B\log 2\pi\approx0.235$ when $B=0.128$); the literature uses both. The
+proof runs as follows:
+\begin{enumerate}
+  \item reduce $\pi\int_{t_1}^{t_2}S$ to a difference $I(t_2)-I(t_1)$ of a real
+        line integral of $\log|\zeta|$ (Littlewood's lemma, \Cref{lem:lb_littlewood});
+  \item bound $I(t)$ from above by $a_1 + b_1\log t$ (\Cref{lem:lb_I_upper});
+  \item bound $I(t)$ from below by $-(a_2 + b_2\log t)$ (\Cref{lem:lb_I_lower});
+  \item combine, with $A = (a_1+a_2)/\pi$ and $B=(b_1+b_2)/\pi$.
+\end{enumerate}
+
+\section{The auxiliary integral and Littlewood's reduction}
+\label{sec:lb_littlewood}
+
+Fix $t>0$ \emph{not} an ordinate of a zero of $\zeta$. Then $\zeta(\sigma+it)\neq0$
+for every $\sigma\ge\tfrac12$ (a zero on this ray would have imaginary part $t$),
+so $\log|\zeta(\sigma+it)|$ is finite and continuous in $\sigma$ on $[\tfrac12,\infty)$.
+
+\begin{definition}[The log-modulus line integral]
+\label{def:lb_I}
+\lean{logNormZetaIntegral}
+\leanok
+\uses{def:nf_S}
+For $t\in\mathbb{R}$ not an ordinate of a zero of $\zeta$, set
+\[
+  I(t) \;:=\; \int_{1/2}^{\infty}\log\bigl|\zeta(\sigma+it)\bigr|\,d\sigma
+  \;=\; \operatorname{Re}\int_{1/2+it}^{\infty+it}\log\zeta(s)\,ds .
+\]
+\end{definition}
+
+\begin{lemma}[Convergence of $I$]
+\label{lem:lb_I_integrable}
+\lean{integrableOn_log_norm_riemannZeta_Ioi}
+\leanok
+\uses{def:lb_I}
+For $t$ not an ordinate, $\sigma\mapsto\log|\zeta(\sigma+it)|$ is integrable on
+$[\tfrac12,\infty)$, so $I(t)$ is well defined and finite.
+\end{lemma}
+
+\begin{proof}
+\leanok
+The integrand is continuous on the closed ray (no zeros there, as noted above),
+so it is integrable on any bounded subinterval. For the tail, the Dirichlet
+series gives $\zeta(\sigma+it) = 1 + O(2^{-\sigma})$ uniformly in $t$ as
+$\sigma\to+\infty$, whence $\log|\zeta(\sigma+it)| = O(2^{-\sigma})$, which is
+integrable on $[2,\infty)$. (In mathlib, $\zeta(s)\to1$ as $\operatorname{Re}s\to\infty$
+with the geometric tail estimate coming from the Euler product / Dirichlet
+series remainder.)
+\end{proof}
+
+\begin{lemma}[Vanishing of the argument at $+\infty$]
+\label{lem:lb_arg_tendsto}
+\lean{tendsto_arg_riemannZeta_atTop}
+\leanok
+\uses{def:nf_S}
+For fixed $t$, $\arg\zeta(\sigma+it)\to 0$ as $\sigma\to+\infty$, where $\arg$ is
+the continuous branch along the horizontal ray anchored at the limit value
+$\zeta(+\infty+it)=1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Since $\zeta(\sigma+it)\to1$ as $\sigma\to+\infty$ and $1\in\mathbb{C}\setminus(-\infty,0]$
+lies in the slit plane, $\zeta(\sigma+it)$ enters and stays in the slit plane for
+$\sigma$ large; there the principal argument is continuous and tends to
+$\arg(1)=0$.
+\end{proof}
+
+\subsection*{The route to Littlewood's reduction}
+\label{ssec:lb_littlewood_design}
+
+The classical proof of \Cref{lem:lb_littlewood} (Titchmarsh \cite{TitchmarshZeta}, §9.9)
+runs through contour integration of $\log\zeta$ over a rectangle and the
+accounting of zeros via the argument principle. The proof here uses the two halves of the
+logarithmic-derivative integral formula and two facts about rectangles:
+\begin{itemize}
+  \item \texttt{argVariation\_eq\_im\_integral} (\Cref{lem:av_integral}): for a $C^1$
+        nonvanishing $\varphi=f\circ\gamma$ on $[a,b]$,
+        $\Delta_\gamma\arg f=\operatorname{Im}\int_a^b \varphi'/\varphi$;
+  \item \texttt{re\_integral\_div\_eq\_log\_norm\_sub}
+        (\Cref{cha:argument_principle}): the \emph{real} part of the same integral
+        telescopes, $\operatorname{Re}\int_a^b\varphi'/\varphi
+        =\log\lVert\varphi(b)\rVert-\log\lVert\varphi(a)\rVert$;
+  \item \texttt{finite\_rectangle\_inter\_setOf\_eq\_zero}
+        (\Cref{lem:ap_finite_zeros}): the zeros of $\zeta$ in a closed rectangle
+        are finite;
+  \item \texttt{rectangleArgVariation\_eq\_zero\_of\_analyticOnNhd}: the boundary
+        argument variation of a nowhere-zero analytic function vanishes.
+\end{itemize}
+Writing $G:=\zeta'/\zeta=\operatorname{logDeriv}\zeta$ (\texttt{logDeriv}), the proof
+is: differentiate $\log|\zeta|$ in the $t$-direction along vertical segments
+(telescoping, the real part), swap the order of the resulting double integral by
+Fubini, recognise the inner $\sigma$-integral as a horizontal argument variation
+(the imaginary part), and identify its $X\to\infty$ limit with $-\pi S(t)$ using
+the rectangle argument-variation vanishing over the zero-free half-plane
+$\operatorname{Re}s>1$. We isolate the steps as \Cref{lem:lb_logNorm_diff}, \Cref{lem:lb_horiz_argVar}, \Cref{lem:lb_logDeriv_integrable}, \Cref{lem:lb_argVar_vertical} and \Cref{lem:lb_horiz_argVar_limit}.
+
+\begin{lemma}[Finiteness of ordinates and abscissae in a window]
+\label{lem:lb_finite_ordinates}
+\lean{finite_riemannZeta_zeros_rectangle}
+\leanok
+\uses{lem:ap_finite_zeros}
+Fix reals $\tfrac12\le X$ and $t_1<t_2$. The set
+$Z:=\{\rho:\zeta(\rho)=0\}\cap([\tfrac12,X]\times[t_1,t_2])$ of zeros of $\zeta$ in
+the closed rectangle is finite; consequently both the set of \emph{abscissae}
+$\{\operatorname{Re}\rho:\rho\in Z\}\subset[\tfrac12,X]$ and the set of
+\emph{ordinates} $\{\operatorname{Im}\rho:\rho\in Z\}\subset[t_1,t_2]$ are finite.
+In particular, for all but finitely many $\sigma\in[\tfrac12,X]$ the column
+$\{\sigma+it:t\in[t_1,t_2]\}$ is zero-free, and for all but finitely many
+$t\in[t_1,t_2]$ the row $\{\sigma+it:\sigma\in[\tfrac12,X]\}$ is zero-free.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ap_finite_zeros}
+Finiteness of $Z$ is \texttt{finite\_rectangle\_inter\_setOf\_eq\_zero}
+(\Cref{lem:ap_finite_zeros}) applied to $f=\zeta$, which is analytic on a
+neighbourhood of any bounded rectangle (the pole at $s=1$ is excluded once
+$t_1>0$). The abscissa and ordinate sets are the images of the finite set $Z$
+under $\operatorname{Re},\operatorname{Im}$, hence finite. A $\sigma$ whose column
+meets a zero has $\sigma=\operatorname{Re}\rho$ for some $\rho\in Z$; there are
+finitely many such $\sigma$, and symmetrically for rows.
+\end{proof}
+
+\begin{lemma}[Telescoping of $\log|\zeta|$ along a vertical segment]
+\label{lem:lb_logNorm_diff}
+\lean{log_norm_riemannZeta_sub_eq_neg_im_integral}
+\leanok
+\uses{lem:lb_finite_ordinates}
+Let $\sigma\ge\tfrac12$ be such that the column $\{\sigma+it:t\in[t_1,t_2]\}$ is
+zero-free (i.e.\ $\sigma$ is not an abscissa of a zero). Then $G(\sigma+i\,\cdot)$
+is continuous on $[t_1,t_2]$ and
+\[
+  \log\bigl|\zeta(\sigma+it_2)\bigr|-\log\bigl|\zeta(\sigma+it_1)\bigr|
+  \;=\; -\operatorname{Im}\!\int_{t_1}^{t_2} G(\sigma+it)\,dt ,
+  \qquad G=\zeta'/\zeta .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_integral}
+Apply \texttt{re\_integral\_div\_eq\_log\_norm\_sub} (the real-part half of
+\Cref{lem:av_integral}) to $\varphi(t):=\zeta(\sigma+it)$ on $[t_1,t_2]$, which is
+continuous and nowhere zero by hypothesis. Its derivative is
+$\varphi'(t)=i\,\zeta'(\sigma+it)$ (chain rule, $\zeta$ holomorphic), so
+$\varphi'(t)/\varphi(t)=i\,G(\sigma+it)$, and
+\[
+  \log|\varphi(t_2)|-\log|\varphi(t_1)|
+  =\operatorname{Re}\!\int_{t_1}^{t_2} i\,G(\sigma+it)\,dt
+  =\operatorname{Re}\Bigl(i\!\int_{t_1}^{t_2}\!G(\sigma+it)\,dt\Bigr)
+  =-\operatorname{Im}\!\int_{t_1}^{t_2}\!G(\sigma+it)\,dt . \qedhere
+\]
+\end{proof}
+
+\begin{lemma}[Horizontal argument variation as an $\operatorname{Im}$-integral]
+\label{lem:lb_horiz_argVar}
+\lean{argVariation_riemannZeta_horizontal_eq_im_integral}
+\leanok
+\uses{def:nf_argvar, lem:av_integral, lem:lb_finite_ordinates}
+Fix $X\ge\tfrac12$. Let $t$ be such that the row
+$\{\sigma+it:\sigma\in[\tfrac12,X]\}$ is zero-free
+(i.e.\ $t$ is not an ordinate), and let $H_{X,t}:[\tfrac12,X]\to\mathbb{C}$,
+$\sigma\mapsto\zeta(\sigma+it)$. Then
+\[
+  \Delta_{\,1/2\to X}\arg\zeta(\cdot+it)
+  \;:=\; \texttt{argVariation}\,\tfrac12\,X\,H_{X,t}
+  \;=\; \operatorname{Im}\!\int_{1/2}^{X} G(\sigma+it)\,d\sigma .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_integral}
+Apply \texttt{argVariation\_eq\_im\_integral} (\Cref{lem:av_integral}) to
+$\varphi(\sigma):=\zeta(\sigma+it)$ on $[\tfrac12,X]$; here
+$\varphi'(\sigma)=\zeta'(\sigma+it)$, so $\varphi'/\varphi=G(\sigma+it)$ and the
+imaginary part of the integral is the argument variation.
+\end{proof}
+
+\begin{lemma}[Planar Newtonian-kernel integrability]
+\label{lem:lb_newton_kernel}
+\lean{integrableOn_inv_norm_sub_closedBall}
+\leanok
+Fix $\rho\in\mathbb{C}$ and $r>0$. The function $s\mapsto\lVert s-\rho\rVert^{-1}$
+(equivalently $1/|s-\rho|$, with the value $0$ assigned at $s=\rho$) is integrable
+on the closed disk $\overline{B}(\rho,r)=\{s:\lVert s-\rho\rVert\le r\}$ with
+respect to two-dimensional Lebesgue (volume) measure, and
+$\int_{\overline{B}(\rho,r)}\lVert s-\rho\rVert^{-1}\,dA = 2\pi r$.
+This is a purely metric fact, independent of $\zeta$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+By translation invariance of volume (the volume on $\mathbb{C}$ is an additive
+Haar measure, \texttt{MeasureTheory.Measure.IsAddHaarMeasure}, so $s\mapsto s-\rho$
+is measure-preserving and sends $\overline{B}(\rho,r)$ to $\overline{B}(0,r)$;
+transport integrability via \texttt{MeasureTheory.measurePreserving\_sub\_left}
+and \texttt{integrableOn\_map\_equiv}) it
+suffices to treat $\rho=0$, i.e.\ to integrate $s\mapsto\lVert s\rVert^{-1}$ over
+$\overline{B}(0,r)$. Since the integrand is nonnegative and measurable
+(continuous off the single point $0$, which has measure zero), it is integrable
+iff its lower Lebesgue integral $\int^-\lVert s\rVert^{-1}\,dA$ is finite, and the
+two agree. Apply the polar-coordinate change of variables
+\texttt{Complex.lintegral\_comp\_polarCoord\_symm}: writing
+$g(s)=\mathbf 1_{\overline{B}(0,r)}(s)\,\lVert s\rVert^{-1}$ as a value in
+$[0,\infty]$,
+\[
+  \int^-_{\mathbb{C}} g
+  = \int^-_{\texttt{polarCoord.target}}
+      \operatorname{ENNReal.ofReal}(\varrho)\cdot
+      g\bigl(\texttt{polarCoord.symm}(\varrho,\theta)\bigr)\,d(\varrho,\theta),
+\]
+where $\texttt{polarCoord.target}=\{(\varrho,\theta):\varrho>0,\ \theta\in(-\pi,\pi)\}$
+and $\lVert\texttt{polarCoord.symm}(\varrho,\theta)\rVert=\varrho$
+(\texttt{Complex.norm\_polarCoord\_symm}). On the target the integrand is
+$\operatorname{ENNReal.ofReal}(\varrho)\cdot\varrho^{-1}\cdot
+\mathbf 1_{\{0<\varrho\le r\}}=\mathbf 1_{\{0<\varrho\le r\}}$ (the Jacobian
+$\varrho$ cancels the kernel $\varrho^{-1}$). Hence the integral equals
+$\int^-_{(-\pi,\pi)}\!\int^-_{(0,r]}1\,d\varrho\,d\theta=2\pi r<\infty$
+(Tonelli, \texttt{MeasureTheory.lintegral\_prod}), which is finite. Therefore
+$s\mapsto\lVert s\rVert^{-1}$ is integrable on $\overline{B}(0,r)$ with integral
+$2\pi r$, and translating back gives the claim for general $\rho$.
+\end{proof}
+
+\begin{lemma}[Integrability of $\operatorname{Im}G$ on the rectangle]
+\label{lem:lb_logDeriv_integrable}
+\lean{integrableOn_im_logDeriv_riemannZeta_rectangle}
+\leanok
+\uses{lem:nf_logderiv_residue, lem:lb_newton_kernel}
+Fix $X\ge\tfrac12$ and $t_1<t_2$ with $t_1>0$. The function
+$(\sigma,t)\mapsto\operatorname{Im}G(\sigma+it)$ is integrable on the rectangle
+$R:=[\tfrac12,X]\times[t_1,t_2]$ (two-dimensional Lebesgue measure), where
+$G=\zeta'/\zeta$. Indeed $G$ itself, hence $|G|$, is integrable on $R$.
+
+\emph{Formalisation note.} In Lean the statement is phrased on the complex
+rectangle in the open upper half-plane: \texttt{integrableOn\_logDeriv\_riemannZeta\_rectangle}
+proves $G=\operatorname{logDeriv}\zeta$ is integrable on $\texttt{Rectangle}\,z\,w$ whenever
+$0<z.\mathrm{im}$ and $0<w.\mathrm{im}$, and the named
+\texttt{integrableOn\_im\_logDeriv\_riemannZeta\_rectangle} is its imaginary part. The Lean
+proof shows that $G$ is locally integrable at every point of $R$, and a locally integrable
+function on a compact set is integrable
+(\texttt{MeasureTheory.LocallyIntegrableOn.integrableOn\_isCompact}).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:nf_logderiv_residue, lem:lb_newton_kernel}
+The Lean proof checks local integrability pointwise: away from the zeros $G$ is continuous, and at
+a zero $\rho$ the residue decomposition $G=m_\rho/(s-\rho)+h_\rho$
+(\Cref{lem:nf_logderiv_residue}, $h_\rho$ analytic) has its principal part integrable on a small
+disk by \Cref{lem:lb_newton_kernel} and its remainder integrable by continuity; the two agree with
+$G$ off the single point $\rho$, a null set. The same conclusion follows from a finite cover,
+as follows.
+Since $t_1>0$, $\zeta$ is analytic on a neighbourhood of the compact rectangle
+$R$ (the only pole $s=1$ is excluded), and by \Cref{lem:lb_finite_ordinates} the
+zero set $Z=\{\rho\in R:\zeta(\rho)=0\}$ is finite. We bound $\lvert G\rvert$ by an
+integrable function on $R$.
+
+\emph{Local bound near each zero.} Fix $\rho\in Z$ of order
+$m_\rho=\operatorname{ord}_\rho\zeta\ge1$. By \Cref{lem:nf_logderiv_residue},
+$G(s)=m_\rho/(s-\rho)+h_\rho(s)$ with $h_\rho$ holomorphic, hence continuous and so
+bounded by some $M_\rho$, on a closed disk $\overline{B}(\rho,r_\rho)$ chosen small
+enough to contain no other zero. Thus on that disk
+\[
+  \lvert G(s)\rvert\;\le\; m_\rho\,\lVert s-\rho\rVert^{-1}+M_\rho .
+\]
+The right-hand side is integrable on $R\cap\overline{B}(\rho,r_\rho)$: the constant
+$M_\rho$ because $R$ has finite measure, and $m_\rho\lVert s-\rho\rVert^{-1}$ by
+\Cref{lem:lb_newton_kernel} (restricting the disk integrand to a subset preserves
+integrability, \texttt{IntegrableOn.mono\_set}).
+
+\emph{Bound away from the zeros.} On the compact complement
+$K:=R\setminus\bigcup_{\rho\in Z}B(\rho,r_\rho)$, $G$ is continuous (no zeros, no
+pole), hence bounded by some $M_0$; and $M_0$ is integrable on $K\subseteq R$ since
+$R$ has finite measure.
+
+\emph{Assembly.} The finite cover $R=K\cup\bigcup_{\rho\in Z}\bigl(R\cap
+\overline{B}(\rho,r_\rho)\bigr)$ expresses $R$ as a finite union of measurable sets
+on each of which $\lvert G\rvert$ is dominated by an integrable function; therefore
+$\lvert G\rvert$ is integrable on $R$
+(\texttt{MeasureTheory.IntegrableOn.union}, finitely iterated, together with
+\texttt{Integrable.mono'} using the measurability of $G$ off the measure-zero set
+$Z$). Consequently $G$ is integrable on $R$, and a fortiori its imaginary part
+$\operatorname{Im}G$ is.
+\end{proof}
+
+\begin{lemma}[Vanishing of the vertical argument variation at $+\infty$]
+\label{lem:lb_argVar_vertical}
+\lean{tendsto_argVariation_riemannZeta_vertical_atTop}
+\leanok
+\uses{lem:lb_arg_tendsto}
+For fixed $t>0$, let $V_X:[0,t]\to\mathbb{C}$, $\tau\mapsto\zeta(X+i\tau)$, the
+parametrisation of the vertical segment $X\to X+it$. Then
+\[
+  \texttt{argVariation}\,0\,t\,V_X \;\xrightarrow[X\to\infty]{}\; 0 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_arg_tendsto}
+For $X>1$ the segment lies in $\operatorname{Re}s>1$, where the Dirichlet series
+gives $|\zeta(X+i\tau)-1|\le\sum_{n\ge2}n^{-X}=O(2^{-X})\to0$ uniformly in
+$\tau\in[0,t]$. Hence for $X$ large $V_X$ takes values in any prescribed
+neighbourhood of $1$ inside the slit plane $\mathbb{C}\setminus(-\infty,0]$, where
+$\arg$ is continuous; by \texttt{argVariation\_eq\_arg\_sub\_arg}
+(\Cref{lem:av_slitPlane}),
+$\texttt{argVariation}\,0\,t\,V_X=\arg\zeta(X+it)-\arg\zeta(X)$, and both arguments
+tend to $\arg(1)=0$ as $X\to\infty$ (\Cref{lem:lb_arg_tendsto} for the upper
+endpoint; $\zeta(X)\to1$ real-positively for the lower).
+\end{proof}
+
+\begin{lemma}[Integrable domination of the horizontal argument variation]
+\label{lem:lb_horiz_argVar_bdd}
+\lean{abs_argVariation_riemannZeta_horizontal_le}
+\leanok
+Fix $t_1<t_2$ with $t_1>0$. Set
+\[
+  g(t)\;:=\;2\arcsin\!\bigl(\tfrac{\pi^2}{6}-1\bigr)
+            \;+\;\int_{1/2}^{2}\lvert G(\sigma+it)\rvert\,d\sigma,
+  \qquad G=\zeta'/\zeta .
+\]
+Then $g$ is integrable on $[t_1,t_2]$, and for every $X\ge2$ and a.e.\ $t\in[t_1,t_2]$
+(all non-ordinates),
+\[
+  \bigl|\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}\bigr| \;\le\; g(t),
+  \qquad H_{X,t}(\sigma)=\zeta(\sigma+it).
+\]
+Thus the family $\{t\mapsto\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}\}_{X\ge2}$
+is dominated by the single integrable function $g$, the hypothesis required by
+dominated convergence in \Cref{lem:lb_littlewood}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_horiz_argVar, lem:av_slitPlane, lem:nf_argvar_props,
+      lem:lb_logDeriv_integrable, lem:lb_newton_kernel}
+Fix a non-ordinate $t$ and $X\ge2$. Split at $\sigma=2$ by additivity
+(\Cref{lem:nf_argvar_props}):
+$\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}
+=\texttt{argVariation}\,\tfrac12\,2\,H_{X,t}+\texttt{argVariation}\,2\,X\,H_{X,t}$.
+
+\emph{Tail $\sigma\in[2,X]$ (uniformly bounded).} The path lies in
+$\operatorname{Re}s\ge2$, where $|\zeta(\sigma+it)-1|\le\sum_{n\ge2}n^{-2}
+=\tfrac{\pi^2}{6}-1<1$, so $\zeta(\sigma+it)$ stays in the slit plane and
+\Cref{lem:av_slitPlane} gives
+$\texttt{argVariation}\,2\,X\,H_{X,t}=\arg\zeta(X+it)-\arg\zeta(2+it)$. For $w$ with
+$|w-1|\le\delta<1$ one has $|\arg w|\le\arcsin\delta$, so each term is at most
+$\arcsin(\tfrac{\pi^2}{6}-1)$ and
+$\bigl|\texttt{argVariation}\,2\,X\,H_{X,t}\bigr|\le 2\arcsin(\tfrac{\pi^2}{6}-1)$,
+uniformly in $X\ge2$ and $t$.
+
+\emph{Head $\sigma\in[\tfrac12,2]$ (integrably dominated, $X$-independent).} The
+head does not depend on $X$, and \Cref{lem:lb_horiz_argVar} with the choice $X=2$
+identifies it with an $\operatorname{Im}$-integral:
+$\texttt{argVariation}\,\tfrac12\,2\,H_{X,t}
+=\operatorname{Im}\!\int_{1/2}^{2}G(\sigma+it)\,d\sigma$, whence
+\[
+  \bigl|\texttt{argVariation}\,\tfrac12\,2\,H_{X,t}\bigr|
+  \le \Bigl|\int_{1/2}^{2}G(\sigma+it)\,d\sigma\Bigr|
+  \le \int_{1/2}^{2}\lvert G(\sigma+it)\rvert\,d\sigma .
+\]
+Adding the two bounds gives $|\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}|\le g(t)$.
+
+\emph{Integrability of $g$.} The constant summand is integrable on the bounded
+interval. For the second summand, \Cref{lem:lb_logDeriv_integrable} (with $X=2$)
+gives that $(\sigma,t)\mapsto G(\sigma+it)$ is integrable on
+$[\tfrac12,2]\times[t_1,t_2]$ (itself a consequence of the Newtonian-kernel bound
+\Cref{lem:lb_newton_kernel}), so by Tonelli/Fubini for the nonnegative integrand
+$|G|$ (\texttt{MeasureTheory.Integrable.integral\_norm\_prod\_left} or
+\texttt{integrable\_prod\_iff}) the partial integral
+$t\mapsto\int_{1/2}^{2}\lvert G(\sigma+it)\rvert\,d\sigma$ is finite for a.e.\ $t$
+and integrable on $[t_1,t_2]$. Hence $g\in L^1[t_1,t_2]$.
+\end{proof}
+
+\begin{remark}
+A \emph{uniform constant} bound on $\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}$
+over $t\in[t_1,t_2]$ is in fact false: as $t$ approaches an ordinate the head
+variation $\texttt{argVariation}\,\tfrac12\,2\,H_{X,t}$ is unbounded (the path
+passes arbitrarily close to a zero). Dominated convergence, however, only needs an
+\emph{integrable} dominating function, and the head is dominated by the integrable
+$t\mapsto\int_{1/2}^{2}\lvert G(\sigma+it)\rvert\,d\sigma$.
+\end{remark}
+
+\begin{lemma}[Limit of the horizontal argument variation]
+\label{lem:lb_horiz_argVar_limit}
+\lean{tendsto_argVariation_riemannZeta_horizontal_atTop}
+\leanok
+\uses{def:nf_S, lem:lb_argVar_vertical, lem:nf_argvar_props, lem:nf_rect_argvar_holo_zero}
+Let $t>0$ not be an ordinate of a zero of $\zeta$. With $H_{X,t}$ as in
+\Cref{lem:lb_horiz_argVar},
+\[
+  \texttt{argVariation}\,\tfrac12\,X\,H_{X,t}
+  \;\xrightarrow[X\to\infty]{}\; -\,\pi\,S(t)
+  \;=\; -\,\pi\,\texttt{argZeta}(t).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_argVar_vertical, lem:nf_argvar_props, lem:nf_rect_argvar_holo_zero}
+By reversal (\Cref{lem:nf_argvar_props}) it suffices to show that the variation of
+$\arg\zeta$ along the \emph{reverse} horizontal segment $X+it\to\tfrac12+it$ tends
+to $+\pi S(t)$. Split that segment at $\sigma=2$:
+$X+it\to2+it\to\tfrac12+it$. The right piece $2+it\to\tfrac12+it$ is exactly the
+horizontal leg of the contour $L_t$ defining $S$ (\Cref{def:nf_S}); the vertical
+leg $2\to2+it$ of $L_t$ is the remaining contribution, so
+\[
+  \pi S(t)=\Delta_{L_t}\arg\zeta
+  =\underbrace{\Delta_{2\to2+it}\arg\zeta}_{\text{vertical leg}}
+  +\Delta_{2+it\to\tfrac12+it}\arg\zeta .
+\]
+Now apply \texttt{rectangleArgVariation\_eq\_zero\_of\_analyticOnNhd} to $\zeta$ on
+the rectangle with corners $2$ and $X+it$, which lies in $\operatorname{Re}s\ge2$
+where $\zeta$ is analytic and \emph{nowhere zero}: its four counterclockwise edge
+variations sum to $0$. The bottom edge $2\to X$ lies on the real axis where
+$\zeta>0$, contributing $0$; hence
+\[
+  \underbrace{\Delta_{X\to X+it}\arg\zeta}_{\text{right edge}}
+  +\underbrace{\Delta_{X+it\to2+it}\arg\zeta}_{\text{top edge}}
+  +\underbrace{\Delta_{2+it\to2}\arg\zeta}_{\text{left edge}}=0 ,
+\]
+so $\Delta_{X+it\to2+it}\arg\zeta
+=\Delta_{2\to2+it}\arg\zeta-\Delta_{X\to X+it}\arg\zeta$ (using
+$\Delta_{2+it\to2}=-\Delta_{2\to2+it}$, \Cref{lem:nf_argvar_props}). By
+\Cref{lem:lb_argVar_vertical} the right-edge term $\Delta_{X\to X+it}\arg\zeta\to0$
+as $X\to\infty$. Therefore
+\[
+  \Delta_{X+it\to\tfrac12+it}\arg\zeta
+  =\Delta_{X+it\to2+it}\arg\zeta+\Delta_{2+it\to\tfrac12+it}\arg\zeta
+  \xrightarrow[X\to\infty]{}
+  \Delta_{2\to2+it}\arg\zeta+\Delta_{2+it\to\tfrac12+it}\arg\zeta=\pi S(t).
+\]
+Reversing orientation flips the sign, giving the claim. The
+backtracking sub-segment $[\tfrac12,2]$ does \emph{not} appear: it is the
+zero-free half-plane $\operatorname{Re}s>1$ that is used.
+\end{proof}
+
+\begin{lemma}[Littlewood's reduction]
+\label{lem:lb_littlewood}
+\lean{pi_mul_integral_argZeta_eq_sub}
+\leanok
+\uses{def:lb_I, def:nf_S, lem:lb_I_integrable, lem:lb_finite_ordinates,
+      lem:lb_logNorm_diff, lem:lb_horiz_argVar, lem:lb_logDeriv_integrable,
+      lem:lb_horiz_argVar_bdd, lem:lb_horiz_argVar_limit}
+Let $t_1<t_2$ be reals with $t_1>0$, neither an ordinate of a zero of $\zeta$.
+Then
+\[
+  \pi\int_{t_1}^{t_2} S(t)\,dt \;=\; I(t_2) - I(t_1).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_I_integrable, lem:lb_finite_ordinates, lem:lb_logNorm_diff,
+      lem:lb_horiz_argVar, lem:lb_logDeriv_integrable, lem:lb_horiz_argVar_bdd,
+      lem:lb_horiz_argVar_limit}
+We assemble the lemmas above. Throughout, $G=\zeta'/\zeta$ and the
+finite exceptional sets of abscissae and ordinates are those of
+\Cref{lem:lb_finite_ordinates}; identities holding off these finite sets hold
+almost everywhere and so suffice under the integral sign.
+
+\emph{Step 1 (truncate at $\sigma=X$).} By \Cref{lem:lb_I_integrable} the integrand
+$\sigma\mapsto\log|\zeta(\sigma+it_j)|$ is integrable on $[\tfrac12,\infty)$, so
+$I(t_j)=\lim_{X\to\infty}\int_{1/2}^{X}\log|\zeta(\sigma+it_j)|\,d\sigma$
+($j=1,2$; \texttt{intervalIntegral\_tendsto\_integral\_Ioi}). Hence
+$I(t_2)-I(t_1)=\lim_{X\to\infty}D(X)$, where
+\[
+  D(X):=\int_{1/2}^{X}\Bigl[\log|\zeta(\sigma+it_2)|-\log|\zeta(\sigma+it_1)|\Bigr]\,d\sigma .
+\]
+
+\emph{Step 2 (telescope and swap).} For a.e.\ $\sigma\in[\tfrac12,X]$ (all but the
+finite abscissa set) \Cref{lem:lb_logNorm_diff} gives
+$\log|\zeta(\sigma+it_2)|-\log|\zeta(\sigma+it_1)|
+=-\operatorname{Im}\int_{t_1}^{t_2}G(\sigma+it)\,dt$. By
+\Cref{lem:lb_logDeriv_integrable} the function $(\sigma,t)\mapsto\operatorname{Im}
+G(\sigma+it)$ is integrable on $[\tfrac12,X]\times[t_1,t_2]$, so Fubini
+(\texttt{MeasureTheory.integral\_integral\_swap}) applies and
+\[
+  D(X)
+  =-\int_{1/2}^{X}\!\Bigl(\operatorname{Im}\!\int_{t_1}^{t_2}\!G(\sigma+it)\,dt\Bigr)d\sigma
+  =-\int_{t_1}^{t_2}\!\Bigl(\operatorname{Im}\!\int_{1/2}^{X}\!G(\sigma+it)\,d\sigma\Bigr)dt .
+\]
+
+\emph{Step 3 (recognise the inner integral).} For a.e.\ $t\in[t_1,t_2]$ (all but
+the finite ordinate set) \Cref{lem:lb_horiz_argVar} identifies the inner
+$\operatorname{Im}$-integral with the horizontal argument variation
+$\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}$. Thus
+\[
+  D(X)=-\int_{t_1}^{t_2}\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}\,dt .
+\]
+
+\emph{Step 4 (let $X\to\infty$).} For each fixed non-ordinate $t$,
+\Cref{lem:lb_horiz_argVar_limit} gives
+$\texttt{argVariation}\,\tfrac12\,X\,H_{X,t}\to-\pi S(t)$. By
+\Cref{lem:lb_horiz_argVar_bdd} the integrands are dominated, for $X\ge2$ and a.e.\
+$t$, by the single integrable function $g$ on the bounded window $[t_1,t_2]$; hence
+dominated convergence
+(\texttt{intervalIntegral.tendsto\_integral\_of\_dominated\_convergence}) yields
+\[
+  I(t_2)-I(t_1)=\lim_{X\to\infty}D(X)
+  =-\int_{t_1}^{t_2}\bigl(-\pi S(t)\bigr)\,dt
+  =\pi\int_{t_1}^{t_2}S(t)\,dt . \qedhere
+\]
+\end{proof}
+
+\section{Upper bound on \texorpdfstring{$I(t)$}{I(t)}}
+\label{sec:lb_upper}
+
+The upper bound is obtained directly from the Euler--Maclaurin / Abel
+summation representation of $\zeta$ in
+\texttt{PrimeNumberTheoremAnd} (\texttt{ZetaBounds.lean}). Truncating the Dirichlet series at
+$N=\lfloor|t|\rfloor$ gives the convexity-free strip bound
+$|\zeta(\sigma+it)|\ll(1-\sigma)^{-1}|t|^{1-\sigma}$ for $\tfrac12\le\sigma<1$,
+whose logarithm integrates to a $\log t$-coefficient
+$\int_{1/2}^{1}(1-\sigma)\,d\sigma=\tfrac18$ in $I(t)$. After absorbing the
+$O(\log\log t)$ contribution of the line $\sigma\approx1$ into a further
+$\tfrac1{16}\log t$, the upper-bound coefficient is $b_1=\tfrac3{16}$
+(\Cref{lem:lb_I_upper}), within Lehman's budget for $B$ (the lower
+bound \Cref{sec:lb_lower} supplies $b_2=\tfrac{3d^2}4=0.2107$ at $d=\tfrac{53}{100}$, and
+$\tfrac{(3/16)+0.2107}{\pi}\approx0.127\le0.128$).
+
+\begin{remark}
+The sharper $|\zeta(\tfrac12+it)|\ll t^{1/4}$ obtainable from
+\Cref{thm:gs_Gamma_growth} via the functional equation would halve the coefficient
+to $\tfrac1{16}$; the $|t|^{1-\sigma}$ bound already meets Lehman's constants. The
+$\Gamma$-Stirling chapter supports the archimedean term of the lower bound
+\Cref{sec:lb_lower}.
+\end{remark}
+
+\begin{lemma}[Partial-sum bound for the Dirichlet series]
+\label{lem:lb_sum_rpow}
+\lean{Real.sum_range_rpow_neg_le}
+\leanok
+For real $\sigma$ with $0<\sigma<1$ and an integer $N\ge1$,
+\[
+  \sum_{n=0}^{N} n^{-\sigma} \;\le\; \frac{N^{1-\sigma}}{1-\sigma} + 1
+\]
+(the $n=0$ term vanishes, so this also bounds $\sum_{n=1}^{N} n^{-\sigma}$).
+\end{lemma}
+
+\begin{proof}
+\leanok
+The function $x\mapsto x^{-\sigma}$ is positive and antitone on $[1,\infty)$, so by
+the monotone sum/integral comparison
+(\texttt{AntitoneOn.sum\_le\_integral}, \texttt{Mathlib.Analysis.SumIntegralComparisons})
+\[
+  \sum_{n=2}^{N} n^{-\sigma}
+  \;\le\; \int_{1}^{N} x^{-\sigma}\,dx
+  \;=\; \frac{N^{1-\sigma}-1}{1-\sigma}
+  \;\le\; \frac{N^{1-\sigma}}{1-\sigma}.
+\]
+Adding the $n=1$ term, which equals $1$, gives the claim.
+\end{proof}
+
+\begin{lemma}[Convexity-free strip bound for $\zeta$]
+\label{lem:lb_zeta_strip}
+\lean{norm_riemannZeta_le_of_mem_strip}
+\leanok
+\uses{lem:lb_sum_rpow}
+For real $\sigma$ with $\tfrac12<\sigma<1$ and real $t$ with $|t|>3$,
+\[
+  |\zeta(\sigma+it)| \;\le\; \frac{C_0}{1-\sigma}\,|t|^{1-\sigma},
+  \qquad C_0 = 11 .
+\]
+(The single endpoint $\sigma=\tfrac12$ is omitted as it is irrelevant to the
+Lebesgue integral $\int_{1/2}^{1}$ of \Cref{lem:lb_I_upper}. The constant $C_0=11$
+comes from the \texttt{PrimeNumberTheoremAnd} helpers \texttt{UpperBnd\_aux6} and
+\texttt{ZetaBnd\_aux1}; it enters $I(t)$ only through the additive constant
+$\tfrac12\log C_0$.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_sum_rpow}
+Put $N:=\lfloor|t|\rfloor$ (so $N\ge1$ and $N\le|t|$) and
+$s=\sigma+it$. As $\operatorname{Re}s=\sigma>0$ and $s\ne1$ (because
+$\operatorname{Im}s=t\ne0$), the Euler--Maclaurin representation
+$\zeta(s)=\zeta_0(N,s)$ holds (\texttt{Zeta0EqZeta}), where $\zeta_0(N,s)$ is the sum
+of the four terms
+\[
+  \zeta(s)=\sum_{n=0}^{N} n^{-s}
+  \;-\;\frac{N^{1-s}}{1-s}\;-\;\frac{N^{-s}}{2}
+  \;+\;s\!\int_N^\infty\!\frac{\lfloor x\rfloor+\tfrac12-x}{x^{s+1}}\,dx
+\]
+(\texttt{riemannZeta0}). We bound the four terms in modulus, using
+$\|n^{-s}\|=n^{-\sigma}$ and $|t|^{1-\sigma}\ge1$:
+\begin{itemize}
+  \item $\bigl\|\sum_{n=0}^{N} n^{-s}\bigr\|\le\sum_{n=0}^{N} n^{-\sigma}
+        \le \dfrac{N^{1-\sigma}}{1-\sigma}+1
+        \le \Bigl(\dfrac1{1-\sigma}+1\Bigr)|t|^{1-\sigma}$
+        \quad(\Cref{lem:lb_sum_rpow}, $N^{1-\sigma}\le|t|^{1-\sigma}$, $1\le|t|^{1-\sigma}$);
+  \item $\bigl\|N^{1-s}/(1-s)\bigr\|=N^{1-\sigma}/|1-s|\le2\,|t|^{1-\sigma}$
+        \quad(\texttt{UpperBnd\_aux6});
+  \item $\|N^{-s}/2\|=N^{-\sigma}/2\le|t|^{1-\sigma}$ \quad(\texttt{UpperBnd\_aux6});
+  \item $\Bigl\|s\displaystyle\int_N^\infty\!\frac{\lfloor x\rfloor+\tfrac12-x}{x^{s+1}}\,dx\Bigr\|
+        \le \dfrac{2|t|\,N^{-\sigma}}{\sigma}
+        \le 2|t|\cdot 8\,|t|^{-\sigma}
+        = 16\,|t|^{1-\sigma}$
+        \quad(\texttt{ZetaBnd\_aux1} with $\sigma\in(0,2]$, $2\le|t|$, $N\ge1$, then
+        $N^{-\sigma}/\sigma\le8|t|^{-\sigma}$ from \texttt{UpperBnd\_aux6}).
+\end{itemize}
+Summing, the coefficient of $|t|^{1-\sigma}$ is at most
+$\frac1{1-\sigma}+20$. Since $\sigma>\tfrac12$ gives $20(1-\sigma)<10$, this is at most
+$\frac{1}{1-\sigma}+\frac{10}{1-\sigma}=\frac{11}{1-\sigma}$,
+so $|\zeta(\sigma+it)|\le\frac{11}{1-\sigma}|t|^{1-\sigma}$.
+\end{proof}
+
+\begin{lemma}[Bound near $\sigma=1$]
+\label{lem:lb_zeta_near_one}
+\lean{exists_norm_riemannZeta_le_const_mul_log}
+\leanok
+For real $\sigma\in[1,2]$ and real $t$ with $|t|>3$,
+$|\zeta(\sigma+it)|\le C_1\log|t|$ for an explicit constant $C_1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is the existing \texttt{ZetaUpperBnd} of \texttt{PrimeNumberTheoremAnd}: it
+provides $A\in(0,\tfrac12]$ and $C_1>0$ with $|\zeta(\sigma+it)|\le C_1\log|t|$
+whenever $3<|t|$ and $\sigma\in[1-A/\log|t|,2]$, and $[1,2]$ is contained in that
+range since $1>1-A/\log|t|$.
+\end{proof}
+
+\begin{lemma}[Upper bound on $I$]
+\label{lem:lb_I_upper}
+\lean{logNormZetaIntegral_le}
+\leanok
+\uses{def:lb_I, lem:lb_zeta_strip, lem:lb_zeta_near_one, lem:lb_I_integrable}
+There is an explicit constant $a_1$ such that, for all $t$ with $t\ge168\pi$ that
+are not ordinates of a zero of $\zeta$,
+\[
+  I(t) \;\le\; a_1 + b_1\log t,
+  \qquad b_1 = \tfrac3{16}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_zeta_strip, lem:lb_zeta_near_one, lem:lb_I_integrable}
+Write $I(t)=\int_{1/2}^{1}+\int_{1}^{2}+\int_{2}^{\infty}$ (each piece finite by
+\Cref{lem:lb_I_integrable}); we bound the integrand $\log|\zeta(\sigma+it)|$ from
+above on each range and integrate. Throughout $t\ge168\pi>3$.
+
+\emph{Range $[\tfrac12,1)$.} By \Cref{lem:lb_zeta_strip},
+$\log|\zeta(\sigma+it)|\le\log C_0+(1-\sigma)\log t-\log(1-\sigma)$, and
+\[
+  \int_{1/2}^{1}\!\bigl[\log C_0+(1-\sigma)\log t-\log(1-\sigma)\bigr]d\sigma
+  = \tfrac12\log C_0 + \tfrac18\log t + \bigl(\tfrac12+\tfrac12\log2\bigr),
+\]
+using $\int_{1/2}^{1}(1-\sigma)\,d\sigma=\tfrac18$ and
+$\int_{1/2}^{1}-\log(1-\sigma)\,d\sigma=\int_{0}^{1/2}-\log u\,du
+=\tfrac12+\tfrac12\log2$. This is the only source of the leading $\tfrac18\log t$.
+
+\emph{Range $[1,2]$.} By \Cref{lem:lb_zeta_near_one},
+$\log|\zeta(\sigma+it)|\le\log C_1+\log\log t$, so
+$\int_1^2\log|\zeta(\sigma+it)|\,d\sigma\le\log C_1+\log\log t$. Since
+$\log\log t=o(\log t)$, fix the absorption $\log\log t\le\tfrac1{16}\log t+C_\ast$
+valid for all $t\ge168\pi$ (with $C_\ast$ the explicit maximum of
+$\log\log t-\tfrac1{16}\log t$, attained at $\log t=16$); this contributes
+$\tfrac1{16}\log t$ to the leading coefficient and $\log C_1+C_\ast$ to $a_1$.
+
+\emph{Range $[2,\infty)$.} Split once more at $\sigma=4$. On the compact range
+$[2,4]$, $|\zeta(\sigma+it)-1|\le\tfrac{\pi^2}6-1<1$
+(\texttt{norm\_riemannZeta\_sub\_one\_le\_of\_two\_le\_re}) bounds $|\zeta(\sigma+it)|$
+between the fixed positive constants $2-\tfrac{\pi^2}6$ and $\tfrac{\pi^2}6$, so
+$\log|\zeta(\sigma+it)|$ is bounded above by $\log\tfrac{\pi^2}6$ and
+$\int_2^4\log|\zeta(\sigma+it)|\,d\sigma\le2\log\tfrac{\pi^2}6$, uniformly in $t$.
+On $[4,\infty)$, $|\zeta(\sigma+it)-1|\le(\tfrac{\pi^2}6-1)2^{\,2-\sigma}\le\tfrac14$,
+so $|\log|\zeta(\sigma+it)||\le2|\zeta(\sigma+it)-1|\le2(\tfrac{\pi^2}6-1)2^{\,2-\sigma}$
+(the integrand domination already used in \Cref{lem:lb_I_integrable}), and
+$\int_4^\infty\log|\zeta(\sigma+it)|\,d\sigma$ is bounded by the convergent
+$t$-independent $\int_4^\infty 2(\tfrac{\pi^2}6-1)2^{\,2-\sigma}\,d\sigma$. Together,
+$\int_2^\infty\log|\zeta(\sigma+it)|\,d\sigma\le T$ for a finite constant $T$
+independent of $t$.
+
+Adding the three ranges, $I(t)\le\bigl(\tfrac18+\tfrac1{16}\bigr)\log t+a_1
+=\tfrac3{16}\log t+a_1$, with
+$a_1=\tfrac12\log C_0+\tfrac12+\tfrac12\log2+\log C_1+C_\ast+T$ an explicit constant.
+\end{proof}
+
+\section{The Hadamard partial-fraction representation of
+\texorpdfstring{$\zeta'/\zeta$}{ζ'/ζ}}
+\label{sec:lb_pf}
+
+The lower bound on $I(t)$ rests on expressing $\zeta'/\zeta$ through the nontrivial
+zeros. Neither mathlib nor \texttt{PrimeNumberTheoremAnd} contains a Hadamard
+factorization of an entire function of finite order, so it is built here
+(\Cref{lem:lb_pf_hadamard}). The downstream consumers of this section are
+\Cref{lem:lb_I_lower} (through the explicit-formula bound
+\Cref{lem:lb_pf_zeta}) and, through it, \Cref{thm:lb_main}.
+
+Throughout, $\xi$ denotes the project's \texttt{riemannXi}, which on
+$s\neq0,1$ equals
+\[
+  \xi(s) = \tfrac12\,s(s-1)\,\pi^{-s/2}\,\Gamma(s/2)\,\zeta(s)
+\]
+(this is \texttt{riemannXi\_eq\_mul\_completedRiemannZeta} combined with mathlib's
+$\zeta(s)=\Lambda(s)/\Gamma_{\mathbb R}(s)$, \texttt{riemannZeta\_def\_of\_ne\_zero},
+and $\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$). The following structural facts
+hold: $\xi$ is entire (\texttt{differentiable\_riemannXi});
+$\xi(0)=\xi(1)=\tfrac12\neq0$ (\texttt{riemannXi\_zero}, \texttt{riemannXi\_one});
+$\xi(1-s)=\xi(s)$ (\texttt{riemannXi\_one\_sub}); and
+$\overline{\xi(\bar s)}=\xi(s)$ (\texttt{riemannXi\_conj}). Its zeros are exactly
+the nontrivial zeros of $\zeta$, all lying in the open strip $0<\Re s<1$
+(\texttt{riemannXi\_eq\_zero\_iff}). We write $\rho=\beta+i\gamma$ for a generic
+nontrivial zero; every sum or product over $\rho$ below runs over the multiset of
+all such zeros (with multiplicity), enumerated by
+\texttt{riemannZeta.zeroes\_rect}/\texttt{riemannZeta.order} of
+\texttt{PrimeNumberTheoremAnd}.
+
+\begin{lemma}[Order-one growth of $\xi$]
+\label{lem:lb_pf_order}
+\lean{norm_riemannXi_le_exp}
+\leanok
+\uses{thm:xo_order}
+There is a constant $C>0$ with
+\[
+  |\xi(s)|\;\le\;\exp\!\bigl(C\,|s|\log|s|\bigr)\qquad(|s|\ge2);
+\]
+equivalently, $\xi$ is an entire function of order $\le1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:xo_order}
+This is \Cref{thm:xo_order} (\texttt{norm\_riemannXi\_le\_exp}), proved
+in \Cref{cha:xi_order}. Briefly: by
+$\xi(s)=\xi(1-s)$ one reduces to $\Re s\ge\tfrac12$, where
+$\xi(s)=\tfrac12 s(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s)$ has $|\tfrac12 s(s-1)|\le|s|^2$,
+$|\pi^{-s/2}|\le1$, $|\zeta(s)|\le C_\zeta|s|$ (\Cref{lem:xo_zeta_poly}, a single
+Euler--Maclaurin truncation at $N=2$), and the only exponential-type factor
+$|\Gamma(s/2)|\le\exp(C_\Gamma|s|\log|s|)$ (\Cref{lem:xo_gamma_halfplane}). The Gamma
+bound is obtained by reducing, via the recurrence $\Gamma(z+1)=z\Gamma(z)$, to the
+bounded vertical-strip bound
+\Cref{thm:gs_Gamma_growth} already proved, picking up a product of $\le|s|$ linear
+factors bounded by $|s|^{|s|}$. Multiplying and absorbing polynomial factors into the
+exponential gives the claim.
+\end{proof}
+
+\begin{lemma}[Summability of the zeros]
+\label{lem:lb_pf_summable}
+\lean{summable_one_div_riemannZeta_zero_rpow}
+\leanok
+\uses{lem:lb_pf_order, thm:zs_main}
+For every $\varepsilon>0$ the series $\sum_\rho |\rho|^{-(1+\varepsilon)}$
+converges; in particular $\sum_\rho|\rho|^{-2}<\infty$, so the products and grouped
+sums over $\rho$ below converge absolutely.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_order, thm:zs_main}
+This is \Cref{thm:zs_main}
+(\texttt{summable\_one\_div\_riemannZeta\_zero\_rpow}), proved in
+\Cref{cha:zero_summability}. Briefly: it is
+the standard Jensen-counting consequence of order $\le1$. Mathlib's Jensen formula in
+counting-function form
+(\texttt{Function.locallyFinsuppWithin.logCounting\_divisor\_eq\_circleAverage\_sub\_const}),
+fed the growth bound \Cref{lem:lb_pf_order}, bounds the integrated zero-counting
+function by $O(R\log R)$ (\Cref{lem:zs_jensen}); the elementary comparison
+$n(R)\log2\le N(2R)$ turns this into a pointwise bound $n(R)=O(R\log R)$ on the number
+of zeros with $|\rho|\le R$ (\Cref{lem:zs_count_bound}); and a dyadic decomposition
+of the zeros into magnitude shells, dominated by a convergent geometric series, gives
+$\sum_\rho|\rho|^{-(1+\varepsilon)}<\infty$ for every $\varepsilon>0$ (and of
+$\sum_\rho|\rho|^{-2}$, the $\varepsilon=1$ case; \Cref{lem:zs_summable_divisor}). The
+downstream hypothesis $\sum_i\|\rho_i^{-1}\|^2<\infty$ of \Cref{lem:hf_prod_summable}
+follows by re-indexing over the multiplicity-respecting enumeration
+(\Cref{lem:zs_product}).
+\end{proof}
+
+\begin{lemma}[Hadamard factorisation of $\xi$]
+\label{lem:lb_pf_hadamard}
+\lean{riemannXi_eq_hadamard_product}
+\leanok
+\uses{lem:lb_pf_order, lem:lb_pf_summable, thm:hf_hadamard}
+There is a real constant $B$ such that, for all $s\in\mathbb C$,
+\[
+  \xi(s)\;=\;\tfrac12\,e^{Bs}\prod_\rho\Bigl(1-\frac s\rho\Bigr)e^{s/\rho},
+\]
+the product over all nontrivial zeros (with multiplicity) converging locally
+uniformly. Here $B=\xi'/\xi(0)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:hf_hadamard}
+This is \Cref{thm:hf_hadamard} (\texttt{riemannXi\_eq\_hadamard\_product}),
+proved in \Cref{cha:hadamard}. That chapter builds the genus-$1$ canonical product
+$P(s)=\prod_\rho(1-s/\rho)e^{s/\rho}$
+(local-uniform convergence and analyticity via mathlib's
+\texttt{MultipliableUniformlyOn} API from $\sum_\rho|\rho|^{-2}<\infty$,
+\Cref{lem:lb_pf_summable}), shows $g:=\xi/P$ is entire and zero-free with
+$g=e^{h}$ for an entire $h$ (\texttt{Differentiable.isExactOn\_univ}), and pins
+$h(s)=A+Bs$ via Borel--Carathéodory (\texttt{borelCaratheodory\_closedBall}) against
+the growth $|\xi|\le\exp(C|s|\log|s|)$ (\Cref{lem:lb_pf_order}) and the
+minimum-modulus lower bound for $P$ (\Cref{lem:hf_minmod}), with $e^{A}=\tfrac12$,
+$B=\xi'/\xi(0)\in\mathbb R$ (reality from \texttt{riemannXi\_conj}).
+\end{proof}
+
+\begin{lemma}[Partial fraction of $\xi'/\xi$]
+\label{lem:lb_pf_xi}
+\lean{logDeriv_riemannXi_eq}
+\leanok
+\uses{lem:lb_pf_hadamard, lem:lb_pf_summable}
+For every $s$ that is not a nontrivial zero,
+\[
+  \frac{\xi'}{\xi}(s)\;=\;\frac{\xi'}{\xi}(0)+\sum_\rho\Bigl(\frac1{s-\rho}+\frac1\rho\Bigr),
+\]
+the sum converging absolutely by \Cref{lem:lb_pf_summable}; the constant is the
+Hadamard constant $B=\xi'/\xi(0)$ of \Cref{lem:lb_pf_hadamard}. (By the pairing
+$\rho\leftrightarrow1-\rho$ and $\rho\leftrightarrow\bar\rho$ one also has
+$B=-\sum_\rho\Re(1/\rho)$; this characterisation is not used below.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_hadamard, lem:lb_pf_summable}
+Take the logarithmic derivative of \Cref{lem:lb_pf_hadamard} (via mathlib's
+\texttt{logDeriv\_tprod\_eq\_tsum}, with $P(s)\neq0$ off the zeros): termwise
+$\tfrac{d}{ds}\bigl[\log(1-s/\rho)+s/\rho\bigr]=\tfrac1{s-\rho}+\tfrac1\rho$, the
+interchange of $\tfrac{d}{ds}$ with $\sum_\rho$ justified by the locally uniform
+convergence of \Cref{lem:lb_pf_summable} (the terms $\tfrac1{s-\rho}+\tfrac1\rho=
+\tfrac{s}{\rho(s-\rho)}$ are dominated cofinitely by $2\|s\|\,\|\rho^{-1}\|^2$). The
+logarithmic derivative of the prefactor $\tfrac12 e^{Bs}$ is $B$, and evaluating the
+identity at $s=0$, where every summand vanishes ($\tfrac1{-\rho}+\tfrac1\rho=0$),
+identifies the constant as $\xi'/\xi(0)$.
+\end{proof}
+
+\begin{lemma}[Explicit formula for $\zeta'/\zeta$ (Davenport)]
+\label{lem:lb_pf_zeta}
+\lean{logDeriv_riemannZeta_eq}
+\leanok
+\uses{lem:lb_pf_xi}
+For $0<\Re s$ and $s\neq1$ not a nontrivial zero (the half-plane hypothesis, stronger
+than $s\neq0$, keeps $\Gamma(s/2)$ off its poles and is all the lower-bound application
+at abscissa $\tfrac12+d+it$ needs), writing the digamma term without the shift,
+\[
+  \frac{\zeta'}{\zeta}(s)
+  = \frac{\xi'}{\xi}(0)-\frac1s-\frac1{s-1}+\tfrac12\log\pi
+    -\tfrac12\,\psi\!\Bigl(\tfrac s2\Bigr)
+    +\sum_\rho\Bigl(\frac1{s-\rho}+\frac1\rho\Bigr),
+\]
+where $\psi=\Gamma'/\Gamma$ is mathlib's \texttt{Complex.digamma} and $\xi'/\xi(0)$ is
+the constant of \Cref{lem:lb_pf_xi}. Equivalently, folding $-1/s$ into the digamma via
+$\psi(s/2+1)=\psi(s/2)+2/s$,
+\[
+  \frac{\zeta'}{\zeta}(s)
+  = \frac{\xi'}{\xi}(0)-\frac1{s-1}+\tfrac12\log\pi-\tfrac12\,\psi\!\Bigl(\tfrac s2+1\Bigr)
+    +\sum_\rho\Bigl(\frac1{s-\rho}+\frac1\rho\Bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_xi}
+Take the logarithmic derivative of the elementary factorisation
+$\xi(s)=\tfrac12 s(s-1)\,\Gamma_{\mathbb R}(s)\,\zeta(s)$
+(\texttt{riemannXi\_eq\_prefactor\_mul}, valid on a neighbourhood of $s$ since
+$0<\Re s$ and $s\neq1$ keep $s,s-1,\Gamma_{\mathbb R}(s)$ all nonzero there, so the
+germ identity transports to $\xi'/\xi$ via \texttt{logDeriv}):
+\[
+  \frac{\xi'}{\xi}(s)=\frac1s+\frac1{s-1}-\tfrac12\log\pi+\tfrac12\psi\!\Bigl(\tfrac s2\Bigr)
+    +\frac{\zeta'}{\zeta}(s),
+\]
+using $\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$, so that
+$\tfrac{d}{ds}\log\pi^{-s/2}=-\tfrac12\log\pi$ and
+$\tfrac{d}{ds}\log\Gamma(s/2)=\tfrac12\psi(s/2)$ (the latter from
+$\psi=\texttt{logDeriv}\,\Gamma$ and the chain rule). Solving for $\zeta'/\zeta$ and
+substituting \Cref{lem:lb_pf_xi} gives the first display; the second follows from
+$\psi(s/2+1)=\psi(s/2)+2/s$, which folds the $-1/s$ into the shifted digamma.
+\end{proof}
+
+\begin{remark}[Use in the lower bound]
+Everything the lower bound needs about the zeros is in the standard identity
+\Cref{lem:lb_pf_zeta}: an explicit archimedean part
+($-\tfrac1{s-1}+\tfrac12\log\pi-\tfrac12\psi(\tfrac s2+1)$, bounded via the
+project's digamma--Stirling \texttt{norm\_digamma\_sub\_log\_le}) plus a clean
+zero-sum $\sum_\rho(\tfrac1{s-\rho}+\tfrac1\rho)$ amenable to Lehman's pairing. The
+density of the zeros needed to sum the pairing bound is the project's own
+Riemann--von Mangoldt formula $N(T)=\theta(T)/\pi+1+S(T)$
+(\texttt{riemannZeta\_N\_eq}), which gives $N(t+1)-N(t)=O(\log t)$ from the bounds
+on $\theta$ and $S$.
+\end{remark}
+
+\section{Lower bound on \texorpdfstring{$I(t)$}{I(t)}}
+\label{sec:lb_lower}
+
+A lower bound is more delicate: $\log|\zeta(\sigma+it)|$ can be very negative near
+a zero, so one must control the total negative contribution of the zeros. This is
+done through the Hadamard / partial-fraction expansion of $\zeta'/\zeta$
+(\Cref{sec:lb_pf}, \Cref{lem:lb_pf_zeta}) and a pairing of each zero $\rho$ with
+its reflection $1-\bar\rho$ (Lehman's device).
+
+\begin{lemma}[Zero-pairing estimate (Lehman)]
+\label{lem:lb_booker}
+\lean{bookerPairIntegral_le}
+\leanok
+\uses{lem:lb_booker_scalar}
+For $d>\tfrac12$ and $w\in\mathbb{C}$ with $|\operatorname{Re}w|\le\tfrac12$ and
+$\operatorname{Im}w\neq0$ (in the application $d\in(\tfrac12,1]$, the upper bound being imposed
+only later, in \Cref{lem:lb_I_lower}, where it controls the coefficient $b_2=\tfrac{3d^2}4$),
+\[
+  \int_{0}^{d}
+  \log\left|\frac{(x+d+w)(x+d-\bar w)}{(x+w)(x-\bar w)}\right|\,dx
+  \;\le\; \tfrac52\,d^2\,
+  \operatorname{Re}\!\left(\frac{1}{d+w}+\frac{1}{d-\bar w}\right).
+\]
+The hypothesis $\operatorname{Im}w\neq0$ (i.e. $v\neq0$ below) keeps every quadratic
+$(\,\cdot\,)^2+v^2$ in the rational reduction strictly positive, so the logarithms and the
+single-pole kernel are everywhere finite; this is exactly the standing hypothesis of the
+scalar inequality \Cref{lem:lb_booker_scalar}. In the application $w$ encodes a nontrivial
+zero $\rho=\beta+i\gamma$ with $\gamma\neq0$, so the hypothesis is automatic.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_booker_scalar}
+Set $u=\operatorname{Re}w$, $v=\operatorname{Im}w$. As in the upper-bound reduction
+$\tfrac{d}{dy}\log|y+w|=\operatorname{Re}\tfrac1{y+w}$ and likewise for $y-\bar w$,
+so writing the integrand as
+$\bigl[\log|x{+}d{+}w|-\log|x{+}w|\bigr]+\bigl[\log|x{+}d{-}\bar w|-\log|x{-}\bar w|\bigr]$
+and expressing each bracket as $\int_0^d\operatorname{Re}(\cdots)\,d\sigma$ gives,
+by Fubini,
+\[
+  \int_0^d\log\left|\tfrac{(x+d+w)(x+d-\bar w)}{(x+w)(x-\bar w)}\right|dx
+  =\iint_{[0,d]^2}\psi(x+\sigma)\,d\sigma\,dx,
+  \qquad
+  \psi(s):=\tfrac{s+u}{(s+u)^2+v^2}+\tfrac{s-u}{(s-u)^2+v^2},
+\]
+and the right-hand side of the lemma is $\tfrac52 d^2\,\psi(d)$. Since $\psi$ is
+even in $u$ we may assume $u\ge0$. Both sides are homogeneous of degree $1$ under
+$(x,\sigma,u,v,d)\mapsto\lambda(x,\sigma,u,v,d)$, so we rescale to $d=1$; the
+hypothesis $|u|\le\tfrac12<d$ then becomes $u\in[0,1)$, covered by
+\Cref{lem:lb_booker_scalar} (stated for $u\in[0,1]$).
+\end{proof}
+
+\begin{remark}
+This is Lehman's elementary zero-pairing estimate \cite{Lehman1970}, the
+lower-bound analogue of \Cref{lem:lb_I_upper}. The sharp constant for the
+\emph{separable} (per-pole) estimate is the maximum $\approx1.4794$ of the
+one-variable function $m\,\Phi_0(m)$ of \Cref{lem:lb_booker_single}; rounding it up to
+$\tfrac32$ recovers Lehman's value, but verifying $\le\tfrac32$ leaves only a
+$0.02$ margin in the one-variable bound \Cref{lem:lb_slice_bound}. We take the
+constant $c=\tfrac52$ (admissible because the pairing bound is needed only with
+\emph{some} explicit $c$ that still yields Lehman's $B$; see the Remark after
+\Cref{lem:lb_booker_single} and \Cref{sec:lb_proof}). This gives the one-variable
+estimate a margin of $\tfrac{15}8-1.4794\approx0.40$, and
+$(c,d)=(\tfrac52,\tfrac{53}{100})$ gives $B<0.128$. Booker (see Trudgian
+\cite{TrudgianTuring}, Lemma 2.10) improves the constant to the optimal
+$\log4\approx1.386$ by keeping the two paired poles together, a two-variable
+estimate. In the application $w$ encodes a nontrivial zero
+$\rho=\beta+i\gamma$ paired with its reflection $1-\bar\rho$, so
+$\operatorname{Re}w=\beta-\tfrac12\in(-\tfrac12,\tfrac12)$.
+\end{remark}
+
+\begin{lemma}[Scalar pairing inequality]
+\label{lem:lb_booker_scalar}
+\lean{bookerPairKernel_integral_le}
+\leanok
+\uses{lem:lb_booker_single}
+For $u\in[0,1]$ and $v\neq0$, with
+$\psi(s)=\tfrac{s+u}{(s+u)^2+v^2}+\tfrac{s-u}{(s-u)^2+v^2}$,
+\[
+  \iint_{[0,1]^2}\psi(r+\sigma)\,dr\,d\sigma\ \le\ \tfrac52\,\psi(1).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_booker_single}
+Pushing Lebesgue measure on $[0,1]^2$ forward under $(r,\sigma)\mapsto r+\sigma$
+gives the triangular weight $\Lambda(\rho)=\rho$ on $[0,1]$, $\Lambda(\rho)=2-\rho$
+on $[1,2]$, so $\iint_{[0,1]^2}\psi(r+\sigma)=\int_0^2\Lambda(\rho)\,\psi(\rho)\,d\rho$.
+The kernel splits as $\psi(\rho)=k_{-u}(\rho)+k_{u}(\rho)$ with
+$k_a(\rho)=\tfrac{\rho-a}{(\rho-a)^2+v^2}$, and applying \Cref{lem:lb_booker_single}
+to each summand (with $a=-u$ and $a=u$; both satisfy $|a|\le1$) gives
+\[
+  \int_0^2\Lambda\,\psi
+  =\int_0^2\Lambda\,k_{-u}+\int_0^2\Lambda\,k_{u}
+  \le \tfrac52\,\tfrac{1+u}{(1+u)^2+v^2}+\tfrac52\,\tfrac{1-u}{(1-u)^2+v^2}
+  =\tfrac52\,\psi(1).
+\]
+With the constant $\tfrac52$ the two poles are estimated \emph{separately}, which
+keeps the proof elementary.
+\end{proof}
+
+\begin{definition}[The $v=0$ slice $\Phi_0$]
+\label{def:lb_slice}
+\lean{bookerSlice}
+\leanok
+For $m>0$ set
+\[
+  \Phi_0(m)\ :=\ (m+1)\log(m+1)+(m-1)\log|m-1|-2m\log m
+  \ =\ \int_0^1\log\frac{m+\tau}{|m-\tau|}\,d\tau ,
+\]
+the second equality by $\int_0^1\log(m+\tau)\,d\tau=(m+1)\log(m+1)-m\log m-1$ and
+$\int_0^1\log|m-\tau|\,d\tau=m\log m-(m-1)\log|m-1|-1$ (the latter improper but
+convergent when $m\le1$). This is the $v\to0$ value of the folded single-pole
+integral $P(m,v)$ below.
+\end{definition}
+
+\begin{lemma}[Monotone domination by the slice]
+\label{lem:lb_P_le_slice}
+\lean{bookerSinglePole_le_bookerSlice}
+\leanok
+\uses{def:lb_slice}
+Write $P(m,v)=\int_0^1(1-\tau)\bigl[\tfrac{m+\tau}{(m+\tau)^2+v^2}+\tfrac{m-\tau}{(m-\tau)^2+v^2}\bigr]\,d\tau$
+for the folded single-pole integral (so $P(m,v)=\int_0^2\Lambda(\rho)\tfrac{\rho-a}{(\rho-a)^2+v^2}d\rho$
+with $m=1-a$, by the shift $\rho=1+\tau$ and folding the even tent $1-|\tau|$ onto
+$[0,1]$). Then for $m>0$ and every $v\neq0$,
+\[
+  P(m,v)\ \le\ \Phi_0(m).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:lb_slice}
+\emph{Integration by parts.} Since
+$\tfrac{m+\tau}{(m+\tau)^2+v^2}+\tfrac{m-\tau}{(m-\tau)^2+v^2}
+   =\tfrac12\,\tfrac{d}{d\tau}\,L(\tau)$ with
+$L(\tau)=\log\dfrac{(m+\tau)^2+v^2}{(m-\tau)^2+v^2}$, and $L(0)=\log1=0$ while the
+weight $1-\tau$ vanishes at $\tau=1$, the boundary terms cancel and
+\[
+  P(m,v)=\int_0^1(1-\tau)\cdot\tfrac12 L'(\tau)\,d\tau
+        =\tfrac12\int_0^1 L(\tau)\,d\tau
+        =\tfrac12\int_0^1\log\frac{(m+\tau)^2+v^2}{(m-\tau)^2+v^2}\,d\tau .
+\]
+\emph{Pointwise monotonicity in $v^2$.} For $\tau\in[0,1]$ and $m>0$ one has
+$(m+\tau)^2\ge(m-\tau)^2\ge0$ (their difference is $4m\tau\ge0$), so for every
+$w=v^2\ge0$ the integrand $L$ is a decreasing function of $w$:
+\[
+  \frac{\partial}{\partial w}\Bigl[\log\bigl((m+\tau)^2+w\bigr)-\log\bigl((m-\tau)^2+w\bigr)\Bigr]
+  =\frac1{(m+\tau)^2+w}-\frac1{(m-\tau)^2+w}\ \le\ 0 .
+\]
+Hence the integrand at $w=v^2>0$ is dominated by its value at $w=0$, namely
+$\log\frac{(m+\tau)^2}{(m-\tau)^2}=2\log\frac{m+\tau}{|m-\tau|}$, which is integrable
+on $[0,1]$ (an integrable $\log$ singularity at $\tau=m$ when $m\le1$). Integrating
+the pointwise bound and using the closed form of \Cref{def:lb_slice},
+\[
+  P(m,v)=\tfrac12\int_0^1 L(\tau)\,d\tau
+        \le\int_0^1\log\frac{m+\tau}{|m-\tau|}\,d\tau=\Phi_0(m).
+\]
+The integration by parts performs the cancellation that the rational remainder $E$
+(Step 3 below) leaves implicit: the resulting integrand $L$ is everywhere
+nonnegative, so monotone domination is a pointwise inequality.
+\end{proof}
+
+The one-variable bound $m\,\Phi_0(m)\le\tfrac{15}8$ is the sole residual numerical
+step. The change of variables $x=1/m$ turns it into a \emph{single} one-variable
+inequality $L(x)\le\tfrac{15}8x^2$ whose left side is convex on $[\tfrac12,1]$ and
+concave on $[1,\infty)$, so that two affine estimates (a secant chord and a single
+tangent) prove it.
+
+\begin{definition}[The reciprocal slice $L$]
+\label{def:lb_slice_recip}
+\lean{bookerSliceReciprocal}
+\leanok
+For $x\in\mathbb R$ set
+\[
+  L(x)\ :=\ (x+1)\log(x+1)-(x-1)\log|x-1| .
+\]
+\end{definition}
+
+\begin{lemma}[Reciprocal identity for the slice]
+\label{lem:lb_slice_recip_eq}
+\lean{bookerSlice_eq_mul_bookerSliceReciprocal}
+\leanok
+\uses{def:lb_slice, def:lb_slice_recip}
+For every $m>0$,
+\[
+  \Phi_0(m)\ =\ m\,L\!\left(\tfrac1m\right).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:lb_slice, def:lb_slice_recip}
+For $m\neq1$, since $m>0$ one has $\tfrac1m+1=\tfrac{1+m}m$, $\tfrac1m-1=\tfrac{1-m}m$
+and $\bigl|\tfrac1m-1\bigr|=\tfrac{|1-m|}m$, so by $\log\tfrac ab=\log a-\log b$
+(valid for $a,b>0$),
+\[
+  m\,L\!\left(\tfrac1m\right)
+  =(1+m)\bigl(\log(1+m)-\log m\bigr)-(1-m)\bigl(\log|1-m|-\log m\bigr).
+\]
+The two $-\log m$ contributions combine to $-\log m\,[(1+m)-(1-m)]=-2m\log m$, and
+$-(1-m)\log|1-m|=(m-1)\log|m-1|$, giving exactly
+$(m+1)\log(m+1)+(m-1)\log|m-1|-2m\log m=\Phi_0(m)$. The excluded value $m=1$ holds by
+direct evaluation: both sides equal $2\log2$ (the singular terms carry a factor
+$m-1=0$, and in Lean $\log 0=0$).
+\end{proof}
+
+\begin{lemma}[Affine bound on the reciprocal slice]
+\label{lem:lb_slice_recip_bound}
+\lean{bookerSliceReciprocal_le}
+\leanok
+\uses{def:lb_slice_recip}
+For every $x\ge\tfrac12$,
+\[
+  L(x)\ \le\ \tfrac{15}{8}\,x^2 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:lb_slice_recip}
+On $(0,1)\cup(1,\infty)$, $L$ is smooth with
+\[
+  L'(x)=\log(x+1)-\log|x-1|=\log\frac{x+1}{|x-1|},\qquad
+  L''(x)=\frac1{x+1}-\frac1{x-1}=\frac{-2}{x^2-1},
+\]
+and $L$ is continuous at $x=1$ (where $(x-1)\log|x-1|\to0$), with $L(1)=2\log2$. Thus
+$L''>0$ on $(\tfrac12,1)$ and $L''<0$ on $(1,\infty)$: $L$ is convex on $[\tfrac12,1]$
+and concave on $[1,\infty)$ (\texttt{convexOn\_of\_deriv2\_nonneg},
+\texttt{concaveOn\_of\_deriv2\_nonpos}). We bound the convex parabola
+$q(x):=\tfrac{15}8x^2$ from below by $L$ on each piece by an affine function;
+the key elementary fact is that, for an affine $\ell(x)=sx+c_0$,
+\[
+  q(x)-\ell(x)=\tfrac{15}8x^2-sx-c_0\ \ge\ 0\quad\text{for all }x
+  \quad\Longleftrightarrow\quad s^2\le \tfrac{15}{2}\,(-c_0),
+  \tag{$\flat$}
+\]
+the forward direction by completing the square,
+$\tfrac{15}8x^2-sx-c_0=\tfrac{15}8\bigl(x-\tfrac{4s}{15}\bigr)^2+\bigl(-c_0-\tfrac{2s^2}{15}\bigr)$
+(\texttt{nlinarith} with \texttt{sq\_nonneg (x - 4*s/15)}).
+
+\emph{Convex piece $x\in[\tfrac12,1]$.} By convexity on $[\tfrac12,1]$, writing
+$x=(1-t)\tfrac12+t\cdot1$ gives $L(x)\le(1-t)L(\tfrac12)+tL(1)=\ell_1(x)$, the secant
+chord through $\bigl(\tfrac12,L(\tfrac12)\bigr)$ and $\bigl(1,L(1)\bigr)$. Here
+$L(\tfrac12)=\tfrac32\log\tfrac32+\tfrac12\log\tfrac12=\tfrac32\log3-2\log2$ and
+$L(1)=2\log2$, so the chord is $\ell_1(x)=sx+(2\log2-s)$ with slope
+$s=2\bigl(L(1)-L(\tfrac12)\bigr)=8\log2-3\log3$. The criterion $(\flat)$ with
+$-c_0=s-2\log2=6\log2-3\log3$ reads
+\[
+  (8\log2-3\log3)^2\ \le\ \tfrac{15}{2}\,(6\log2-3\log3),
+  \tag{I}
+\]
+true since the left side is $\approx5.06$ and the right side $\approx6.47$
+(margin $\approx1.4$). Inequality (I) is closed by \texttt{nlinarith} fed the
+two-sided enclosures $\log2\in(0.6931,0.6932)$, $\log3\in(1.0986,1.0987)$ from
+\texttt{Real.log\_two\_gt\_d9}, \texttt{Real.log\_two\_lt\_d9},
+\texttt{Real.log\_three\_gt\_d9}, \texttt{Real.log\_three\_lt\_d9}. Hence
+$L(x)\le\ell_1(x)\le q(x)$ on $[\tfrac12,1]$.
+
+\emph{Concave piece $x\in[1,\infty)$.} Fix the tangent point $x_0=\tfrac{13}{12}$
+(chosen near the maximiser $\approx1.085$ of $L(x)/x^2$, and so that
+$x_0\pm1\in\{\tfrac1{12},\tfrac{25}{12}\}$). By concavity on $[1,\infty)$ and the
+tangent-from-slope bound \texttt{ConcaveOn.slope\_le\_of\_hasDerivAt} (for $x>x_0$)
+and \texttt{ConcaveOn.le\_slope\_of\_hasDerivAt} (for $x<x_0$), the tangent line
+$\ell_2(x)=L(x_0)+L'(x_0)(x-x_0)$ satisfies $L(x)\le\ell_2(x)$ for all $x\ge1$. Here
+\[
+  L'(x_0)=\log\frac{25/12}{1/12}=\log25=2\log5,\qquad
+  L(x_0)=\tfrac{25}{12}\log\tfrac{25}{12}+\tfrac1{12}\log12
+        =\tfrac{25}{6}\log5-4\log2-2\log3,
+\]
+so $\ell_2(x)=sx+(L(x_0)-sx_0)$ with $s=2\log5$ and
+$-c_0=sx_0-L(x_0)=4\log2+2\log3-2\log5$. Criterion $(\flat)$ becomes
+\[
+  (2\log5)^2\ \le\ \tfrac{15}{2}\,(4\log2+2\log3-2\log5),
+  \tag{II}
+\]
+i.e. $4(\log5)^2+15\log5\le \tfrac{15}2(4\log2+2\log3)$; the left side is
+$\approx10.4$, the right $\approx13.1$ (margin $\approx2.8$). Only an \emph{upper}
+bound on $\log5$ is needed (it raises the left side and lowers the right): from
+$\log\tfrac54\le\tfrac54-1=\tfrac14$ (\texttt{Real.log\_le\_sub\_one\_of\_pos}) and
+$\log2<0.6932$,
+\[
+  \log5=2\log2+\log\tfrac54\ \le\ 2\log2+\tfrac14\ <\ 1.637 ,
+\]
+well under the threshold $1.707$ at which (II) would fail; combined with
+$\log2>0.6931$, $\log3>1.0986$ (the d9 lemmas), \texttt{nlinarith} closes (II)
+(using $0\le\log5$ to control the square). Hence $L(x)\le\ell_2(x)\le q(x)$ on
+$[1,\infty)$.
+
+The two pieces cover $[\tfrac12,\infty)$, so $L(x)\le\tfrac{15}8x^2$ throughout.
+\end{proof}
+
+\begin{lemma}[One-variable slice bound]
+\label{lem:lb_slice_bound}
+\lean{mul_bookerSlice_le}
+\leanok
+\uses{def:lb_slice, lem:lb_slice_recip_eq, lem:lb_slice_recip_bound}
+For $m\in(0,2]$,
+\[
+  m\,\Phi_0(m)\ \le\ \tfrac{15}{8}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_slice_recip_eq, lem:lb_slice_recip_bound}
+Put $x=1/m$. Since $0<m\le2$ we have $x\ge\tfrac12$. By
+\Cref{lem:lb_slice_recip_eq}, $\Phi_0(m)=m\,L(x)$, so
+$m\,\Phi_0(m)=m^2L(x)=L(x)/x^2$. By \Cref{lem:lb_slice_recip_bound},
+$L(x)\le\tfrac{15}8x^2$, and dividing by $x^2>0$ gives
+$m\,\Phi_0(m)=L(x)/x^2\le\tfrac{15}8$. (The maximum is $\approx1.4794$, at
+$m\approx0.922$.)
+\end{proof}
+
+\begin{lemma}[Single-pole bound]
+\label{lem:lb_booker_single}
+\lean{bookerSinglePoleIntegral_le}
+\leanok
+\uses{lem:lb_P_le_slice, lem:lb_slice_bound}
+Let $\Lambda(\rho)=\rho$ on $[0,1]$ and $\Lambda(\rho)=2-\rho$ on $[1,2]$. For
+$a\in[-1,1]$ and $v\in\mathbb R$,
+\[
+  \int_0^2 \Lambda(\rho)\,\frac{\rho-a}{(\rho-a)^2+v^2}\,d\rho
+  \ \le\ \tfrac52\,\frac{1-a}{(1-a)^2+v^2}.
+\]
+At $v=0$ the left-hand side is read as the principal value at $\rho=a$ (equivalently
+the $v\to0$ limit), finite because the underlying $\log$-integrand is integrable.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_P_le_slice, lem:lb_slice_bound}
+Put $m=1-a\in[0,2]$ and shift $\rho=1+\tau$, so $\Lambda(\rho)=1-|\tau|$ and
+$\rho-a=m+\tau$. The left-hand side becomes
+\[
+  P(m,v):=\int_{-1}^{1}(1-|\tau|)\,\frac{m+\tau}{(m+\tau)^2+v^2}\,d\tau
+        =\tfrac12\bigl[\theta_v(m+1)-2\theta_v(m)+\theta_v(m-1)\bigr],
+\]
+the second equality by integration by parts against $\Lambda$ (whose derivative
+is $+1$ on $(0,1)$, $-1$ on $(1,2)$), with
+$\theta_v(\rho)=\rho\log(\rho^2+v^2)-2\rho+2v\arctan(\rho/v)$ the antiderivative
+of $\log(\rho^2+v^2)$. The right-hand side is $\tfrac52\,m/(m^2+v^2)$, so the
+claim is
+\[
+  R(m,v):=\frac{(m^2+v^2)\,P(m,v)}{m}\ \le\ \tfrac52 .
+\]
+The cases $m=0$ (both sides $0$) and the principal value at $(v,\tau)=(0,-m)$ are
+handled by continuity in $v$; assume henceforth $m>0$ and $v\neq0$, so $P$ is an
+ordinary convergent integral. Folding the even tent $1-|\tau|$ onto $[0,1]$,
+$P(m,v)$ is exactly the integral $P$ of \Cref{lem:lb_P_le_slice}.
+
+\emph{Step 1 (reduction to a rational integral).} From
+$\frac{m^2+v^2}{(m+\tau)^2+v^2}=1-\frac{\tau(2m+\tau)}{(m+\tau)^2+v^2}$ and
+$\int_{-1}^1(1-|\tau|)\,d\tau=1$, $\int_{-1}^1(1-|\tau|)\tau\,d\tau=0$ (whence
+$\int_{-1}^1(1-|\tau|)(m+\tau)\,d\tau=m$),
+\[
+  (m^2+v^2)P(m,v)=m-\int_{-1}^{1}(1-|\tau|)\,
+        \frac{\tau(m+\tau)(2m+\tau)}{(m+\tau)^2+v^2}\,d\tau .
+\]
+Write $W=m-iv$; then $\operatorname{Re}\tfrac1{W\mp\tau}=\tfrac{m\mp\tau}{(m\mp\tau)^2+v^2}$,
+so by the even symmetry of the tent weight $1-|\tau|$ one has
+$P(m,v)=\operatorname{Re}\int_0^1(1-\tau)\bigl[\tfrac1{W-\tau}+\tfrac1{W+\tau}\bigr]d\tau$.
+Using the partial-fraction identity
+$\frac1{W-\tau}+\frac1{W+\tau}-\frac2W=\frac{2\tau^2}{W(W^2-\tau^2)}$ (and
+$\int_0^1(1-\tau)\tfrac2W\,d\tau=\tfrac1W$), the correction collapses to
+a single integral over $[0,1]$ whose real part is \emph{rational}. Concretely,
+$\operatorname{Re}\dfrac{\overline W}{W^2-\tau^2}=\dfrac{m\,(m^2-3v^2-\tau^2)}{D(\tau)}$
+with $D(\tau)=(m^2-v^2-\tau^2)^2+4m^2v^2$ and $|W|^2=m^2+v^2$, giving
+\[
+  (m^2+v^2)P(m,v)=m\bigl(1+E(m,v)\bigr),\qquad
+  E(m,v):=\int_0^1 \frac{2\tau^2(1-\tau)\,(m^2-3v^2-\tau^2)}{D(\tau)}\,d\tau .
+\]
+(The two algebraic identities are verified by direct expansion:
+$\overline W\,\overline{(W^2-\tau^2)}=(m+iv)\bigl[(m^2-v^2-\tau^2)+2imv\bigr]$ has
+real part $m(m^2-v^2-\tau^2)-2mv^2=m(m^2-3v^2-\tau^2)$.) Thus, since the target is
+$R\le\tfrac52$ i.e. $1+E\le\tfrac52$, the lemma reduces on each régime to the
+rational inequality
+\[
+  E(m,v)\ \le\ \tfrac32\qquad(m\in(0,2],\ v\in\mathbb R). \tag{$\star$}
+\]
+This eliminates all transcendental functions; the dispersive régime discharges
+($\star$) directly as a rational \texttt{intervalIntegral}, while the concentrated
+régime is handled by an independent representation of $P$ (Step 3) that sidesteps
+$E$ entirely.
+
+\emph{Step 2 (dispersive régime $v^2\ge m^2/3$).} Here
+$m^2-3v^2-\tau^2\le m^2-3v^2\le0$ for every $\tau\in[0,1]$, so the integrand of
+$E$ is nonpositive and $E(m,v)\le0\le\tfrac32$, i.e. ($\star$) holds with room to
+spare whenever $|v|\ge m/\sqrt3$, and a fortiori for $m\le\sqrt3\,|v|$.
+
+\emph{Step 3 (concentrated régime $0<v^2<m^2/3$).} Here the rational form is of no
+help: the positive part of the integrand of $E$ (on $\tau<\sqrt{m^2-3v^2}$) and its
+negative part (on $\tau$ near $m$) each grow like $\log(1/|v|)$ as $v\to0$, so no
+bound on $E$ obtained by discarding the negative part can hold. We therefore bound
+$P$ \emph{directly}, using that the integration by parts of
+\Cref{lem:lb_P_le_slice} leaves a nonnegative integrand. By \Cref{lem:lb_P_le_slice},
+$P(m,v)\le\Phi_0(m)$. Since
+$0<v^2<m^2/3$ gives $m^2+v^2<\tfrac43 m^2$,
+\[
+  R(m,v)=\frac{(m^2+v^2)\,P(m,v)}{m}
+  \ <\ \frac{\tfrac43 m^2\,\Phi_0(m)}{m}
+  =\tfrac43\,m\,\Phi_0(m)
+  \ \le\ \tfrac43\cdot\tfrac{15}8=\tfrac52 ,
+\]
+the last inequality by \Cref{lem:lb_slice_bound}. Hence $R(m,v)\le\tfrac52$,
+equivalently $E(m,v)\le\tfrac32$, completing ($\star$) on the concentrated sector
+and with it the lemma.
+
+Monotonicity of $E$ in $v^2$ fails ($\partial_{v^2}E$ changes sign near $\tau=m$),
+while $P$ is monotone in $v^2$, because the cancellation is absorbed into the
+signed integrand $L$ of \Cref{lem:lb_P_le_slice}. The operative constant is the
+slice maximum $\max_{m\in(0,2]}m\,\Phi_0(m)=1.4794\ldots$ (at $m\approx0.922$); the
+factor $\tfrac43$ from the sector turns the requirement into
+$m\,\Phi_0(m)\le\tfrac34 c=\tfrac{15}8$ at $c=\tfrac52$, with the margin $0.40$ of
+\Cref{lem:lb_slice_bound}.
+\end{proof}
+
+\begin{remark}[Choice of the constant $c$ and the freedom in $(c,d)$]
+The pairing constant $c$ is free in the range $c\in(1.48,2.7]$: the proof reduces
+to $R(m,v)\le c$, and the concentrated-régime argument of Step~3 yields
+$R(m,v)\le\tfrac43 m\,\Phi_0(m)$ on the sector regardless of $c$, so the only
+constraint is the one-variable bound $m\,\Phi_0(m)\le\tfrac34 c$ of
+\Cref{lem:lb_slice_bound}, whose margin above the slice maximum $1.4794$ is
+$\tfrac34 c-1.4794$. We take $c=\tfrac52$, giving margin $\approx0.40$; the sharp
+$c=\tfrac32$ would need $m\,\Phi_0(m)\le\tfrac98$, which \emph{fails}, while
+$c=\tfrac32$ \emph{with the rounding to the slice maximum} would need
+$m\,\Phi_0(m)\le\tfrac32$, a margin of only $0.02$. The choice $c=\tfrac52$ has a
+cost downstream: \Cref{lem:lb_I_lower} gives $b_2=\tfrac{d^2}2(c-1)$ with
+$d\in(\tfrac12,1]$ free, and $B=\tfrac{b_1+b_2}\pi\le0.128$ requires
+$b_2\le0.2146$, i.e.\ $\tfrac{d^2}2(c-1)\le0.2146$. At $c=\tfrac52$ this forces the
+smaller depth $d=\tfrac{53}{100}$, giving $b_2=\tfrac34 d^2=0.2107$ and
+$B=\tfrac{0.1875+0.2107}{\pi}<0.128$, at the cost of a larger additive constant $A$
+(a smaller $d$ brings $-\zeta'/\zeta(\tfrac12+d)$ closer to the pole at $1$; see
+\Cref{sec:lb_proof}). The alternative $c=2$, $d=\tfrac{13}{20}$ gives a smaller $A$
+(then $m\,\Phi_0(m)\le\tfrac32$, margin $0.02$); the trade-off is entirely between
+the difficulty of \Cref{lem:lb_slice_bound} and the
+size of $A$.
+\end{remark}
+
+\begin{lemma}[Lower bound on $I$]
+\label{lem:lb_I_lower}
+\lean{le_logNormZetaIntegral}
+\leanok
+\uses{def:lb_I, thm:ll_main}
+There are explicit constants $a_2,b_2>0$ such that, for $t\ge168\pi$,
+\[
+  -\,I(t) \;\le\; a_2 + b_2\log t,
+  \qquad
+  b_2 = \tfrac{d^2}{2}\bigl(\tfrac52 - 1\bigr) = \tfrac{3d^2}{4}\ \ (d\in(\tfrac12,1]),
+\]
+with $a_2$ an explicit constant involving
+$-\zeta'(\tfrac12+d)/\zeta(\tfrac12+d)$, $\log 2\pi$, and convergent auxiliary
+integrals.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:ll_main}
+This is \Cref{thm:ll_main} (\texttt{le\_logNormZetaIntegral}), proved in
+\Cref{cha:lehman_lower}. In place of Lehman's folding of
+$\int_{1/2}^{1/2+d}\log|\zeta|$ against its functional-equation reflection
+$s\mapsto1-s$, \Cref{cha:lehman_lower} uses an absolutely convergent route.
+Briefly, with $d=\tfrac{53}{100}$ and
+$s_d=\tfrac12+d+it$:
+\begin{itemize}
+  \item a shift-by-$d$ log-modulus identity for the Hadamard product
+        (\Cref{lem:ll_logabs_diff}) writes
+        $\sum_\rho[\log|s+d-\rho|-\log|s-\rho|]=\log|\xi(s+d)|-\log|\xi(s)|-d\kappa$,
+        every series here absolutely convergent ($O(|\rho|^{-2})$) by
+        \Cref{lem:lb_pf_summable}; the functional equation enters \emph{only} as the
+        invariance of the zero multiset under $\rho\mapsto1-\bar\rho$
+        (\Cref{lem:ll_reflection}), which makes the booker integrand (bundling $\rho$
+        with its reflection $1-\bar\rho$) sum to twice this shift-difference;
+  \item \Cref{lem:lb_booker} summed over all zeros (\Cref{lem:ll_booker_sum}) bounds
+        that shift-difference by $\tfrac52 d^2\sum_\rho\Re\,1/(s_d-\rho)$;
+  \item \Cref{lem:lb_pf_zeta} with the complex digamma--Stirling expansion bounds
+        $\sum_\rho\Re\,1/(s_d-\rho)\le\tfrac12\log t+C$ (\Cref{lem:ll_zeta_sum}), the
+        sole source of the $\log t$ coefficient;
+  \item the archimedean $\Gamma$-strip integral (\Cref{lem:ll_arch}, via
+        \Cref{thm:gs_Gamma_growth}) returns $-\tfrac{d^2}2\log t$, with the divergent
+        $\pm\tfrac\pi4|t|$ terms cancelling between the two width-$d$ strips (the
+        ``hidden cancellation between the zero and archimedean groups'');
+  \item the tail $\int_{1/2+d}^\infty\log|\zeta|$ is bounded below by a constant since
+        $\tfrac12+d>1$ (\Cref{lem:ll_tail}).
+\end{itemize}
+The net coefficient is $\tfrac{d^2}2-\tfrac54 d^2=-\tfrac34 d^2$, giving
+$-I(t)\le a_2+b_2\log t$ with $b_2=\tfrac34 d^2=\tfrac{d^2}2(\tfrac52-1)$ and $a_2$ an
+explicit $t$-independent constant.
+\end{proof}
+
+\section{Proof of the main theorem}
+\label{sec:lb_proof}
+
+\noindent
+The Lean theorem \texttt{norm\_integral\_argZeta\_le} fixes the slope $B=0.128$ (the
+proof yields $(b_1+b_2)/\pi\approx0.1267$) with $A$ existential. The parametric core
+\texttt{norm\_integral\_argZeta\_le\_of\_bounds} gives
+$A=((a_1+a_2)+(b_1+b_2)\log2\pi)/\pi$ in terms of the two $I(t)$-bound constants.
+
+By \Cref{lem:lb_littlewood}, $\pi\int_{t_1}^{t_2}S(t)\,dt = I(t_2)-I(t_1)$.
+Combining the upper bound \Cref{lem:lb_I_upper} at $t_2$ with the lower bound
+\Cref{lem:lb_I_lower} at $t_1$ (and using $\log t_1<\log t_2$ since
+$t_1<t_2$),
+\[
+  I(t_2)-I(t_1)
+  \le (a_1+b_1\log t_2) + (a_2+b_2\log t_1)
+  \le (a_1+a_2) + (b_1+b_2)\log t_2 .
+\]
+The same two lemmas with the roles of $t_1,t_2$ exchanged bound
+$I(t_1)-I(t_2)$ by the identical right-hand side. Hence
+\[
+  \left|\int_{t_1}^{t_2}S(t)\,dt\right|
+  = \frac1\pi\,\bigl|I(t_2)-I(t_1)\bigr|
+  \le \frac{(a_1+a_2)+(b_1+b_2)\log t_2}{\pi}
+  =: A + B\log\frac{t_2}{2\pi} ,
+\]
+after absorbing $B\log 2\pi$ into $A$. With the upper bound
+$b_1=\tfrac3{16}$ (\Cref{lem:lb_I_upper}) and the lower-bound coefficient
+$b_2=\tfrac{3d^2}4$ (\Cref{lem:lb_I_lower}; this is $\tfrac{d^2}2(c-1)$ with the
+pairing constant $c=\tfrac52$), fix $d=\tfrac{53}{100}$, so
+$b_2=\tfrac34\bigl(\tfrac{53}{100}\bigr)^2=0.2107$ and
+\[
+  B=\frac{b_1+b_2}\pi=\frac{0.1875+0.2107}{\pi}\approx0.1267\le0.128 ,
+\]
+so Lehman's $(A,B)=(2.30,0.128)$ \cite{Lehman1970} holds (our smaller $B$ a
+fortiori). The upper bound uses the Dirichlet-truncation route
+(\Cref{sec:lb_upper}) and the lower bound uses the separable pairing constant
+$\tfrac52$ (\Cref{lem:lb_booker}); together they fit under Lehman's $B$.
+Trudgian's sharper $(2.067,0.059)$ \cite{TrudgianTuring} would in addition require
+the sharp $t^{1/4}$ upper bound, $(c,d)$-optimisation at the verification height,
+and Booker's refinement.

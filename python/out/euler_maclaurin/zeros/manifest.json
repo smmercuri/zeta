@@ -1,0 +1,33 @@
+{
+  "rows": 52,
+  "rows_per_file": 250000,
+  "height": "149.500",
+  "cols": [
+    "idx",
+    "left",
+    "right",
+    "left_cutoff",
+    "right_cutoff",
+    "left_bernoulli",
+    "right_bernoulli"
+  ],
+  "params": {
+    "method": "euler_maclaurin",
+    "prec": 1000,
+    "N": null,
+    "M": 20,
+    "b": 1.25,
+    "bisection_depth": 0,
+    "epsilon": 0.125,
+    "widen": true,
+    "window_retries": 100,
+    "halving_depth": 10
+  },
+  "files": [
+    {
+      "file": "zeros_00001.txt",
+      "rows": 52,
+      "height": "149.500"
+    }
+  ]
+}

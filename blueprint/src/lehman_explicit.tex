@@ -1,0 +1,864 @@
+% Blueprint: De-existentialising the additive constant A of Lehman's bound.
+
+\chapter{De-existentialising the additive constant}
+\label{cha:lehman_explicit}
+
+The bound \Cref{thm:lb_main} is proved with an \emph{existential} additive constant
+$A$: the parametric core
+\[
+  A=\frac{(a_1+a_2)+\bigl(\tfrac3{16}+\tfrac34 d^2\bigr)\log 2\pi}{\pi},
+  \qquad d=\tfrac{53}{100},
+\]
+is explicit in the two $I(t)$-bound constants $a_1,a_2$, but $a_2$ is assembled from
+four existential witnesses. This chapter pins all of them to explicit numerals and
+concludes an unconditional
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ 47+0.128\,\log\frac{t_2}{2\pi},
+  \qquad 168\pi<t_1<t_2 .
+\]
+The aim is an $A$ that is \emph{finite and explicit}: the cheapest analytic pinning of
+each witness gives $A\le 47$ (about $20\times$ Lehman's optimised $2.30$). The upper
+constant is $a_1\le 9$ (\lean{logNormZetaIntegral_le_nine}); the work is the lower
+constant
+\[
+  a_2=\tfrac52 d^2 C_\psi+d^2\kappa+2C_t+C_a ,\qquad d=\tfrac{53}{100},\ d^2=0.2809 .
+\tag{A2}
+\]
+
+\section{The reflection constant vanishes: \texorpdfstring{$\kappa=0$}{κ=0}}
+\label{sec:le_kappa}
+
+Recall from \Cref{sec:ll_shift} that
+$\kappa=B+\sum_i\operatorname{Re}(1/\rho_i)$, where $B=\xi'/\xi(0)=\operatorname{logDeriv}\xi(0)$
+is the Hadamard constant (real, by \lean{riemannXi_eq_hadamard_product})
+and the sum runs over the enumerated zeros $\rho_i$ of $\xi$. We show $\kappa=0$.
+
+The one obstruction to a self-contained statement is exhibiting a critical-line point
+$s_0=\tfrac12+it_0$ that is not a zero of $\xi$. This is supplied by countability.
+
+\begin{lemma}[A zero-free ordinate exists]
+\label{lem:le_good_ordinate}
+\lean{exists_forall_riemannXiZeros_im_ne}
+\leanok
+There is a real $t_0$ with $(\rho_i)_{\mathrm{im}}\ne t_0$ for every index $i$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+The index type \lean{RiemannXiZerosIndex} is countable (the instance is declared
+alongside it), so the image
+$\{(\rho_i)_{\mathrm{im}} : i\}\subseteq\mathbb R$ is a countable set. Were it all of
+$\mathbb R$, then $(\mathrm{Set.univ}:\mathrm{Set}\ \mathbb R)$ would be countable,
+contradicting \lean{Cardinal.not_countable_real}; hence the complement is nonempty,
+and any $t_0$ in it works. (Concretely: derive $\lnot(\mathrm{univ}\subseteq\mathrm{image})$
+from \lean{Cardinal.not_countable_real} and \lean{Set.Countable.mono}.)
+\end{proof}
+
+\begin{lemma}[Reflected zero sum cancels on the critical line]
+\label{lem:le_refl_sum_zero}
+\lean{tsum_re_inv_riemannXiZeros_sub_critical_eq_zero}
+\leanok
+\uses{lem:ll_reflection, lem:lb_pf_summable}
+Let $t_0\in\mathbb R$ with $(\rho_i)_{\mathrm{im}}\ne t_0$ for all $i$, and put
+$s_0=\tfrac12+it_0$. Then $\displaystyle\sum_i\operatorname{Re}\frac1{s_0-\rho_i}=0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+The zero multiset is invariant under the involution $\rho\mapsto 1-\bar\rho$
+(\Cref{lem:ll_reflection}, \lean{tsum_riemannXiZeros_one_sub_conj} with
+its index equivalence \lean{exists_equiv_riemannXiZeros_one_sub_conj}).
+For $s_0=\tfrac12+it_0$ one computes
+\[
+  \overline{s_0-\rho}=\tfrac12-it_0-\bar\rho=-\bigl(-\tfrac12+it_0+\bar\rho\bigr)
+  =-\bigl(s_0-(1-\bar\rho)\bigr),
+\]
+so $s_0-\rho^{*}=-\overline{s_0-\rho}$ with $\rho^{*}=1-\bar\rho$, whence
+$\dfrac1{s_0-\rho^{*}}=-\overline{\Bigl(\dfrac1{s_0-\rho}\Bigr)}$ and
+$\operatorname{Re}\dfrac1{s_0-\rho^{*}}=-\operatorname{Re}\dfrac1{s_0-\rho}$
+(self-paired zeros $\beta=\tfrac12$ give $s_0-\rho$ purely imaginary, real part $0$).
+The series is absolutely convergent ($\sum_i|s_0-\rho_i|^{-2}<\infty$ by
+\Cref{lem:lb_pf_summable}; each summand
+$\operatorname{Re}1/(s_0-\rho_i)=(\tfrac12-\beta_i)/|s_0-\rho_i|^2$ is dominated by
+$|s_0-\rho_i|^{-2}$), so reindexing by the reflection equivalence sends the sum to its
+own negative, and it vanishes.
+\end{proof}
+
+\begin{lemma}[The logarithmic derivative of $\xi$ is imaginary on the critical line]
+\label{lem:le_re_logderiv_zero}
+\lean{re_logDeriv_riemannXi_critical_eq_zero}
+\leanok
+Let $s_0=\tfrac12+it_0$ be a non-zero of $\xi$. Then
+$\operatorname{Re}\bigl(\operatorname{logDeriv}\xi(s_0)\bigr)=0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $w=\operatorname{logDeriv}\xi(s_0)=\xi'(s_0)/\xi(s_0)$; this is defined since
+$\xi(s_0)\ne 0$. From $\xi(\bar s)=\overline{\xi(s)}$
+(\lean{riemannXi_conj}), differentiating the conjugate-linear
+identity gives $\xi'(\bar s)=\overline{\xi'(s)}$, hence
+$\operatorname{logDeriv}\xi(\bar s_0)=\overline{\operatorname{logDeriv}\xi(s_0)}=\bar w$.
+From $\xi(1-s)=\xi(s)$ (\lean{riemannXi_one_sub}) the chain rule
+gives $-\xi'(1-s)=\xi'(s)$, so
+$\operatorname{logDeriv}\xi(1-s_0)=-\operatorname{logDeriv}\xi(s_0)=-w$.
+Since $\bar s_0=\tfrac12-it_0=1-s_0$, the two computations coincide: $\bar w=-w$, i.e.
+$\operatorname{Re}w=0$. (Differentiability of $\xi$ everywhere is
+\texttt{analyticAt\_riemannXi}; the conjugation derivative uses
+\lean{AnalyticAt.conj_conj}.)
+\end{proof}
+
+\begin{lemma}[$\kappa=0$]
+\label{lem:le_kappa_zero}
+\lean{hadamardConst_add_tsum_re_inv_riemannXiZeros_eq_zero}
+\leanok
+\uses{lem:le_good_ordinate, lem:le_refl_sum_zero, lem:le_re_logderiv_zero, lem:lb_pf_xi}
+$\operatorname{logDeriv}\xi(0)+\sum_i\operatorname{Re}(1/\rho_i)=0$; that is, the
+constant $\kappa$ of \Cref{lem:ll_logabs_diff} equals $0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Take $t_0$ from \Cref{lem:le_good_ordinate} and $s_0=\tfrac12+it_0$; then
+$s_0\ne\rho_i$ for all $i$, and $\xi(s_0)\ne 0$
+(\lean{riemannXi_eq_zero_iff}: a zero would force some
+$(\rho_i)_{\mathrm{im}}=t_0$). The partial-fraction identity \Cref{lem:lb_pf_xi}
+(\lean{logDeriv_riemannXi_eq}) reads
+\[
+  \operatorname{logDeriv}\xi(s_0)
+  =\operatorname{logDeriv}\xi(0)+\sum_i\Bigl(\tfrac1{s_0-\rho_i}+\tfrac1{\rho_i}\Bigr).
+\]
+Take real parts. The left side is $0$ (\Cref{lem:le_re_logderiv_zero}). On the right,
+$\operatorname{logDeriv}\xi(0)=B$ is real (Hadamard), and the two families
+$\sum_i\operatorname{Re}(1/(s_0-\rho_i))$, $\sum_i\operatorname{Re}(1/\rho_i)$ are each
+summable (\Cref{lem:lb_pf_summable}, \lean{summable_re_inv_riemannXiZeros}),
+so the real part splits as
+$0=B+\sum_i\operatorname{Re}\tfrac1{s_0-\rho_i}+\sum_i\operatorname{Re}\tfrac1{\rho_i}$.
+By \Cref{lem:le_refl_sum_zero} the middle sum is $0$, giving
+$B+\sum_i\operatorname{Re}(1/\rho_i)=0$, i.e. $\kappa=0$.
+\end{proof}
+
+\begin{corollary}[De-existentialised shift identity]
+\label{lem:le_shift_no_kappa}
+\lean{tsum_log_norm_riemannXiZeros_shift_eq}
+\leanok
+\uses{lem:ll_logabs_diff, lem:le_kappa_zero}
+For every $s$ with $s$ and $s+d$ not zeros of $\xi$,
+\[
+  \sum_i\bigl[\log|s+d-\rho_i|-\log|s-\rho_i|\bigr]=\log|\xi(s+d)|-\log|\xi(s)| .
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+\Cref{lem:ll_logabs_diff} with $\kappa$ replaced by $0$ via \Cref{lem:le_kappa_zero}.
+\end{proof}
+
+Consequently the term $d^2\kappa$ in (A2) vanishes, and so does the additive $-\kappa$
+carried by $C_\psi$ of \Cref{sec:ll_zeta_sum}.
+
+\section{An explicit bound on the real \texorpdfstring{$\Gamma$}{Gamma} factor}
+\label{sec:le_gamma}
+
+The archimedean witness $C_a$ of \Cref{lem:ll_arch}
+(\lean{logNormGammaArchimedean_strip_diff_ge}) is
+\[
+  C_a=\tfrac{d^2}2(\log2+\log\pi)+\tfrac d2\log 2+d\,(L_2-L_1),
+  \qquad L_1=\log c_1,\ L_2=\log c_2,
+\]
+where $c_1,c_2$ are the Stirling constants of
+\lean{Complex.norm_Gamma_vertical_le} on the strip $[a,b]=[\tfrac14,\tfrac45]$
+(the range $\sigma/2\in[\tfrac14,\tfrac45]$ swept by both width-$d$ strips when
+$d\le\tfrac{11}{20}$). Unwinding \lean{Complex.norm_Gamma_vertical_le} and
+\texttt{Complex.log\_norm\_Gamma\_remainder\_bounded}, these are $c_1=e^{-K},c_2=e^{K}$
+with
+\[
+  K=M+b+\bigl(\tfrac b2+\tfrac14\bigr)\bigl(|\log(1/b^2)|+|\log(1+1/a^2)|\bigr)
+     +\tfrac{C_0\pi}{2a},
+\tag{K}
+\]
+and the sole non-explicit ingredient is the compactness supremum
+\[
+  M:\qquad |\log|\Gamma(\sigma)||\le M\quad(\sigma\in[a,b])
+\]
+(\texttt{Complex.log\_norm\_Gamma\_bounded}). We replace it by $M=\log 4$ using only
+log-convexity.
+
+\begin{lemma}[{Explicit bound on real $\log\Gamma$ over $[\tfrac14,\tfrac45]$}]
+\label{lem:le_gamma_bounded}
+\lean{abs_log_Gamma_le_log_four}
+\leanok
+For every $\sigma\in[\tfrac14,\tfrac45]$, $\bigl|\log\Gamma(\sigma)\bigr|\le\log 4$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $g=\log\circ\Gamma$, convex on $(0,\infty)$
+(\lean{Real.convexOn_log_Gamma}), with $g(1)=g(2)=0$ and $g(3)=\log 2$
+(\lean{Real.Gamma_nat_eq_factorial}: $\Gamma(1)=\Gamma(2)=1$, $\Gamma(3)=2$).
+Fix $\sigma\in[\tfrac14,\tfrac45]$ and set $x=\sigma+1\in[\tfrac54,\tfrac95]\subset(1,2)$;
+by the recurrence $\Gamma(\sigma)=\Gamma(x)/\sigma$ (\lean{Real.Gamma_add_one}),
+$\log\Gamma(\sigma)=g(x)-\log\sigma$. Since $-\log\sigma\in[\log\tfrac54,\log 4]\subset[0,\log 4]$,
+it suffices to show $-\log 2\le g(x)\le 0$ for $x\in(1,2)$; then
+$0\le\log\Gamma(\sigma)=g(x)-\log\sigma\le 0+\log 4=\log 4$, giving
+$|\log\Gamma(\sigma)|\le\log 4$.
+
+\emph{Upper bound $g(x)\le 0$.} Convexity on $[1,2]$ places $g$ below its chord, which is
+the constant $0$ (endpoints $g(1)=g(2)=0$): for $x=(1-\lambda)\cdot1+\lambda\cdot2$,
+$g(x)\le(1-\lambda)g(1)+\lambda g(2)=0$ (the chord inequality, the second component of
+\texttt{ConvexOn}).
+
+\emph{Lower bound $g(x)\ge-\log 2$.} Apply secant monotonicity
+(\lean{ConvexOn.secant_mono_aux2}, or \lean{ConvexOn.slope_mono_adjacent}) to the
+ordered triple $x<2<3$: the secant slope on $[x,2]$ is $\le$ the secant slope on $[2,3]$,
+\[
+  \frac{g(2)-g(x)}{2-x}\le\frac{g(3)-g(2)}{3-2}=\log 2 .
+\]
+Since $g(2)=0$ and $0<2-x<1$, this gives $-g(x)\le(2-x)\log 2\le\log 2$, i.e.
+$g(x)\ge-\log 2$.
+\end{proof}
+
+\begin{lemma}[Explicit archimedean witness]
+\label{lem:le_arch_explicit}
+\lean{logNormGammaArchimedean_strip_diff_ge_explicit}
+\leanok
+\uses{lem:ll_arch, lem:le_gamma_bounded, lem:le_digamma_const}
+For $d=\tfrac{53}{100}$ there is an explicit numeral $C_a\le 10$ with
+\[
+  \tfrac{d^2}2\log t-C_a\ \le\
+  \int_{\frac12+d}^{\frac12+2d}\log|\Lambda_a(\sigma+it)|\,d\sigma
+   -\int_{\frac12}^{\frac12+d}\log|\Lambda_a(\sigma+it)|\,d\sigma
+\]
+for all $t\ge168\pi$, where $\Lambda_a(s)=\tfrac12 s(s-1)\Gamma_{\mathbb R}(s)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is \Cref{lem:ll_arch} with the existential compactness bound
+\texttt{Complex.log\_norm\_Gamma\_bounded} replaced by \Cref{lem:le_gamma_bounded}
+($M=\log4$) and the digamma constant $C_0$ replaced by \Cref{lem:le_digamma_const}
+($C_0=C^{\star}\le\tfrac12$), propagated through (K). Each inequality of
+\texttt{Complex.log\_norm\_Gamma\_remainder\_bounded} and
+\lean{Complex.norm_Gamma_vertical_le} holds verbatim with the explicit constants,
+and $\log c_i=\pm K$ gives $L_2-L_1=2K$. Numerically, with $a=\tfrac14,b=\tfrac45$:
+$|\log(1/b^2)|=\log(25/16)<0.45$, $|\log(1+1/a^2)|=\log17<2.84$,
+$(\tfrac b2+\tfrac14)=0.65$, so the middle term of (K) is $<0.65\cdot3.29<2.14$;
+$\tfrac{C_0\pi}{2a}=\tfrac{(1/2)\pi}{1/2}=\pi<3.15$ with $C_0=\tfrac12$; hence
+$K\le\log4+0.8+2.14+3.15<7.49$. Then $L_2-L_1=2K<14.98$, $d(L_2-L_1)<7.94$, and
+$\tfrac{d^2}2(\log2+\log\pi)+\tfrac d2\log2<0.26+0.19<0.5$, so $C_a<8.44\le 10$.
+\end{proof}
+
+\section{Explicit digamma remainder and the Dirichlet sum}
+\label{sec:le_dirichlet}
+
+The log-$t$ witness $C_\psi$ of \Cref{lem:ll_zeta_sum}
+(\lean{tsum_re_inv_riemannXiZeros_sub_le}) is
+\[
+  C_\psi=\underbrace{\sum_n\bigl\|\mathrm{term}_\Lambda(\sigma)_n\bigr\|}_{=\;-\zeta'/\zeta(\sigma)}
+        -B+2-\tfrac12\log\pi
+        +\tfrac12\Bigl(\tfrac{\sigma}{168\pi}+\tfrac{1+2C_R}{\sigma}\Bigr)
+        -\sum_i\operatorname{Re}\tfrac1{\rho_i},
+  \qquad\sigma=\tfrac12+d,
+\]
+with $C_R$ the order-$1$ digamma-remainder constant. By \Cref{lem:le_kappa_zero},
+$-B-\sum_i\operatorname{Re}(1/\rho_i)=-\kappa=0$, so those two terms drop. It remains to
+pin $C_R$ and the Dirichlet sum $D(\sigma):=\sum_{n\ge1}\Lambda(n)n^{-\sigma}=-\zeta'/\zeta(\sigma)$
+(the equality $\sum_n\|\mathrm{term}_\Lambda(\sigma)_n\|=\sum_n\Lambda(n)n^{-\sigma}$ holds
+because the summand norms are exactly $\Lambda(n)n^{-\operatorname{Re}\sigma}$).
+
+\begin{lemma}[Order-$1$ to order-$2$ digamma-remainder recurrence]
+\label{lem:le_digamma_recurrence}
+\lean{digammaRemainderIoi_one_sub_two}
+\leanok
+For $\operatorname{Re}s>0$, $\mathrm{digammaRemainderIoi}\,s\,1-\mathrm{digammaRemainderIoi}\,s\,2
+=\tfrac{B_2}{2}\,s^{-2}$, where $B_2=\tfrac16$ so $|\tfrac{B_2}{2}|=\tfrac1{12}$. In
+particular $\|\mathrm{digammaRemainderIoi}\,s\,1\|\le\|\mathrm{digammaRemainderIoi}\,s\,2\|
++\tfrac1{12}\|s\|^{-2}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is one step of the Euler–Maclaurin recursion for the digamma remainder. We subtract the
+order-$1$ and order-$2$ finite
+Euler–Maclaurin expansions of $\sum_{n=0}^{N}(s+n)^{-1}$
+(\lean{Complex.sum_eq} at $p=1$ and $p=2$): the partial sums, the integrals and
+the trapezoidal endpoint corrections are identical in both, so the difference of the two
+remainders $\mathrm{remainder}_1-\mathrm{remainder}_2$ equals the single order-$2$ Bernoulli
+boundary term $\tfrac{B_2}{2}\bigl(s^{-2}-(s+N)^{-2}\bigr)$. Letting $N\to\infty$ sends the
+finite remainders to $\mathrm{digammaRemainderIoi}\,s\,1$ and
+$\mathrm{digammaRemainderIoi}\,s\,2$ (\lean{Complex.Stirling.integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_inv_add}
+with \lean{MeasureTheory.intervalIntegral_tendsto_integral_Ioi}) and $(s+N)^{-2}\to0$,
+giving the identity. The bound $\|\cdot\|\le\|\cdot\|+\tfrac1{12}\|s\|^{-2}$ is the triangle
+inequality applied to it. This is the sole place the two truncation orders are bridged.
+\end{proof}
+
+\begin{lemma}[Explicit digamma-remainder constants]
+\label{lem:le_digamma_const}
+\lean{norm_digammaRemainderIoi_one_le}
+\leanok
+\uses{lem:le_digamma_recurrence}
+Put $C^{\star}:=\tfrac1\pi+\tfrac1{12}<0.41$. Then:
+\begin{enumerate}
+  \item (strip, $\|s\|^{-2}$-form) for $\operatorname{Re}s>0$,
+  $\|\psi(s)-\operatorname{Log}s+(2s)^{-1}\|\le C^{\star}\|s\|^{-2}$, so $C_0=C^{\star}\le\tfrac12$
+  works in (K);
+  \item (ray, $\|z\|^{-1}$-form) for $\operatorname{Re}z>0$ with $\|z\|\ge\tfrac12$,
+  $\|\mathrm{digammaRemainderIoi}\,z\,1\|\le\|z\|^{-1}$, so $C_R=1$ works.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+The explicit remainder bound
+\lean{Complex.Stirling.norm_digammaRemainderIoi_le'} at $p=2$ gives
+$\|\mathrm{digammaRemainderIoi}\,s\,2\|\le\dfrac{2!}{(2\pi)^{1}}\|s\|^{-2}=\dfrac1\pi\|s\|^{-2}$.
+By the recurrence \Cref{lem:le_digamma_recurrence},
+$\|\mathrm{digammaRemainderIoi}\,s\,1\|\le(\tfrac1\pi+\tfrac1{12})\|s\|^{-2}=C^{\star}\|s\|^{-2}$
+with $C^{\star}<0.41$. This is the $\|s\|^{-2}$-form used by
+\lean{Complex.Stirling.norm_digammaRemainderIoi_le'}, so $C_0=C^{\star}\le\tfrac12$.
+
+The $\|s\|^{-2}$-form is stated in Lean directly on $\|\mathrm{digammaRemainderIoi}\,s\,1\|$
+(equal to $\|\psi(s)-\operatorname{Log}s+(2s)^{-1}\|$ by
+\lean{Complex.Stirling.digamma_eq_log_sub} at $M=0$).
+
+For the $\|z\|^{-1}$-form
+(\lean{Complex.Stirling.norm_digammaRemainderIoi_le'}), required by
+\lean{re_digamma_le}: on $\|z\|\ge\tfrac12$,
+$\|z\|^{-2}=\|z\|^{-1}\cdot\|z\|^{-1}\le 2\|z\|^{-1}$, hence
+$\|\mathrm{digammaRemainderIoi}\,z\,1\|\le 2C^{\star}\|z\|^{-1}<0.82\,\|z\|^{-1}\le\|z\|^{-1}$
+(using $\pi>3$, so $2C^{\star}=\tfrac2\pi+\tfrac16<\tfrac56$).
+(On the ray of use $z=s_d/2$, $\|z\|\ge(\tfrac12+d)/2>\tfrac12$.)
+\end{proof}
+
+The Dirichlet sum is the dominant term. We bound it by inserting the pole of $\zeta$.
+
+\begin{lemma}[Lower bound for $\zeta$ on the real axis]
+\label{lem:le_zeta_pole_lower}
+\lean{one_div_sub_one_le_riemannZeta_ofReal}
+\leanok
+For real $\sigma>1$, $\displaystyle\zeta(\sigma)\ge\frac1{\sigma-1}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\zeta(\sigma)=\sum_{n\ge1}n^{-\sigma}$ with $f(x)=x^{-\sigma}$ positive and decreasing on
+$[1,\infty)$. On each bounded window, \lean{AntitoneOn.integral_le_sum}
+(on $\mathrm{Icc}\ 1\ (1+N)$) gives $\int_1^{1+N}f\le\sum_{n=1}^{N}f(n)$; letting
+$N\to\infty$ (the partial integrals increase to the convergent improper integral and
+the partial sums increase to $\zeta(\sigma)$) yields
+$\int_1^\infty x^{-\sigma}\,dx=\tfrac1{\sigma-1}\le\zeta(\sigma)$. The finite-to-improper
+passage is a monotone limit of \lean{AntitoneOn.integral_le_sum} over bounded windows.
+\end{proof}
+
+\begin{lemma}[Explicit bound on $-\zeta'(\sigma)$]
+\label{lem:le_neg_deriv_zeta}
+\lean{neg_deriv_riemannZeta_ofReal_le}
+\leanok
+For real $\sigma\in(1,\tfrac{21}{20}]$,
+\[
+  -\zeta'(\sigma)=\sum_{n\ge2}\frac{\log n}{n^{\sigma}}
+  \ \le\ \frac{\log2}{2^{\sigma}}+\frac{\log3}{3^{\sigma}}
+        +3^{1-\sigma}\Bigl(\frac{\log3}{\sigma-1}+\frac1{(\sigma-1)^2}\Bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+$-\zeta'(\sigma)=\sum_{n\ge2}f(n)$ with $f(x)=(\log x)x^{-\sigma}$: for
+$\operatorname{Re}s>1$, $\zeta=\mathrm{LSeries}\,\mathbf 1$
+(\lean{LSeries_one_eq_riemannZeta}), and \lean{LSeries_deriv} gives
+$\zeta'(s)=-\mathrm{LSeries}(\log\cdot\mathbf 1)\,s=-\sum_{n\ge1}(\log n)\,n^{-s}$, so
+$-\zeta'(\sigma)=\sum_{n\ge2}(\log n)\,n^{-\sigma}$ (the $n=1$ term vanishes). Since
+$f'(x)=x^{-\sigma-1}(1-\sigma\log x)$
+vanishes at $x=e^{1/\sigma}<e<3$, $f$ is decreasing on $[3,\infty)$; hence
+$\sum_{n\ge4}f(n)\le\int_3^\infty f(x)\,dx$ by the same finite-to-improper monotone limit
+of \lean{AntitoneOn.sum_le_integral} (on $\mathrm{Icc}\ 3\ (3+N)$, $N\to\infty$;
+convergence of both sides for $\sigma>1$), and by parts
+$\int_3^\infty(\log x)x^{-\sigma}\,dx=3^{1-\sigma}\bigl(\tfrac{\log3}{\sigma-1}+\tfrac1{(\sigma-1)^2}\bigr)$.
+Adding $f(2)+f(3)$ gives the claim.
+\end{proof}
+
+\begin{lemma}[Explicit Dirichlet-sum bound]
+\label{lem:le_dirichlet_bound}
+\lean{tsum_vonMangoldt_norm_le}
+\leanok
+\uses{lem:le_zeta_pole_lower, lem:le_neg_deriv_zeta}
+For $\sigma=\tfrac12+d$ with $d=\tfrac{53}{100}$ (so $\sigma=\tfrac{103}{100}$),
+\[
+  D(\sigma)=\sum_{n\ge1}\frac{\Lambda(n)}{n^{\sigma}}=-\frac{\zeta'}{\zeta}(\sigma)\ \le\ 35 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+$D(\sigma)>0$ and $\zeta(\sigma)>0$, and $-\zeta'(\sigma)=D(\sigma)\,\zeta(\sigma)$, so with
+$\zeta(\sigma)\ge1/(\sigma-1)$ (\Cref{lem:le_zeta_pole_lower}),
+\[
+  D(\sigma)=\frac{-\zeta'(\sigma)}{\zeta(\sigma)}\ \le\ (\sigma-1)\,\bigl(-\zeta'(\sigma)\bigr).
+\]
+At $\sigma-1=0.03$, \Cref{lem:le_neg_deriv_zeta} with $2^{-\sigma},3^{1-\sigma}\le1$,
+$\log2\le0.7$, $\log3\le1.1$ gives
+\[
+  -\zeta'(\sigma)\le0.7+1.1+\Bigl(\tfrac{1.1}{0.03}+\tfrac1{0.0009}\Bigr)
+  \le 1.8+36.7+1111.2\le 1150,
+\]
+so $D(\sigma)\le0.03\cdot1150=34.5\le 35$.
+\end{proof}
+
+\begin{lemma}[Explicit log-$t$ witness]
+\label{lem:le_zeta_sum_explicit}
+\lean{tsum_re_inv_riemannXiZeros_sub_le_explicit}
+\leanok
+\uses{lem:ll_zeta_sum, lem:le_kappa_zero, lem:le_digamma_const, lem:le_dirichlet_bound}
+For $d=\tfrac{53}{100}$ there is an explicit numeral $C_\psi\le 39$ with
+$\displaystyle\sum_i\operatorname{Re}\frac1{s_d-\rho_i}\le\tfrac12\log t+C_\psi$ for all
+$t\ge168\pi$, where $s_d=\tfrac12+d+it$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Substitute into the closed form of $C_\psi$: the $-B-\sum_i\operatorname{Re}(1/\rho_i)$
+pair is $0$ (\Cref{lem:le_kappa_zero}); the Dirichlet sum is $\le35$
+(\Cref{lem:le_dirichlet_bound}); $-\tfrac12\log\pi<0$ is dropped; $2$ stays; and the
+correction bracket $\tfrac12(\tfrac{\sigma}{168\pi}+\tfrac{1+2C_R}{\sigma})
+\le\tfrac12(0.002+\tfrac{3}{1.03})\le\tfrac12(0.002+2.92)\le1.5$ with $C_R=1$
+(\Cref{lem:le_digamma_const}) and $\sigma=1.03$, $t\ge168\pi$. Summing,
+$C_\psi\le35+2+1.5\le 39$.
+\end{proof}
+
+\section{Explicit tail witness}
+\label{sec:le_tail}
+
+The tail witness $C_t$ of \Cref{lem:ll_tail}
+(\lean{logNormZetaIntegral_tail_ge}) already carries an explicit majorant;
+only its scalar prefactor $\sum_{m\ge2}m^{-a}$ ($a=\tfrac12+d$) is left implicit. We pin it.
+
+\begin{lemma}[Explicit tail witness]
+\label{lem:le_tail_explicit}
+\lean{logNormZetaIntegral_tail_ge_explicit}
+\leanok
+\uses{lem:ll_tail, lem:le_zeta_pole_lower}
+For $d=\tfrac{53}{100}$ (so $a=\tfrac12+d=\tfrac{103}{100}$) there is an explicit numeral
+$C_t\le 49$ with, for all $t$,
+\[
+  -C_t\le\int_{a}^{\infty}\log|\zeta(\sigma+it)|\,d\sigma,
+  \qquad
+  -C_t\le\int_{a}^{a+d}\log|\zeta(\sigma+it)|\,d\sigma .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+The witness of \Cref{lem:ll_tail} is
+$C_t=\int_a^\infty M(\sigma)\,d\sigma$ with $M(\sigma)=C_0'\,e^{-(\log2)\sigma}$ and
+$C_0'=\bigl(\sum_{n\ge0}(n+2)^{-a}\bigr)2^{a}$, giving
+\[
+  C_t=\frac{C_0'\,e^{-(\log2)a}}{\log2}
+     =\frac{2^{a}\cdot 2^{-a}}{\log2}\sum_{n\ge0}\frac1{(n+2)^{a}}
+     =\frac1{\log2}\sum_{m\ge2}\frac1{m^{a}}
+     =\frac{\zeta(a)-1}{\log2}.
+\]
+By the integral test $\sum_{m\ge2}m^{-a}\le\int_1^\infty x^{-a}\,dx=\tfrac1{a-1}=\tfrac1{0.03}$
+(the finite-to-improper monotone limit of \lean{AntitoneOn.sum_le_integral}, as in
+\Cref{lem:le_zeta_pole_lower} and \Cref{lem:le_neg_deriv_zeta}). Hence
+$C_t\le\dfrac1{(\log2)(a-1)}=\dfrac1{0.03\log2}\le\dfrac1{0.03\cdot0.693}\le 48.1\le 49$.
+\end{proof}
+
+\begin{remark}[The tail is the dominant slack]
+\label{rem:le_tail}
+The bound $C_t\le49$ is lossy: the geometric majorant $M$ of \Cref{lem:ll_tail}
+over-counts near the pole $\sigma=1$. The two-sided bound
+$|\log|\zeta(\sigma+it)||\le\zeta(\sigma)-1$ (\lean{abs_log_norm_riemannZeta_le_tsum_one_div})
+gives $C_t=\int_a^\infty(\zeta(\sigma)-1)\,d\sigma=\sum_{m\ge2}m^{-a}/\log m\approx3.6$,
+which needs an exponential-integral estimate to pin explicitly. Since
+$C_t$ enters $a_2$ with coefficient $2$, replacing $49$ by $\le\tfrac{23}5$ lowers $a_2$
+from $\approx136$ to $\le\tfrac{233}5$ and hence $A$ from $\le47$ to $\le18$.
+\Cref{sec:le_tail_sharp} (\Cref{thm:le_sharp}) carries this out. Reaching Lehman's $2.30$
+needs, in addition, Booker's sharp pairing constant $\log4$ and a $(c,d)$-optimisation.
+\end{remark}
+
+\section{Assembly: the concrete additive constant}
+\label{sec:le_assembly}
+
+\begin{lemma}[Explicit lower bound on $I(t)$]
+\label{lem:le_I_lower_explicit}
+\lean{le_logNormZetaIntegral_explicit}
+\leanok
+\uses{lem:le_shift_no_kappa, lem:le_arch_explicit, lem:le_zeta_sum_explicit, lem:le_tail_explicit}
+For $d=\tfrac{53}{100}$ and all $t\ge168\pi$ off the zeros of $\zeta$ on
+$\{\sigma+it:\sigma\ge\tfrac12\}$,
+\[
+  -\,I(t)\ \le\ 136+\tfrac34 d^2\log t .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Repeat the assembly of \lean{le_logNormZetaIntegral} with the explicit
+witnesses: $\kappa=0$ (\Cref{lem:le_kappa_zero}, so the $d^2\kappa$ term vanishes and the
+shift identity is \Cref{lem:le_shift_no_kappa}); $C_\psi\le39$
+(\Cref{lem:le_zeta_sum_explicit}); $C_t\le49$ (\Cref{lem:le_tail_explicit}); $C_a\le10$
+(\Cref{lem:le_arch_explicit}). By (A2), with $\tfrac52 d^2=\tfrac52(0.2809)=0.70225$,
+\[
+  a_2=\tfrac52 d^2 C_\psi+2C_t+C_a
+     \le 0.70225\cdot39+2\cdot49+10
+     \le 27.4+98+10=135.4\le 136 .
+\]
+\end{proof}
+
+\begin{theorem}[Concrete Lehman bound]
+\label{thm:le_concrete}
+\lean{norm_integral_argZeta_le_concrete}
+\leanok
+\uses{thm:lb_main, lem:le_I_lower_explicit}
+For all reals $t_1<t_2$ with $168\pi<t_1$, neither an ordinate of a zero of $\zeta$ on
+the ray $\{\sigma+it:\sigma\ge\tfrac12\}$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ 47+0.128\,\log\frac{t_2}{2\pi} .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+Feed the two explicit constants $a_1\le9$
+(\lean{logNormZetaIntegral_le_nine}) and $a_2\le136$
+(\Cref{lem:le_I_lower_explicit}) into the parametric core
+\lean{norm_integral_argZeta_le_of_bounds}. Its additive constant is
+\[
+  A=\frac{(a_1+a_2)+\bigl(\tfrac3{16}+\tfrac34 d^2\bigr)\log2\pi}{\pi}
+   \le\frac{(9+136)+0.399\cdot\log2\pi}{\pi},
+\]
+and with $\log2\pi\le3\log2\le2.08$ (\lean{Real.log_two_lt_d9}) and
+$\tfrac3{16}+\tfrac34(\tfrac{53}{100})^2=0.3982$, the numerator is $\le145+0.83=145.83$,
+so $A\le145.83/\pi\le46.5\le 47$ (\lean{Real.pi_gt_d2}). This has the shape of
+\lean{norm_integral_argZeta_le_explicit} with both hypotheses $a_1\le9$ and
+$a_2\le\text{const}$ proved, and constant $47$; the $13$ of that lemma assumes $a_2\le30$
+(\Cref{rem:le_A_value}).
+\end{proof}
+
+\begin{remark}[On the value of $A$]
+\label{rem:le_A_value}
+The concrete $A\le47$ is about $20\times$ Lehman's optimised $2.30$ \cite{Lehman1970}. Two
+loose over-estimates carry essentially all of the excess:
+\begin{itemize}
+  \item the tail $C_t\le49$ (contributing $2C_t\le98$ to $a_2\approx136$), lossy by a
+        factor $\approx13$; the tail refinement of \Cref{sec:le_tail_sharp} pins
+        $C_t\le\tfrac{23}5$ and gives $A\le18$ (\Cref{thm:le_sharp});
+  \item the separable pairing constant $c=\tfrac52$ of \Cref{lem:lb_booker}, larger than
+        Booker's sharp $\log4$, inflating the Dirichlet contribution.
+\end{itemize}
+The value $A=13$ of \lean{norm_integral_argZeta_le_explicit} assumes $a_2\le30$, while
+the formalised majorants give $a_2\approx136$ (or $\le\tfrac{233}5$ after the tail
+refinement of \Cref{sec:le_tail_sharp}). Sharpening $A$ below $18$ toward $2.30$ requires,
+beyond the tail refinement, Booker's constant $\log4$ and the $(c,d)$-optimisation.
+\end{remark}
+
+\section{Removing the endpoint conditions}
+\label{sec:le_endpoints}
+
+\Cref{thm:le_concrete} requires both endpoints $t_1,t_2$ to be zero-free ordinates
+($\zeta(\sigma+it_j)\neq0$ for all $\sigma\ge\tfrac12$), a hypothesis inherited from
+Littlewood's contour reduction (\lean{pi_mul_integral_argZeta_eq_sub}). We
+remove it by a density/limiting argument, obtaining the bound for \emph{all} $t_1<t_2$ with
+$168\pi<t_1$.
+
+\begin{lemma}[Interval-integrability of $S$]
+\label{lem:le_argZeta_int}
+\lean{intervalIntegrable_argZeta}
+\leanok
+For $0<t_1\le t_2$, $S=\mathrm{argZeta}$ is interval-integrable on $[t_1,t_2]$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Off the finite set of zero ordinates in the rectangle $[\tfrac12,2]\times[t_1,t_2]$
+(\lean{finite_im_riemannZeta_zeros_rectangle}, measure zero), $-(\pi S)$ is the
+pointwise limit of the measurable partial integrals $\mathrm{Im}\int_{1/2}^{X}\zeta'/\zeta$,
+dominated by the integrable majorant of
+\lean{abs_argVariation_riemannZeta_horizontal_le}. The a.e.\ limit of
+measurable functions dominated a.e.\ by an integrable function is integrable
+(\lean{MeasureTheory.Integrable.mono'}), so $S$ is integrable.
+\end{proof}
+
+\begin{lemma}[Zero-free ordinates are locally finite]
+\label{lem:le_zerofree_dense}
+\lean{finite_setOf_riemannZeta_zero_ray_Icc}
+\leanok
+For $0<a\le b$, only finitely many $t\in[a,b]$ are the ordinate of a zero $\sigma+it$ with
+$\sigma\ge\tfrac12$. Hence the zero-free ordinates are dense.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Such a zero lies in the compact rectangle $[\tfrac12,2]\times[a,b]$ (using
+$\zeta(s)\neq0$ for $\mathrm{Re}\,s\ge1$, \lean{riemannZeta_ne_zero_of_one_lt_re}), and
+$\zeta$ has finitely many zeros there
+(\lean{finite_im_riemannZeta_zeros_rectangle}).
+\end{proof}
+
+\begin{theorem}[Concrete Lehman bound, unconditional]
+\label{thm:le_concrete_unconditional}
+\lean{norm_integral_argZeta_le_concrete_unconditional}
+\leanok
+\uses{thm:le_concrete, lem:le_argZeta_int, lem:le_zerofree_dense}
+For all reals $t_1<t_2$ with $168\pi<t_1$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ 47+0.128\,\log\frac{t_2}{2\pi},
+\]
+for arbitrary endpoints.
+\end{theorem}
+
+\begin{proof}
+\leanok
+By \Cref{lem:le_zerofree_dense} the zero-free ordinates are dense, so we may choose zero-free
+sequences $a_n\downarrow t_1$, $b_n\downarrow t_2$ (each in a fixed neighbourhood, with
+$168\pi<a_n<b_n$). At each pair \Cref{thm:le_concrete} gives
+$|\int_{a_n}^{b_n}S|\le47+0.128\log(b_n/2\pi)$. By \Cref{lem:le_argZeta_int} the primitive
+$x\mapsto\int_{t_1}^{x}S$ is continuous (\lean{intervalIntegral.continuousOn_primitive_interval'}),
+so $\int_{a_n}^{b_n}S=\int_{t_1}^{b_n}S-\int_{t_1}^{a_n}S\to\int_{t_1}^{t_2}S$; the right-hand
+side tends to $47+0.128\log(t_2/2\pi)$. The inequality passes to the limit.
+\end{proof}
+
+\section{Sharpening the tail: \texorpdfstring{$A\le 18$}{A ≤ 18}}
+\label{sec:le_tail_sharp}
+
+\Cref{rem:le_tail} identified the tail witness $C_t$ as the single dominant source of
+slack: the geometric majorant of \Cref{lem:le_tail_explicit} inflates
+$C_t=\int_a^\infty(\zeta(\sigma)-1)\,d\sigma\approx3.6$ to $49$, and $C_t$ enters $a_2$
+with coefficient $2$. This section replaces that majorant by a direct
+integral estimate, pinning $C_t\le\tfrac{23}{5}$ by elementary means (an integral
+comparison for the pointwise majorant and a convexity chord for the resulting
+exponential-integral). Re-threading the parametric cores then lowers $a_2$ from
+$\le136$ to $\le\tfrac{233}5$ and the additive constant from $A\le47$ to $A\le18$.
+
+\medskip
+\emph{Scope.} This is the tail refinement of \Cref{rem:le_tail}. At $d=\tfrac{53}{100}$
+the constant $C_\psi\le39$ is pinned by the pole term $\zeta'/\zeta(\sigma)\sim(\sigma-1)^{-1}=\tfrac{100}3$
+of \Cref{lem:le_zeta_sum_explicit}, so it stays above $\approx35$; and the shape
+constraint $B=\tfrac{3/16+\frac34 d^2}{\pi}\le0.128$ caps $d\le0.535$, which keeps $d$ near
+the pole. Reaching Lehman's $2.30$ therefore requires Booker's sharp pairing constant
+$\log4$ in place of $\tfrac52$ (\Cref{lem:lb_booker}) and a $(c,d)$-optimisation. The tail
+alone gives $A\le18$, a factor $\approx2.6$ improvement.
+
+\subsection{The pointwise majorant}
+
+\begin{lemma}[Tail majorant]
+\label{lem:le_tail_majorant}
+\lean{tsum_one_div_nat_add_two_rpow_le_majorant}
+\leanok
+For every $\sigma>1$,
+\[
+  \zeta(\sigma)-1=\sum_{m\ge2}m^{-\sigma}=\sum_{n\ge0}\frac1{(n+2)^{\sigma}}
+    \ \le\ 2^{-\sigma}+\frac{2^{1-\sigma}}{\sigma-1}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Separate the $n=0$ term, $\sum_{n\ge0}(n+2)^{-\sigma}=2^{-\sigma}+\sum_{m\ge3}m^{-\sigma}$.
+The map $x\mapsto x^{-\sigma}$ is decreasing on $(0,\infty)$, so $m^{-\sigma}\le\int_{m-1}^{m}x^{-\sigma}\,dx$
+for each $m\ge3$; summing and telescoping the windows,
+\[
+  \sum_{m\ge3}m^{-\sigma}\ \le\ \int_2^\infty x^{-\sigma}\,dx
+     \ =\ \frac{2^{1-\sigma}}{\sigma-1}
+\]
+(the improper integral converges since $\sigma>1$; the finite-window comparison is the
+monotone limit of \lean{AntitoneOn.sum_le_integral}, exactly as in
+\Cref{lem:le_tail_explicit}). Adding back the $n=0$ term gives the claim. The middle
+identity $\sum_{m\ge2}m^{-\sigma}=\zeta(\sigma)-1$ is only for orientation; the Lean
+statement bounds the shifted $p$-series $\sum_{n\ge0}(n+2)^{-\sigma}$, which is what the
+pointwise lower bound
+$-\!\sum_{n\ge0}(n+2)^{-\sigma}\le\log|\zeta(\sigma+it)|$
+(\lean{neg_tsum_one_div_le_log_norm_riemannZeta}) supplies.
+\end{proof}
+
+\subsection{The exponential-integral estimate}
+
+The majorant of \Cref{lem:le_tail_majorant} integrates to a convergent
+exponential-integral. We bound it by an elementary convexity chord.
+
+\begin{lemma}[Convexity chord for $2^{-u}$]
+\label{lem:le_two_pow_chord}
+\lean{Real.rpow_two_neg_le_one_sub_half}
+\leanok
+For every $u\in[0,1]$, $\ 2^{-u}\le 1-\tfrac u2$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+The function $u\mapsto2^{-u}=\exp(-u\log2)$ is convex on $\mathbb R$
+(\lean{convexOn_exp} composed with the affine $u\mapsto-u\log2$), hence lies below its
+chord on $[0,1]$: with $u=(1-u)\cdot0+u\cdot1$, the definitional chord inequality
+(the chord inequality, the second component of \texttt{ConvexOn}) gives
+$2^{-u}\le(1-u)\,2^{0}+u\,2^{-1}=1-\tfrac u2$.
+\end{proof}
+
+\begin{lemma}[Explicit tail integral]
+\label{lem:le_tail_int_bound}
+\lean{integral_tail_majorant_le}
+\leanok
+\uses{lem:le_two_pow_chord}
+For $a=\tfrac{103}{100}$,
+\[
+  \int_a^\infty\Bigl(2^{-\sigma}+\frac{2^{1-\sigma}}{\sigma-1}\Bigr)\,d\sigma
+    \ \le\ \frac{23}5 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Split the integrand. The first piece is the geometric integral
+\[
+  \int_a^\infty 2^{-\sigma}\,d\sigma=\frac{2^{-a}}{\log2}
+    \ \le\ \frac{2^{-1}}{\log2}\ \le\ \frac{1/2}{0.6931}\ <\ 0.7214,
+\]
+using $2^{-a}\le2^{-1}$ (as $a>1$) and $\log2>0.6931$
+(\lean{Real.log_two_gt_d9}); the antiderivative is
+\lean{integral_exp_mul_Ioi}, as in \Cref{lem:le_tail_explicit}.
+
+For the second piece substitute $u=\sigma-1$ (so $2^{1-\sigma}=2^{-u}$ and the lower
+limit becomes $a-1=\tfrac3{100}$):
+\[
+  \int_a^\infty\frac{2^{1-\sigma}}{\sigma-1}\,d\sigma
+    =\int_{3/100}^{\infty}\frac{2^{-u}}u\,du
+    =\underbrace{\int_{3/100}^{1}\frac{2^{-u}}u\,du}_{=:I_1}
+      +\underbrace{\int_{1}^{\infty}\frac{2^{-u}}u\,du}_{=:I_2}.
+\]
+For $I_2$ use $\tfrac1u\le1$ on $[1,\infty)$:
+$I_2\le\int_1^\infty2^{-u}\,du=\tfrac{2^{-1}}{\log2}<0.7214$.
+For $I_1$ use the chord \Cref{lem:le_two_pow_chord}, $2^{-u}\le1-\tfrac u2$ on
+$[0,1]$, so
+\[
+  I_1\le\int_{3/100}^{1}\frac{1-u/2}u\,du
+     =\int_{3/100}^{1}\Bigl(\frac1u-\frac12\Bigr)\,du
+     =\Bigl[\log u-\tfrac u2\Bigr]_{3/100}^{1}
+     =\log\tfrac{100}3-\tfrac12+\tfrac3{200}.
+\]
+Bound $\log\tfrac{100}3$ by factoring out the powers of $2$: since
+$\tfrac{100}3=\tfrac{25}{24}\cdot2^5$,
+\[
+  \log\tfrac{100}3=\log\tfrac{25}{24}+5\log2\ \le\ \tfrac1{24}+5\log2
+    \ \le\ \tfrac1{24}+5(0.6931472)<3.508 ,
+\]
+using $\log(1+x)\le x$ at $x=\tfrac1{24}$ (\lean{Real.log_le_sub_one_of_pos}, packaged as
+$\log(\tfrac{25}{24}2^k)\le\tfrac1{24}+k\log2$) and \lean{Real.log_two_lt_d9}.
+Hence $I_1\le3.508-0.5+0.015=3.023$, and
+\[
+  \int_a^\infty\frac{2^{1-\sigma}}{\sigma-1}\,d\sigma\le I_1+I_2<3.023+0.7214<3.745 .
+\]
+Adding the first piece, the total is $<0.7214+3.745=4.467<\tfrac{23}5=4.6$.
+\end{proof}
+
+\subsection{The sharp tail witness and the sharpened constant}
+
+\begin{lemma}[Sharp tail witness]
+\label{lem:le_tail_sharp}
+\lean{logNormZetaIntegral_tail_ge_sharp}
+\leanok
+\uses{lem:le_tail_majorant, lem:le_tail_int_bound}
+For $a=\tfrac{103}{100}$ and every $t$, both
+\[
+  -\tfrac{23}5\le\int_{a}^{\infty}\log|\zeta(\sigma+it)|\,d\sigma,
+  \qquad
+  -\tfrac{23}5\le\int_{a}^{a+53/100}\log|\zeta(\sigma+it)|\,d\sigma .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $N(\sigma)=2^{-\sigma}+\tfrac{2^{1-\sigma}}{\sigma-1}\ge0$. On $(a,\infty)$ the
+pointwise lower bound
+$-\!\sum_{n\ge0}(n+2)^{-\sigma}\le\log|\zeta(\sigma+it)|$
+(\lean{neg_tsum_one_div_le_log_norm_riemannZeta}) combined with
+\Cref{lem:le_tail_majorant} gives $-N(\sigma)\le\log|\zeta(\sigma+it)|$. The majorant $N$
+is integrable on $(a,\infty)$ ($2^{-\sigma}$ decays exponentially, and
+$\tfrac{2^{1-\sigma}}{\sigma-1}$ is a continuous function bounded by
+$\tfrac1{a-1}2^{1-\sigma}$ there), while $\log|\zeta(\cdot+it)|$ is integrable on
+$(a,\infty)$ by the continuity/domination argument of \Cref{lem:le_tail_explicit}. Hence
+by \lean{MeasureTheory.setIntegral_mono_on},
+\[
+  \int_a^\infty\log|\zeta(\sigma+it)|\,d\sigma\ \ge\ -\int_a^\infty N
+    \ \ge\ -\tfrac{23}5
+\]
+by \Cref{lem:le_tail_int_bound}. For the sub-interval $(a,a+d)\subset(a,\infty)$, since
+$N\ge0$ its integral over the smaller set is no larger, so the same lower bound
+$-\tfrac{23}5$ holds. This is \Cref{lem:le_tail_explicit} with the sharp constant
+$C_t\le\tfrac{23}5$ in place of $49$.
+\end{proof}
+
+\begin{lemma}[Sharp lower bound on $I(t)$]
+\label{lem:le_I_lower_sharp}
+\lean{le_logNormZetaIntegral_sharp}
+\leanok
+\uses{lem:le_shift_no_kappa, lem:le_arch_explicit, lem:le_zeta_sum_explicit, lem:le_tail_sharp}
+For $d=\tfrac{53}{100}$ and all $t\ge168\pi$ off the zeros of $\zeta$ on
+$\{\sigma+it:\sigma\ge\tfrac12\}$,
+\[
+  -\,I(t)\ \le\ \tfrac{233}5+\tfrac34 d^2\log t .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Identical to \Cref{lem:le_I_lower_explicit}, feeding the same witnesses
+$\kappa=0$, $C_\psi\le39$, $C_a\le10$ into the parametric core
+\lean{le_logNormZetaIntegral_of}, but with $C_t\le\tfrac{23}5$
+(\Cref{lem:le_tail_sharp}) in place of $49$. By (A2), with
+$\tfrac52 d^2=\tfrac52(0.2809)=0.70225$,
+\[
+  a_2=\tfrac52 d^2 C_\psi+2C_t+C_a
+     \le 0.70225\cdot39+2\cdot\tfrac{23}5+10
+     =27.388+9.2+10=46.588\le\tfrac{233}5=46.6 .
+\]
+\end{proof}
+
+\begin{theorem}[Sharpened Lehman bound]
+\label{thm:le_sharp}
+\lean{norm_integral_argZeta_le_eighteen}
+\leanok
+\uses{thm:lb_main, lem:le_I_lower_sharp}
+For all reals $t_1<t_2$ with $168\pi<t_1$, neither an ordinate of a zero of $\zeta$ on
+the ray $\{\sigma+it:\sigma\ge\tfrac12\}$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ 18+0.128\,\log\frac{t_2}{2\pi} .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+Feed $a_1\le9$ (\lean{logNormZetaIntegral_le_nine}) and $a_2\le\tfrac{233}5$
+(\Cref{lem:le_I_lower_sharp}) into the parametric core
+\lean{norm_integral_argZeta_le_of_bounds}, exactly as in
+\Cref{thm:le_concrete}. Its additive constant is
+\[
+  A=\frac{(a_1+a_2)+\bigl(\tfrac3{16}+\tfrac34 d^2\bigr)\log2\pi}{\pi}
+   \le\frac{9+\tfrac{233}5+0.398175\cdot\log2\pi}{\pi} .
+\]
+With $\log2\pi\le3\log2$ and $3\log2\le3(0.693148)=2.079444$
+(\lean{Real.log_two_lt_d9}, using $2\pi<8$) and the exact coefficient
+$\tfrac3{16}+\tfrac34(\tfrac{53}{100})^2=0.398175$, the last term is
+$\le0.398175\cdot2.079444<0.8280$, so the numerator is
+$\le9+46.6+0.8280=56.428$, and with $\pi>3.14$ (\lean{Real.pi_gt_d2}),
+$A\le56.428/\pi<56.428/3.14<18$, the last inequality since $18\cdot3.14=56.52>56.428$.
+\end{proof}
+
+\begin{theorem}[Sharpened Lehman bound, unconditional]
+\label{thm:le_sharp_unconditional}
+\lean{norm_integral_argZeta_le_eighteen_unconditional}
+\leanok
+\uses{thm:le_sharp, lem:le_argZeta_int, lem:le_zerofree_dense}
+For all reals $t_1<t_2$ with $168\pi<t_1$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ 18+0.128\,\log\frac{t_2}{2\pi},
+\]
+for arbitrary endpoints.
+\end{theorem}
+
+\begin{proof}
+\leanok
+Verbatim the density/limiting argument of \Cref{thm:le_concrete_unconditional}, with
+\Cref{thm:le_sharp} in place of \Cref{thm:le_concrete}: choose dense zero-free sequences
+$a_n\downarrow t_1$, $b_n\downarrow t_2$ (\Cref{lem:le_zerofree_dense}), apply
+\Cref{thm:le_sharp} at each pair, and pass to the limit using continuity of the primitive
+of the interval-integrable $S$ (\Cref{lem:le_argZeta_int}).
+\end{proof}
