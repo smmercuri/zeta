@@ -1,0 +1,8 @@
+# This file configures the latexmk command you can use to compile
+# the pdf version of the blueprint. `leanblueprint pdf` invokes bare
+# `latexmk`, so this restricts the target to print.tex and selects xelatex
+# (the preamble uses fontspec, which pdflatex cannot handle). Producing
+# print.bbl here is also what supplies web.bbl for the plasTeX web build.
+$pdf_mode = 1;
+$pdflatex = 'xelatex -synctex=1';
+@default_files = ('print.tex');

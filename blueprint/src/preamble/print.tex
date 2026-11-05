@@ -1,0 +1,34 @@
+% Theorem environments and neutralised plasTeX commands for the print build.
+% This file is not meant to be built directly; build web.tex or print.tex.
+
+% common.tex sets \let\lstinline\texttt, since the listings package breaks
+% plasTeX. Under plain \texttt the underscores in Lean identifiers such
+% as `non_zero` are read in math mode and abort the xelatex build. plasTeX
+% tolerates them, so we override \lstinline for the PDF build only, detokenising
+% the argument so `_`, `.` etc. print literally in a monospace font.
+\renewcommand{\lstinline}[1]{\texttt{\detokenize{#1}}}
+
+\declaretheorem[numberwithin=chapter]{theorem}
+\declaretheorem[sibling=theorem]{proposition}
+\declaretheorem[sibling=theorem]{corollary}
+\declaretheorem[sibling=theorem]{remark}
+\declaretheorem[sibling=theorem]{lemma}
+\declaretheorem[sibling=theorem]{definition}
+\declaretheorem[sibling=theorem]{example}
+\declaretheorem[sibling=theorem]{sublemma}
+
+% Neutralise the plasTeX/blueprint commands so the PDF ignores them.
+\newcommand{\proves}[1]{}
+\newcommand{\lean}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\mathlibok}{}
+\newcommand{\notready}{}
+\newcommand{\discussion}[1]{}
+
+% Make \uses arguments real (invisible) refs: LaTeX warns on undefined labels,
+% but nothing is printed in the PDF.
+\ExplSyntaxOn
+\NewDocumentCommand{\uses}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\ExplSyntaxOff

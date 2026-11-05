@@ -1,0 +1,13 @@
+name: zeta
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - sage=10.8        # brings in numpy, scipy, mpmath, matplotlib, pandas
+  - pytest
+  - notebook
+  - ipykernel
+  - pip
+  - pip:
+      - black
+      - -e .        

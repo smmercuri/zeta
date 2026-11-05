@@ -1,0 +1,673 @@
+% Blueprint: Euler--Maclaurin / Stirling expansion of the complex Gamma function
+%
+% References: Whittaker--Watson, *A Course of Modern Analysis*, Ch. 12--13;
+% Olver, *Asymptotics and Special Functions*, Ch. 8 (Stirling for Gamma via
+% Euler--Maclaurin); Titchmarsh, *The theory of the Riemann zeta-function*
+% (2nd ed.), \S 4.12 \cite{TitchmarshZeta}.
+
+\chapter{Euler--Maclaurin expansion of the complex Gamma function}
+\label{cha:gamma_stirling}
+
+Throughout, $\psi := \operatorname{logDeriv}\Gamma = \Gamma'/\Gamma$ is the
+\emph{digamma} function (mathlib \texttt{Complex.digamma}); it is meromorphic with
+simple poles exactly at the non-positive integers, and on the right half-plane
+$\operatorname{Re}s>0$ it is holomorphic. We write $\operatorname{Log}$ for the
+principal complex logarithm (mathlib \texttt{Complex.log}), holomorphic on the slit
+plane $\mathbb{C}\setminus(-\infty,0]$, and $B_{2k}$ for the Bernoulli numbers
+(\Cref{def:bernoulli}). The fixed analytic engine of the chapter is the project's
+complex Euler--Maclaurin summation formula with remainder, \Cref{lem:em_sum_complex},
+applied to the meromorphic kernel
+\[
+  g_s(x) \;:=\; \frac{1}{s+x}, \qquad x\in\mathbb{R},\ \operatorname{Re}s>0 ,
+\]
+whose telescoped sum is, by the digamma recurrence, a difference of values of $\psi$.
+
+\section{The kernel \texorpdfstring{$1/(s+x)$}{1/(s+x)} and its derivatives}
+\label{sec:gs_kernel}
+
+\begin{lemma}[Iterated derivatives of $1/(s+x)$]
+\label{lem:gs_iteratedDeriv}
+\lean{Complex.Stirling.iteratedDeriv_inv_add_ofReal}
+\leanok
+For $s\in\mathbb{C}$, $j\in\mathbb{N}$, and $x\in\mathbb{R}$ with $s+x\neq0$,
+\[
+  g_s^{(j)}(x) \;=\; (-1)^{j}\,j!\,(s+x)^{-(j+1)} .
+\]
+As with the power kernel (\Cref{lem:iteratedDeriv_cpow}), the induction in fact
+establishes the stronger \texttt{HasDerivAt} form
+$\operatorname{HasDerivAt}\,(g_s^{(j)})\,(g_s^{(j+1)}(x))\,x$ on
+$\{x : s+x\neq0\}$, which discharges the derivative-chain hypothesis of
+\Cref{lem:em_sum_complex}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:iteratedDeriv_cpow}
+Induction on $j$. The base $j=0$ is $g_s(x)=(s+x)^{-1}$ with $(-1)^0 0!=1$. The
+single-step rule is $\frac{d}{dx}(s+x)^{c}=c\,(s+x)^{c-1}$ for $x$ with $s+x\neq0$
+(chain rule on $x\mapsto s+x$ composed with the cpow/zpow derivative; here
+$c=-(j+1)$ is a negative integer, so mathlib's \texttt{hasDerivAt\_zpow} or the
+inverse-power rule applies and no slit-plane hypothesis on $s+x$ is needed, only
+$s+x\neq0$). Differentiating $(-1)^{j}j!(s+x)^{-(j+1)}$ gives
+$(-1)^{j}j!\,(-(j+1))(s+x)^{-(j+2)}=(-1)^{j+1}(j+1)!(s+x)^{-(j+2)}$, which is the
+claim for $j+1$; combine with $g_s^{(j+1)}=(g_s^{(j)})'$
+(\texttt{iteratedDeriv\_succ}).
+\end{proof}
+
+\begin{lemma}[Interval integrability of the derivatives]
+\label{lem:gs_integrable}
+\lean{Complex.Stirling.intervalIntegrable_iteratedDeriv_inv_add_ofReal}
+\leanok
+\uses{lem:gs_iteratedDeriv}
+Fix $s$ with $\operatorname{Re}s>0$. For every $j$ and all reals $0\le a\le b$, the
+function $g_s^{(j)}$ is continuous on $[a,b]$ (since $s+x\neq0$ there, as
+$\operatorname{Re}(s+x)\ge\operatorname{Re}s>0$), hence interval-integrable on
+$[a,b]$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_iteratedDeriv}
+By \Cref{lem:gs_iteratedDeriv}, $g_s^{(j)}(x)=(-1)^jj!(s+x)^{-(j+1)}$ is a constant
+times a negative integer power of $s+x$, which is continuous on the set
+$\{x:s+x\neq0\}\supseteq[a,b]$; a continuous function on a closed interval is
+interval-integrable.
+\end{proof}
+
+\section{The finite Euler--Maclaurin expansion of the digamma partial sum}
+\label{sec:gs_finite}
+
+The telescoping identity comes from the digamma recurrence
+$\psi(z+1)=\psi(z)+z^{-1}$ (mathlib \texttt{Complex.digamma\_apply\_add\_one}),
+iterated.
+
+\begin{lemma}[Digamma telescope]
+\label{lem:gs_telescope}
+\lean{Complex.Stirling.sum_inv_add_eq_digamma_sub}
+\leanok
+For $s\in\mathbb{C}$ with $\operatorname{Re}s>0$ and $N\in\mathbb{N}$,
+\[
+  \sum_{n=0}^{N}\frac{1}{s+n} \;=\; \psi(s+N+1)-\psi(s).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Induction on $N$ using $\psi(z+1)-\psi(z)=z^{-1}$ at $z=s+N$ (whose hypothesis
+$z\neq-m$ for all $m\in\mathbb{N}$ holds since $\operatorname{Re}z>0$); the base
+$N=0$ is $\psi(s+1)-\psi(s)=s^{-1}$.
+\end{proof}
+
+\begin{lemma}[Finite Euler--Maclaurin expansion of $\sum 1/(s+n)$]
+\label{lem:gs_sum_em}
+\lean{Complex.Stirling.sum_inv_add_eq}
+\leanok
+\uses{lem:em_sum_complex, lem:gs_iteratedDeriv, lem:gs_integrable, lem:gs_telescope,
+      def:em_remainder}
+Fix $s$ with $\operatorname{Re}s>0$, $M\in\mathbb{N}$, and $N\in\mathbb{N}$. With
+$g_s(x)=(s+x)^{-1}$ and order $p=2M+1$,
+\[
+  \psi(s+N+1)-\psi(s)
+  = \bigl[\operatorname{Log}(s+N)-\operatorname{Log}s\bigr]
+    + \tfrac12\Bigl(\tfrac1s+\tfrac1{s+N}\Bigr)
+    - \sum_{k=1}^{M}\frac{B_{2k}}{2k}\bigl[(s+N)^{-2k}-s^{-2k}\bigr]
+    + R_{2M+1}(g_s;0,N),
+\]
+where $R_{2M+1}$ is the Euler--Maclaurin remainder of \Cref{def:em_remainder}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:em_sum_complex, lem:gs_iteratedDeriv, lem:gs_integrable, lem:gs_telescope}
+Apply \Cref{lem:em_sum_complex} with integer base $a=0$, number of unit intervals
+$N$, order $p=2M+1$ (so $\lfloor p/2\rfloor=M$), $f=g_s$, and open set
+$U=\{x\in\mathbb{R}:\operatorname{Re}s+x>0\}=(-\operatorname{Re}s,\infty)\supseteq[0,N]$.
+\Cref{lem:gs_iteratedDeriv} supplies the derivative chain $(g_s^{(q)})'=g_s^{(q+1)}$
+on $U$ and \Cref{lem:gs_integrable} the interval-integrability of each
+$g_s^{(q)}$. Three substitutions identify the terms, exactly as in
+\Cref{lem:sum_cpow}:
+\begin{enumerate}
+\item \emph{Left-hand side:} $\sum_{n=0}^{N}g_s(n)=\sum_{n=0}^{N}(s+n)^{-1}
+  =\psi(s+N+1)-\psi(s)$ by \Cref{lem:gs_telescope}.
+\item \emph{Integral:} $\int_0^N(s+x)^{-1}\,dx=\operatorname{Log}(s+N)-\operatorname{Log}s$,
+  since $\frac{d}{dx}\operatorname{Log}(s+x)=(s+x)^{-1}$ on $U$ (the segment
+  $s+[0,N]$ stays in the right half-plane, hence in the slit plane) and the
+  fundamental theorem of calculus.
+\item \emph{Endpoints and Bernoulli terms:} $\tfrac12(g_s(0)+g_s(N))
+  =\tfrac12(\tfrac1s+\tfrac1{s+N})$, and by \Cref{lem:gs_iteratedDeriv}
+  $g_s^{(2k-1)}(x)=-(2k-1)!\,(s+x)^{-2k}$ (as $(-1)^{2k-1}=-1$), so the $k$-th
+  Bernoulli term $\frac{B_{2k}}{(2k)!}\bigl(g_s^{(2k-1)}(N)-g_s^{(2k-1)}(0)\bigr)$
+  equals $-\frac{B_{2k}}{2k}\bigl[(s+N)^{-2k}-s^{-2k}\bigr]$.
+\end{enumerate}
+\end{proof}
+
+\section{The improper remainder and its rigorous bound}
+\label{sec:gs_remainder}
+
+As $N\to\infty$ every $N$-dependent term on the right of \Cref{lem:gs_sum_em}
+either has an explicit limit or converges; the remainder converges to an improper
+integral, mirroring \Cref{def:em_remainder_Ioi} for zeta.
+
+\begin{lemma}[Absolute convergence of the digamma remainder integral]
+\label{lem:gs_remainder_integrable}
+\lean{Complex.Stirling.integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_inv_add}
+\leanok
+\uses{def:periodizedBernoulli, lem:gs_iteratedDeriv}
+Fix $s$ with $\operatorname{Re}s>0$ and $p\ge1$. The integrand
+$x\mapsto \widetilde{B_p}(x)\,g_s^{(p)}(x)
+ = \operatorname{bernoulliFun}p\,(\operatorname{Int.fract}x)\cdot(-1)^pp!\,(s+x)^{-(p+1)}$
+is integrable on $[0,\infty)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_iteratedDeriv}
+The periodized Bernoulli factor is bounded (continuous and $1$-periodic), so the
+integrand is dominated by a constant times $|s+x|^{-(p+1)}$. On
+$\operatorname{Re}s>0$ one has $|s+x|\ge\operatorname{Re}s+x$ for $x\ge0$, hence
+$|s+x|^{-(p+1)}\le(\operatorname{Re}s+x)^{-(p+1)}$, which is integrable on
+$[0,\infty)$ for $p+1\ge2$ (in particular for any $p\ge1$). Measurability is clear
+from \Cref{lem:gs_iteratedDeriv}.
+\end{proof}
+
+\begin{definition}[Improper digamma remainder]
+\label{def:gs_remainder_Ioi}
+\lean{Complex.Stirling.digammaRemainderIoi}
+\leanok
+\uses{def:em_remainder, def:periodizedBernoulli, lem:gs_remainder_integrable}
+For $\operatorname{Re}s>0$ and $p\ge1$ set
+\[
+  R_p(g_s;0,\infty) \;:=\; \frac{(-1)^{p+1}}{p!}\int_0^{\infty}
+     \widetilde{B_p}(x)\,g_s^{(p)}(x)\,dx ,
+\]
+the improper analogue of \Cref{def:em_remainder}, well defined by
+\Cref{lem:gs_remainder_integrable}, and equal to $\lim_{N\to\infty}R_p(g_s;0,N)$.
+\end{definition}
+
+\begin{lemma}[Rigorous remainder bound, with $|s|$-decay]
+\label{lem:gs_remainder_bound}
+\lean{Complex.Stirling.norm_digammaRemainderIoi_le'}
+\leanok
+\uses{def:gs_remainder_Ioi, lem:gs_iteratedDeriv, def:periodizedBernoulli}
+Fix $a>0$. There is an explicit constant $C_{p,a}>0$ (depending only on $p$ and
+$a$) such that for all $s$ with $\operatorname{Re}s\ge a$,
+\[
+  \bigl|R_p(g_s;0,\infty)\bigr|
+  \;\le\; c_p\int_0^{\infty}\lvert s+x\rvert^{-(p+1)}\,dx
+  \;\le\; C_{p,a}\,\lvert s\rvert^{-p},
+  \qquad c_p:=\frac{\|\widetilde{B_p}\|_\infty}{p!}.
+\]
+The middle expression is the sharp form used downstream; the
+$\lvert s\rvert^{-p}$ form is its uniform consequence. The bound decays in both
+$\operatorname{Re}s$ and $\operatorname{Im}s$; the coarser bound
+$(\operatorname{Re}s)^{-p}$ is constant in $\operatorname{Im}s$ and is insufficient
+for the vertical integral of \Cref{thm:gs_Gamma_growth}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_iteratedDeriv, lem:gs_remainder_integrable}
+(The Lean formalisation proves the uniform $C_p\,\lvert s\rvert^{-p}$ form directly for all
+$\operatorname{Re}s>0$, with $C_p$ depending only on $p$, via the single change of variables
+$x=\lvert s\rvert\,w$ and the pointwise lower bound
+$\lvert s+\lvert s\rvert w\rvert^{2}\ge\lvert s\rvert^{2}(1+w^{2})$, reducing
+$\int_0^\infty\lvert s+x\rvert^{-(p+1)}\,dx$ to
+$\lvert s\rvert^{-p}\int_0^\infty(1+w^{2})^{-1}\,dw$.)
+Bound the integrand pointwise: $|\widetilde{B_p}(x)|\le\|\widetilde{B_p}\|_\infty$
+and $|g_s^{(p)}(x)|=p!\,|s+x|^{-(p+1)}$ by \Cref{lem:gs_iteratedDeriv}; hence
+$\bigl|R_p(g_s;0,\infty)\bigr|\le c_p\int_0^\infty|s+x|^{-(p+1)}dx$. Write
+$s=\sigma+i\tau$ with $\sigma\ge a$. For the $|s|^{-p}$ form, substitute
+$u=\sigma+x$:
+\[
+  \int_0^\infty|s+x|^{-(p+1)}dx
+  =\int_\sigma^\infty(u^2+\tau^2)^{-\frac{p+1}{2}}du
+  \le \int_0^\infty(u^2+\tau^2)^{-\frac{p+1}{2}}du
+  = |\tau|^{-p}\!\int_0^\infty(v^2+1)^{-\frac{p+1}{2}}dv = \kappa_p\,|\tau|^{-p},
+\]
+where $\kappa_p:=\int_0^\infty(v^2+1)^{-(p+1)/2}dv<\infty$ for $p\ge1$; and also
+$\int_\sigma^\infty(u^2+\tau^2)^{-\frac{p+1}{2}}du\le\int_\sigma^\infty u^{-(p+1)}du
+=\frac1p\sigma^{-p}$. Since $\max(\sigma,|\tau|)\ge|s|/\sqrt2$, taking the smaller of
+the two bounds gives $\int_0^\infty|s+x|^{-(p+1)}dx\le C'_p\,|s|^{-p}$ with
+$C'_p=2^{p/2}\max(\kappa_p,1/p)$, whence $C_{p,a}=c_pC'_p$ works (the constant is in
+fact uniform in $a$; the hypothesis $\sigma\ge a>0$ only guarantees
+$|R_p|<\infty$). This is the project's remainder-bound pattern
+(\texttt{norm\_remainder\_le}) specialised to the kernel $g_s$.
+\end{proof}
+
+\section{Explicit constants: the de-existentialised remainder bound}
+\label{sec:gs_explicit}
+
+\Cref{lem:gs_remainder_bound} bounds the remainder by $C_{p}\,|s|^{-p}$, with $C_p$
+proportional to $\|\widetilde{B_p}\|_\infty$. This section makes the constant explicit, in
+the style of \texttt{norm\_remainder\_le} for the zeta function, by bounding
+$\|\widetilde{B_p}\|_\infty=\sup_{[0,1]}|B_p|$ through the Fourier expansion
+of the periodised Bernoulli function (mathlib
+\texttt{hasSum\_one\_div\_pow\_mul\_fourier\_mul\_bernoulliFun}).
+
+\begin{lemma}[Explicit sup bound for the Bernoulli polynomials]
+\label{lem:gs_bernoulli_sup}
+\lean{Complex.Stirling.abs_bernoulliFun_le}
+\leanok
+For every $k\ge2$ and every $x\in[0,1]$,
+\[
+  \bigl|B_k(x)\bigr| \;\le\; \frac{4\,k!}{(2\pi)^{k}} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+The Fourier expansion of the periodised Bernoulli function (mathlib) states, for $k\ge2$ and
+$x\in[0,1]$,
+\[
+  \sum_{n\in\mathbb Z}\frac{1}{n^{k}}\,e(nx)
+  \;=\; \frac{-(2\pi i)^{k}}{k!}\,B_k(x),
+  \qquad e(nx):=\text{(unit-modulus character, }\|e(nx)\|=1),
+\]
+where the $n=0$ term is $0$ (as $k\ge1$). Taking norms and using $\|e(nx)\|=1$,
+$\bigl|(2\pi i)^k\bigr|=(2\pi)^k$ and $\|n^{-k}\|=|n|^{-k}\le n^{-2}$ for $n\neq0$, $k\ge2$,
+\[
+  \frac{(2\pi)^{k}}{k!}\,|B_k(x)|
+  \;=\;\Bigl\|\sum_{n}\tfrac{e(nx)}{n^{k}}\Bigr\|
+  \;\le\;\sum_{n\in\mathbb Z}\frac{1}{n^{2}}
+  \;=\;\frac{\pi^{2}}{3}\;\le\;4 ,
+\]
+the value $\sum_{n\in\mathbb Z}n^{-2}=2\zeta(2)=\pi^2/3$ coming from
+$\sum_{n\ge1}n^{-2}=\pi^2/6$ (mathlib \texttt{hasSum\_zeta\_two}) summed over $\mathbb Z$, and
+$\pi^2/3\le4$ from $\pi^2<12$. Hence $|B_k(x)|\le 4\,k!/(2\pi)^k$.
+\end{proof}
+
+\begin{theorem}[Explicit digamma remainder bound]
+\label{thm:gs_remainder_bound_explicit}
+\lean{Complex.Stirling.norm_digammaRemainderIoi_le'}
+\leanok
+\uses{def:gs_remainder_Ioi, lem:gs_iteratedDeriv, lem:gs_bernoulli_sup}
+For every $s$ with $\operatorname{Re}s>0$ and every $p\ge2$,
+\[
+  \bigl|R_p(g_s;0,\infty)\bigr|
+  \;\le\; \frac{p!}{(2\pi)^{p-1}}\,\lvert s\rvert^{-p} .
+\]
+This is the Euler--Maclaurin error bound for the complex Gamma function (in logarithmic-derivative
+form) with the constant determined explicitly, in the style of \texttt{norm\_remainder\_le}.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_bernoulli_sup}
+As in \Cref{lem:gs_remainder_bound}, bound the integrand pointwise:
+$|\widetilde{B_p}(x)|\le 4\,p!/(2\pi)^p$ by \Cref{lem:gs_bernoulli_sup} (applied at
+$\operatorname{Int.fract}x\in[0,1)$), and $|g_s^{(p)}(x)|=p!\,|s+x|^{-(p+1)}$ by
+\Cref{lem:gs_iteratedDeriv}. Therefore
+\[
+  |R_p(g_s;0,\infty)|
+  \le \frac{1}{p!}\cdot\frac{4\,p!}{(2\pi)^p}\cdot p!\int_0^\infty|s+x|^{-(p+1)}\,dx
+  = \frac{4\,p!}{(2\pi)^p}\int_0^\infty|s+x|^{-(p+1)}\,dx .
+\]
+By the sharp integral bound (the change of variables of \Cref{lem:gs_remainder_bound}),
+$\int_0^\infty|s+x|^{-(p+1)}\,dx\le\bigl(\int_0^\infty(1+w^2)^{-1}\,dw\bigr)|s|^{-p}
+=\tfrac{\pi}{2}|s|^{-p}$. Hence
+$|R_p|\le \tfrac{4\,p!}{(2\pi)^p}\cdot\tfrac\pi2\,|s|^{-p}
+= \tfrac{2\pi\,p!}{(2\pi)^p}|s|^{-p}=\tfrac{p!}{(2\pi)^{p-1}}|s|^{-p}$.
+\end{proof}
+
+\begin{corollary}[Explicit first-order digamma bound]
+\label{cor:gs_digamma_first_order_explicit}
+\lean{Complex.Stirling.norm_digamma_sub_log_le'}
+\leanok
+\uses{thm:gs_digamma_stirling, thm:gs_remainder_bound_explicit}
+For every $a>0$ and every $s$ with $\operatorname{Re}s\ge a$,
+\[
+  \Bigl|\psi(s)-\operatorname{Log}s+\frac{1}{2s}\Bigr|
+  \;\le\; \Bigl(\frac{1}{12}+\frac{3}{2\pi^{2}a}\Bigr)\,\lvert s\rvert^{-2} .
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_digamma_stirling, thm:gs_remainder_bound_explicit}
+Take $M=1$ in \Cref{thm:gs_digamma_stirling}:
+$\psi(s)-\operatorname{Log}s+\tfrac1{2s}=-\tfrac{B_2}{2}s^{-2}-R_3(g_s;0,\infty)$ with
+$B_2=\tfrac16$, so $|\tfrac{B_2}{2}|=\tfrac1{12}$. By
+\Cref{thm:gs_remainder_bound_explicit} with $p=3$,
+$|R_3|\le \tfrac{3!}{(2\pi)^2}|s|^{-3}=\tfrac{6}{4\pi^2}|s|^{-3}=\tfrac{3}{2\pi^2}|s|^{-3}
+\le\tfrac{3}{2\pi^2 a}|s|^{-2}$ (using $|s|^{-3}\le a^{-1}|s|^{-2}$ from $|s|\ge a$).
+Adding gives the bound with constant $\tfrac1{12}+\tfrac{3}{2\pi^2 a}$.
+\end{proof}
+
+\section{The Stirling expansion of the digamma function}
+\label{sec:gs_stirling}
+
+We now let $N\to\infty$ in \Cref{lem:gs_sum_em}. The only term whose limit is not
+immediate is $\psi(s+N+1)-\operatorname{Log}(s+N)$; it converges to an additive
+constant $L$. We \emph{pin} $L=0$. This is the one independent analytic input of the
+chapter: $L$ cancels in the digamma recurrence and in every log-derivative
+functional equation, so pinning it uses the product structure of $\Gamma$. We obtain it from \emph{Gauss's
+digamma product limit}
+\[
+  \psi(s) \;=\; \lim_{n\to\infty}\Bigl(\operatorname{Log}n-\sum_{j=0}^{n}\frac1{s+j}\Bigr),
+  \qquad \operatorname{Re}s>0,
+\]
+which we derive from mathlib's Euler/Gauss limit $\operatorname{GammaSeq}(s,n)\to
+\Gamma(s)$ by upgrading it to \emph{locally uniform} convergence on the right
+half-plane and applying the locally-uniform log-derivative theorem. The two
+supporting lemmas come first.
+
+\begin{lemma}[Locally uniform Euler/Gauss limit on the right half-plane]
+\label{lem:gs_gammaSeq_locunif}
+\lean{Complex.Stirling.tendstoLocallyUniformlyOn_gammaSeq}
+\leanok
+On the open right half-plane $\Omega:=\{s\in\mathbb{C}:\operatorname{Re}s>0\}$ the
+sequence of holomorphic functions $s\mapsto\operatorname{GammaSeq}(s,n)$ (mathlib
+\texttt{Complex.GammaSeq}) converges to $\Gamma$ \emph{locally uniformly}; equivalently,
+uniformly on every compact $K\subset\Omega$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Fix a compact $K\subset\Omega$ and let $0<a\le b$ bound $\operatorname{Re}s$ on $K$.
+For $\operatorname{Re}s>0$, mathlib supplies the integral representations
+\[
+  \operatorname{GammaSeq}(s,n)=\int_{0}^{n}\Bigl(1-\tfrac{x}{n}\Bigr)^{n}x^{s-1}\,dx
+  \quad(\texttt{Complex.GammaSeq\_eq\_approx\_Gamma\_integral}),
+  \qquad
+  \Gamma(s)=\int_{0}^{\infty}e^{-x}x^{s-1}\,dx
+  \quad(\texttt{Complex.Gamma\_eq\_integral}).
+\]
+Writing the first integral over $(0,\infty)$ with the indicator $\mathbf 1_{(0,n)}$,
+and using $\lvert x^{s-1}\rvert=x^{\operatorname{Re}s-1}\le x^{a-1}+x^{b-1}$ for $x>0$
+when $\operatorname{Re}s\in[a,b]$,
+\[
+  \bigl\|\operatorname{GammaSeq}(s,n)-\Gamma(s)\bigr\|
+  \le\int_{0}^{\infty}
+     \Bigl|\mathbf 1_{(0,n)}(x)\bigl(1-\tfrac xn\bigr)^{n}-e^{-x}\Bigr|\,
+     \bigl(x^{a-1}+x^{b-1}\bigr)\,dx \;=:\;\varepsilon_n .
+\]
+The bound $\varepsilon_n$ is \emph{independent of $s$} (the $s$-dependence dropped out
+with $\lvert x^{s-1}\rvert$), and $\varepsilon_n\to0$ by dominated convergence: the
+integrand tends to $0$ pointwise (the elementary limit $(1-x/n)^{n}\to e^{-x}$,
+mathlib) and is dominated by the fixed integrable function
+$2e^{-x}(x^{a-1}+x^{b-1})$ (using $0\le(1-x/n)^{n}\le e^{-x}$ for $0\le x\le n$,
+\texttt{Complex.one\_sub\_div\_pow\_le\_exp\_neg}; integrability on $(0,\infty)$ holds
+since $a>0$). Hence $\sup_{s\in K}\|\operatorname{GammaSeq}(s,n)-\Gamma(s)\|\le
+\varepsilon_n\to0$, i.e. uniform convergence on $K$. As $K$ ranges over the compact
+subsets of $\Omega$ this is locally uniform convergence ($\Omega$ is locally compact).
+\end{proof}
+
+\begin{lemma}[Gauss's digamma product limit]
+\label{lem:gs_gauss}
+\lean{Complex.Stirling.tendsto_log_sub_sum_inv_add}
+\leanok
+\uses{lem:gs_gammaSeq_locunif}
+For every $s$ with $\operatorname{Re}s>0$,
+\[
+  \psi(s)=\lim_{n\to\infty}\Bigl(\operatorname{Log}n-\sum_{j=0}^{n}\frac1{s+j}\Bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_gammaSeq_locunif}
+Apply the locally-uniform log-derivative theorem
+(\texttt{Complex.logDeriv\_tendsto}) on the open set $\Omega=\{\operatorname{Re}>0\}$
+at the point $s$, to the sequence $f_n:=\bigl(w\mapsto\operatorname{GammaSeq}(w,n)\bigr)$
+with limit $g:=\Gamma$. Its three hypotheses hold:
+(i) $f_n\to g$ locally uniformly on $\Omega$ by \Cref{lem:gs_gammaSeq_locunif};
+(ii) each $f_n$ is holomorphic on $\Omega$, since
+$\operatorname{GammaSeq}(w,n)=n^{w}\,n!\big/\prod_{j=0}^{n}(w+j)$ is a quotient of
+entire functions whose denominator is nonzero on $\Omega$ (each $\operatorname{Re}(w+j)>0$);
+(iii) $g(s)=\Gamma(s)\neq0$ by \texttt{Complex.Gamma\_ne\_zero\_of\_re\_pos}.
+The theorem gives
+$\operatorname{logDeriv}f_n(s)\to\operatorname{logDeriv}\Gamma(s)=\psi(s)$
+(by $\psi=\operatorname{logDeriv}\Gamma$, \texttt{Complex.digamma\_def}). Finally
+compute the logarithmic derivative of $f_n$ termwise: from
+$\operatorname{logDeriv}(w\mapsto n^{w})=\operatorname{Log}n$,
+$\operatorname{logDeriv}(\text{const }n!)=0$ and
+$\operatorname{logDeriv}(w\mapsto w+j)=(s+j)^{-1}$,
+\[
+  \operatorname{logDeriv}f_n(s)
+   =\operatorname{Log}n-\sum_{j=0}^{n}\frac1{s+j}.
+\]
+Combining the two displays yields the claim.
+\end{proof}
+
+\begin{lemma}[The leading digamma constant vanishes]
+\label{lem:gs_anchor}
+\lean{Complex.Stirling.tendsto_digamma_sub_log_atTop}
+\leanok
+\uses{lem:gs_gauss, lem:gs_telescope}
+For every fixed $s$ with $\operatorname{Re}s>0$,
+\[
+  \lim_{N\to\infty}\bigl(\psi(s+N+1)-\operatorname{Log}(s+N)\bigr)=0 .
+\]
+Thus the additive Stirling constant is $L=0$; in particular it is real, with
+$\operatorname{Im}L=0$ (all that is used downstream).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_gauss, lem:gs_telescope}
+Split, for $N\ge1$,
+\[
+  \psi(s+N+1)-\operatorname{Log}(s+N)
+   =\underbrace{\bigl(\psi(s+N+1)-\operatorname{Log}N\bigr)}_{(\mathrm I)}
+    +\underbrace{\bigl(\operatorname{Log}N-\operatorname{Log}(s+N)\bigr)}_{(\mathrm{II})}.
+\]
+\emph{Term $(\mathrm{II})$.} $\operatorname{Log}N-\operatorname{Log}(s+N)
+=-\operatorname{Log}\bigl(1+\tfrac sN\bigr)\to-\operatorname{Log}1=0$ as $N\to\infty$,
+since $1+\tfrac sN\to1$ and $\operatorname{Log}$ is continuous at $1$ (the segment
+stays in the right half-plane).
+\emph{Term $(\mathrm I)$.} By the digamma telescope \Cref{lem:gs_telescope},
+$\psi(s+N+1)=\psi(s)+\sum_{j=0}^{N}(s+j)^{-1}$, hence
+\[
+  \psi(s+N+1)-\operatorname{Log}N
+   =\psi(s)-\Bigl(\operatorname{Log}N-\sum_{j=0}^{N}\tfrac1{s+j}\Bigr)
+   \xrightarrow[N\to\infty]{}\psi(s)-\psi(s)=0
+\]
+by Gauss's product limit \Cref{lem:gs_gauss}. Adding the two limits gives the claim;
+$L=0$ is real, so $\operatorname{Im}L=0$.
+\end{proof}
+
+\begin{theorem}[Euler--Maclaurin/Stirling expansion of the digamma function]
+\label{thm:gs_digamma_stirling}
+\lean{Complex.Stirling.digamma_eq_log_sub}
+\leanok
+\uses{lem:gs_sum_em, lem:gs_anchor, def:gs_remainder_Ioi, lem:gs_remainder_bound}
+For every $s$ with $\operatorname{Re}s>0$ and every $M\in\mathbb{N}$,
+\[
+  \psi(s) \;=\; \operatorname{Log}s \;-\; \frac{1}{2s}
+    \;-\; \sum_{k=1}^{M}\frac{B_{2k}}{2k}\,s^{-2k}
+    \;-\; R_{2M+1}(g_s;0,\infty) ,
+\]
+with the remainder rigorously bounded for $\operatorname{Re}s\ge a>0$ by
+$\bigl|R_{2M+1}(g_s;0,\infty)\bigr|\le C_{2M+1,a}\,\lvert s\rvert^{-(2M+1)}$
+(\Cref{lem:gs_remainder_bound}). This is the Euler--Maclaurin expansion of the
+complex Gamma function (in logarithmic-derivative form) with explicit error bound;
+the additive Stirling constant vanishes ($L=0$) by \Cref{lem:gs_anchor}.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_sum_em, lem:gs_anchor, lem:gs_remainder_bound}
+Rearrange \Cref{lem:gs_sum_em} to isolate $\psi(s)$:
+\[
+  \psi(s) = \Bigl[\operatorname{Log}s-\tfrac1{2s}
+    -\sum_{k=1}^{M}\tfrac{B_{2k}}{2k}s^{-2k}\Bigr]
+    + \Bigl[\psi(s+N+1)-\operatorname{Log}(s+N)-\tfrac1{2(s+N)}
+       +\sum_{k=1}^{M}\tfrac{B_{2k}}{2k}(s+N)^{-2k}\Bigr]
+    - R_{2M+1}(g_s;0,N).
+\]
+Let $N\to\infty$: the first bracket is $N$-free; in the second bracket
+$\psi(s+N+1)-\operatorname{Log}(s+N)\to 0$ by \Cref{lem:gs_anchor} and the remaining
+terms $\to0$; and $R_{2M+1}(g_s;0,N)\to R_{2M+1}(g_s;0,\infty)$
+(\Cref{def:gs_remainder_Ioi}). The bound is \Cref{lem:gs_remainder_bound}.
+\end{proof}
+
+\begin{corollary}[First-order digamma bound]
+\label{cor:gs_digamma_first_order}
+\lean{Complex.Stirling.norm_digamma_sub_log_le'}
+\leanok
+\uses{thm:gs_digamma_stirling, lem:gs_remainder_bound}
+Fix $a>0$. There is a constant $C_0=C_0(a)$ such that, for all $s$ with
+$\operatorname{Re}s\ge a$,
+\[
+  \Bigl|\psi(s)-\operatorname{Log}s+\frac{1}{2s}\Bigr|
+  \;\le\; \frac{C_0}{\lvert s\rvert^{2}} .
+\]
+In particular the error term $E(s):=\psi(s)-\operatorname{Log}s+\tfrac1{2s}$
+satisfies $|E(s)|\le C_0|s|^{-2}$, hence $\tau\mapsto E(\sigma+i\tau)$ is absolutely
+integrable on $[0,\infty)$ uniformly for $\sigma\ge a$.
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_digamma_stirling, lem:gs_remainder_bound}
+Take $M=1$ in \Cref{thm:gs_digamma_stirling}:
+$\psi(s)-\operatorname{Log}s+\tfrac1{2s}=-\tfrac{B_2}{2}s^{-2}-R_3(g_s;0,\infty)$
+with $B_2=\tfrac16$; bound $|s^{-2}|=|s|^{-2}$ and
+$|R_3(g_s;0,\infty)|\le C_{3,a}|s|^{-3}\le (C_{3,a}/a)|s|^{-2}$ by
+\Cref{lem:gs_remainder_bound}, giving $C_0=\tfrac1{12}+C_{3,a}/a$. Integrability of
+$\tau\mapsto|s|^{-2}=(\sigma^2+\tau^2)^{-1}$ on $[0,\infty)$ is standard.
+\end{proof}
+
+\section{Growth of \texorpdfstring{$|\Gamma|$}{|Gamma|} on vertical lines}
+\label{sec:gs_growth}
+
+We convert the digamma expansion into a two-sided bound on $|\Gamma(\sigma+it)|$ by
+integrating $\operatorname{Re}\psi$ along a vertical segment. The key branch-free
+identity is that $\log|\Gamma|$ has a globally defined derivative in the
+$t$-direction given by $-\operatorname{Im}\psi$, regardless of any choice of branch
+of $\log\Gamma$.
+
+\begin{lemma}[Vertical derivative of $\log|\Gamma|$]
+\label{lem:gs_deriv_logabs}
+\lean{Complex.hasDerivAt_log_norm_Gamma_vertical}
+\leanok
+For $\sigma>0$ and $t\in\mathbb{R}$,
+\[
+  \frac{d}{dt}\,\log\bigl|\Gamma(\sigma+it)\bigr|
+  \;=\; -\operatorname{Im}\psi(\sigma+it),
+  \qquad \psi=\Gamma'/\Gamma .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+On $\operatorname{Re}>0$, $\Gamma$ is holomorphic and non-vanishing
+(\texttt{Complex.Gamma\_ne\_zero\_of\_re\_pos}), so locally $\log|\Gamma|
+=\operatorname{Re}(\operatorname{Log}\circ\Gamma)$ for a holomorphic branch of
+$\operatorname{Log}\circ\Gamma$ whose complex derivative is $\Gamma'/\Gamma=\psi$.
+Along the path $t\mapsto\sigma+it$ (velocity $i$), the chain rule gives
+$\frac{d}{dt}\operatorname{Re}(\operatorname{Log}\Gamma(\sigma+it))
+=\operatorname{Re}\bigl(\psi(\sigma+it)\cdot i\bigr)=-\operatorname{Im}\psi(\sigma+it)$.
+The left-hand side equals $\frac{d}{dt}\log|\Gamma(\sigma+it)|$ because
+$\log|\Gamma|=\operatorname{Re}(\operatorname{Log}\Gamma)$ is branch-independent.
+(In Lean: differentiate $z\mapsto\log\|\Gamma z\|=\operatorname{Re}\log(\Gamma z)$
+using \texttt{Complex.hasDerivAt\_log} at $\Gamma(\sigma+it)\neq0$ and
+\texttt{Complex.digamma}; no global logarithm of $\Gamma$ is constructed.)
+\end{proof}
+
+\begin{lemma}[The integrated argument]
+\label{lem:gs_arg_integral}
+\lean{Complex.integral_im_log_add_ofReal_mul_I}
+\leanok
+For $\sigma>0$ and $t\in\mathbb{R}$,
+\[
+  \int_{0}^{t}\operatorname{Im}\operatorname{Log}(\sigma+i\tau)\,d\tau
+  = \int_0^t \arctan\!\frac{\tau}{\sigma}\,d\tau
+  = t\,\arctan\frac{t}{\sigma}-\frac{\sigma}{2}\log\!\Bigl(1+\frac{t^2}{\sigma^2}\Bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\operatorname{Im}\operatorname{Log}(\sigma+i\tau)=\arg(\sigma+i\tau)
+=\arctan(\tau/\sigma)$ for $\sigma>0$ (in Lean:
+$\arg=\arctan(\tan\circ\arg)$ via \texttt{Real.arctan\_tan} and \texttt{Complex.tan\_arg},
+using $\arg\in(-\tfrac\pi2,\tfrac\pi2)$ for positive real part). The antiderivative is elementary
+($\frac{d}{d\tau}[\tau\arctan(\tau/\sigma)-\tfrac\sigma2\log(\sigma^2+\tau^2)]
+=\arctan(\tau/\sigma)$), so the closed form follows by the fundamental theorem of calculus.
+\end{proof}
+
+\begin{remark}
+\label{rem:gs_arg_asymptotic}
+\uses{lem:gs_arg_integral}
+Consequently, for $t\to+\infty$ with $\sigma$ in a fixed compact set,
+\[
+  \int_{0}^{t}\operatorname{Im}\operatorname{Log}(\sigma+i\tau)\,d\tau
+  = \frac{\pi}{2}\,t - \sigma\log t + O_\sigma(1),
+\]
+using $\arctan(t/\sigma)=\tfrac\pi2-\arctan(\sigma/t)=\tfrac\pi2-O(\sigma/t)$ and
+$\log(1+t^2/\sigma^2)=2\log t-2\log\sigma+o(1)$. This asymptotic form is what \Cref{thm:gs_Gamma_growth} consumes; its
+proof derives it inline from the closed form of \Cref{lem:gs_arg_integral}.
+\end{remark}
+
+\begin{theorem}[Vertical-strip growth bound for $\Gamma$]
+\label{thm:gs_Gamma_growth}
+\lean{Complex.norm_Gamma_vertical_le}
+\leanok
+\uses{lem:gs_deriv_logabs, lem:gs_arg_integral, cor:gs_digamma_first_order}
+Fix reals $0<a\le b$. There are constants $0<c_1\le c_2$ (depending only on $a,b$)
+such that for all $\sigma\in[a,b]$ and all $t$ with $|t|\ge1$,
+\[
+  c_1\,|t|^{\,\sigma-\frac12}\,e^{-\frac{\pi}{2}|t|}
+  \;\le\; \bigl|\Gamma(\sigma+it)\bigr|
+  \;\le\; c_2\,|t|^{\,\sigma-\frac12}\,e^{-\frac{\pi}{2}|t|}.
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:gs_deriv_logabs, lem:gs_arg_integral, cor:gs_digamma_first_order, lem:gs_anchor}
+By symmetry $\Gamma(\overline z)=\overline{\Gamma(z)}$ we may take $t\ge1$.
+Integrating \Cref{lem:gs_deriv_logabs} from $0$ to $t$,
+\[
+  \log\bigl|\Gamma(\sigma+it)\bigr|-\log\Gamma(\sigma)
+  = -\int_0^t \operatorname{Im}\psi(\sigma+i\tau)\,d\tau .
+\]
+By \Cref{cor:gs_digamma_first_order} write
+$\psi(z)=\operatorname{Log}z-\tfrac1{2z}+E(z)$ with $|E(z)|\le C_0|z|^{-2}$ (the
+additive Stirling constant being $0$, \Cref{lem:gs_anchor}). Taking imaginary parts,
+\[
+  \operatorname{Im}\psi(\sigma+i\tau)
+  =\operatorname{Im}\operatorname{Log}(\sigma+i\tau)
+   -\operatorname{Im}\tfrac1{2(\sigma+i\tau)}
+   +\operatorname{Im}E(\sigma+i\tau).
+\]
+The first term integrates by \Cref{lem:gs_arg_integral} to
+$\tfrac\pi2 t-\sigma\log t+O_{a,b}(1)$. For the second,
+$-\int_0^t\operatorname{Im}\bigl(-\tfrac1{2(\sigma+i\tau)}\bigr)d\tau
+=-\tfrac12\int_0^t\frac{\tau}{\sigma^2+\tau^2}\,d\tau
+=-\tfrac14\log(1+t^2/\sigma^2)=-\tfrac12\log t+O_{a,b}(1)$. For the third,
+$\bigl|\int_0^t\operatorname{Im}E(\sigma+i\tau)\,d\tau\bigr|
+\le\int_0^\infty C_0(\sigma^2+\tau^2)^{-1}\,d\tau
+=\tfrac{C_0\pi}{2\sigma}\le\tfrac{C_0\pi}{2a}=O_{a,b}(1)$, absolutely convergent
+precisely because the sharpened bound $|E(z)|\le C_0|z|^{-2}$ of
+\Cref{cor:gs_digamma_first_order} decays in $\tau$ (the coarser $(\operatorname{Re}
+z)^{-3}=\sigma^{-3}$ bound, constant in $\tau$, would only give $O(t)$ here).
+Collecting,
+\[
+  \log\bigl|\Gamma(\sigma+it)\bigr|
+  = -\tfrac\pi2 t + \sigma\log t - \tfrac12\log t + O_{a,b}(1)
+  = \bigl(\sigma-\tfrac12\bigr)\log t - \tfrac\pi2 t + O_{a,b}(1),
+\]
+the $O_{a,b}(1)$ being bounded above and below uniformly for $\sigma\in[a,b]$,
+$t\ge1$ (it collects $\log\Gamma(\sigma)$, which is continuous hence bounded on
+$[a,b]$, and the three $O_{a,b}(1)$ remainders). Exponentiating gives the two-sided
+bound with $c_1=e^{\inf O},\ c_2=e^{\sup O}$.
+\end{proof}
+
+\begin{remark}
+\label{rem:gs_chi}
+The export of interest is the \emph{upper} bound of \Cref{thm:gs_Gamma_growth} on a
+fixed vertical line: combined with mathlib's functional equation
+$\zeta(1-s)=2(2\pi)^{-s}\Gamma(s)\cos(\tfrac{\pi s}2)\zeta(s)$
+(\texttt{riemannZeta\_one\_sub}) and the elementary
+$|\cos(\tfrac{\pi s}2)|\le e^{\frac\pi2|\operatorname{Im}s|}$, the factor
+$e^{-\frac\pi2|t|}$ of $\Gamma$ cancels the growth of $\cos$, controlling
+$|\zeta|$ left of the critical strip. This cancellation is why a sharp $\Gamma$
+bound is required: the trivial $|\Gamma(x+iy)|\le\Gamma(x)$ lacks the
+$e^{-\frac\pi2|t|}$ decay. The Lehman \emph{upper} bound (\Cref{sec:lb_upper}) uses a
+convexity-free argument and does not depend on this; the cancellation logic above is the
+route by which Stirling for
+$\Gamma_\R(s)=\pi^{-s/2}\Gamma(s/2)$ enters the archimedean term of the Lehman
+\emph{lower} bound (\Cref{lem:lb_I_lower}).
+\end{remark}

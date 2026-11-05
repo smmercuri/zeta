@@ -1,0 +1,28 @@
+% This file makes the web version of the blueprint (built with plasTeX / leanblueprint).
+% Build locally with:  leanblueprint web    (or:  leanblueprint all)
+
+\documentclass{report}
+
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage[capitalize]{cleveref}
+\usepackage[showmore, dep_graph, project=../../]{blueprint}
+
+\input{preamble/common}
+\input{preamble/web}
+
+\github{https://github.com/smmercuri/zeta}
+% Set these when you deploy to GitHub Pages / doc-gen:
+% \home{https://smmercuri.github.io/zeta}
+% \dochome{https://smmercuri.github.io/zeta/docs}
+
+\title{Certifying the Riemann Hypothesis up to bounded height}
+\author{Salvatore Mercuri, Bhavik Mehta}
+
+\begin{document}
+\maketitle
+\input{content}
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

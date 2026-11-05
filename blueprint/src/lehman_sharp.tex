@@ -1,0 +1,1028 @@
+% Blueprint: sharpening the additive constant A of the Lehman bound towards Lehman's 2.30.
+
+\chapter{Sharpening the additive constant towards Lehman's value}
+\label{cha:lehman_sharp}
+
+The unconditional bound of \Cref{cha:lehman_explicit} pins the additive constant at
+$A\le 18$ (\Cref{thm:le_sharp}, \lean{norm_integral_argZeta_le_eighteen_unconditional}).
+This chapter fixes the exact dependence of $A$ on four parameters and reduces the
+sharper goal
+\[
+  \Bigl|\int_{t_1}^{t_2}S(t)\,dt\Bigr|\ \le\ \tfrac{13}{5}+0.128\,\log\frac{t_2}{2\pi},
+  \qquad 168\pi<t_1<t_2,
+\]
+(i.e.\ $A\le\tfrac{13}{5}=2.6$, within rounding of Lehman's $2.30$
+\cite{Lehman1970}) to three precisely stated estimates, and verifies that the
+reduction is numerically consistent.
+
+We work throughout with the parametric core
+\lean{norm_integral_argZeta_le_of_bounds} of \Cref{thm:lb_main},
+whose additive constant is
+\begin{equation}
+  A=\frac{(a_1+a_2)+(b_1+b_2)\log 2\pi}{\pi},
+  \qquad
+  B=\frac{b_1+b_2}{\pi}\le 0.128,
+  \tag{Budget}
+  \label{eq:ls_budget}
+\end{equation}
+where the two $I(t)$-bounds (\Cref{lem:lb_I_upper} and \Cref{lem:lb_I_lower}) read
+$I(t)\le a_1+b_1\log t$ and $-I(t)\le a_2+b_2\log t$ for $t\ge 168\pi$, with
+$I(t)=\int_{1/2}^\infty\log|\zeta(\sigma+it)|\,d\sigma$
+(\lean{logNormZetaIntegral}).
+
+\section{The constant budget and the four parameters}
+\label{sec:ls_budget}
+
+Recall (\Cref{lem:lb_I_lower}, \lean{le_logNormZetaIntegral_of}) the
+structure of the lower additive constant,
+\begin{equation}
+  a_2=c\,d^2\,C_\psi+d^2\kappa+2C_t+C_a,
+  \qquad
+  b_2=\frac{d^2}{2}\,(c-1),
+  \tag{A2}
+  \label{eq:ls_a2}
+\end{equation}
+in terms of:
+\emph{(Note.} the formalised core \lean{le_logNormZetaIntegral_of_le} proves
+\textup{(A2)} for every pairing constant $c\ge2$, the constant threading through
+\Cref{lem:lb_booker}$\to$\Cref{lem:ll_booker_sum}$\to$\Cref{lem:lb_I_lower};
+\lean{le_logNormZetaIntegral_of} is its case $c=\tfrac52$.\emph{)}
+\begin{itemize}
+  \item the \emph{pairing constant} $c$ of \Cref{lem:lb_booker} ($c=\tfrac52$ there;
+        it enters $a_2$ linearly and $b_2$ through $c-1$);
+  \item the \emph{strip depth} $d$, with evaluation point $s_d=\tfrac12+d+it$
+        ($d=\tfrac{53}{100}$ in \Cref{cha:lehman_lower}, i.e.\ $\sigma=\tfrac12+d=1.03$);
+  \item $\kappa=0$ (\Cref{sec:le_kappa}, \lean{hadamardConst_add_tsum_re_inv_riemannXiZeros_eq_zero}),
+        so the $d^2\kappa$ term vanishes;
+  \item the \emph{zero-sum constant} $C_\psi$ of \Cref{lem:ll_zeta_sum}:
+        $\sum_\rho\Re\,\tfrac1{s_d-\rho}\le\tfrac12\log t+C_\psi$;
+  \item the \emph{tail constant} $C_t\ge\int_{1/2+d}^\infty\!\bigl(\zeta(\sigma)-1\bigr)\,d\sigma$
+        of \Cref{lem:ll_tail};
+  \item the \emph{archimedean constant} $C_a$ of \Cref{lem:ll_arch}.
+\end{itemize}
+The upper bound contributes $a_1$ and its coefficient $b_1$ ($b_1=\tfrac3{16}$ in
+\Cref{lem:lb_I_upper}).
+
+Thus the four parameters are $c,d,b_1$ and the \emph{quality} of the estimates
+$C_\psi,C_t,C_a,a_1$. Substituting \textup{(A2)} with $\kappa=0$ into
+\textup{(Budget)} gives the working form
+\begin{equation}
+  \pi A=a_1+\underbrace{c\,d^2\,C_\psi+2C_t+C_a}_{a_2}
+        +(b_1+b_2)\log 2\pi,
+  \qquad
+  b_1+b_2=b_1+\tfrac{d^2}2(c-1).
+  \tag{$\star$}
+  \label{eq:ls_master}
+\end{equation}
+
+\begin{lemma}[Feasibility reduction]
+\label{lem:ls_feasible}
+Fix $c,d,b_1$ and constants $C_\psi,C_t,C_a,a_1$. If
+\begin{equation}
+  b_1+\tfrac{d^2}2(c-1)\le 0.128\,\pi\ (=0.40212\ldots)
+  \tag{Shape}
+  \label{eq:ls_shape}
+\end{equation}
+and
+\begin{equation}
+  a_1+c\,d^2\,C_\psi+2C_t+C_a\ \le\ \tfrac{13}{5}\pi-(b_1+\tfrac{d^2}2(c-1))\log 2\pi,
+  \tag{Add}
+  \label{eq:ls_add}
+\end{equation}
+then $A\le\tfrac{13}{5}$ and $B\le 0.128$.
+\end{lemma}
+
+\begin{proof}
+Immediate from \textup{(Budget)}--\textup{($\star$)}: \textup{(Shape)} is
+$B\le0.128$, and \textup{(Add)} rearranges to $\pi A\le\tfrac{13}5\pi$.
+\end{proof}
+
+The right-hand side of \textup{(Add)} is $\tfrac{13}5\pi-(b_1+b_2)\log2\pi\approx
+8.168-0.74\approx 7.43$; the task is to make the left-hand side $a_1+a_2$ fit under
+$\approx 7.43$. The values $a_1\approx 8.83$, $a_2\approx 46.6$ of \Cref{cha:lehman_bound}
+overshoot by an order of magnitude, and \Cref{sec:ls_pairing}, \Cref{sec:ls_upper} and
+\Cref{sec:ls_lower} identify where the excess lives and how each parameter removes it.
+
+\section{The pairing constant: the separable floor}
+\label{sec:ls_pairing}
+
+The pairing constant $c$ controls both the dominant term $c\,d^2C_\psi$ of $a_2$ and,
+through $b_2=\tfrac{d^2}2(c-1)$, the depth $d$ admissible under \textup{(Shape)}.
+Its lower bound under the separable reduction therefore governs the whole budget.
+
+\subsection{What the separable reduction can and cannot prove}
+
+Recall the reduction of \Cref{lem:lb_booker} (\Cref{sec:lb_lower}): after
+\Cref{lem:lb_booker_scalar} splits the paired kernel $\psi=k_{-u}+k_u$ and bounds
+each single pole \emph{separately}, everything rests on the one-variable--folded
+scalar inequality
+\begin{equation}
+  R(m,v):=\frac{(m^2+v^2)\,P(m,v)}{m}\ \le\ c,
+  \qquad m\in(0,2],\ v\neq 0,
+  \tag{R}
+  \label{eq:ls_R}
+\end{equation}
+where $P(m,v)$ is the folded single-pole integral (\lean{bookerSinglePole})
+and $P(m,0)=\Phi_0(m)$ is the slice (\lean{bookerSlice}).
+
+\begin{lemma}[Separable floor]
+\label{lem:ls_floor}
+\uses{lem:lb_booker_scalar, lem:lb_slice_bound}
+The separable reduction \textup{(R)} can hold only for
+\[
+  c\ \ge\ \mu:=\max_{0<m\le 2}m\,\Phi_0(m)\ =\ 1.4794\ldots,
+\]
+attained at $v=0$, $m=m_\ast\approx 0.9217$. In particular no $c<\mu$ (neither
+Booker's sharp $c=\log 4\approx 1.386$ nor the value $c=\tfrac75=1.4$) is provable
+from \textup{(R)}; reaching any $c<\mu$ requires a two-variable estimate that keeps
+the two paired poles together in place of the pole-splitting of
+\Cref{lem:lb_booker_scalar} (Booker; Trudgian, Lemma~2.10 \cite{TrudgianTuring}).
+\end{lemma}
+
+\begin{proof}
+Since $R$ is continuous in $v$ and $R(m,v)\to m\,\Phi_0(m)$ as $v\to0^+$ (with
+$P(m,0)=\Phi_0(m)$), for each fixed $m$ one has
+$\sup_{v\neq0}R(m,v)\ge m\,\Phi_0(m)$; taking the supremum over $m$,
+$\sup_{m,v\neq0}R(m,v)\ge\sup_m m\,\Phi_0(m)=\mu$. Hence \textup{(R)} forces
+$c\ge\mu$, the necessary condition asserted. The value $\mu=1.4794\ldots$
+and its location are the one-variable optimisation already isolated in
+\Cref{lem:lb_slice_bound} (whose formalised bound $m\,\Phi_0(m)\le\tfrac{15}8$
+over-estimates $\mu$ by $\approx0.40$). That $\mu$ is also the exact separable
+\emph{sup} (so that the ceiling cannot be beaten below $\mu$ while the two poles are
+bounded independently) is the sharp value; the strictly smaller joint constant
+$\log4<\mu$ (equality at $w=0$) is a different argument (the joint estimate of
+\Cref{lem:ls_rung_threehalf} and beyond).
+\end{proof}
+
+\begin{remark}[The target $c=\tfrac75$]
+\Cref{lem:ls_floor} rules out the target $c=\tfrac75$: it lies below the separable
+floor $\mu=1.4794$. Lehman's optimised $2.30$ uses the \emph{separable} constant
+$c=\tfrac32$ (the slice maximum $\mu$ rounded up, margin $0.02$); Booker's $\log4$ is
+a strictly sharper, later refinement (\cite{TrudgianTuring}) that reaching $2.30$
+does not need, and \Cref{lem:lb_booker} uses the separable route. The two reachable
+pairing constants are treated next.
+\end{remark}
+
+\subsection{Two reachable pairing constants}
+
+\begin{lemma}[$c=2$ by a one-variable slice sharpening]
+\label{lem:ls_rung_two}
+\lean{bookerPairIntegral_le_two}
+\leanok
+\uses{lem:lb_slice_bound, lem:lb_slice_recip_bound}
+Suppose the slice bound of \Cref{lem:lb_slice_bound} is sharpened from
+$m\,\Phi_0(m)\le\tfrac{15}8$ to
+\begin{equation}
+  m\,\Phi_0(m)\ \le\ \tfrac32
+  \qquad(0<m\le 2),
+  \tag{Slice$_{3/2}$}
+  \label{eq:ls_slice}
+\end{equation}
+equivalently (with $x=1/m$, \Cref{lem:lb_slice_recip_eq}) the reciprocal-slice bound
+$L(x)\le\tfrac32 x^2$ for $x\ge\tfrac12$, where
+$L(x)=(x+1)\log(x+1)-(x-1)\log|x-1|$. Then the concentrated-régime step
+$R(m,v)\le\tfrac43 m\,\Phi_0(m)$ of \Cref{lem:lb_booker_single} yields $R\le2$, and
+\Cref{lem:lb_booker} holds with $c=2$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+\leanok
+The bound \textup{(Slice$_{3/2}$)} is true, since $m\,\Phi_0(m)\le\mu=1.4794<\tfrac32$; the
+work is to close the $0.02$ margin in an \texttt{nlinarith}-friendly enclosure.
+Re-run the existing tangent/chord proof of \Cref{lem:lb_slice_recip_bound}
+(convex piece $[\tfrac12,1]$ by a secant chord; concave piece $[1,\infty)$ by a
+tangent at $x_0=\tfrac{13}{12}$), but against the sharper parabola $\tfrac32 x^2$
+in place of $\tfrac{15}8 x^2$. The tangent point is re-optimised (the maximiser
+of $L(x)/x^2$ is $x_\ast=1/m_\ast\approx1.085$, so take $x_0$ near $x_\ast$), and the
+residual discriminant conditions $s^2\le 3(-c_0)$ tighten from the $\tfrac{15}8$ case;
+they close by \texttt{nlinarith} with the same $\log$ enclosures
+(\lean{Real.log_two_lt_d9}, the derived $\log3,\log5$ bounds), possibly after one
+extra subdivision of $[\tfrac12,1]$. The argument is one-variable. Everything downstream of
+\Cref{lem:lb_slice_bound} (the $\tfrac43$-sector step, \Cref{lem:lb_booker_single},
+\Cref{lem:lb_booker_scalar}, \Cref{lem:lb_booker}) goes through with $c=2$ in place of
+$\tfrac52$.
+\end{proof}
+
+\subsubsection*{The joint two-variable estimate \texorpdfstring{$c=\tfrac32$}{c=3/2}}
+
+The one-variable bound of \Cref{lem:ls_rung_two} stops at $c=2$ because it decouples the two tight
+extremes: the coarse bound $R(m,v)\le\tfrac43 m\,\Phi_0(m)$ of
+\Cref{lem:lb_booker_single} combines $m^2+v^2<\tfrac43 m^2$ (tight only at the sector
+edge $3v^2=m^2$) with $P(m,v)\le\Phi_0(m)$ (tight only at $v=0$), giving
+$\tfrac43\mu=1.973$. To reach $\tfrac32$ we keep the two factors coupled. Throughout
+write $w:=v^2$, and for $\tau\in[0,1]$
+\[
+  a_\tau:=(m+\tau)^2,\qquad b_\tau:=(m-\tau)^2,\qquad a_\tau\ge b_\tau\ge0,\quad
+  a_\tau-b_\tau=4m\tau,
+\]
+so that, by the integration-by-parts representation
+(\Cref{lem:lb_P_le_slice}, \lean{bookerSinglePole_eq_half_integral_log})
+and the closed form of $\Phi_0$ (\lean{bookerSlice_eq_integral}),
+\begin{equation}
+  P(m,v)=\tfrac12\int_0^1\log\frac{a_\tau+w}{b_\tau+w}\,d\tau,
+  \qquad
+  \Phi_0(m)=\tfrac12\int_0^1\log\frac{a_\tau}{b_\tau}\,d\tau,
+  \tag{IBP}
+  \label{eq:ls_r2_ibp}
+\end{equation}
+and we set $g(w):=(m^2+w)\,P(m,v)$, so that $R(m,v)=g(w)/m$ and
+$g(0)=m^2\Phi_0(m)$. The whole estimate reduces to the \emph{product monotonicity}
+$g(w)\le g(0)$ on the concentrated sector, which combined with the formalised
+sharpened slice $m\,\Phi_0(m)\le\tfrac32$ (\Cref{lem:ls_rung_two},
+\lean{mul_bookerSlice_le}) yields
+$R=g(w)/m\le g(0)/m=m\,\Phi_0(m)\le\tfrac32$.
+
+We isolate two elementary ingredients and a pointwise domination.
+
+\begin{lemma}[Reciprocal--mean logarithm bound]
+\label{lem:ls_r2_amgm}
+\lean{log_div_le_sub_div_sqrt_mul}
+For all reals $p\ge q>0$,
+\[
+  \log\frac pq\ \le\ \frac{p-q}{\sqrt{pq}}.
+\]
+\end{lemma}
+
+\begin{proof}
+Put $r:=\sqrt{p/q}\ge1$. Then $\log(p/q)=2\log r$ and
+$(p-q)/\sqrt{pq}=r-r^{-1}$, so the claim is $2\log r\le r-r^{-1}$ for $r\ge1$. The
+difference $h(r):=r-r^{-1}-2\log r$ has $h(1)=0$ and
+$h'(r)=1+r^{-2}-2r^{-1}=(1-r^{-1})^2\ge0$, so $h\ge0$ on $[1,\infty)$
+(\texttt{monotoneOn\_of\_deriv\_nonneg}). This is the classical
+$\log\le$ geometric-mean-normalised difference; only the direction $p\ge q$ is used.
+\end{proof}
+
+\begin{lemma}[Coupling identity]
+\label{lem:ls_r2_algebra}
+\lean{mul_add_sq_sub_sq_eq}
+For all reals $m,\tau,w$, with $a_\tau,b_\tau$ as above,
+\[
+  (a_\tau+w)(b_\tau+w)-(m^2+w)^2\ =\ \tau^2\,\bigl(\tau^2-2m^2+2w\bigr).
+\]
+In particular $(a_\tau+w)(b_\tau+w)\le(m^2+w)^2$ whenever $\tau^2\le2(m^2-w)$.
+\end{lemma}
+
+\begin{proof}
+Direct expansion: $a_\tau b_\tau=(m^2-\tau^2)^2$ and $a_\tau+b_\tau=2(m^2+\tau^2)$, so
+$(a_\tau+w)(b_\tau+w)=(m^2-\tau^2)^2+2w(m^2+\tau^2)+w^2$; subtracting
+$(m^2+w)^2=m^4+2m^2w+w^2$ leaves $\tau^4-2m^2\tau^2+2w\tau^2=\tau^2(\tau^2-2m^2+2w)$
+(\texttt{ring}). The final clause is the sign of the right-hand side.
+\end{proof}
+
+\begin{lemma}[Pointwise product domination]
+\label{lem:ls_r2_pointwise}
+\lean{mul_add_log_le_of_sq_le}
+Fix $m>0$, $\tau\in(0,1]$ with $\tau\neq m$, and $w_0\ge0$ with
+$\tau^2\le2(m^2-w_0)$. Then for every $w\in[0,w_0]$,
+\[
+  (m^2+w)\,\log\frac{a_\tau+w}{b_\tau+w}\ \le\ m^2\,\log\frac{a_\tau}{b_\tau}.
+\]
+\end{lemma}
+
+\begin{proof}
+\uses{lem:ls_r2_amgm, lem:ls_r2_algebra}
+Since $\tau\neq m$ we have $b_\tau>0$, so
+$F(w):=(m^2+w)\log\frac{a_\tau+w}{b_\tau+w}$ is $C^1$ on $[0,w_0]$ with $F(0)$ the
+right-hand side. It suffices to show $F'\le0$ on $[0,w_0]$. Differentiating,
+\[
+  F'(w)=\log\frac{a_\tau+w}{b_\tau+w}
+        -(m^2+w)\,\frac{a_\tau-b_\tau}{(a_\tau+w)(b_\tau+w)} .
+\]
+By \Cref{lem:ls_r2_amgm} with $p=a_\tau+w\ge q=b_\tau+w>0$,
+\[
+  \log\frac{a_\tau+w}{b_\tau+w}\ \le\ \frac{a_\tau-b_\tau}{\sqrt{(a_\tau+w)(b_\tau+w)}} .
+\]
+For $w\in[0,w_0]$ one has $\tau^2\le2(m^2-w_0)\le2(m^2-w)$, so by
+\Cref{lem:ls_r2_algebra} $(a_\tau+w)(b_\tau+w)\le(m^2+w)^2$, i.e.\
+$\sqrt{(a_\tau+w)(b_\tau+w)}\le m^2+w$; since $a_\tau-b_\tau=4m\tau\ge0$,
+\[
+  \frac{a_\tau-b_\tau}{\sqrt{(a_\tau+w)(b_\tau+w)}}
+  \ \le\ (m^2+w)\,\frac{a_\tau-b_\tau}{(a_\tau+w)(b_\tau+w)} ,
+\]
+whence $F'(w)\le0$. Integrating, $F(w)\le F(0)$.
+\end{proof}
+
+\begin{lemma}[Wide régime: product monotonicity for $w\le m^2-\tfrac12$]
+\label{lem:ls_r2_wide}
+\uses{lem:ls_r2_pointwise, lem:lb_P_le_slice}
+\lean{mul_bookerSinglePole_le_of_add_half_le}
+Let $m>0$ and $0\le w\le m^2-\tfrac12$ (so in particular $m^2\ge\tfrac12$). Then
+$g(w)=(m^2+w)\,P(m,v)\le m^2\Phi_0(m)=g(0)$.
+\end{lemma}
+
+\begin{proof}
+For a.e.\ $\tau\in(0,1)$ (all but $\tau=m$, a null point) the hypothesis gives
+$\tau^2\le1\le2(m^2-w)$, so \Cref{lem:ls_r2_pointwise} (with $w_0=w$) yields
+$(m^2+w)\log\frac{a_\tau+w}{b_\tau+w}\le m^2\log\frac{a_\tau}{b_\tau}$. Integrating over
+$[0,1]$, multiplying by $\tfrac12$ and using \textup{(IBP)}
+(\texttt{integral\_mono\_on}) gives
+$(m^2+w)P(m,v)\le m^2\Phi_0(m)$; the integrability of $\log(a_\tau/b_\tau)$ is the
+$\log$-singularity at $\tau=m$ already handled in \Cref{lem:lb_P_le_slice}.
+\end{proof}
+
+\begin{remark}[The wide régime already covers the tight margin]
+\label{rem:ls_r2_wide_covers}
+On the concentrated sector $3v^2<m^2$ with $m\ge\tfrac{\sqrt3}2$ one has
+$w<\tfrac{m^2}3\le m^2-\tfrac12$ (the last step is $m^2\ge\tfrac34$), so
+\Cref{lem:ls_r2_wide} applies and $R=g(w)/m\le m\,\Phi_0(m)\le\tfrac32$. The
+\emph{tight} part of the estimate (the neighbourhood of the maximiser
+$m_\ast\approx0.9217$, where $m\,\Phi_0(m)$ approaches $\mu=1.4794$ and the margin to
+$\tfrac32$ is only $\approx0.02$) lies in this régime ($m_\ast>\tfrac{\sqrt3}2$), so
+it is dispatched by the \emph{clean, pointwise} \Cref{lem:ls_r2_pointwise}. The
+residual below is where $m$ is bounded away from $m_\ast$ and $m\,\Phi_0(m)\le1.46$,
+leaving a comfortable margin $\approx0.04$.
+\end{remark}
+
+\begin{lemma}[Sliver régime: the two-variable core]
+\label{lem:ls_r2_sliver}
+\uses{lem:lb_booker_single, lem:ls_r2_wide}
+\lean{mul_bookerSinglePole_le_sliver}
+Let $0<m<\tfrac{\sqrt3}2$ and $\max(0,m^2-\tfrac12)<w<\tfrac{m^2}3$. Then
+$R(m,v)=g(w)/m\le\tfrac32$.
+\end{lemma}
+
+\begin{proof}[Proof strategy (the two-variable step)]
+This is the only régime not reduced to a pointwise inequality: for
+$\tau^2>2(m^2-w)$ (possible here, since $2(m^2-w)<1$) the monotone comparison of
+\Cref{lem:ls_r2_pointwise} reverses, and one must use the exact integral. The region
+\[
+  K=\Bigl\{(m,w):0<m\le\tfrac{\sqrt3}2,\ \max\!\bigl(0,m^2-\tfrac12\bigr)\le w\le\tfrac{m^2}3\Bigr\}
+\]
+is a \emph{compact two-dimensional} box (there is no scaling symmetry: the tent
+support $\tau\in[0,1]$ is fixed, so under $(m,w)\mapsto(\lambda m,\lambda^2w)$ the
+integrand endpoints $m\pm1$ do not scale, and $R$ depends on both $m$ and $w$). Two self-contained routes on \textup{(IBP)}, each reducing $K$ to an
+explicit certificate; the numerical target is comfortable, $\sup_K R\approx1.46<\tfrac32$
+(margin $\approx0.04$, cf.\ \Cref{rem:ls_r2_wide_covers}).
+
+\emph{(a) Closed form.} Integrating \textup{(IBP)} by the elementary
+antiderivative $\int\log(\rho^2+w)\,d\rho=\theta_w(\rho)$, where
+$\theta_w(\rho):=\rho\log(\rho^2+w)-2\rho+2\sqrt w\,\arctan(\rho/\sqrt w)$
+(one checks $\theta_w'(\rho)=\log(\rho^2+w)$), the substitutions $\rho=m\pm\tau$ give
+\[
+  2\,P(m,v)=\theta_w(m+1)-2\theta_w(m)+\theta_w(m-1) ,
+\]
+so $R(m,v)=\tfrac{m^2+w}{2m}\bigl[\theta_w(m+1)-2\theta_w(m)+\theta_w(m-1)\bigr]$ is an
+\emph{explicit} elementary function of $(m,w)$. The claim $R\le\tfrac32$ on $K$ is then
+a transcendental inequality in two variables, to be certified by a two-dimensional
+enclosure: cover $K$ by a finite grid of sub-boxes and, on each, bound $\log$ and
+$\arctan$ above/below by their tangent/secant lines (as in the one-variable slice bound
+\Cref{lem:lb_slice_recip_bound}, \lean{bookerSliceReciprocal_le}) together
+with the derived $\log2,\log3$ enclosures and the monotonicity of $\arctan$; the grid is
+finite because the margin to $\tfrac32$ is bounded below on $K$. (The certificate is
+two-dimensional.)
+
+\emph{(b) Split integral, via a stated deficit lemma.} Alternatively keep
+\textup{(IBP)} and split at $\tau_0:=\sqrt{2(m^2-w)}\in(m,1)$: on $[0,\tau_0]$
+the pointwise bound of \Cref{lem:ls_r2_pointwise} gives
+$(m^2+w)\!\int_0^{\tau_0}\!\log\frac{a_\tau+w}{b_\tau+w}\,d\tau\le m^2\!\int_0^{\tau_0}\!\log\frac{a_\tau}{b_\tau}\,d\tau$,
+so $g(w)\le g(0)+\Delta$ with the deficit
+\[
+  \Delta:=\tfrac{m^2+w}2\int_{\tau_0}^1\!\Bigl[\log\tfrac{a_\tau+w}{b_\tau+w}
+      -\tfrac{m^2}{m^2+w}\log\tfrac{a_\tau}{b_\tau}\Bigr]d\tau ,
+\]
+where on $[\tau_0,1]$ one has $\tau>m$ so both integrands are regular. Route (b) closes
+iff $\Delta\le m\bigl(\tfrac32-m\,\Phi_0(m)\bigr)$, the surplus slice margin.
+Discarding the $\log(a_\tau/b_\tau)$ term over-estimates $\Delta$ beyond the margin, so
+this is shown by evaluating $\Delta$ through the closed form $\theta_w$ of route (a)
+restricted to $[\tau_0,1]$: the same explicit transcendental estimate, stated separately
+as \lean{bookerSinglePole_sliver_deficit_le}. Route (a) is the primary route; route (b)
+is an alternative decomposition of it.
+\end{proof}
+
+\begin{lemma}[$c=\tfrac32$ by a joint two-variable estimate]
+\label{lem:ls_rung_threehalf}
+\uses{lem:lb_booker_single, lem:ls_r2_wide, lem:ls_r2_sliver, lem:ls_rung_two}
+The pairing bound \Cref{lem:lb_booker} holds with $c=\tfrac32$, i.e.\
+$R(m,v)\le\tfrac32$ for all $m\in(0,2]$, $v\neq0$; equivalently the single-pole bound
+\Cref{lem:lb_booker_single} holds with $\tfrac32$ in place of $\tfrac52$, and so do
+all its downstream pairing bounds.
+\end{lemma}
+
+\begin{proof}
+By \Cref{lem:lb_booker_single} the case $m=0$ is trivial, and the dispersive sector
+$3v^2\ge m^2$ already gives $R(m,v)\le1+E(m,v)\le1\le\tfrac32$ via
+$E(m,v)\le0$ (\lean{bookerSinglePole_le_of_dispersive}). So assume the
+concentrated sector $0<3v^2<m^2$, i.e.\ $0\le w<\tfrac{m^2}3$, and $m>0$.
+\begin{itemize}
+  \item If $w\le m^2-\tfrac12$ then \Cref{lem:ls_r2_wide} gives
+        $g(w)\le g(0)=m^2\Phi_0(m)$, whence
+        $R=g(w)/m\le m\,\Phi_0(m)\le\tfrac32$ by \Cref{lem:ls_rung_two}
+        (\lean{mul_bookerSlice_le}). This includes every
+        $m\ge\tfrac{\sqrt3}2$ (\Cref{rem:ls_r2_wide_covers}).
+  \item Otherwise $\max(0,m^2-\tfrac12)<w<\tfrac{m^2}3$, forcing $m<\tfrac{\sqrt3}2$,
+        and \Cref{lem:ls_r2_sliver} gives $R\le\tfrac32$ directly.
+\end{itemize}
+In both cases $R(m,v)\le\tfrac32$. The propagation to the downstream pairing bounds
+is the $c$-parametrisation: feeding $\tfrac32\le c$ (in place of $2\le c$) through
+\lean{bookerSinglePole_le_of} and its downstream corollaries
+(\lean{bookerSinglePoleIntegral_le_of}, \lean{bookerPairKernel_integral_le_of},
+\lean{bookerPairIntegral_le_of}) is sound once the concentrated branch of
+\lean{bookerSinglePole_le_of} is supplied at $\tfrac32$ by the two bullets above;
+the dispersive branch already assumes only $\tfrac32\le c$.
+\end{proof}
+
+\begin{remark}[Scope of the joint estimate and the hypothesis $2\le c$]
+\label{rem:ls_r2_scope}
+The core \lean{bookerSinglePole_le_of} carries the hypothesis
+$2\le c$ precisely because its concentrated branch uses the coarse
+$\tfrac43\,m\,\Phi_0(m)\le\tfrac43\cdot\tfrac32=2$. \Cref{lem:ls_rung_threehalf}
+replaces that branch by \Cref{lem:ls_r2_wide}--\Cref{lem:ls_r2_sliver}, relaxing the
+hypothesis to $\tfrac32\le c$; the dispersive branch and the downstream bounds need only
+$\tfrac32\le c$. This is a self-contained real-analysis estimate, independent of the
+surrounding zeta theory. It matters when $c=2$ leaves $A$ above target (see
+\Cref{sec:ls_optim}): it takes $A\le5$ to $A\le\tfrac92$ at fixed depth
+$d=\tfrac{74}{100}$, and is one of the two new analytic inputs (with the subconvexity
+bound \Cref{lem:ls_upper_subconvex}) toward $A\le\tfrac{13}5$.
+\end{remark}
+
+\section{The upper constant \texorpdfstring{$a_1$}{a1}}
+\label{sec:ls_upper}
+
+The bound $a_1\le9$ (\lean{logNormZetaIntegral_le_nine}) has true
+value $\approx8.83$, dominated by the crude $[1,2]$-strip treatment. Its exact
+decomposition (\Cref{lem:lb_I_upper}, \lean{logNormZetaIntegral_le_of_bound})
+is, by integration range,
+\[
+  a_1=\underbrace{\tfrac12\log C_0+\tfrac12+\tfrac12\log2}_{[1/2,1):\ \approx2.05}
+     +\underbrace{\log C_1+(4\log2-1)}_{[1,2]:\ \approx5.32}
+     +\underbrace{2\log(\pi^2/6)+\text{(exp.\ tail)}}_{[2,\infty):\ \approx1.46},
+\]
+with $C_0=11$ the strip constant and $C_1=21e^{1/2}$ the crude near-pole convexity
+constant ($\log C_1\approx3.54$), and $4\log2-1\approx1.77$ a $\log\log$-absorption
+constant folded into $b_1=\tfrac18+\tfrac1{16}=\tfrac3{16}$.
+
+\begin{lemma}[{Elementary $\zeta(\sigma)$ bound on $1<\sigma\le2$}]
+\label{lem:ls_upper_elem}
+\lean{logNormZetaIntegral_le_five}
+\leanok
+On $(1,2]$ absolute convergence gives $|\zeta(\sigma+it)|\le\zeta(\sigma)$, hence
+$\int_1^2\log|\zeta(\sigma+it)|\,d\sigma\le\int_1^2\log\zeta(\sigma)\,d\sigma\approx1.26$,
+a $t$-independent constant. This replaces the $[1,2]$ block $\log C_1+(4\log2-1)$
+($\approx5.32$) by $\le\int_1^2\log\frac{\sigma}{\sigma-1}\,d\sigma=1.386$, eliminates
+the existential $C_1$ and the $\log\log t$ term entirely, and lowers the upper
+coefficient to $b_1=\tfrac18$. Consequently
+$a_1\lesssim 2.05+1.39+1.46\approx4.9$ with $b_1=\tfrac18$; reaching
+$a_1\le\tfrac92$ additionally requires the (routine) tightening of the $[2,\infty)$
+block, on which $\log|\zeta|\approx0$ so the $2\log(\pi^2/6)\approx0.99$ over-estimate
+falls to $\lesssim0.4$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+\leanok
+For $\sigma>1$, $|\zeta(\sigma+it)|=|\sum_n n^{-\sigma-it}|\le\sum_n n^{-\sigma}
+=\zeta(\sigma)$; integrate. The integral $\int_1^2\log\zeta(\sigma)\,d\sigma$ is a
+convergent constant, boundable explicitly (e.g.\ by $\int_1^2\log\frac{\sigma}{\sigma-1}\,d\sigma$
+using $\zeta(\sigma)\le\frac{\sigma}{\sigma-1}$, itself
+\lean{one_div_sub_one_le_riemannZeta_ofReal}'s companion upper
+estimate). In \Cref{lem:lb_I_upper} the extra $\tfrac1{16}\log t$ absorbs a
+$\log\log t$ term; here that term is absent and the coefficient is $b_1=\tfrac18$. The
+argument uses only the Dirichlet series of $\zeta$.
+\end{proof}
+
+\begin{lemma}[{Subconvexity strip bound on $\tfrac12\le\sigma<1$}]
+\label{lem:ls_upper_subconvex}
+\uses{thm:gs_Gamma_growth}
+The Phragmén--Lindelöf convexity bound
+$|\zeta(\sigma+it)|\le C_{\mathrm{PL}}\,|t|^{(1-\sigma)/2}$ on $[\tfrac12,1)$, for
+$|t|\ge t_0$, removes the $-\log(1-\sigma)$ singularity of the crude truncation bound
+and halves the strip coefficient to $\tfrac1{16}$. Combined with \Cref{lem:ls_upper_elem}
+it gives $b_1=\tfrac1{16}$ and $a_1\approx2.2$--$2.5$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+This is the ``$t^{1/4}$ upper bound'', which \Cref{cha:lehman_bound} does not use.
+Derive it from the functional equation
+$\zeta(s)=\chi(s)\zeta(1-s)$ together with the archimedean growth
+$|\Gamma(\sigma+it)|\asymp|t|^{\sigma-1/2}e^{-\pi|t|/2}$ of
+\Cref{thm:gs_Gamma_growth} (\lean{Complex.norm_Gamma_vertical_le}), giving
+$|\chi(\tfrac12+it)|=1$ and, by Phragmén--Lindelöf across $[\tfrac12,1]$ against the
+bound $|\zeta(1+it)|\ll\log|t|$, the convexity line
+$|\zeta(\sigma+it)|\ll|t|^{(1-\sigma)/2}$. On $[\tfrac12,1)$ then
+$\int_{1/2}^1\log|\zeta|\,d\sigma\le\tfrac12\int_{1/2}^1(1-\sigma)\,d\sigma\,\log t
++\text{const}=\tfrac1{16}\log t+\text{const}$, with the constant free of the
+$-\log(1-\sigma)$ singularity (which came from the $1/(1-\sigma)$ pole of the
+Dirichlet-truncation bound \lean{norm_riemannZeta_le_of_mem_strip}).
+This is a self-contained chapter reusing the project's Stirling and functional-equation
+infrastructure; it is required only for $a_1\lesssim2.5$, hence for the sharpest $A$.
+\end{proof}
+
+\section{The lower constants at depth \texorpdfstring{$d$}{d}}
+\label{sec:ls_lower}
+
+At the sharper depths $d\gtrsim0.8$ (admissible once $c$ is sharpened, below) the three
+lower constants are re-derived; the pins of \Cref{cha:lehman_explicit}
+($C_\psi\le39$, $C_t\le\tfrac{23}5$, $C_a\le10$) are calibrated at $d=\tfrac{53}{100}$
+and for a loose $A$.
+
+\begin{lemma}[Archimedean constant]
+\label{lem:ls_Ca}
+\uses{lem:ll_arch, thm:gs_Gamma_growth}
+\lean{logNormGammaArchimedean_strip_diff_ge_tight}
+\leanok
+The archimedean constant is
+\[
+  C_a(d)=\tfrac{d^2}{2}\bigl(\log 2+\log\pi\bigr)+\tfrac d2\log 2+\tfrac{d^2}{10^4},
+\]
+which is $\le\tfrac45$ at $d=\tfrac{74}{100}$ (numerically $0.7598$), and $\le0.45$ at
+$d=\tfrac{53}{100}$. It comes from evaluating the width-$d$ strip integral of
+$\log|\Gamma_{\mathbb R}|$ at the \emph{horizontal-digamma level}.
+
+The loose $C_a\le10$ of \Cref{sec:le_gamma} comes from the \emph{band width}
+$d\,(L_2-L_1)=2dK\approx10$ inherent to bounding a difference of two-sided Stirling
+bounds (the $M\le\log4$ slack is minor). Since $K\ge M+C_0\pi/(2a)\gtrsim6.8$ is
+irreducible (driven by the fixed left edge $a=\sigma/2=\tfrac14$), no choice of
+$L_1,L_2$ in \lean{logNormGammaArchimedean_strip_diff_ge_of} reaches $C_a\le\tfrac45$;
+the band is \emph{cancelled} by the differentiation argument below. This estimate
+separates $A\le12$ from $A\le4$.
+\end{lemma}
+
+\begin{proof}[Proof strategy (cancel the Stirling band by horizontal FTC)]
+\leanok
+Write the per-point strip difference as an integral of the horizontal derivative:
+\[
+  \log\bigl\|\Gamma(\tfrac{\sigma+d+it}2)\bigr\|-\log\bigl\|\Gamma(\tfrac{\sigma+it}2)\bigr\|
+  =\int_\sigma^{\sigma+d}\tfrac12\,\Re\,\psi\!\bigl(\tfrac{u+it}2\bigr)\,du,
+\]
+using $\tfrac{d}{d\sigma}\log\|\Gamma(\tfrac{\sigma+it}2)\|=\tfrac12\Re\psi(\tfrac{\sigma+it}2)$
+(\texttt{hasDerivAt\_log\_norm\_Gamma\_archLine\_half}, differentiated branch-free via
+\lean{Complex.hasDerivAt_log_norm}). This FTC representation is exact, so the
+$\pm K$ band disappears. Bound the integrand pointwise by the first-order digamma expansion
+$\psi(z)=\operatorname{Log}z-(2z)^{-1}+E(z)$ with $\|E(z)\|\le C_0\|z\|^{-2}$
+(\lean{Complex.Stirling.norm_digamma_sub_log_le'}, $C_0=\tfrac1{12}+\tfrac{6}{\pi^2}$):
+$\Re\operatorname{Log}z=\log\|z\|\ge\log(t/2)$ (as $\|z\|\ge t/2$), while the pole term
+$\Re(2z)^{-1}=u/(u^2+t^2)\ge0$ and $\Re E\ge-\|E\|$ are each $O(1/t^2)$, together
+$<1.5\cdot10^{-5}$ at $t\ge168\pi$. Hence
+$\tfrac12\Re\psi(\tfrac{u+it}2)\ge\tfrac12\log(t/2)-10^{-4}$
+(\texttt{half\_re\_digamma\_archLine\_ge}), so the $\Gamma$ difference is
+$\ge\tfrac d2\log(t/2)-d/10^4$ (\texttt{logNormGamma\_half\_diff\_ge}). Combining with
+the $s$-factor ($\ge0$) and $(s-1)$-factor ($\ge-\tfrac12\log2$, the source of the cap $d\le2$) and
+integrating over the width-$d$ strip yields the stated $C_a$
+(\lean{logNormGammaArchimedean_diff_ge_tight} and
+\lean{logNormGammaArchimedean_strip_diff_ge_tight}).
+\end{proof}
+
+\begin{lemma}[Tail constant]
+\label{lem:ls_Ct}
+\lean{logNormZetaIntegral_tail_ge_tight}
+\leanok
+\uses{lem:ll_tail}
+$C_t(d)=\int_{1/2+d}^\infty\bigl(\zeta(\sigma)-1\bigr)\,d\sigma$ is bounded by the
+convergent majorant
+$\int_{1/2+d}^\infty\bigl(2^{-\sigma}+2^{1-\sigma}/(\sigma-1)\bigr)\,d\sigma$; at
+$d\approx0.8$--$1.17$ ($\sigma_0=\tfrac12+d\approx1.3$--$1.67$) this is
+$C_t\approx0.55$--$0.75$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+\leanok
+Identical to the sharp-tail argument of \Cref{sec:le_tail_sharp}
+(\lean{integral_tail_majorant_le}), evaluated at the lower limit
+$\tfrac12+d$ in place of $\tfrac{103}{100}$; the pointwise majorant
+$\zeta(\sigma)-1\le2^{-\sigma}+2^{1-\sigma}/(\sigma-1)$
+(\lean{tsum_one_div_nat_add_two_rpow_le_majorant}) and the
+split-at-$2$ integral estimate carry over verbatim with a smaller constant.
+\end{proof}
+
+\begin{lemma}[Zero-sum constant]
+\label{lem:ls_Cpsi}
+\uses{lem:ll_zeta_sum, lem:lb_pf_zeta}
+\lean{tsum_re_inv_riemannXiZeros_sub_le_tight}
+\leanok
+At $s_d=\tfrac12+d+it$ the constant of \Cref{lem:ll_zeta_sum} satisfies
+\[
+  C_\psi(d)\ \le\ \Bigl(-\tfrac{\zeta'}{\zeta}\bigr)\!\bigl(\tfrac12+d\bigr)
+    \;-\;\tfrac12\log\pi\;+\;\Delta(d),
+\]
+where $\Delta(d)$ collects the (bounded, $O(1)$) digamma-remainder and polar terms
+$\Re\,\tfrac1{s_d}+\Re\,\tfrac1{s_d-1}$ and the digamma constant of the complex
+Stirling expansion. As $d$ grows the pole at $\sigma=1$ recedes and
+$-\zeta'/\zeta(\tfrac12+d)$ falls: $-\zeta'/\zeta(1.03)\approx33$ (the source of
+$C_\psi\le39$), $-\zeta'/\zeta(1.32)\approx1.9$,
+$-\zeta'/\zeta(1.67)\approx1.02$. With the negative $-\tfrac12\log\pi\approx-0.57$
+and $\Delta(d)$ small, the true $C_\psi(1.17)$ lies near $0.8$--$1.5$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+\leanok
+Re-derive \lean{tsum_re_inv_riemannXiZeros_sub_le_explicit} at the new
+$d$: the Davenport partial-fraction identity (\Cref{lem:lb_pf_zeta}) writes
+$\sum_\rho\Re\,\tfrac1{s_d-\rho}$ as
+$-\Re\tfrac{\zeta'}\zeta(s_d)+\tfrac12\Re\psi\!\bigl(\tfrac{s_d}2+1\bigr)
++\Re\tfrac1{s_d}+\Re\tfrac1{s_d-1}-\tfrac12\log\pi$, and
+$\tfrac12\Re\psi(\tfrac{s_d}2)-\tfrac12\log\tfrac t2\to$ the $O(1)$ digamma constant
+(\lean{norm_digammaRemainderIoi_one_le}), leaving $\tfrac12\log t$
+as the sole $\log$ term. The dominant $O(1)$ piece is
+$-\Re\tfrac{\zeta'}\zeta(s_d)\le-\zeta'/\zeta(\tfrac12+d)$, since
+$-\Re\tfrac{\zeta'}\zeta(\sigma+it)=\sum_n\Lambda(n)n^{-\sigma}\cos(t\log n)
+\le\sum_n\Lambda(n)n^{-\sigma}=-\zeta'/\zeta(\sigma)$ ($\cos\le1$), majorised by the
+formalised Dirichlet bound
+\lean{neg_deriv_riemannZeta_ofReal_le}. The loose $C_\psi\le39$ bounds the digamma
+bracket by $\tfrac32$ and the polar terms by $1$ and drops the negative
+$-\tfrac12\log\pi$; keeping these terms exactly (in particular the $-\tfrac12\log\pi$
+cancellation) brings $C_\psi(1.17)$ down to $\approx1$.
+\end{proof}
+
+\section{The optimisation and the conditional assembly}
+\label{sec:ls_optim}
+
+We now solve \Cref{lem:ls_feasible}. The shape constraint \textup{(Shape)} couples
+$c,d,b_1$: with $b_2=\tfrac{d^2}2(c-1)$,
+\[
+  d^2\ \le\ \frac{2\,(0.40212-b_1)}{c-1}.
+\]
+Two choices of parameters, using $\kappa=0$ throughout.
+
+\paragraph{The choice $c=2$, $b_1=\tfrac18$.}
+Then $d^2\le 2(0.40212-0.125)/1=0.5542$, so $d\le0.744$; take $d=\tfrac{74}{100}$,
+$\sigma=1.24$, $d^2=0.5476$. Constants (\Cref{lem:ls_Ca}, \Cref{lem:ls_Ct} and \Cref{lem:ls_Cpsi}):
+$C_a\approx0.79$, $C_t\approx0.7$, and $C_\psi(0.74)\approx3$
+(dominated by $-\zeta'/\zeta(1.24)\approx2.7$). Then
+\[
+  a_2=c\,d^2C_\psi+2C_t+C_a\approx 2\cdot0.5476\cdot3+1.4+0.79\approx5.5,
+\]
+and with the elementary $a_1\approx4.5$ (\Cref{lem:ls_upper_elem}), $a_1+a_2\approx10.1$,
+giving $A\approx(10.1+0.74)/\pi\approx3.45$. \emph{This misses $\tfrac{13}5$}: this choice
+gives $A\approx3.5$ from the one-variable slice sharpening \Cref{lem:ls_rung_two} and
+the elementary upper bound.
+
+\paragraph{The choice $c=\tfrac32$, $b_1=\tfrac1{16}$.}
+Then $d^2\le2(0.40212-0.0625)/0.5=1.3585$, so $d\le1.165$; take
+$d=\tfrac{116}{100}$, $\sigma=1.66$ (the value $\tfrac{117}{100}$ is marginally over the
+shape boundary). Constants:
+$C_a\approx1.25$, $C_t\approx0.72$, and the dominant term
+$C_\psi(1.17)\approx c_\psi$ with $c_\psi\in[0.8,1.5]$ (\Cref{lem:ls_Cpsi}). Then
+\[
+  a_2=\tfrac32\cdot1.3689\cdot c_\psi+1.44+1.25\approx2.05\,c_\psi+2.69,
+\]
+and with the subconvexity $a_1\approx2.4$ (\Cref{lem:ls_upper_subconvex}),
+\[
+  a_1+a_2\approx 5.09+2.05\,c_\psi,
+  \qquad
+  A\approx\frac{5.83+2.05\,c_\psi}{\pi}.
+\]
+The feasibility threshold \textup{(Add)} is $a_1+a_2\le7.43$, i.e.\
+$c_\psi\le1.14$. Thus:
+\begin{itemize}
+  \item if the true $C_\psi(1.17)\le1.14$ (which holds once the $-\tfrac12\log\pi$
+        cancellation of \Cref{lem:ls_Cpsi} is kept), then $A\le\tfrac{13}5=2.6$;
+  \item the floor is $A\to(5.83+2.05\,c_\psi)/\pi$; at the plausible
+        $c_\psi\approx0.9$ this is $A\approx2.44$, within rounding of Lehman's
+        $2.30$; at the pessimistic $c_\psi\approx1.5$ it is $A\approx2.83$.
+\end{itemize}
+
+\begin{theorem}[Conditional sharpening]
+\label{thm:ls_conditional}
+\uses{lem:ls_feasible, lem:ls_rung_threehalf, lem:ls_upper_elem, lem:ls_upper_subconvex,
+lem:ls_Ca, lem:ls_Ct, lem:ls_Cpsi}
+Suppose the following hold with $d=\tfrac{116}{100}$, $c=\tfrac32$, $b_1=\tfrac1{16}$:
+\[
+  a_1\le\tfrac52,\quad
+  C_\psi\le\tfrac{49}{50}\ (=0.98),\quad
+  C_t\le\tfrac{4}{5},\quad
+  C_a\le\tfrac54 .
+\]
+Then $A\le\tfrac{13}5$ and $B\le0.128$, i.e.\ for $168\pi<t_1<t_2$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S\Bigr|\ \le\ \tfrac{13}5+0.128\log\frac{t_2}{2\pi}.
+\]
+\end{theorem}
+
+\begin{proof}
+Here $d^2=1.3456$, so $b_2=\tfrac{d^2}2(c-1)=\tfrac{d^2}4=0.3364$ and
+$b_1+b_2=0.0625+0.3364=0.3989$, whence $B=(b_1+b_2)/\pi=0.1270\le0.128$; this is
+\textup{(Shape)}. For the additive constant,
+\[
+  a_2=\tfrac32 d^2C_\psi+2C_t+C_a
+     \le\tfrac32(1.3456)(0.98)+2(0.8)+1.25
+     =1.978+1.6+1.25=4.828,
+\]
+so $a_1+a_2\le2.5+4.828=7.328$. The threshold \textup{(Add)} is
+\[
+  \tfrac{13}5\pi-(b_1+b_2)\log2\pi=8.1681-0.3989\cdot1.8379=8.1681-0.7331=7.4350,
+\]
+and $7.328\le7.435$, so \textup{(Add)} holds. By \Cref{lem:ls_feasible},
+$A\le\tfrac{13}5$.
+\end{proof}
+
+\begin{remark}[What must be proved]
+\label{rem:ls_scope}
+\Cref{thm:ls_conditional} reduces $A\le\tfrac{13}5$ to four constant targets: two are
+re-instantiations at the new depth (\Cref{lem:ls_Ct} and \Cref{lem:ls_Ca}), one is the
+sharp zero-sum estimate (\Cref{lem:ls_Cpsi}, target $C_\psi\le0.98$ against a true value
+$\approx0.9$), and $a_1\le\tfrac52$ uses the subconvexity bound
+(\Cref{lem:ls_upper_subconvex}). The two new analytic inputs are the joint pairing
+estimate (\Cref{lem:ls_rung_threehalf}) and the subconvexity upper bound
+(\Cref{lem:ls_upper_subconvex}); everything else re-instantiates existing parametric
+cores. The margin is under $2\%$ of the budget, so each of the four constants must be
+estimated near-optimally, the $-\tfrac12\log\pi$ cancellation in $C_\psi$ included.
+With $c=2$ and the elementary $a_1$, the outcome is $A\le4$ with a wide margin
+(\Cref{thm:ls_conditional_weak} below), which uses neither the subconvexity bound nor
+the joint pairing estimate.
+\end{remark}
+
+\begin{theorem}[Conditional sharpening, margined variant]
+\label{thm:ls_conditional_weak}
+\uses{lem:ls_feasible, lem:ls_rung_two, lem:ls_upper_elem, lem:ls_Ca, lem:ls_Ct, lem:ls_Cpsi}
+Suppose the following hold with $d=\tfrac{74}{100}$, $c=2$, $b_1=\tfrac18$:
+\[
+  a_1\le 5,\quad
+  C_\psi\le\tfrac72,\quad
+  C_t\le\tfrac45,\quad
+  C_a\le\tfrac45 .
+\]
+Then $A\le4$ and $B\le0.128$, using only the one-variable pairing bound
+(\Cref{lem:ls_rung_two}) and the elementary upper bound (\Cref{lem:ls_upper_elem}).
+\end{theorem}
+
+\begin{proof}
+Here $d^2=0.5476$, so $b_2=\tfrac{d^2}2(c-1)=\tfrac{d^2}2=0.2738$ and
+$b_1+b_2=0.125+0.2738=0.3988$, whence $B=0.3988/\pi=0.1269\le0.128$
+(\textup{(Shape)}). For the additive constant,
+\[
+  a_2=2d^2C_\psi+2C_t+C_a\le2(0.5476)(3.5)+2(0.8)+0.8=3.833+1.6+0.8=6.233,
+\]
+so $a_1+a_2\le5+6.233=11.233$ and
+$\pi A=a_1+a_2+(b_1+b_2)\log2\pi\le11.233+0.3988\cdot1.8379=11.966$, giving
+$A\le3.81\le4$. The hypothesis $a_1\le5$ is discharged by \Cref{lem:ls_upper_elem}
+alone ($a_1\lesssim4.9$). This intermediate result has a wide margin and uses only
+\Cref{lem:ls_rung_two} and \Cref{lem:ls_upper_elem} as new inputs.
+\end{proof}
+
+\begin{remark}[Formalised outcome at $c=2$, $d=\tfrac{74}{100}$]
+\label{rem:ls_p1_correction}
+\lean{norm_integral_argZeta_le_six_unconditional}
+\leanok
+The tail machinery at $d=\tfrac{74}{100}$ falls short of the hypothesis $C_t\le\tfrac45$
+of \Cref{thm:ls_conditional_weak}. The formalised tail constant is
+$C_t=\int_{1/2+d}^\infty N(\sigma)\,d\sigma$ with the majorant
+$N(\sigma)=2^{-\sigma}+2^{1-\sigma}/(\sigma-1)$ of \Cref{lem:ls_Ct}
+(\lean{integral_tail_majorant_le_124}), and at $\sigma_0=\tfrac{124}{100}$ this
+integral is $\approx2.0$ (provably $\le 3$): the estimate $C_t\approx0.7$ of
+\Cref{sec:ls_optim} conflates the majorant $N$ with the sharper $\zeta(\sigma)-1\approx1.35$,
+and even that is above $\tfrac45$. Consequently this choice, as formalised, gives the
+unconditional
+\[
+  \Bigl|\int_{t_1}^{t_2}S\Bigr|\ \le\ 6+0.128\,\log\frac{t_2}{2\pi},
+  \qquad 168\pi<t_1<t_2,
+\]
+i.e.\ $A\le6$ (true value $\approx5.87$), a factor-$2$ improvement on the $A\le12$ of
+\Cref{sec:ls_roadmap}. The three constants attained at $d=\tfrac{74}{100}$ are
+$C_\psi\le5$ (\lean{tsum_re_inv_riemannXiZeros_sub_le_tight}, from the collapsed
+Dirichlet term $-\zeta'/\zeta(1.24)\le\tfrac{28}5$,
+\lean{tsum_vonMangoldt_norm_le_124}), $C_t\le3$
+(\lean{logNormZetaIntegral_tail_ge_tight}) and $C_a\le\tfrac45$
+(\Cref{lem:ls_Ca}); the additive constant is $a_2=10(\tfrac{74}{100})^2+2C_t+C_a\approx12.30$.
+Reaching $A\le4$ would require a sharper tail estimate (the true
+$\int_{\sigma_0}^\infty(\zeta(\sigma)-1)\,d\sigma$ in place of the $N$-majorant, or a smaller strip
+depth traded against a larger $C_\psi$).
+\end{remark}
+
+\section{The sharp Dirichlet constant and \texorpdfstring{$A\le5$}{A<=5}}
+\label{sec:ls_five}
+
+\begin{remark}[Which constant binds at $d=\tfrac{74}{100}$]
+\label{rem:ls_five_lever}
+At the depth $a=\tfrac12+d=\tfrac{124}{100}$ the pole $\sigma=1$ is close, and the
+binding constant is $C_\psi$, with the tail secondary: the true
+$\int_{a}^\infty(\zeta(\sigma)-1)\,d\sigma=\sum_{m\ge2}m^{-a}/\log m\approx1.85$ sits only
+marginally below the formalised $N$-majorant value $\approx1.99$
+(\Cref{lem:ls_Ct}, \lean{integral_tail_majorant_le_124}, pinned $\le\tfrac52$), so
+sharpening $C_t$ can lower $a_2$ by at most $\approx2\cdot0.14=0.28$. The slack lives in
+the zero-sum constant $C_\psi$, whose formalised value $\le5$
+(\lean{tsum_re_inv_riemannXiZeros_sub_le_tight}) exceeds its true value
+$\approx3.3$ by $\approx1.7$; and $C_\psi$ enters $a_2$ with the large coefficient
+$c\,d^2=2\cdot0.5476=1.095$. The entire slack is inside the Dirichlet term
+$D(a)=-\zeta'/\zeta(a)$, bounded by $\le\tfrac{28}5$ in
+\lean{tsum_vonMangoldt_norm_le_124} but truly $\approx3.6$: the bound uses the
+lossy $\zeta(a)\ge1/(a-1)=\tfrac{25}6$ (\Cref{lem:le_zeta_pole_lower}, true $\zeta(1.24)\approx4.74$)
+together with an over-generous majorant of $-\zeta'(a)$. Sharpening $D(a)\le\tfrac{39}{10}$
+(\Cref{lem:ls_dirichlet_sharp}) alone lowers $C_\psi$ to $\le\tfrac{33}{10}$
+(\Cref{lem:ls_Cpsi_sharp}) and, with \emph{all other constants unchanged from
+\Cref{rem:ls_p1_correction}}, delivers the unconditional $A\le5$ (\Cref{thm:ls_five}).
+\end{remark}
+
+\begin{lemma}[Sharp near-pole lower bound for $\zeta$]
+\label{lem:ls_zeta_lower_sharp}
+\uses{lem:le_zeta_pole_lower}
+\lean{riemannZeta_ofReal_ge_sharp}
+\leanok
+For real $\sigma>1$,
+\[
+  \zeta(\sigma)\ \ge\ 1+2^{-\sigma}+3^{-\sigma}+\frac{4^{1-\sigma}}{\sigma-1}.
+\]
+In particular $\zeta(\tfrac{124}{100})\ge\tfrac{462}{100}$ (numerically the right side is
+$\ge4.628$), versus $1/(\sigma-1)=\tfrac{25}6=4.1\overline6$ from \Cref{lem:le_zeta_pole_lower}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\zeta(\sigma)=\sum_{n\ge1}n^{-\sigma}=1+2^{-\sigma}+3^{-\sigma}+\sum_{n\ge4}n^{-\sigma}$, all terms
+positive. With $f(x)=x^{-\sigma}$ decreasing on $[4,\infty)$, the left-endpoint comparison
+$f(n)\ge\int_n^{n+1}f$ summed over $n\ge4$ gives
+$\sum_{n\ge4}n^{-\sigma}\ge\int_4^\infty x^{-\sigma}\,dx=4^{1-\sigma}/(\sigma-1)$, by the same
+finite-to-improper monotone limit of \lean{AntitoneOn.integral_le_sum}
+(on $\mathrm{Icc}\ 4\ (4+N)$, $N\to\infty$; both sides convergent for $\sigma>1$) used in
+\Cref{lem:le_zeta_pole_lower}. The numerical claim at $\sigma=\tfrac{124}{100}$ uses the sub-unit
+lower bounds $2^{-\sigma}\ge\tfrac{42}{100}$, $3^{-\sigma}\ge\tfrac14$,
+$4^{1-\sigma}=4^{-6/25}\ge\tfrac{71}{100}$ (each an exact rational inequality after raising to the
+$25$th power, e.g.\ $4^{1-\sigma}\ge\tfrac{71}{100}\iff(71/100)^{25}\le4^{-6}=1/4096$), and
+$4^{1-\sigma}/(\sigma-1)\ge\tfrac{71}{100}\cdot\tfrac{25}6$, whence the right side is
+$\ge1+\tfrac{42}{100}+\tfrac14+\tfrac{71}{100}\cdot\tfrac{25}6=\tfrac{462}{100}$.
+\end{proof}
+
+\begin{lemma}[Sharp Dirichlet constant at $\sigma=\tfrac{124}{100}$]
+\label{lem:ls_dirichlet_sharp}
+\uses{lem:ls_zeta_lower_sharp, lem:le_neg_deriv_zeta}
+\lean{tsum_vonMangoldt_norm_le_124_sharp}
+\leanok
+$D(\tfrac{124}{100})=\sum_{n\ge1}\Lambda(n)n^{-124/100}=-\zeta'/\zeta(\tfrac{124}{100})\le\tfrac{39}{10}$,
+sharpening the $\tfrac{28}5$ of \lean{tsum_vonMangoldt_norm_le_124}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+As in \Cref{lem:le_dirichlet_bound}, $D=(-\zeta'(\sigma))/\zeta(\sigma)$ with $-\zeta'(\sigma),\zeta(\sigma)>0$;
+in place of $\zeta\ge1/(\sigma-1)$ we use the sharp $\zeta(\tfrac{124}{100})\ge\tfrac{462}{100}$
+of \Cref{lem:ls_zeta_lower_sharp}, giving $D\le(-\zeta'(\sigma))/\tfrac{462}{100}$. For the
+numerator, \Cref{lem:le_neg_deriv_zeta} bounds
+$-\zeta'(\sigma)\le\log2\cdot2^{-\sigma}+\log3\cdot3^{-\sigma}
++3^{1-\sigma}\bigl(\tfrac{\log3}{\sigma-1}+\tfrac1{(\sigma-1)^2}\bigr)$; evaluated at
+$\sigma=\tfrac{124}{100}$ ($\sigma-1=\tfrac6{25}$) with the sharpened sub-unit estimates
+$2^{-\sigma}\le\tfrac{43}{100}$, $3^{-\sigma}\le\tfrac{27}{100}$,
+$3^{1-\sigma}=3^{-6/25}\le\tfrac{77}{100}$ (this last, $\le\tfrac{77}{100}$, replaces the crude
+$\le\tfrac9{10}$ of \texttt{rpow\_three\_one\_sub\_le} and is the main tightening; it is
+the exact rational inequality $(77/100)^{25}\ge3^{-6}=1/729$), together with $\log2\le\tfrac{6932}{10000}$
+(\lean{Real.log_two_lt_d9}), $\log3\le\tfrac65$ and
+$\tfrac{\log3}{\sigma-1}+\tfrac1{(\sigma-1)^2}\le\tfrac{805}{36}$ (as in
+\texttt{explicit\_neg\_deriv\_bound\_mul\_le\_124}), yields
+\[
+  -\zeta'(\tfrac{124}{100})\ \le\ \tfrac{6932}{10000}\cdot\tfrac{43}{100}
+    +\tfrac65\cdot\tfrac{27}{100}+\tfrac{77}{100}\cdot\tfrac{805}{36}\ \le\ \tfrac{179}{10}\ (=17.9).
+\]
+Hence $D\le\tfrac{179}{10}\big/\tfrac{462}{100}=\tfrac{8950}{2310}\le\tfrac{39}{10}$
+(numerically $3.874\le3.9$).
+\end{proof}
+
+\begin{lemma}[Sharp zero-sum constant, $C_\psi\le\tfrac{33}{10}$]
+\label{lem:ls_Cpsi_sharp}
+\uses{lem:ls_dirichlet_sharp, lem:ll_zeta_sum, lem:lb_pf_zeta}
+\lean{tsum_re_inv_riemannXiZeros_sub_le_tight_sharp}
+\leanok
+At $s_d=\tfrac12+d+it$ with $d=\tfrac{74}{100}$ and $t\ge168\pi$,
+$\sum_i\operatorname{Re}\tfrac1{s_d-\rho_i}\le\tfrac12\log t+\tfrac{33}{10}$.
+\end{lemma}
+
+\begin{proof}[Proof strategy]
+\leanok
+Verbatim the proof of \lean{tsum_re_inv_riemannXiZeros_sub_le_tight}, whose final
+step is a single \texttt{linarith} combining the Dirichlet bound
+$\operatorname{Re}(\zeta'/\zeta(s_d))\le\tfrac{28}5$, the two polar terms
+$\le\tfrac1{500}$, the digamma term $\le\tfrac12\log t+\tfrac1{100}-\tfrac12\log2$, the reflection
+identity $=0$, and $-\tfrac12\log\pi\le-\tfrac12$. Replacing the Dirichlet input $\tfrac{28}5$ by the
+sharp $\tfrac{39}{10}$ (\Cref{lem:ls_dirichlet_sharp}) lowers the additive constant by exactly
+$\tfrac{28}5-\tfrac{39}{10}=\tfrac{17}{10}$, from $5$ to $5-\tfrac{17}{10}=\tfrac{33}{10}$; every other
+term is unchanged.
+\end{proof}
+
+\begin{theorem}[Unconditional sharpening to $A\le5$]
+\label{thm:ls_five}
+\uses{lem:ls_Cpsi_sharp, lem:ls_Ca, lem:ls_Ct, lem:ls_rung_two, lem:ls_upper_elem}
+\lean{norm_integral_argZeta_le_five_unconditional}
+\leanok
+For all reals $168\pi<t_1<t_2$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S\Bigr|\ \le\ 5+0.128\,\log\frac{t_2}{2\pi}.
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+Assemble at $d=\tfrac{74}{100}$, $c=2$, $b_1=\tfrac18$, $\kappa=0$, exactly as
+\Cref{rem:ls_p1_correction} (\lean{norm_integral_argZeta_le_six_unconditional}) and
+its sharper sibling
+\lean{norm_integral_argZeta_le_eleven_halves_unconditional}, but with the sharp
+$C_\psi\le\tfrac{33}{10}$ of \Cref{lem:ls_Cpsi_sharp} in place of $C_\psi\le5$. The other three
+constants are those already formalised at this depth: $a_1\le5$
+(\Cref{lem:ls_upper_elem}, \lean{logNormZetaIntegral_le_five}), $C_t\le\tfrac52$
+(\Cref{lem:ls_Ct}, \lean{logNormZetaIntegral_tail_ge_tight}) and $C_a\le\tfrac45$
+(\Cref{lem:ls_Ca}, \lean{logNormGammaArchimedean_strip_diff_ge_tight}). Then, with
+$d^2=\tfrac{5476}{10000}$,
+\[
+  a_2=c\,d^2C_\psi+2C_t+C_a\le2\cdot\tfrac{5476}{10000}\cdot\tfrac{33}{10}+2\cdot\tfrac52+\tfrac45
+     =3.6142+5+0.8=9.4142,
+\]
+and $b_1+b_2=\tfrac18+\tfrac{d^2}2=0.3988$, so $B=(b_1+b_2)/\pi\le0.128$ and
+\[
+  \pi A=a_1+a_2+(b_1+b_2)\log2\pi\le5+9.4142+0.3988\cdot1.8379=15.147\le5\pi=15.708,
+\]
+whence $A\le5$ (true value $\approx4.82$). The passage to the unconditional statement (valid
+at every pair of endpoints) is the density-limit wrapper
+\texttt{norm\_integral\_argZeta\_le\_unconditional\_of}, applied as for the other
+headline bounds.
+\end{proof}
+
+\begin{remark}[Scope]
+\label{rem:ls_five_scope}
+\Cref{thm:ls_five} improves the formalised headline from $A\le\tfrac{11}2$
+(\lean{norm_integral_argZeta_le_eleven_halves}) to $A\le5$ using only the
+one Dirichlet sharpening $D\le\tfrac{39}{10}$, at the same strip depth and pairing
+constant. Going below $5$ requires either the sharper true tail $\int(\zeta-1)\approx1.85$
+(worth $\approx0.09$ in $A$, per \Cref{rem:ls_five_lever}) or the parameters
+$c=\tfrac32$, $b_1=\tfrac1{16}$ of \Cref{sec:ls_optim}, and the sharp target
+$A\le\tfrac{13}5$ needs both new analytic inputs (\Cref{thm:ls_conditional}).
+\end{remark}
+
+\section{The joint pairing estimate and \texorpdfstring{$A\le\tfrac92$}{A<=9/2}}
+\label{sec:ls_ninehalves}
+
+The joint pairing estimate (\Cref{lem:ls_rung_threehalf}, $c=\tfrac32$), combined with
+the sharp constants of \Cref{thm:ls_five} and the elementary upper bound, improves the
+headline from $A\le5$ to $A\le\tfrac92$.
+
+\begin{theorem}[Unconditional sharpening to $A\le\tfrac92$]
+\label{thm:ls_ninehalves}
+\uses{lem:ls_rung_threehalf, lem:ls_Cpsi_sharp, lem:ls_Ca, lem:ls_Ct, lem:ls_upper_elem}
+\lean{norm_integral_argZeta_le_nine_halves_unconditional}
+For all reals $168\pi<t_1<t_2$,
+\[
+  \Bigl|\int_{t_1}^{t_2}S\Bigr|\ \le\ \tfrac92+0.128\,\log\frac{t_2}{2\pi}.
+\]
+\end{theorem}
+
+\begin{proof}
+Assemble at $d=\tfrac{74}{100}$, $\kappa=0$, $b_1=\tfrac18$, exactly as
+\Cref{thm:ls_five}, but with the pairing constant $c=\tfrac32$ of
+\Cref{lem:ls_rung_threehalf} in place of $c=2$; the four constants are those of
+\Cref{thm:ls_five} at this depth:
+$a_1\le5$ (\Cref{lem:ls_upper_elem}), $C_\psi\le\tfrac{33}{10}$
+(\Cref{lem:ls_Cpsi_sharp}), $C_t\le\tfrac52$ (\Cref{lem:ls_Ct}) and $C_a\le\tfrac45$
+(\Cref{lem:ls_Ca}). With $d^2=\tfrac{5476}{10000}$ and $c=\tfrac32$,
+\[
+  a_2=c\,d^2C_\psi+2C_t+C_a
+     \le\tfrac32\cdot\tfrac{5476}{10000}\cdot\tfrac{33}{10}+2\cdot\tfrac52+\tfrac45
+     =2.7106+5+0.8=8.5106 ,
+\]
+while the shape constant shrinks with $c$: $b_2=\tfrac{d^2}2(c-1)=\tfrac{d^2}4=0.1369$,
+so $b_1+b_2=0.125+0.1369=0.2619$ and $B=(b_1+b_2)/\pi=0.0834\le0.128$ (comfortably,
+\textup{(Shape)}). For the additive constant,
+\[
+  \pi A=a_1+a_2+(b_1+b_2)\log2\pi\le5+8.5106+0.2619\cdot1.8379=13.992
+       \ \le\ \tfrac92\pi=14.137 ,
+\]
+whence $A\le\tfrac92$ (true value $\approx4.45$). Everything feeds the
+$c$-parametric lower-bound assembly: $c=\tfrac32$ enters through
+\lean{le_logNormZetaIntegral_of_le} (which needs its hypothesis relaxed from
+$2\le c$ to $\tfrac32\le c$, as in \Cref{rem:ls_r2_scope}), and the
+coefficient $b_2=\tfrac{d^2}2(c-1)=\tfrac{d^2}4$ is fed to the parametric
+core \lean{norm_integral_argZeta_le_of_bounds'} with
+$b_1+b_2=0.2619\le0.128\pi$; the unconditional wrapper is applied as for
+\Cref{thm:ls_five}.
+\end{proof}
+
+\begin{remark}[Margins]
+\label{rem:ls_ninehalves}
+The budget closes with margin $0.145$ in $\pi A$ (i.e.\ $A\approx4.45$ against the
+target $4.5$), and the shape constant $B=0.083$ is well clear of $0.128$: the smaller
+$b_2=\tfrac{d^2}4$ (against $\tfrac{d^2}2$ at $c=2$) leaves room for a larger depth. The
+joint pairing estimate is the one new analytic input here, at the same strip depth and
+tail. From $A\le\tfrac92$, reaching $A\le\tfrac{13}5$ (\Cref{thm:ls_conditional})
+takes the subconvexity bound ($a_1\le\tfrac52$, \Cref{lem:ls_upper_subconvex})
+together with the depth $d=\tfrac{116}{100}$ and the near-optimal $C_\psi\le0.98$.
+\end{remark}
+
+\section{Dependency structure}
+\label{sec:ls_roadmap}
+
+The sharpening uses the following inputs:
+\begin{itemize}
+  \item \textbf{Re-instantiations} of existing parametric cores at the new depth:
+        \Cref{lem:ls_upper_elem} (elementary $a_1$), \Cref{lem:ls_Ct}, and the
+        $c$-parametric form of \Cref{lem:lb_I_lower}.
+  \item \textbf{One-variable sharpening}: \Cref{lem:ls_rung_two} (slice bound
+        $\tfrac{15}8\to\tfrac32$).
+  \item \textbf{Horizontal-digamma archimedean estimate} (\Cref{lem:ls_Ca}): cancels
+        the Stirling band width $2dK\approx10$ by the FTC representation of the $\Gamma$
+        strip difference. At depth $d=\tfrac{53}{100}$ it gives the unconditional $A\le12$
+        (\lean{norm_integral_argZeta_le_twelve_unconditional}).
+  \item \textbf{Sharp zero-sum constant} (\Cref{lem:ls_Cpsi},
+        \lean{tsum_re_inv_riemannXiZeros_sub_le_tight}): $C_\psi$ with the
+        $-\tfrac12\log\pi$ cancellation kept and the polar/digamma terms of size $O(1/t)$;
+        at $d=\tfrac{74}{100}$ (Dirichlet term $-\zeta'/\zeta(1.24)\le\tfrac{28}5$) this gives
+        $C_\psi\le5$.
+  \item \textbf{Strip depth $d=\tfrac{74}{100}$} (\Cref{rem:ls_p1_correction},
+        \lean{norm_integral_argZeta_le_six_unconditional}): the shape-maximal depth at
+        $c=2$, with all three lower constants re-derived there, gives the unconditional
+        $A\le6$ (true value $\approx5.87$). The target $A\le4$ of
+        \Cref{thm:ls_conditional_weak} is out of reach there, because the tail
+        $C_t\approx2.0$ exceeds $\tfrac45$.
+  \item \textbf{Two new analytic inputs}, needed only for $A\le\tfrac{13}5$:
+        \Cref{lem:ls_rung_threehalf} (joint two-variable pairing, $c=\tfrac32$), and
+        \Cref{lem:ls_upper_subconvex} (subconvexity strip bound, from
+        \Cref{thm:gs_Gamma_growth} and the functional equation).
+\end{itemize}
+The headline $A\le6$ (\Cref{rem:ls_p1_correction}) is formalised; $A\le4$ needs a
+sharper tail than the $N$-majorant, and the sharp target $A\le\tfrac{13}5$
+(\Cref{thm:ls_conditional}) needs both new analytic inputs and near-optimal constants.
+Trudgian's $(2.067,0.059)$ \cite{TrudgianTuring} would further require Booker's sharper
+$c=\log4$ (a joint estimate below the separable floor $\mu=1.4794$, \Cref{lem:ls_floor})
+and $(c,d)$-optimisation at the verification height, outside the separable approach.

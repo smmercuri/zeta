@@ -1,0 +1,243 @@
+% Blueprint: Summability of the zeros of the Riemann ξ-function
+%
+%   ∑_ρ |ρ|^{-(1+ε)} < ∞      (ε > 0),     in particular   ∑_ρ |ρ|^{-2} < ∞,
+%
+% the sum running over the zeros ρ of ξ counted with multiplicity.
+%
+% References: Titchmarsh, *The theory of the Riemann zeta-function* (2nd ed.) §3.6–§3.9
+% \cite{TitchmarshZeta}; Davenport, *Multiplicative Number Theory* (3rd ed.) §11
+% \cite{Davenport}.
+
+\chapter{Summability of the zeros of the Riemann \texorpdfstring{$\xi$}{xi}-function}
+\label{cha:zero_summability}
+
+Throughout, $\xi$ is \texttt{riemannXi}, entire
+(\texttt{differentiable\_riemannXi}) with $\xi(0)=\tfrac12\neq0$
+(\texttt{riemannXi\_zero}). We write
+\[
+  D \;:=\; \texttt{MeromorphicOn.divisor riemannXi Set.univ}
+  \;:\; \texttt{locallyFinsuppWithin Set.univ}\ \mathbb Z,
+\]
+the divisor of $\xi$. Because $\xi$ is analytic on all of $\mathbb C$, the divisor is
+non-negative, $D\ge0$ (\texttt{AnalyticOnNhd.divisor\_nonneg}); $D(z)$ is the
+multiplicity (order of vanishing, \texttt{meromorphicOrderAt riemannXi z}, an integer
+since $\xi$ is holomorphic) of $\xi$ at $z$, $D(0)=0$ (\texttt{riemannXi\_zero} gives
+$\xi(0)\neq0$), and on every compact set $D$ has finite support
+(\texttt{locallyFinsuppWithin.finiteSupport}, the analytic zeros being isolated). For a
+real radius $R$ we abbreviate by $D_R$ the restriction
+$\texttt{MeromorphicOn.divisor riemannXi (Metric.closedBall 0\ R)}$, which equals
+$\texttt{locallyFinsuppWithin.toClosedBall}\ R\ D$ (\texttt{toClosedBall\_divisor}); its
+support lies in $\{z:|z|\le R\}$.
+
+The single analytic input is the order-one growth bound proved in \Cref{cha:xi_order}:
+there is a constant $C_\xi>0$ with $\|\xi(s)\|\le\exp(C_\xi\,|s|\log|s|)$ for $|s|\ge2$
+(\Cref{thm:xo_order}, \texttt{norm\_riemannXi\_le\_exp}). Equivalently, on
+the circle $|s|=R$ ($R\ge2$) one has the pointwise upper bound $\log\|\xi(s)\|\le
+C_\xi\,R\log R$, finite where $\xi(s)\neq0$, and trivially $\le C_\xi R\log R$ at a zero
+of $\xi$ on the circle, where mathlib's convention $\log 0=0\le C_\xi R\log R$ applies.
+
+\section{The integrated counting function}
+\label{sec:zs_jensen}
+
+Mathlib's logarithmic counting function of a divisor is
+\[
+  N(R)\;:=\;\texttt{Function.locallyFinsuppWithin.logCounting}\ D\ R
+  \;=\;\sum_{z}^{\flat} D_R(z)\,\log\!\frac{R}{|z|}\;+\;D(0)\,\log R,
+\]
+where $\sum^{\flat}$ is the \texttt{finsum} over the (finite, for fixed $R$) support of
+$D_R$. As $D(0)=0$, the second term vanishes.
+
+\begin{lemma}[Jensen bound on the integrated counting function]
+\label{lem:zs_jensen}
+\lean{logCounting_riemannXi_le}
+\leanok
+\uses{thm:xo_order}
+There is a constant $C_N>0$ such that for all $R\ge2$,
+\[
+  N(R)\;=\;\texttt{logCounting}\ D\ R\;\le\;C_N\,R\log R .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:xo_order}
+By Jensen's formula in the counting-function form
+(\texttt{logCounting\_divisor\_eq\_circleAverage\_sub\_const}, valid since $\xi$ is
+meromorphic on $\mathbb C$ and $R\neq0$),
+\[
+  N(R)\;=\;\operatorname{circleAverage}(\log\|\xi(\cdot)\|)\,0\,R
+          \;-\;\log\|\texttt{meromorphicTrailingCoeffAt}\ \xi\ 0\|.
+\]
+Since $\xi$ is analytic at $0$ with $\xi(0)=\tfrac12\neq0$, its trailing coefficient at
+$0$ is $\xi(0)=\tfrac12$ (\texttt{AnalyticAt.meromorphicTrailingCoeffAt\_of\_ne\_zero}),
+so the constant term is $-\log\tfrac12=\log2$. For the circle average: the integrand
+$\log\|\xi(\cdot)\|$ is circle-integrable (\texttt{circleIntegrable\_log\_norm\_meromorphicOn},
+$\xi$ being meromorphic on the sphere $|s|=R$), and on the circle it is bounded above by
+the constant $C_\xi R\log R$ (the growth bound \Cref{thm:xo_order}, with the $\log0=0$
+convention covering any zeros on the circle). Hence by
+\texttt{circleAverage\_mono\_on\_of\_le\_circle} and
+$\operatorname{circleAverage}(\text{const})=\text{const}$
+(\texttt{circleAverage\_const}),
+\[
+  N(R)\;\le\;C_\xi\,R\log R+\log2 .
+\]
+For $R\ge2$ one has $R\log R\ge2\log2>0$, so $\log2\le\tfrac12 R\log R$ and the right side
+is $\le(C_\xi+\tfrac12)R\log R$. Take $C_N:=C_\xi+\tfrac12$.
+\end{proof}
+
+\section{The pointwise counting function}
+\label{sec:zs_count}
+
+\begin{definition}[Zero-counting function]
+\label{def:zs_count}
+\lean{riemannXiZeroCount}
+\leanok
+For $R\in\mathbb R$, the number of zeros of $\xi$ in the closed disc $|z|\le R$, counted
+with multiplicity, is
+\[
+  n(R)\;:=\;\sum_{z}^{\flat} D_R(z)
+        \;=\;\sum_{z}^{\flat}\ \texttt{MeromorphicOn.divisor riemannXi (closedBall 0\ R)}\ z .
+\]
+\end{definition}
+
+\begin{lemma}[Pointwise counting bound]
+\label{lem:zs_count_bound}
+\lean{riemannXiZeroCount_le}
+\leanok
+\uses{lem:zs_jensen, def:zs_count}
+There is a constant $C_n>0$ such that for all $R\ge2$,
+\[
+  n(R)\;\le\;C_n\,R\log R .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:zs_jensen, def:zs_count}
+Compare $n(R)$ with $N(2R)$. Both finsums run over non-negative integer divisor values.
+By \Cref{lem:zs_jensen} applied at radius $2R$ (note $2R\ge2$),
+\[
+  N(2R)\;=\;\sum_{z}^{\flat} D_{2R}(z)\,\log\!\frac{2R}{|z|}\;\le\;C_N\,(2R)\log(2R).
+\]
+Every summand on the left is non-negative: $D_{2R}\ge0$, and for $z$ in the support of
+$D_{2R}$ one has $|z|\le2R$, hence $\log(2R/|z|)\ge0$. Dropping all summands with
+$R<|z|\le2R$ (each $\ge0$) only decreases the sum, so
+\[
+  N(2R)\;\ge\;\sum_{|z|\le R}^{\flat} D_{2R}(z)\,\log\!\frac{2R}{|z|}
+         \;=\;\sum_{|z|\le R}^{\flat} D_R(z)\,\log\!\frac{2R}{|z|},
+\]
+the last equality because $D_{2R}$ and $D_R$ agree on $\{|z|\le R\}$
+(\texttt{toClosedBall\_eval\_within}; both equal $D(z)$ there). For $|z|\le R$ we have
+$2R/|z|\ge2$, so $\log(2R/|z|)\ge\log2$; bounding each factor below by $\log2$ (all
+weights $D_R(z)\ge0$) gives
+\[
+  N(2R)\;\ge\;(\log2)\sum_{|z|\le R}^{\flat} D_R(z)\;=\;(\log2)\,n(R).
+\]
+Combining, $n(R)\le N(2R)/\log2\le \dfrac{2C_N}{\log2}\,R\log(2R)$. Finally
+$\log(2R)=\log2+\log R\le 2\log R$ for $R\ge2$ (since $\log2\le\log R$), so
+$n(R)\le\dfrac{4C_N}{\log2}\,R\log R$. Take $C_n:=4C_N/\log2$.
+\end{proof}
+
+\section{Summability via dyadic decomposition}
+\label{sec:zs_summable}
+
+\begin{lemma}[Divisor-weighted summability]
+\label{lem:zs_summable_divisor}
+\lean{summable_riemannXiDivisor_norm_rpow}
+\leanok
+\uses{lem:zs_count_bound}
+For every real $p>1$ the family
+\[
+  z\;\longmapsto\;\bigl(D(z)\bigr)\,\|z\|^{-p}\qquad(z\in\mathbb C)
+\]
+is summable (its support being the zeros of $\xi$, the summand vanishing off them and at
+$z=0$).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:zs_count_bound}
+All summands are non-negative, so summability is equivalent to a uniform bound on the
+finite partial sums; we bound the total by a convergent dyadic series. Group the zeros
+by magnitude into the shells $A_k:=\{z:2^{k}\le|z|<2^{k+1}\}$ for $k\ge0$, together with
+the inner disc $A_{-}:=\{z:|z|<1\}$. The inner disc contains finitely many zeros
+($D$ has finite support on the compact disc $|z|\le1$,
+\texttt{locallyFinsuppWithin.finiteSupport}), contributing a finite sum.
+
+For the shells, on $A_k$ we have $\|z\|^{-p}\le 2^{-kp}$, and the total multiplicity in
+$A_k$ is at most the count in the disc $|z|\le2^{k+1}$:
+\[
+  \sum_{z\in A_k}^{\flat} D(z)\;\le\;n\!\left(2^{k+1}\right)\;\le\;C_n\,2^{k+1}\,\log\!\left(2^{k+1}\right)
+  \;=\;C_n\,(k+1)\,2^{k+1}\log2,
+\]
+using \Cref{lem:zs_count_bound} (and $2^{k+1}\ge2$). Hence the shell $A_k$ contributes at
+most
+\[
+  2^{-kp}\sum_{z\in A_k}^{\flat} D(z)\;\le\;2C_n\log2\,\cdot\,(k+1)\,2^{-k(p-1)} .
+\]
+Since $p>1$ gives $0<2^{-(p-1)}<1$, the series $\sum_{k\ge0}(k+1)\,2^{-k(p-1)}$ converges
+(\texttt{summable\_pow\_mul\_geometric\_of\_norm\_lt\_one} with $k$-power $1$ and ratio
+$2^{-(p-1)}$). Adding the finite inner contribution, the total $\sum_z D(z)\|z\|^{-p}$ is
+finite, which is the asserted summability.
+\end{proof}
+
+\section{The summability theorem and its downstream interface}
+\label{sec:zs_main}
+
+\begin{theorem}[Summability of the zeros of $\xi$]
+\label{thm:zs_main}
+\lean{summable_one_div_riemannZeta_zero_rpow}
+\leanok
+\uses{lem:zs_summable_divisor}
+For every $\varepsilon>0$ the family
+\[
+  z\;\longmapsto\;\bigl(D(z)\bigr)\,\|z\|^{-(1+\varepsilon)}\qquad(z\in\mathbb C)
+\]
+is summable; that is, $\sum_\rho|\rho|^{-(1+\varepsilon)}<\infty$ over the zeros $\rho$ of
+$\xi$ with multiplicity. In particular (taking $\varepsilon=1$),
+$\sum_\rho|\rho|^{-2}<\infty$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:zs_summable_divisor}
+Apply \Cref{lem:zs_summable_divisor} with $p:=1+\varepsilon>1$. The special case
+$\varepsilon=1$ gives summability of $z\mapsto D(z)\|z\|^{-2}$.
+\end{proof}
+
+This is precisely \Cref{lem:lb_pf_summable} of \Cref{cha:lehman_bound}; the two
+statements share the single Lean name
+\texttt{summable\_one\_div\_riemannZeta\_zero\_rpow}. It remains to convert
+the divisor-weighted form into the concrete enumeration consumed by the
+canonical-product chapter.
+
+\begin{lemma}[Downstream product hypothesis]
+\label{lem:zs_product}
+\lean{summable_inv_norm_sq_riemannXiZeros}
+\leanok
+\uses{thm:zs_main}
+Let $\iota:=\bigl(z:\operatorname{supp}D\bigr)\times\operatorname{Fin}\,(D\,z).\mathrm{toNat}$
+enumerate the zeros of $\xi$ with multiplicity, with $\rho:\iota\to\mathbb C$ the
+first-projection map $\rho(z,j):=z$. Then $\sum_{i}\|\rho(i)^{-1}\|^{2}<\infty$; i.e.
+\texttt{Summable (fun i ↦ ‖(ρ i)⁻¹‖²)}. Consequently the hypothesis of
+\Cref{lem:hf_prod_summable}
+(\lean{hasProdLocallyUniformlyOn_riemannXiCanonicalProduct}) is met for
+this $\rho$, and the canonical product of \Cref{cha:hadamard} converges with $\xi$'s zeros.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:zs_main}
+For $i=(z,j)$ we have $\rho(i)=z\neq0$ (zeros of $\xi$ avoid $0$), so
+$\|\rho(i)^{-1}\|^{2}=\|z\|^{-2}$, independent of $j$. Summing over the sigma index, the
+inner sum over $\operatorname{Fin}\,(D\,z).\mathrm{toNat}$ multiplies by the multiplicity:
+\[
+  \sum_{i}\|\rho(i)^{-1}\|^{2}\;=\;\sum_{z\in\operatorname{supp}D}(D\,z).\mathrm{toNat}\;\|z\|^{-2}
+  \;=\;\sum_{z\in\mathbb C}\bigl(D(z)\bigr)\|z\|^{-2},
+\]
+the last equality because $(D\,z).\mathrm{toNat}=D(z)$ on the support (where $D(z)\ge0$ is
+a multiplicity) and both sides vanish off it. The right-hand family is summable by
+\Cref{thm:zs_main} with $\varepsilon=1$; transport across the sigma reindexing via
+\texttt{summable\_sigma\_of\_nonneg} (non-negative summands, finite inner fibres) and the
+\texttt{finsum}/\texttt{tsum}-over-support identification yields the claim.
+\end{proof}

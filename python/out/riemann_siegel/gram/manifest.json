@@ -1,0 +1,68 @@
+{
+  "height": 100000000.0,
+  "Lehman constant": 5,
+  "gram_cols": [
+    "idx",
+    "left",
+    "right",
+    "left_theta_cutoff",
+    "right_theta_cutoff",
+    "left_theta_bernoulli",
+    "right_theta_bernoulli"
+  ],
+  "zero_cols": [
+    "idx",
+    "left",
+    "right"
+  ],
+  "params": {
+    "method": "riemann_siegel",
+    "prec": 200,
+    "max_depth": 0,
+    "epsilon": 0.125,
+    "theta_at_height": {
+      "theta_cutoff": "0",
+      "theta_bernoulli": "1"
+    }
+  },
+  "zeros_map": {
+    "248008817": "zeros_248008817.txt",
+    "248008818": "zeros_248008818.txt",
+    "248008819": "zeros_248008819.txt",
+    "248008820": "zeros_248008820.txt",
+    "248008821": "zeros_248008821.txt",
+    "248008822": "zeros_248008822.txt",
+    "248008823": "zeros_248008823.txt",
+    "248008824": "zeros_248008824.txt",
+    "248008825": "zeros_248008825.txt",
+    "248008826": "zeros_248008826.txt",
+    "248008827": "zeros_248008827.txt",
+    "248008828": "zeros_248008828.txt",
+    "248008829": "zeros_248008829.txt",
+    "248008830": "zeros_248008830.txt",
+    "248008831": "zeros_248008831.txt",
+    "248008832": "zeros_248008832.txt",
+    "248008833": "zeros_248008833.txt",
+    "248008834": "zeros_248008834.txt",
+    "248008835": "zeros_248008835.txt",
+    "248008836": "zeros_248008836.txt",
+    "248008837": "zeros_248008837.txt",
+    "248008838": "zeros_248008838.txt",
+    "248008839": "zeros_248008839.txt",
+    "248008840": "zeros_248008840.txt",
+    "248008841": "zeros_248008841.txt",
+    "248008842": "zeros_248008842.txt",
+    "248008843": "zeros_248008843.txt",
+    "248008844": "zeros_248008844.txt",
+    "248008845": "zeros_248008845.txt",
+    "248008846": "zeros_248008846.txt",
+    "248008847": "zeros_248008847.txt",
+    "248008848": "zeros_248008848.txt",
+    "248008849": "zeros_248008849.txt",
+    "248008850": "zeros_248008850.txt",
+    "248008851": "zeros_248008851.txt",
+    "248008852": "zeros_248008852.txt",
+    "248008853": "zeros_248008853.txt",
+    "248008854": "zeros_248008854.txt"
+  }
+}

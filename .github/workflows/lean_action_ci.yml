@@ -1,0 +1,20 @@
+name: Lean Action CI
+
+on:
+  push:
+    branches-ignore: [kernel-fastpath]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Free runner disk (the build cache save needs the headroom)
+        run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+      - uses: actions/checkout@v5
+      - name: Check that Zeta.lean imports every module (./mk_all.sh)
+        run: ./mk_all.sh --check
+      - uses: leanprover/lean-action@v1
+      

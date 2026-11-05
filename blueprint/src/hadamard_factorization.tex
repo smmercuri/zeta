@@ -1,0 +1,446 @@
+% Blueprint: Hadamard factorisation of the Riemann ξ-function
+%
+%   ξ(s) = ½ e^{Bs} ∏_i (1 - s/ρ_i) e^{s/ρ_i},      B = ξ'/ξ(0) ∈ ℝ,
+%
+% the product over an enumeration (ρ_i)_{i∈ι} of the nontrivial zeros of ζ (= the
+% zeros of ξ), each zero repeated according to its multiplicity. This is
+% `lem:lb_pf_hadamard` of `lehman_bound.tex`; mathlib has the Hadamard three-lines
+% theorem but no canonical-product factorisation. The chapter splits it into
+% sub-lemmas resting on mathlib / PNT+ API:
+%
+%   * infinite products of analytic functions, local-uniform convergence
+%       `multipliableLocallyUniformlyOn_one_add`, `hasProdLocallyUniformlyOn_one_add`,
+%       `hasProdUniformlyOn_of_clog`
+%       (Mathlib/Analysis/Normed/Module/MultipliableUniformlyOn.lean);
+%   * holomorphy of locally-uniform limits / sums
+%       `TendstoLocallyUniformlyOn.differentiableOn`
+%       (Mathlib/Analysis/Complex/LocallyUniformLimit.lean),
+%       `SummableLocallyUniformlyOn.differentiableOn`
+%       (Mathlib/Analysis/Complex/SummableUniformlyOn.lean);
+%   * the complex log Taylor series and its remainder bounds
+%       `Complex.hasSum_taylorSeries_neg_log`,
+%       `Complex.norm_log_one_add_half_le_self`
+%       (Mathlib/Analysis/SpecialFunctions/Complex/LogBounds.lean);
+%   * Cauchy coefficient estimates
+%       `norm_iteratedDeriv_le_of_forall_mem_sphere_norm_le`
+%       (Mathlib/Analysis/Complex/Liouville.lean);
+%   * Borel–Carathéodory
+%       `borelCaratheodory_closedBall` (PNT+/BorelCaratheodory.lean),
+%       `Complex.borelCaratheodory_zero` (mathlib);
+%   * global primitives of entire functions
+%       `Differentiable.isExactOn_univ`, `DifferentiableOn.isExactOn_ball`
+%       (Mathlib/Analysis/Complex/HasPrimitives.lean);
+%   * Jensen's formula and value distribution
+%       `MeromorphicOn.circleAverage_log_norm` (Mathlib/Analysis/Complex/JensenFormula.lean),
+%       value-distribution `logCounting`;
+%   * the analytic-order API
+%       `analyticOrderAt`, `analyticOrderNatAt`
+%       (Mathlib/Analysis/Analytic/Order.lean);
+%   * the project's ξ-API
+%       `differentiable_riemannXi`, `riemannXi_eq_zero_iff`, `riemannXi_conj`,
+%       `riemannXi_one_sub`, `riemannXi_zero`, `riemannXi_one`,
+%       `meromorphicOrderAt_riemannXi_eq_riemannZeta`
+%       (Zeta/RiemannXi.lean);
+%   * the zero enumeration of PNT+
+%       `riemannZeta.zeroes`, `riemannZeta.zeroes_rect`, `riemannZeta.order`,
+%       `riemannZeta.zeroes_on_Compact_finite`
+%       (PrimeNumberTheoremAnd/ZetaDefinitions.lean).
+%
+% Mathlib's `MultipliableUniformlyOn` API makes the analyticity and local-uniform
+% convergence of the canonical product a direct application: a product ∏(1 + a_i) of
+% analytic functions converges locally uniformly to an analytic function whenever
+% ‖a_i‖ is dominated by a summable constant sequence on each compact set.
+% `Differentiable.isExactOn_univ` (global primitives of entire functions) gives the
+% holomorphic logarithm of `lem:hf_eq_exp`. The minimum-modulus lower bound
+% `lem:hf_minmod` is proved in `cartan_minimum_modulus.tex`.
+%
+% This chapter feeds `lehman_bound.tex` through `thm:hf_hadamard`
+% (\lean{riemannXi_eq_hadamard_product}), which is the statement of
+% `lem:lb_pf_hadamard`.
+%
+% References: Davenport, *Multiplicative Number Theory* (3rd ed.), §§8,11–12
+% \cite{Davenport}; Titchmarsh, *The theory of the Riemann zeta-function*
+% (2nd ed.), §§2.12, 3.1 \cite{TitchmarshZeta}; Ahlfors, *Complex Analysis*, §5.3.
+
+\chapter{Hadamard factorisation of the Riemann \texorpdfstring{$\xi$}{xi}-function}
+\label{cha:hadamard}
+
+Throughout, $\xi$ is the project's \texttt{riemannXi}, an entire
+function (\texttt{differentiable\_riemannXi}) with $\xi(0)=\xi(1)=\tfrac12$
+(\texttt{riemannXi\_zero}, \texttt{riemannXi\_one}), $\xi(1-s)=\xi(s)$
+(\texttt{riemannXi\_one\_sub}) and $\overline{\xi(\bar s)}=\xi(s)$
+(\texttt{riemannXi\_conj}); its zeros are exactly the nontrivial zeros of $\zeta$,
+all in the open strip $0<\Re s<1$ (\texttt{riemannXi\_eq\_zero\_iff}). All zeros are
+nonzero ($0,1\notin\mathcal Z$ since $\xi(0)=\xi(1)=\tfrac12$).
+
+\paragraph{Enumeration with multiplicity.} The zero set
+$\mathcal Z=\{z:\xi(z)=0\}$ is countable and discrete (it accumulates only at
+$\infty$: on any compact set it is finite by
+\texttt{riemannZeta.zeroes\_on\_Compact\_finite}, transferred to $\xi$ via
+\texttt{riemannXi\_eq\_zero\_iff}). For $\rho\in\mathcal Z$ let
+$m(\rho)=\texttt{analyticOrderNatAt riemannXi}~\rho\in\mathbb N_{\ge1}$, finite and
+positive since $\xi$ is entire and $\not\equiv0$. Fix once and for all a countable
+index type $\iota$ and an enumeration $\rho:\iota\to\mathbb C$ of $\mathcal Z$ \emph{with
+multiplicity}, i.e.\ each $z\in\mathcal Z$ has exactly $m(z)$ preimages and
+$\rho(i)\in\mathcal Z$ for all $i$ (concretely $\iota=\Sigma_{z\in\mathcal Z}\mathrm{Fin}\,m(z)$
+with $\rho(z,k)=z$). All sums $\sum_i$ and products $\prod_i$ run over $\iota$; thus
+$\sum_i f(\rho_i)=\sum_{z\in\mathcal Z}m(z)f(z)$. We freely use the already-stated
+facts of \Cref{sec:lb_pf}: \Cref{lem:lb_pf_order}
+($|\xi(s)|\le\exp(C|s|\log|s|)$ for $|s|\ge2$) and \Cref{lem:lb_pf_summable}
+(in the present indexing, $\sum_i|\rho_i|^{-2}<\infty$ and
+$\sum_i|\rho_i|^{-1-\varepsilon}<\infty$ for every $\varepsilon>0$).
+
+\section{The genus-one elementary factor}
+\label{sec:hf_elem}
+
+\begin{definition}[Genus-one elementary factor]
+\label{def:hf_elem}
+\lean{weierstrassE1}
+\leanok
+For $w\in\mathbb C$ set
+\[
+  E_1(w)\;=\;(1-w)\,e^{w}.
+\]
+\end{definition}
+
+$E_1$ is entire, $E_1(0)=1$, and $E_1(w)=0\iff w=1$.
+
+\begin{lemma}[Quadratic bounds on the elementary factor]
+\label{lem:hf_elem_bound}
+\lean{norm_weierstrassE1_sub_one_le}
+\leanok
+\uses{def:hf_elem}
+Write $\ell(w):=\log(1-w)+w$ (the principal $\log(1-w)$, well-defined since
+$\Re(1-w)>0$ for $|w|<1$). There is an absolute constant $c_0>0$ such that for
+$|w|\le\tfrac12$,
+\[
+  \bigl|E_1(w)-1\bigr|\;\le\;c_0\,|w|^{2},
+  \qquad
+  \bigl|\ell(w)\bigr|\;\le\;|w|^{2}.
+\]
+Moreover $\ell(w)=-\sum_{k\ge2}w^{k}/k$, $\exp(\ell(w))=E_1(w)$ on $|w|<1$, and
+hence $\log|E_1(w)|=\Re\,\ell(w)$ (branch-free). [The later uses need only the
+two displayed inequalities and $\log|E_1(w)|=\Re\,\ell(w)$; the formalization works
+with $\ell$, which is holomorphic on $|w|<1$.]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:hf_elem}
+By \texttt{Complex.hasSum\_taylorSeries\_neg\_log}, for $|w|<1$ one has
+$\log(1-w)=-\sum_{k\ge1}w^{k}/k$; hence
+$\ell(w)=\log(1-w)+w=-\sum_{k\ge2}w^{k}/k$ and, since $1-w\neq0$,
+$\exp(\ell(w))=(1-w)e^{w}=E_1(w)$ (\texttt{Complex.exp\_log}), whence
+$\log|E_1(w)|=\Re\,\ell(w)$. For $|w|\le\tfrac12$,
+\[
+  |\ell(w)|\le\sum_{k\ge2}\frac{|w|^{k}}{k}\le\frac12\sum_{k\ge2}|w|^{k}
+   =\frac12\cdot\frac{|w|^{2}}{1-|w|}\le|w|^{2}
+\]
+using $1-|w|\ge\tfrac12$. The first inequality then follows from
+$|E_1(w)-1|=|\exp(\ell(w))-1|\le|\ell(w)|\,e^{|\ell(w)|}\le
+|w|^{2}e^{1/4}$, so $c_0=e^{1/4}$ works (using $|e^{z}-1|\le|z|e^{|z|}$ and
+$|\ell(w)|\le\tfrac14$). \emph{[Both inequalities are available directly from
+mathlib's \texttt{Complex.norm\_log\_one\_add\_half\_le\_self}
+($\|\log(1+z)\|\le\tfrac32\|z\|$ for $\|z\|\le\tfrac12$) applied to the two factors,
+at the cost of the worse constant $\tfrac32$; either route suffices.]}
+\end{proof}
+
+\section{The canonical product}
+\label{sec:hf_prod}
+
+\begin{definition}[Canonical product]
+\label{def:hf_prod}
+\lean{riemannXiCanonicalProduct}
+\leanok
+\uses{def:hf_elem}
+For $s\in\mathbb C$ set
+\[
+  P(s)\;=\;\prod_i E_1\!\Bigl(\frac s{\rho_i}\Bigr)
+        \;=\;\prod_i\Bigl(1-\frac s{\rho_i}\Bigr)e^{s/\rho_i},
+\]
+the product (\texttt{tprod}) over the multiplicity-enumeration $\iota$.
+\end{definition}
+
+\begin{lemma}[Local uniform convergence of the canonical product]
+\label{lem:hf_prod_summable}
+\lean{hasProdLocallyUniformlyOn_riemannXiCanonicalProduct}
+\leanok
+\uses{lem:hf_elem_bound, lem:lb_pf_summable}
+For each $R>0$ the product $\prod_i E_1(s/\rho_i)$ converges to $P$ uniformly on
+$\{|s|\le R\}$ (in particular locally uniformly on $\mathbb C$), and $P$ is
+multipliable there.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_elem_bound, lem:lb_pf_summable}
+Write $E_1(s/\rho_i)=1+a_i(s)$ with $a_i(s)=E_1(s/\rho_i)-1$. Fix $R'$ with
+$R<R'<2R$ (say $R'=\tfrac32R$) and work on the open ball $K=\{|s|<R'\}\supseteq
+\{|s|\le R\}$. Split $\iota$ into the finitely many $i$ with $|\rho_i|\le2R'$
+(finite by \texttt{riemannZeta.zeroes\_on\_Compact\_finite}) and the rest. On the
+tail $|\rho_i|>2R'$ and $|s|<R'$ we have $|s/\rho_i|<\tfrac12$, so by
+\Cref{lem:hf_elem_bound} $|a_i(s)|\le c_0|s/\rho_i|^{2}\le c_0R'^{2}|\rho_i|^{-2}=:u_i$,
+a summable constant sequence ($\sum_i u_i<\infty$ by \Cref{lem:lb_pf_summable}). The
+tail product therefore converges uniformly on $K$ by
+\texttt{hasProdLocallyUniformlyOn\_one\_add} / \texttt{multipliableLocallyUniformlyOn\_one\_add}
+applied with dominating sequence $(u_i)$ on the open ball $K$. Multiplying by
+the finite head (a finite product of entire factors) gives uniform convergence of
+the full product on $\{|s|\le R\}\subseteq K$.
+\end{proof}
+
+\begin{lemma}[The canonical product is entire with the zeros of $\xi$]
+\label{lem:hf_prod_entire}
+\lean{differentiable_riemannXiCanonicalProduct, analyticOrderNatAt_riemannXiCanonicalProduct}
+\leanok
+\uses{lem:hf_prod_summable}
+$P$ is entire, $P(0)=1$, and for every $a\in\mathbb C$ the order of vanishing of
+$P$ at $a$ equals $\#\{i:\rho_i=a\}$, i.e.\ $m(a)$ if $a\in\mathcal Z$ and $0$
+otherwise; in particular the zeros of $P$, with multiplicity, are exactly those of
+$\xi$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_prod_summable}
+The partial products are finite products of entire functions, hence entire, and by
+\Cref{lem:hf_prod_summable} they converge to $P$ locally uniformly; therefore $P$ is
+entire (\texttt{TendstoLocallyUniformlyOn.differentiableOn} on each ball, the limit
+of holomorphic functions being holomorphic). For the order at $a$: on a small disc
+about $a$ factor $P=P_{a}\cdot Q_a$, where $P_a(s)=\prod_{i:\rho_i=a}E_1(s/a)$ is the
+finite product of the (finitely many) factors vanishing at $a$ (each contributing a
+simple zero at $s=a$ since $E_1(s/a)=0\iff s=a$), and $Q_a$ is the locally uniform
+limit of the remaining factors, which is holomorphic and \emph{nonzero} at $a$
+(its factors are $1+a_i$ with $a_i(a)\neq-1$, and the convergent tail product of
+nonvanishing factors is nonvanishing, again by the dominated estimate). Hence the
+order of $P$ at $a$ is $\#\{i:\rho_i=a\}$. Finally $P(0)=\prod_i E_1(0)=1$ since
+$E_1(0)=1$.
+\end{proof}
+
+\begin{lemma}[Order-$\tfrac32$ growth of the canonical product]
+\label{lem:hf_prod_order}
+\lean{log_norm_riemannXiCanonicalProduct_le}
+\leanok
+\uses{lem:hf_elem_bound, lem:lb_pf_summable}
+There is a constant $C_P>0$ with
+\[
+  \log|P(s)|\;\le\;C_P\,|s|^{3/2}\qquad(s\in\mathbb C).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_elem_bound, lem:lb_pf_summable}
+The estimate is obtained termwise. We first record the branch-free pointwise bound
+\[
+  \log|E_1(w)|\;\le\;4\,|w|^{3/2}\qquad(w\neq1),
+\]
+splitting at $|w|=\tfrac12$. For $|w|\le\tfrac12$, since
+$\log|E_1(w)|=\Re\,\ell(w)\le|\ell(w)|\le|w|^{2}$ (\Cref{lem:hf_elem_bound}) and
+$|w|^{1/2}\le1\le4$, we get $\log|E_1(w)|\le|w|^{2}=|w|^{3/2}|w|^{1/2}\le4|w|^{3/2}$.
+For $|w|>\tfrac12$, the elementary
+$\log|E_1(w)|=\log|1-w|+\Re w\le\log(1+|w|)+|w|\le2|w|$ (using
+$|1-w|\le1+|w|$ and $\log(1+x)\le x$) combines with $|w|^{1/2}\ge(\tfrac14)^{1/2}=\tfrac12$
+to give $2|w|=2|w|^{1/2}\cdot|w|\cdot|w|^{-1/2}\le4|w|^{1/2}|w|=4|w|^{3/2}$.
+
+Now for any $s$: if $s=\rho_i$ for some $i$ then $|P(s)|=0$ (one factor is
+$E_1(1)=0$) and $\log|P(s)|=0\le C_P|s|^{3/2}$. Otherwise every factor is nonzero and
+$\log|P(s)|=\sum_i\log|E_1(s/\rho_i)|$ (\Cref{lem:hf_prod_summable}); applying the
+pointwise bound to each term,
+\[
+  \log|P(s)|\;\le\;\sum_i 4\,|s/\rho_i|^{3/2}
+   \;=\;4\,|s|^{3/2}\sum_i|\rho_i|^{-3/2},
+\]
+the series $\sum_i|\rho_i|^{-3/2}=\sum_i|\rho_i|^{-(1+1/2)}$ converging by
+\Cref{lem:lb_pf_summable} (with $\varepsilon=\tfrac12$). Thus
+$C_P=4\sum_i|\rho_i|^{-3/2}+1$ works. \emph{[The textbook bound $O(|s|\log|s|)$ (order
+exactly $1$) refines this; the Cauchy estimate of \Cref{lem:hf_h_linear} needs only a
+strictly sub-quadratic bound.]}
+\end{proof}
+
+\section{The quotient \texorpdfstring{$g=\xi/P$}{g=xi/P}}
+\label{sec:hf_quot}
+
+\begin{lemma}[The quotient is entire and zero-free]
+\label{lem:hf_quot}
+\lean{differentiable_riemannXi_div_canonicalProduct}
+\leanok
+\uses{lem:hf_prod_entire, lem:hf_prod_order, lem:lb_pf_summable}
+The function $g:=\xi/P$, a priori meromorphic, extends to an entire function with
+$g(s)\neq0$ for all $s$, and $g(0)=\tfrac12$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_prod_entire}
+By \Cref{lem:hf_prod_entire}, $P$ and $\xi$ are entire with identical zeros and
+identical multiplicities $m(\rho)$ (for $\xi$ via
+\texttt{analyticOrderNatAt}; for $P$ by \Cref{lem:hf_prod_entire}). Hence at each
+$\rho\in\mathcal Z$ the quotient $\xi/P$ has a removable singularity with nonzero
+limit (ratio of leading Taylor coefficients), and off $\mathcal Z$ it is holomorphic
+and nonzero. The holomorphic extension $g$ is therefore entire and zero-free: its
+divisor is identically $0$ by the order matching, so
+\texttt{MeromorphicOn}-removability yields an \texttt{AnalyticAt}, nowhere-zero
+extension. Finally $g(0)=\xi(0)/P(0)=\tfrac12/1=\tfrac12$ by
+\texttt{riemannXi\_zero} and \Cref{lem:hf_prod_entire}.
+\end{proof}
+
+\begin{lemma}[Global holomorphic logarithm of the quotient]
+\label{lem:hf_eq_exp}
+\lean{exists_entire_log_riemannXi_div_canonicalProduct}
+\leanok
+\uses{lem:hf_quot}
+There is an entire function $h$ with $h(0)=\log\tfrac12$ (real) and
+$g(s)=\exp(h(s))$ for all $s$. Consequently $\xi(s)=\exp(h(s))\,P(s)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_quot}
+Since $g$ is entire and zero-free (\Cref{lem:hf_quot}), $g'/g$ is entire. As
+$\mathbb C$ is simply connected, $g'/g$ has an entire primitive $H$ directly from
+\texttt{Differentiable.isExactOn\_univ} (a holomorphic function on $\mathbb C$ is
+exact, i.e.\ has a global primitive); normalise $H(0)=0$. Then
+$(g\,e^{-H})'=g'e^{-H}-g\,(g'/g)\,e^{-H}=0$, so $g\,e^{-H}$ is the constant
+$g(0)=\tfrac12$. Set $h:=H+\log\tfrac12$; then $g=e^{h}$ and
+$h(0)=\log\tfrac12\in\mathbb R$.
+\end{proof}
+
+\section{Pinning the exponent via Borel--Carathéodory}
+\label{sec:hf_pin}
+
+\begin{lemma}[Minimum-modulus lower bound for the canonical product]
+\label{lem:hf_minmod}
+\lean{exists_circle_log_norm_riemannXiCanonicalProduct_ge}
+\leanok
+\uses{lem:hf_prod_order, lem:lb_pf_summable}
+There is a constant $C_P'>0$ such that for every $R\ge2$ there is a radius
+$R'\in[R,2R]$ with
+\[
+  \log|P(s)|\;\ge\;-\,C_P'\,R^{3/2}\qquad(|s|=R').
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:cm_minmod}
+This is \Cref{thm:cm_minmod} of \Cref{cha:cartan}, whose statement is the present lemma
+(\texttt{exists\_circle\_log\_norm\_riemannXiCanonicalProduct\_ge}).
+By the reverse triangle inequality $\|s-\rho\|\ge\bigl|\|s\|-\|\rho\|\bigr|$ a whole circle
+$|s|=R'$ avoids a zero $\rho$ as soon as the real number $R'$ avoids the real number
+$\|\rho\|$, which reduces the radius selection to a one-dimensional Lebesgue-measure
+pigeonhole on $[R,2R]$ (\Cref{lem:cm_radial_select}). The required order-$3/2$ lower
+bound then follows by combining the elementary-factor estimates of \Cref{cha:hadamard}
+with two dyadic partial-sum bounds on inverse zero moduli
+(\Cref{lem:cm_sum_inv} and \Cref{lem:cm_sum_inv_sq_tail}) driven by the counting bound
+$n(t)=O(t\log t)$ of \Cref{lem:zs_count_bound}.
+\end{proof}
+
+\begin{lemma}[Real-part growth of the exponent]
+\label{lem:hf_reH_growth}
+\lean{re_log_riemannXi_div_canonicalProduct_le}
+\leanok
+\uses{lem:hf_eq_exp, lem:lb_pf_order, lem:hf_minmod}
+With $h$ as in \Cref{lem:hf_eq_exp}, there is $C_h>0$ such that for every $R\ge2$
+there is $R'\in[R,2R]$ with
+\[
+  \Re\,h(s)\;=\;\log|g(s)|\;=\;\log|\xi(s)|-\log|P(s)|\;\le\;C_h\,R^{3/2}
+  \qquad(|s|=R').
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_eq_exp, lem:lb_pf_order, lem:hf_minmod}
+$\Re h=\log|e^{h}|=\log|g|=\log|\xi|-\log|P|$. On $|s|=R'$ (the radius of
+\Cref{lem:hf_minmod}), bound $\log|\xi(s)|\le C|s|\log|s|\le R^{3/2}$ for large $R$
+by \Cref{lem:lb_pf_order} and $-\log|P(s)|\le C_P'R^{3/2}$ by \Cref{lem:hf_minmod}.
+\end{proof}
+
+\begin{lemma}[The exponent is affine]
+\label{lem:hf_h_linear}
+\lean{exists_affine_log_riemannXi_div_canonicalProduct}
+\leanok
+\uses{lem:hf_reH_growth}
+There are constants $A,B\in\mathbb C$ with $h(s)=A+Bs$ for all $s$; equivalently
+$g(s)=e^{A+Bs}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_reH_growth}
+Apply Borel--Carathéodory to $f:=h-h(0)$, entire with $f(0)=0$ and, on $|s|=R'$,
+$\Re f(s)\le\Re h(s)-\Re h(0)\le C_hR^{3/2}+|h(0)|=:M(R')$. Since $\Re f$ is
+harmonic, the maximum principle propagates this boundary bound to the whole closed
+ball: $\Re f(s)\le M(R')$ for all $|s|\le R'$ (its supremum over $\overline B(0,R')$
+is attained on the circle $|s|=R'$). By
+\texttt{borelCaratheodory\_closedBall} on $\overline{B}(0,R')$ with $r=R'/2$,
+\[
+  \sup_{|s|\le R'/2}|f(s)|\;\le\;\frac{2M(R')(R'/2)}{R'-R'/2}=2M(R')=O(R^{3/2}).
+\]
+Hence $\sup_{|s|\le R'/2}|h(s)|=O(R^{3/2})$ along $R\to\infty$. The Cauchy estimate
+\texttt{norm\_iteratedDeriv\_le\_of\_forall\_mem\_sphere\_norm\_le} on $|s|=R'/2$
+bounds the Taylor coefficients $a_n=h^{(n)}(0)/n!$ of $h$ at $0$ by
+\[
+  |a_n|\le\frac{\sup_{|s|=R'/2}|h(s)|}{(R'/2)^{n}}=O\!\Bigl(\frac{R^{3/2}}{R^{n}}\Bigr)
+   \xrightarrow[R\to\infty]{}0\qquad(n\ge2),
+\]
+so $a_n=0$ for $n\ge2$ (as $3/2<n$) and $h(s)=a_0+a_1s=:A+Bs$.
+\end{proof}
+
+\begin{lemma}[Identification of the constants]
+\label{lem:hf_constants}
+\lean{log_riemannXi_div_canonicalProduct_const_eq}
+\leanok
+\uses{lem:hf_h_linear, lem:hf_eq_exp, lem:hf_prod_entire, lem:hf_prod_summable}
+In \Cref{lem:hf_h_linear}, $e^{A}=\tfrac12$ (so $A=\log\tfrac12$) and
+$B=\xi'/\xi(0)$; moreover $B\in\mathbb R$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_h_linear, lem:hf_eq_exp}
+Evaluate $\xi=e^{A+Bs}P$ at $s=0$: $\tfrac12=\xi(0)=e^{A}P(0)=e^{A}$ by $P(0)=1$
+(\Cref{lem:hf_prod_entire}), so $A=\log\tfrac12$. Taking logarithmic derivatives,
+$\xi'/\xi=B+P'/P$; and $P'/P(0)=\sum_i\bigl(\tfrac{1}{0-\rho_i}+\tfrac1{\rho_i}\bigr)=0$,
+since $\tfrac{d}{ds}\log E_1(s/\rho_i)=\tfrac{1}{s-\rho_i}+\tfrac1{\rho_i}$ vanishes at
+$s=0$ (and the differentiated series converges locally uniformly by
+\Cref{lem:hf_prod_summable}). Hence $B=\xi'/\xi(0)$. Reality:
+$\overline{\xi(\bar s)}=\xi(s)$ (\texttt{riemannXi\_conj}) makes $\xi'/\xi$ real on
+the real axis, so its value $B$ at $0$ is real.
+\end{proof}
+
+\section{Assembly}
+\label{sec:hf_main}
+
+\begin{theorem}[Hadamard factorisation of $\xi$]
+\label{thm:hf_hadamard}
+\lean{riemannXi_eq_hadamard_product}
+\leanok
+\uses{lem:hf_eq_exp, lem:hf_h_linear, lem:hf_constants, lem:hf_prod_summable, def:hf_prod}
+There is a real constant $B=\xi'/\xi(0)$ such that, for all $s\in\mathbb C$,
+\[
+  \xi(s)\;=\;\tfrac12\,e^{Bs}\prod_i\Bigl(1-\frac s{\rho_i}\Bigr)e^{s/\rho_i},
+\]
+the product converging locally uniformly over the multiplicity-enumeration $\iota$
+of the nontrivial zeros.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_eq_exp, lem:hf_h_linear, lem:hf_constants, def:hf_prod}
+Combine $\xi=e^{h}P$ (\Cref{lem:hf_eq_exp}), $h(s)=A+Bs$ (\Cref{lem:hf_h_linear}),
+$e^{A}=\tfrac12$ and $B=\xi'/\xi(0)\in\mathbb R$ (\Cref{lem:hf_constants}), and
+$P=\prod_iE_1(s/\rho_i)$ (\Cref{def:hf_prod}). Local uniform convergence is
+\Cref{lem:hf_prod_summable}.
+\end{proof}
+
+\begin{remark}
+This chapter proves \Cref{lem:lb_pf_hadamard} of \Cref{cha:lehman_bound}: the two
+statements are identical (\texttt{riemannXi\_eq\_hadamard\_product}),
+and \Cref{lem:lb_pf_hadamard} invokes \Cref{thm:hf_hadamard}. With
+mathlib's \texttt{MultipliableUniformlyOn} API the analyticity and convergence of the
+canonical product (\Cref{lem:hf_prod_summable} and \Cref{lem:hf_prod_entire}) are direct
+applications, and \texttt{Differentiable.isExactOn\_univ} gives the holomorphic
+logarithm of \Cref{lem:hf_eq_exp}. The minimum-modulus bound \Cref{lem:hf_minmod}
+(radius selection from Jensen/\texttt{logCounting}) is proved in \Cref{cha:cartan}.
+\end{remark}

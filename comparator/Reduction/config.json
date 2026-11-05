@@ -1,0 +1,13 @@
+{
+    "challenge_module": "Reduction.Challenge",
+    "solution_module": "Reduction.Solution",
+    "theorem_names": [
+        "Comparator.riemannHypothesisUpTo_of_batches"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": false
+}

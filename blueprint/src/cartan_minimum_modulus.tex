@@ -1,0 +1,355 @@
+% Blueprint: minimum-modulus lower bound for the ξ-canonical product
+%
+%   ∃ C'>0, ∀ R≥2, ∃ R'∈[R,2R], ∀ s with |s|=R':  log|P(s)| ≥ -C' R^{3/2},
+%
+% where P(s) = ∏_i E₁(s/ρ_i) is the genus-one canonical product over the
+% multiplicity enumeration (ρ_i) of the nontrivial zeros of ζ (= zeros of ξ).
+% The main theorem `thm:cm_minmod` is the statement of `lem:hf_minmod` in
+% `hadamard_factorization.tex` (\Cref{cha:hadamard}).
+%
+% By the reverse triangle inequality `‖s-ρ‖ ≥ |‖s‖-‖ρ‖|`, a circle `|s|=R'` lies at
+% distance `≥ δ` from a zero `ρ` when the real number `R'` lies at distance `≥ δ`
+% from `|ρ|`. Choosing the circle therefore reduces to a one-dimensional
+% Lebesgue-measure pigeonhole on `[R,2R]`.
+%
+% References: Levin, *Lectures on Entire Functions*, Lecture II \cite{Levin1996};
+% Titchmarsh, *The theory of functions* (2nd ed.), §8.71 \cite{TitchmarshFunctions}.
+
+\chapter{Minimum modulus of the \texorpdfstring{$\xi$}{xi}-canonical product}
+\label{cha:cartan}
+
+Throughout, $\rho\colon\iota\to\mathbb C$ is the multiplicity enumeration
+\texttt{riemannXiZeros} of the nontrivial zeros of $\zeta$ (equivalently of
+$\xi$), with $\iota=\texttt{RiemannXiZerosIndex}$, each $\rho_i\neq0$, and
+\[
+  P(s)\;=\;\texttt{riemannXiCanonicalProduct}\,\rho\,s\;=\;\prod_i E_1(s/\rho_i),
+  \qquad E_1(w)=(1-w)e^{w}
+\]
+the genus-one canonical product of \Cref{def:hf_prod}. We write $n(t)$ for the zero
+counting function \texttt{riemannXiZeroCount}\,$t$ of \Cref{def:zs_count} and recall
+$n(t)\le C_n\,t\log t$ for $t\ge2$ (\Cref{lem:zs_count_bound}). All circles are centred at
+$0$. The goal of the chapter is the minimum-modulus selection \Cref{thm:cm_minmod}.
+
+\section{Elementary lower bounds for the factor and the logarithm}
+\label{sec:cm_elem}
+
+\begin{lemma}[Quadratic lower bound on the elementary factor]
+\label{lem:cm_elem_lower}
+\lean{neg_le_log_norm_weierstrassE1}
+\leanok
+\uses{lem:hf_elem_bound}
+For every $w\in\mathbb C$ with $\|w\|\le\tfrac12$,
+\[
+  -4\,\|w\|^{2}\;\le\;\log\|E_1(w)\|.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hf_elem_bound}
+By \Cref{lem:hf_elem_bound}, $\|E_1(w)-1\|\le2\|w\|^{2}$, so
+$\|E_1(w)\|\ge1-2\|w\|^{2}\ge1-2\cdot\tfrac14=\tfrac12>0$ (in particular $E_1(w)\neq0$).
+Set $x:=2\|w\|^{2}\in[0,\tfrac12]$, so $\|E_1(w)\|\ge1-x>0$ and
+$\log\|E_1(w)\|\ge\log(1-x)$. The elementary inequality $\log(1-x)\ge-2x$ for
+$x\in[0,\tfrac12]$ (from $\log(1-x)\ge1-\tfrac1{1-x}=-\tfrac{x}{1-x}\ge-2x$, using
+$\log y\ge1-y^{-1}$ at $y=1-x$ and $1-x\ge\tfrac12$) gives
+$\log\|E_1(w)\|\ge-2x=-4\|w\|^{2}$.
+\end{proof}
+
+\begin{lemma}[A square-root domination of the squared logarithm]
+\label{lem:cm_logsq_le}
+\lean{Real.log_add_one_sq_le}
+\leanok
+For every real $R\ge1$,
+\[
+  (\log R+1)^{2}\;\le\;16\,R^{1/2}.
+\]
+Consequently $R(\log R+1)^{2}\le16\,R^{3/2}$ for all $R\ge1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Using $\log(R^{1/4})=\tfrac14\log R$ and $\log y\le y-1$
+(\texttt{Real.log\_le\_sub\_one\_of\_pos}) at $y=R^{1/4}>0$,
+\[
+  \log R=4\log(R^{1/4})\le4\bigl(R^{1/4}-1\bigr)=4R^{1/4}-4,
+\]
+so $\log R+1\le4R^{1/4}-3\le4R^{1/4}$. For $R\ge1$ both sides of $0\le\log R+1\le4R^{1/4}$ are
+nonnegative, so squaring preserves the inequality:
+$(\log R+1)^{2}\le16\,(R^{1/4})^{2}=16\,R^{1/2}$. Multiplying by $R\ge0$ gives
+$R(\log R+1)^{2}\le16\,R^{3/2}$.
+\end{proof}
+
+\section{Hölder bounds on inverse zero moduli}
+\label{sec:cm_sums}
+
+The two inverse-modulus estimates of this section bound a head sum of $\|\rho_i^{-1}\|$ and a
+tail sum of $\|\rho_i^{-1}\|^{2}$ by powers $t^{\pm1/2}$ of the threshold, using the
+summability of the $\tfrac32$-power $S:=\sum_i\|\rho_i^{-1}\|^{3/2}$ (a special case of
+the divisor-weighted summability \Cref{lem:zs_summable_divisor}) together with the elementary
+monotonicities $\|\rho_i^{-1}\|=\|\rho_i^{-1}\|^{3/2}\|\rho_i\|^{1/2}$ and
+$\|\rho_i^{-1}\|^{2}=\|\rho_i^{-1}\|^{3/2}\|\rho_i\|^{-1/2}$. These $t^{\pm1/2}$ rates
+suffice for the order-$3/2$ bound of \Cref{thm:cm_minmod}. We first record the cardinality bound of the truncated index
+set (used in the near-part estimate) and the index-type summability of the $\tfrac32$-power.
+
+\begin{lemma}[Cardinality of the truncated zero set]
+\label{lem:cm_card}
+\lean{exists_card_riemannXiZeros_le}
+\leanok
+\uses{lem:zs_count_bound}
+For each $t\ge0$ the set $I(t):=\{i\in\iota:\|\rho_i\|\le t\}$ is finite, and there is a
+constant $C_n>0$ with $\#I(t)\le C_n\,t\log t$ for all $t\ge2$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:zs_count_bound}
+$I(t)$ is finite because $\rho$ enumerates, with multiplicity, the zeros of $\xi$ in
+$\overline B(0,t)$, of which there are finitely many of finite order (the divisor of $\xi$
+has finite support on the compact $\overline B(0,t)$). Under the enumeration
+$\iota=(z\in\operatorname{supp}D)\times\operatorname{Fin}((Dz).\mathtt{toNat})$ of
+\Cref{lem:zs_product}, one has $\#I(t)=\sum_{\|z\|\le t}(Dz).\mathtt{toNat}
+=\sum_{\|z\|\le t}(Dz)=n(t)$ by reindexing the fibre product (the fibre over $z$ has exactly
+$(Dz).\mathtt{toNat}$ elements, and $(Dz).\mathtt{toNat}=Dz$ as reals since $D\ge0$ by
+\texttt{divisor\_riemannXi\_nonneg}), where $D$ is the divisor of $\xi$ and
+$n=\texttt{riemannXiZeroCount}$. The bound is then \Cref{lem:zs_count_bound}.
+\end{proof}
+
+\begin{lemma}[Summability of the $\tfrac32$-power of inverse moduli]
+\label{lem:cm_summable_rpow}
+\lean{summable_inv_norm_rpow_riemannXiZeros}
+\leanok
+\uses{lem:zs_summable_divisor, lem:zs_product}
+For every real $p>1$ the family $i\mapsto\|\rho_i^{-1}\|^{p}$ over $\iota$ is summable.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:zs_summable_divisor, lem:zs_product}
+Under the fibre enumeration
+$\iota=(z\in\operatorname{supp}D)\times\operatorname{Fin}((Dz).\mathtt{toNat})$ of
+\Cref{lem:zs_product}, summing over each finite fibre reduces summability of
+$i\mapsto\|\rho_i^{-1}\|^{p}$ to summability of $z\mapsto(Dz)\,\|z\|^{-p}$ over
+$\operatorname{supp}D$, which is the divisor-weighted summability \Cref{lem:zs_summable_divisor}
+for $p>1$ (here $\|\rho_i^{-1}\|^{p}=\|z\|^{-p}$ on the fibre over $z$, which has $(Dz).\mathtt{toNat}$
+elements, with $(Dz).\mathtt{toNat}=Dz$ as reals since $D\ge0$). This is the proof of
+\Cref{lem:zs_product} with the exponent $2$ replaced by $p$.
+\end{proof}
+
+\begin{lemma}[Head sum of inverse moduli]
+\label{lem:cm_sum_inv}
+\lean{exists_sum_inv_norm_riemannXiZeros_le}
+\leanok
+\uses{lem:cm_summable_rpow}
+Writing $S:=\sum_i\|\rho_i^{-1}\|^{3/2}$ (finite by \Cref{lem:cm_summable_rpow}), there is a
+constant $C_1>0$ such that for every $t\ge0$,
+\[
+  \sum_{i\,:\,\|\rho_i\|\le t}\|\rho_i^{-1}\|\;\le\;C_1\,t^{1/2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:cm_summable_rpow}
+Take $C_1:=S+1>0$. Each $\rho_i\neq0$, so for $\|\rho_i\|\le t$ the monotonicity
+$\|\rho_i\|^{1/2}\le t^{1/2}$ gives
+$\|\rho_i^{-1}\|=\|\rho_i^{-1}\|^{3/2}\|\rho_i\|^{1/2}\le t^{1/2}\|\rho_i^{-1}\|^{3/2}$. Summing
+over the finite head index set $\{i:\|\rho_i\|\le t\}$ and bounding the partial sum of the
+nonnegative summable family $\|\rho_i^{-1}\|^{3/2}$ by its total $S$ (\Cref{lem:cm_summable_rpow},
+\texttt{sum\_le\_tsum}),
+\[
+  \sum_{i:\|\rho_i\|\le t}\|\rho_i^{-1}\|\le t^{1/2}\sum_{i:\|\rho_i\|\le t}\|\rho_i^{-1}\|^{3/2}
+   \le t^{1/2}\,S\le C_1\,t^{1/2}.
+\]
+\end{proof}
+
+\begin{lemma}[Tail sum of inverse squared moduli]
+\label{lem:cm_sum_inv_sq_tail}
+\lean{exists_sum_inv_norm_sq_riemannXiZeros_tail_le}
+\leanok
+\uses{lem:cm_summable_rpow, lem:zs_product}
+With $S$ as above, there is a constant $C_2>0$ such that for every $t>0$,
+\[
+  \sum_{i\,:\,\|\rho_i\|> t}\|\rho_i^{-1}\|^{2}\;\le\;C_2\,t^{-1/2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:cm_summable_rpow, lem:zs_product}
+Take $C_2:=S+1>0$. For $\|\rho_i\|>t>0$ the monotonicity $\|\rho_i\|^{-1/2}\le t^{-1/2}$ gives
+$\|\rho_i^{-1}\|^{2}=\|\rho_i^{-1}\|^{3/2}\|\rho_i\|^{-1/2}\le t^{-1/2}\|\rho_i^{-1}\|^{3/2}$. Both
+$i\mapsto\|\rho_i^{-1}\|^{2}$ (\Cref{lem:zs_product}) and $i\mapsto\|\rho_i^{-1}\|^{3/2}$
+(\Cref{lem:cm_summable_rpow}) are summable, so summing the termwise bound over the tail
+$\{i:\|\rho_i\|>t\}$ (\texttt{tsum\_le\_tsum}) and bounding the tail of the nonnegative summable
+family by its total $S$ (\texttt{Summable.tsum\_le\_tsum} over the subtype),
+\[
+  \sum_{i:\|\rho_i\|>t}\|\rho_i^{-1}\|^{2}\le t^{-1/2}\sum_{i:\|\rho_i\|>t}\|\rho_i^{-1}\|^{3/2}
+   \le t^{-1/2}\,S\le C_2\,t^{-1/2}.
+\]
+\end{proof}
+
+\section{One-dimensional radius selection}
+\label{sec:cm_radius}
+
+\begin{lemma}[Avoiding finitely many points on an interval]
+\label{lem:cm_radial_select}
+\lean{exists_mem_Icc_forall_le_dist}
+\leanok
+Let $S$ be a finite subset of $\mathbb R$ (or a finite multiset/\texttt{Finset}), let
+$a\le b$ and $\delta>0$ satisfy $2\delta\,(\#S)<b-a$. Then there exists $r\in[a,b]$ with
+$\delta\le|r-t|$ for every $t\in S$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+The "bad" set $\mathcal B:=\bigcup_{t\in S}(t-\delta,t+\delta)$ has Lebesgue measure
+$\le\sum_{t\in S}\operatorname{vol}(t-\delta,t+\delta)=2\delta\,(\#S)<b-a
+=\operatorname{vol}[a,b]$. Hence $[a,b]\setminus\mathcal B$ has positive measure, so is
+nonempty; any $r$ in it lies in $[a,b]$ and satisfies $r\notin(t-\delta,t+\delta)$, i.e.
+$|r-t|\ge\delta$, for every $t\in S$.
+\end{proof}
+
+\section{Lower bounds on the near and far parts}
+\label{sec:cm_parts}
+
+We split $P(s)=\prod_iE_1(s/\rho_i)$ at the threshold $4R$: $\mathrm{near}=\{i:\|\rho_i\|\le4R\}$
+and $\mathrm{far}=\{i:\|\rho_i\|>4R\}$. For $\|s\|\le2R$ the far factors have small argument and are
+handled pointwise; the near factors are handled on the selected circle.
+
+\begin{lemma}[Lower bound on the far part]
+\label{lem:cm_far_lower}
+\lean{exists_tsum_far_log_norm_weierstrassE1_ge}
+\leanok
+\uses{lem:cm_elem_lower, lem:cm_sum_inv_sq_tail}
+There is a constant $C_F>0$ such that for every $R\ge2$ and every $s$ with $\|s\|\le2R$,
+\[
+  \sum_{i\,:\,\|\rho_i\|>4R}\log\|E_1(s/\rho_i)\|\;\ge\;-C_F\,R^{3/2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:cm_elem_lower, lem:cm_sum_inv_sq_tail}
+Take $C_F:=8C_2$ with $C_2$ from \Cref{lem:cm_sum_inv_sq_tail}. For $i\in\mathrm{far}$,
+$\|s/\rho_i\|=\|s\|/\|\rho_i\|\le2R/(4R)=\tfrac12$, so \Cref{lem:cm_elem_lower} gives
+$\log\|E_1(s/\rho_i)\|\ge-4\|s/\rho_i\|^{2}=-4\|s\|^{2}\|\rho_i^{-1}\|^{2}
+\ge-16R^{2}\|\rho_i^{-1}\|^{2}$. Both the family of logs (\Cref{lem:hf_prod_summable} via
+\texttt{summable\_log\_norm\_weierstrassE1}) and the dominating family
+$i\mapsto-16R^{2}\|\rho_i^{-1}\|^{2}$ (\Cref{lem:zs_product},
+\texttt{summable\_inv\_norm\_sq\_riemannXiZeros}) are summable on the tail, so by
+\texttt{tsum\_le\_tsum} we may sum the termwise bound:
+\[
+  \sum_{i\,:\,\|\rho_i\|>4R}\log\|E_1(s/\rho_i)\|
+   \ge-16R^{2}\sum_{i\,:\,\|\rho_i\|>4R}\|\rho_i^{-1}\|^{2}
+   \ge-16R^{2}\cdot C_2(4R)^{-1/2}=-8C_2R^{3/2},
+\]
+the middle inequality by \Cref{lem:cm_sum_inv_sq_tail} at threshold $4R$, and
+$16R^{2}(4R)^{-1/2}=16\cdot4^{-1/2}R^{3/2}=8R^{3/2}$.
+\end{proof}
+
+\begin{lemma}[Lower bound on the near part on a good circle]
+\label{lem:cm_near_lower}
+\lean{exists_finset_near_log_norm_weierstrassE1_ge}
+\leanok
+\uses{lem:cm_card, lem:cm_sum_inv, lem:cm_radial_select, lem:cm_logsq_le}
+There is a constant $C_N>0$ such that for every $R\ge2$ there is $R'\in[R,2R]$ for which the
+following hold for all $s$ with $\|s\|=R'$:
+\begin{enumerate}
+\item $s\neq\rho_i$ for every $i\in\mathrm{near}=\{i:\|\rho_i\|\le4R\}$ (no near factor vanishes); and
+\item $\displaystyle\sum_{i\,:\,\|\rho_i\|\le4R}\log\|E_1(s/\rho_i)\|\;\ge\;-C_N\,R^{3/2}.$
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:cm_card, lem:cm_sum_inv, lem:cm_radial_select, lem:cm_logsq_le}
+Write $m:=\#\mathrm{near}=\#\{i:\|\rho_i\|\le4R\}$ (finite by \Cref{lem:cm_card}) and
+$\delta_R:=R/(4(m+1))>0$. Apply \Cref{lem:cm_radial_select} to the finite set
+$S:=\{\|\rho_i\|:i\in\mathrm{near}\}$ on $[a,b]=[R,2R]$ with $\delta=\delta_R$: since
+$\#S\le m$ and $2\delta_R\,m=\tfrac{R}{2}\cdot\tfrac{m}{m+1}<\tfrac R2<R=b-a$, there is
+$R'\in[R,2R]$ with $|R'-\|\rho_i\||\ge\delta_R$ for every $i\in\mathrm{near}$. Fix $s$ with
+$\|s\|=R'$. The reverse triangle inequality \texttt{abs\_norm\_sub\_norm\_le} gives
+$\|s-\rho_i\|\ge\bigl|\|s\|-\|\rho_i\|\bigr|=|R'-\|\rho_i\||\ge\delta_R>0$ for near $i$, so
+$s\neq\rho_i$, proving (1).
+
+For (2), each near $\rho_i$ satisfies $s/\rho_i\neq1$, so by \texttt{log\_norm\_weierstrassE1},
+\[
+  \log\|E_1(s/\rho_i)\|=\log\|1-s/\rho_i\|+\operatorname{Re}(s/\rho_i)
+   =\bigl(\log\|s-\rho_i\|-\log\|\rho_i\|\bigr)+\operatorname{Re}(s/\rho_i).
+\]
+Bound each summand below:
+\begin{itemize}
+\item $\log\|s-\rho_i\|\ge\log\delta_R$ (monotonicity of $\log$, from $\|s-\rho_i\|\ge\delta_R>0$);
+\item $-\log\|\rho_i\|\ge-\log(4R)$ (from $0<\|\rho_i\|\le4R$);
+\item $\operatorname{Re}(s/\rho_i)\ge-\|s/\rho_i\|=-R'\|\rho_i^{-1}\|\ge-2R\|\rho_i^{-1}\|$.
+\end{itemize}
+Summing over the $m$ near indices and using \Cref{lem:cm_sum_inv} at $t=4R$
+($\sum_{\mathrm{near}}\|\rho_i^{-1}\|\le C_1(4R)^{1/2}$):
+\[
+  \sum_{\mathrm{near}}\log\|E_1(s/\rho_i)\|
+   \ge m\bigl(\log\delta_R-\log(4R)\bigr)-2R\,C_1(4R)^{1/2}.
+\]
+The second term is $-4C_1R^{3/2}$. For the first,
+$\log\delta_R-\log(4R)=\log R-\log\bigl(4(m+1)\bigr)-\log(4R)=-\log4-\log\bigl(4(m+1)\bigr)\le0$,
+and $m\le C_n4R\log(4R)$ (\Cref{lem:cm_card}, as $4R\ge2$) with
+$\log\bigl(4(m+1)\bigr)\le C(\log R+1)$ and $\log(4R)\le C(\log R+1)$ for $R\ge2$ gives
+\[
+  m\bigl(\log\delta_R-\log(4R)\bigr)\ge-m\,C(\log R+1)\ge-4C_nC\,R\log(4R)(\log R+1)
+   \ge-C''(\log R+1)^{2}R.
+\]
+Finally $(\log R+1)^{2}R\le16R^{3/2}$ by \Cref{lem:cm_logsq_le}, so both terms are
+$\ge-C_NR^{3/2}$ after enlarging the constant.
+\end{proof}
+
+\section{Assembly: the minimum-modulus selection}
+\label{sec:cm_main}
+
+\begin{theorem}[Minimum-modulus lower bound for the canonical product]
+\label{thm:cm_minmod}
+\lean{exists_circle_log_norm_riemannXiCanonicalProduct_ge}
+\leanok
+\uses{lem:cm_far_lower, lem:cm_near_lower}
+There is a constant $C'>0$ such that for every $R\ge2$ there is $R'\in[R,2R]$ with
+\[
+  \log\|P(s)\|\;\ge\;-C'\,R^{3/2}\qquad\text{for all }s\text{ with }\|s\|=R'.
+\]
+This is exactly \Cref{lem:hf_minmod} of \Cref{cha:hadamard}.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:cm_far_lower, lem:cm_near_lower}
+Let $C_F,C_N$ be the constants of \Cref{lem:cm_far_lower} and \Cref{lem:cm_near_lower} and set
+$C':=C_F+C_N>0$. Fix $R\ge2$ and let $R'\in[R,2R]$ be the radius of \Cref{lem:cm_near_lower};
+note $\|s\|=R'$ implies $\|s\|\le2R$. For such $s$, part (1) of \Cref{lem:cm_near_lower} gives
+$s\neq\rho_i$ for every near $i$, while every far $i$ has $\|\rho_i\|>4R\ge2R\ge\|s\|$, so
+$s\neq\rho_i$ as well; thus $s\neq\rho_i$ for all $i$. Consequently $P(s)\neq0$ and, by
+\texttt{log\_norm\_riemannXiCanonicalProduct}, the family $i\mapsto\log\|E_1(s/\rho_i)\|$ is
+summable with
+\[
+  \log\|P(s)\|=\sum_i\log\|E_1(s/\rho_i)\|
+   =\sum_{\|\rho_i\|\le4R}\log\|E_1(s/\rho_i)\|+\sum_{\|\rho_i\|>4R}\log\|E_1(s/\rho_i)\|,
+\]
+splitting the summable family (\texttt{tsum\_subtype\_add\_tsum\_subtype\_compl}) over the set
+$\{i:\|\rho_i\|\le4R\}$ and its complement. Apply \Cref{lem:cm_near_lower}(2) to the first sum
+and \Cref{lem:cm_far_lower} to the second:
+\[
+  \log\|P(s)\|\ge-C_NR^{3/2}-C_FR^{3/2}=-C'R^{3/2}\qquad(\|s\|=R'),
+\]
+as required.
+\end{proof}
+
+\begin{remark}
+\Cref{thm:cm_minmod} is the statement of \Cref{lem:hf_minmod} of \Cref{cha:hadamard}
+(\texttt{exists\_circle\_log\_norm\_riemannXiCanonicalProduct\_ge}). The classical proof uses the
+two-dimensional Boutroux–Cartan exceptional-disc covering; the proof here selects the radius with
+the one-dimensional \Cref{lem:cm_radial_select} and the reverse triangle inequality. The
+inverse-modulus inputs \Cref{lem:cm_sum_inv} and \Cref{lem:cm_sum_inv_sq_tail} are Hölder bounds
+against the summable $\tfrac32$-power series. The arithmetic inputs are the counting bound
+\Cref{lem:zs_count_bound} and the zero summability \Cref{lem:zs_product} and
+\Cref{lem:zs_summable_divisor} of \Cref{cha:zero_summability}; the rest is elementary real and
+complex analysis from mathlib or \Cref{cha:hadamard}. The Hadamard factorisation
+\Cref{thm:hf_hadamard}, and through it the lower bound \Cref{lem:lb_pf_hadamard} of
+\Cref{cha:lehman_bound}, depends on this result.
+\end{remark}

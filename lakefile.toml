@@ -1,0 +1,67 @@
+name = "Zeta"
+defaultTargets = ["Zeta"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.style.header = false
+
+[[lean_lib]]
+name = "Zeta"
+
+[[lean_lib]]
+name = "Enclosure"
+globs = ["Enclosure", "Enclosure.+"]
+
+# The tangent-numbers Bernoulli development (shared certified tables); imported by
+# Zeta.BinarySplit.BernoulliReal. Kept out of defaultTargets: its Kummer benchmarks
+# are heavy and off the proof's critical path.
+[[lean_lib]]
+name = "Bernoulli"
+globs = ["Bernoulli.+"]
+
+# Native: the zero certificates checked by compiled evaluation (`native_decide`), a faster
+# alternative to the kernel-checked proof that additionally trusts the compiler
+# (`Lean.ofReduceBool`). Kept out of defaultTargets; `./build.sh --native` builds it.
+# Its globs must not cover `Native.Eval`: a module claimed by both libraries is silently not
+# precompiled, and the checks then run ~40x slower in the interpreter.
+[[lean_lib]]
+name = "Native"
+globs = ["Native", "Native.Encl", "Native.Const", "Native.Trig", "Native.Log", "Native.Arctan",
+  "Native.Fix", "Native.RiemannSiegel", "Native.Batch", "Native.BuildCerts", "Native.PluginCheck",
+  "Native.Certificates", "Native.Certificates.+", "Native.CountCertificates", "Native.Main"]
+
+# NativeEval: the computable part of `Native` (what `native_decide` evaluates), free of Mathlib
+# and compiled natively, so that the checks run as machine code rather than in the interpreter.
+[[lean_lib]]
+name = "NativeEval"
+# Lake loads the dylib as a plugin (after the libraries it links against) only when its name is
+# the root module's initializer stem; without this, loading fails on `Enclosure` symbols.
+libName = "Zeta_Native_Eval"
+roots = ["Native.Eval"]
+globs = ["Native.Eval", "Native.Eval.+"]
+precompileModules = true
+
+[[require]]
+name = "repl"
+rev = "v4.33.0"
+git = "https://github.com/leanprover-community/repl.git"
+
+[[require]]
+name = "PrimeNumberTheoremAnd"
+git = "https://github.com/smmercuri/PrimeNumberTheoremAnd"
+rev = "0a2c672d7533437e50f7a72596cb0ecd17352fbe"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.1"
+
+[[lean_lib]]
+name = "Comparator"
+srcDir = "comparator"
+globs = ["Main.+", "Analytic.+", "Reduction.+", "Batches.+", "Shard.+"]
+[lean_lib.leanOptions]
+warn.sorry = false
