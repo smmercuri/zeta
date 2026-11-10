@@ -1,0 +1,11 @@
+% Macros and packages shared by the web and print builds.
+% Build web.tex or print.tex; this file is included by both.
+
+% Inline code (Lean identifiers), used via \lstinline{...}, set as plain \texttt.
+% plasTeX's `listings` handler accumulates state across many \lstinline calls and
+% eventually raises a spurious NameError, so the `listings` package is not loaded.
+\let\lstinline\texttt
+
+% Custom symbols used across the chapters.
+\newcommand{\R}{R}                             % completed function R(s)=\pi^{-s/2}\Gamma(s/2)\zeta(s)
+\newcommand{\blueprintTODO}{\textbf{[TODO]}}   % inline flag for unfinished blueprint prose

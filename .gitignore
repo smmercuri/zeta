@@ -1,0 +1,45 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+
+# Sage
+*.sage.py
+*.sage-history
+
+# Environment / secrets
+.env
+
+# Lean / Lake build artifacts
+.lake/
+lakefile.olean
+
+# OS / editor cruft
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+.lake
+.claude
+log.jsonl
+.bump*/
+.refine*/
+# per-machine comparator binaries (comparator/README.md)
+.comparator-tools/
+# written by comparator/shard.sh
+comparator/Shard/

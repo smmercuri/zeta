@@ -1,0 +1,445 @@
+% Blueprint: Lehman's lower bound on the log-modulus line integral I(t).
+%
+% References: Lehman, *On the difference π(x)−li(x)*, Math. Comp. 20 (1966), and
+% *On the distribution of zeros of the Riemann zeta-function*, Proc. LMS 1970
+% \cite{Lehman1970}; Trudgian, *Improvements to Turing's method* \cite{TrudgianTuring};
+% Titchmarsh §9.4 \cite{TitchmarshZeta}; Davenport §12, §15 \cite{Davenport}.
+
+\chapter{Lehman's lower bound on the log-modulus integral}
+\label{cha:lehman_lower}
+
+Throughout this chapter $t$ is a fixed real that is \emph{not} an ordinate of a zero
+of $\zeta$, with $t\ge168\pi$; we fix the depth $d=\tfrac{53}{100}\in(\tfrac12,1]$ and
+abbreviate $s_d:=\tfrac12+d+it$. We write $\rho_i=\beta_i+i\gamma_i$ for the
+nontrivial zeros, enumerated (with multiplicity) by
+$\rho=\texttt{riemannXiZeros}:\texttt{RiemannXiZerosIndex}\to\mathbb C$, each with
+$0<\beta_i<1$ (every enumerated $\rho_i$ lies in the support of the divisor of $\xi$,
+hence is a zero of $\xi$ in the open critical strip by
+\texttt{riemannXi\_re\_mem\_Ioo\_of\_eq\_zero}, packaged as the helpers
+\texttt{riemannXiZeros\_re\_pos}/\texttt{riemannXiZeros\_re\_lt\_one}). The aim is
+\Cref{thm:ll_main}, which is \Cref{lem:lb_I_lower} of \Cref{cha:lehman_bound}:
+\[
+  -\,I(t)\ \le\ a_2+b_2\log t,\qquad b_2=\tfrac34 d^2,
+\]
+with $I(t)=\int_{1/2}^\infty\log|\zeta(\sigma+it)|\,d\sigma$ the line integral of
+\Cref{def:lb_I} and $a_2$ an explicit $t$-independent constant.
+
+The standing facts about $\xi$ and its zeros are: $\xi$ is
+entire with $\xi(0)=\xi(1)=\tfrac12$; $\xi(1-s)=\xi(s)$
+(\texttt{riemannXi\_one\_sub}); $\overline{\xi(\bar s)}=\xi(s)$
+(\texttt{riemannXi\_conj}); the Hadamard factorisation
+\[
+  \xi(s)=\tfrac12\,e^{Bs}\prod_i\Bigl(1-\tfrac s{\rho_i}\Bigr)e^{s/\rho_i},
+  \qquad B=\tfrac{\xi'}\xi(0)\in\mathbb R
+\]
+(\Cref{lem:lb_pf_hadamard}, \texttt{riemannXi\_eq\_hadamard\_product}); the
+summability $\sum_i|\rho_i|^{-2}<\infty$ (\Cref{lem:lb_pf_summable}); and the
+elementary factorisation $\xi(s)=\tfrac12 s(s-1)\,\Gamma_{\mathbb R}(s)\,\zeta(s)$
+with $\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$
+(\texttt{riemannXi\_eq\_prefactor\_mul}).
+
+\section{The reflection symmetry of the zeros}
+\label{sec:ll_reflection}
+
+The functional equation enters the proof in exactly one place: the multiset of zeros
+is invariant under the reflection $\rho\mapsto1-\bar\rho$ across the critical line.
+
+\begin{lemma}[Reflection reindexing of the zeros]
+\label{lem:ll_reflection}
+\lean{tsum_riemannXiZeros_one_sub_conj}
+\leanok
+\uses{lem:lb_pf_summable}
+There is an involutive bijection $e:\texttt{RiemannXiZerosIndex}\to
+\texttt{RiemannXiZerosIndex}$ with $\rho_{e(i)}=1-\overline{\rho_i}$ for all $i$.
+Consequently, for every family $g:\mathbb C\to\mathbb C$ for which
+$i\mapsto g(\rho_i)$ is summable,
+\[
+  \sum_i g(\rho_i)=\sum_i g\bigl(1-\overline{\rho_i}\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_summable}
+The map $\rho\mapsto1-\bar\rho$ is an involution of $\mathbb C$ and sends a nontrivial
+zero to a nontrivial zero: if $\xi(\rho)=0$ then
+$\xi(1-\bar\rho)=\xi(\bar\rho)=\overline{\xi(\rho)}=0$ by
+$\xi(1-s)=\xi(s)$ (\texttt{riemannXi\_one\_sub}) and
+$\overline{\xi(\bar s)}=\xi(s)$ (\texttt{riemannXi\_conj}), and it preserves the
+order of vanishing because conjugation and $s\mapsto1-s$ are biholomorphic. Hence the
+reflection permutes the multiplicity-respecting enumeration: there is an $e$ with
+$\rho_{e(i)}=1-\overline{\rho_i}$ (obtained by transporting the value-level involution
+through the fibres $\{i:\rho_i=z\}$, each finite by
+\texttt{finite\_setOf\_riemannXiZeros\_eq} and of cardinality the order of the zero at
+$z$, which equals the order at $1-\bar z$). The reindexing identity is then
+\texttt{Equiv.tsum\_eq} applied to $e$ together with $g(\rho_{e(i)})=g(1-\overline{\rho_i})$.
+\end{proof}
+
+\begin{remark}
+Only the existence of $e$ as a bijection of the index type is used: every sum below is
+absolutely convergent (\Cref{lem:lb_pf_summable}), so \texttt{tsum} is
+reindexing-invariant. The reflection $\rho\mapsto1-\bar\rho$ keeps the imaginary part
+fixed (the conjugation $\rho\mapsto\bar\rho$ negates it), which is what pairs $\rho$ with
+the second pole of the booker kernel.
+\end{remark}
+
+\section{The shift-by-\texorpdfstring{$d$}{d} log-modulus identity}
+\label{sec:ll_shift}
+
+For $z\in\mathbb C$ write $E(z):=\log|1-z|+\operatorname{Re}z$ for the (real) log-modulus
+of the genus-one elementary factor. By the Hadamard factorisation,
+\[
+  \log|\xi(s)|=\log\tfrac12+B\,\sigma+\sum_i E\!\left(\tfrac s{\rho_i}\right),
+  \qquad s=\sigma+i\tau,
+\tag{H}
+\]
+the sum absolutely convergent since $E(s/\rho_i)=O(|\rho_i|^{-2})$ for fixed $s$
+(as $\log|1-w|=-\operatorname{Re}w+O(|w|^2)$). Set
+\[
+  \kappa\ :=\ B+\sum_i\operatorname{Re}\frac1{\rho_i},
+\]
+a finite real constant: $\sum_i\operatorname{Re}(1/\rho_i)=\sum_i\beta_i/|\rho_i|^2$
+converges absolutely, dominated by $\sum_i|\rho_i|^{-2}<\infty$ (\Cref{lem:lb_pf_summable},
+using $0<\beta_i<1$). (In fact $\kappa=0$ by the reflection pairing, but only its
+finiteness is used.)
+
+\begin{lemma}[Shift-by-$d$ log-modulus identity]
+\label{lem:ll_logabs_diff}
+\lean{exists_const_tsum_log_norm_riemannXiZeros_shift_eq}
+\leanok
+\uses{lem:lb_pf_hadamard, lem:lb_pf_summable}
+For every $s\in\mathbb C$ that is not a zero of $\xi$ and with $s+d$ not a zero,
+\[
+  \sum_i\Bigl[\log|s+d-\rho_i|-\log|s-\rho_i|\Bigr]
+  \ =\ \log|\xi(s+d)|-\log|\xi(s)|-d\,\kappa,
+\]
+the sum on the left absolutely convergent (each term is $O(|\rho_i|^{-2})$).
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_hadamard, lem:lb_pf_summable}
+For each $i$, $\log|s+d-\rho_i|-\log|s-\rho_i|
+=\log|1-\tfrac{s+d}{\rho_i}|-\log|1-\tfrac s{\rho_i}|$ (the additive $-\log|\rho_i|$
+cancels). Adding and subtracting the counterterm $\operatorname{Re}(d/\rho_i)$,
+\[
+  \log|s+d-\rho_i|-\log|s-\rho_i|
+  =\Bigl[E\!\left(\tfrac{s+d}{\rho_i}\right)-E\!\left(\tfrac s{\rho_i}\right)\Bigr]
+   -\operatorname{Re}\frac d{\rho_i}.
+\]
+The bracketed difference is $O(|\rho_i|^{-2})$ (a difference of two $O(|\rho_i|^{-2})$
+terms whose linear parts cancel) and $\operatorname{Re}(d/\rho_i)=d\,\beta_i/|\rho_i|^2$
+is $O(|\rho_i|^{-2})$, so the left-hand series converges absolutely. Summing and using
+(H) at $s+d$ and at $s$,
+\[
+  \sum_i\Bigl[E\!\left(\tfrac{s+d}{\rho_i}\right)-E\!\left(\tfrac s{\rho_i}\right)\Bigr]
+  =\bigl(\log|\xi(s+d)|-\log|\xi(s)|\bigr)-B\bigl((\sigma+d)-\sigma\bigr)
+  =\log|\xi(s+d)|-\log|\xi(s)|-Bd,
+\]
+while $\sum_i\operatorname{Re}(d/\rho_i)=d\sum_i\operatorname{Re}(1/\rho_i)$.
+Subtracting gives the claim with $d\kappa=Bd+d\sum_i\operatorname{Re}(1/\rho_i)$.
+\end{proof}
+
+\section{The summed booker bound}
+\label{sec:ll_booker}
+
+Fix $\rho_i$ and put $w_i:=\rho_i-(\tfrac12+it)$, so $\operatorname{Re}w_i=\beta_i-\tfrac12
+\in(-\tfrac12,\tfrac12)$ and $\operatorname{Im}w_i=\gamma_i-t\neq0$ (as $t$ is not an
+ordinate). With $s=\tfrac12+x+it$ ($x\in[0,d]$) one checks the modulus identities
+\[
+  |x-\bar w_i|=|s-\rho_i|,\quad |x+w_i|=|s-\rho_i^{*}|,\quad
+  |x+d-\bar w_i|=|s+d-\rho_i|,\quad |x+d+w_i|=|s+d-\rho_i^{*}|,
+\]
+where $\rho_i^{*}:=1-\bar\rho_i$ is the reflected zero, and the right-pole residue
+identities (for the abscissa $s_d=\tfrac12+d+it$)
+\[
+  \operatorname{Re}\frac1{d-\bar w_i}=\operatorname{Re}\frac1{s_d-\rho_i},\qquad
+  \operatorname{Re}\frac1{d+w_i}=\operatorname{Re}\frac1{s_d-\rho_i^{*}}.
+\tag{R}
+\]
+These are direct computations: e.g. $s-\rho_i=(x-(\beta_i-\tfrac12))+i(t-\gamma_i)$ has
+the same modulus as $x-\bar w_i$, and $s_d-\rho_i$ and $d-\bar w_i$ are complex
+conjugates (equal real part $\tfrac12+d-\beta_i$, opposite imaginary part), so their
+reciprocals have equal real part, which is (R).
+
+\begin{lemma}[Booker bound summed over all zeros]
+\label{lem:ll_booker_sum}
+\lean{integral_tsum_log_norm_shift_le}
+\leanok
+\uses{lem:lb_booker, lem:ll_reflection, lem:lb_pf_summable}
+With $s=\tfrac12+x+it$,
+\[
+  \sum_i\int_0^d\Bigl[\log|s+d-\rho_i|-\log|s-\rho_i|\Bigr]\,dx
+  \ \le\ \tfrac52\,d^2\sum_i\operatorname{Re}\frac1{s_d-\rho_i},
+\]
+both sides absolutely convergent.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_booker, lem:ll_reflection, lem:lb_pf_summable}
+Apply \Cref{lem:lb_booker} to each $w_i$ (its hypotheses $d>\tfrac12$,
+$|\operatorname{Re}w_i|\le\tfrac12$, $\operatorname{Im}w_i\neq0$ all hold): by the
+modulus identities above the booker integrand equals
+$\log\bigl|\tfrac{(x+d+w_i)(x+d-\bar w_i)}{(x+w_i)(x-\bar w_i)}\bigr|
+=[\log|s+d-\rho_i|-\log|s-\rho_i|]+[\log|s+d-\rho_i^{*}|-\log|s-\rho_i^{*}|]$, so
+\[
+  \int_0^d\!\Bigl[(\log|s{+}d{-}\rho_i|{-}\log|s{-}\rho_i|)+(\log|s{+}d{-}\rho_i^{*}|{-}\log|s{-}\rho_i^{*}|)\Bigr]dx
+  \le \tfrac52 d^2\Bigl(\operatorname{Re}\tfrac1{s_d-\rho_i^{*}}+\operatorname{Re}\tfrac1{s_d-\rho_i}\Bigr),
+\]
+using (R) for the right-hand side. Summing over $i$: by \Cref{lem:ll_reflection}
+applied to $g(\rho)=\int_0^d[\log|s+d-\rho|-\log|s-\rho|]\,dx$ (summable, integrand
+$O(|\rho_i|^{-2})$ uniformly on $[0,d]$) the starred and unstarred left-hand sums are
+equal, so the left-hand side sums to
+$2\sum_i\int_0^d[\log|s+d-\rho_i|-\log|s-\rho_i|]\,dx$; likewise by
+\Cref{lem:ll_reflection} applied to $g(\rho)=\operatorname{Re}\,1/(s_d-\rho)$ the
+right-hand side sums to $\tfrac52 d^2\cdot2\sum_i\operatorname{Re}\,1/(s_d-\rho_i)$.
+Dividing by $2$ gives the claim. Summability of $\operatorname{Re}\,1/(s_d-\rho_i)
+=(\tfrac12+d-\beta_i)/|s_d-\rho_i|^2$ (all terms nonnegative) follows from
+$|s_d-\rho_i|^2\ge|\gamma_i-t|^2$ and \Cref{lem:lb_pf_summable}.
+\end{proof}
+
+\section{The log-\texorpdfstring{$t$}{t} coefficient from the explicit formula}
+\label{sec:ll_zeta_sum}
+
+\begin{lemma}[Bound on the zero sum at the abscissa $s_d$]
+\label{lem:ll_zeta_sum}
+\lean{tsum_re_inv_riemannXiZeros_sub_le}
+\leanok
+\uses{lem:lb_pf_zeta, thm:gs_digamma_stirling, lem:gs_remainder_bound}
+There is a $t$-independent constant $C_\psi$ with
+\[
+  \sum_i\operatorname{Re}\frac1{s_d-\rho_i}\ \le\ \tfrac12\log t+C_\psi
+  \qquad(t\ge168\pi).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:lb_pf_zeta, thm:gs_digamma_stirling, lem:gs_remainder_bound}
+Since $\operatorname{Re}s_d=\tfrac12+d=1.03>1$ and $\operatorname{Im}s_d=t\neq0$, the
+point $s_d$ satisfies the hypotheses of \Cref{lem:lb_pf_zeta}
+($0<\operatorname{Re}s_d$, $s_d\neq1$, and $s_d$ is not a zero as $\beta_i<1<1.03$).
+Taking real parts of
+\[
+  \frac{\zeta'}\zeta(s_d)=B-\frac1{s_d}-\frac1{s_d-1}+\tfrac12\log\pi
+    -\tfrac12\psi\!\Bigl(\tfrac{s_d}2\Bigr)
+    +\sum_i\Bigl(\frac1{s_d-\rho_i}+\frac1{\rho_i}\Bigr)
+\]
+and solving for the zero sum,
+\[
+  \sum_i\operatorname{Re}\frac1{s_d-\rho_i}
+  =\operatorname{Re}\frac{\zeta'}\zeta(s_d)+\tfrac12\operatorname{Re}\psi\!\Bigl(\tfrac{s_d}2\Bigr)
+   +\operatorname{Re}\frac1{s_d}+\operatorname{Re}\frac1{s_d-1}-\tfrac12\log\pi-\kappa,
+\]
+with $\kappa=B+\sum_i\operatorname{Re}(1/\rho_i)$ as in \Cref{sec:ll_shift}. We bound
+the four non-constant terms.
+
+\emph{Dirichlet term.} For $\operatorname{Re}s_d=1.03>1$ the series
+$\tfrac{\zeta'}\zeta(s_d)=-\sum_{n\ge1}\Lambda(n)n^{-s_d}$ converges, so
+$\operatorname{Re}\tfrac{\zeta'}\zeta(s_d)\le\bigl|\tfrac{\zeta'}\zeta(s_d)\bigr|
+\le\sum_{n\ge1}\Lambda(n)n^{-1.03}=-\tfrac{\zeta'}\zeta(1.03)=:C_{\zeta'}$, a finite
+constant.
+
+\emph{Digamma term.} By the complex Euler--Maclaurin digamma expansion
+$\psi(z)=\operatorname{Log}z-(2z)^{-1}-R(z)$ for $\operatorname{Re}z>0$
+(\texttt{digamma\_eq\_log\_sub} at $M=0$), with
+$\|R(z)\|\le C_R\|z\|^{-1}$ (\texttt{norm\_digammaRemainderIoi\_le} at $p=1$), and
+$\operatorname{Re}\operatorname{Log}z=\log\|z\|$,
+\[
+  \operatorname{Re}\psi\!\Bigl(\tfrac{s_d}2\Bigr)\le\log\Bigl\|\tfrac{s_d}2\Bigr\|
+    +\tfrac1{2\|s_d/2\|}+\tfrac{C_R}{\|s_d/2\|}
+  \le\log\|s_d\|+C_0,
+\]
+and $\|s_d\|=\sqrt{(1.03)^2+t^2}\le t+1.03\le 2t$ for $t\ge168\pi$, so
+$\log\|s_d\|\le\log t+\log2$. Hence $\tfrac12\operatorname{Re}\psi(s_d/2)\le
+\tfrac12\log t+\tfrac12(\log2+C_0)$.
+
+\emph{Polar terms.} $\operatorname{Re}(1/s_d)\le1/\|s_d\|\le1/t$ and
+$\operatorname{Re}(1/(s_d-1))\le1/\|s_d-1\|\le1/(t-1)$, both $\le1$ for $t\ge168\pi$.
+
+Collecting, $\sum_i\operatorname{Re}\,1/(s_d-\rho_i)\le\tfrac12\log t+C_\psi$ with
+$C_\psi:=C_{\zeta'}+\tfrac12(\log2+C_0)+2-\tfrac12\log\pi-\kappa$.
+\end{proof}
+
+\section{The archimedean strip integral}
+\label{sec:ll_arch}
+
+Write $\Lambda_{\mathrm a}(s):=\tfrac12 s(s-1)\,\pi^{-s/2}\Gamma(s/2)$, so that
+$\xi(s)=\Lambda_{\mathrm a}(s)\,\zeta(s)$ and, away from zeros,
+$\log|\xi(s)|=\log|\zeta(s)|+\log|\Lambda_{\mathrm a}(s)|$ with
+\[
+  \log|\Lambda_{\mathrm a}(\sigma+it)|
+  =\log\bigl|\tfrac12(\sigma+it)(\sigma-1+it)\bigr|-\tfrac\sigma2\log\pi
+   +\log\bigl|\Gamma(\tfrac{\sigma+it}2)\bigr|.
+\]
+For a width-$d$ strip put $A(a):=\int_a^{a+d}\log|\Lambda_{\mathrm a}(\sigma+it)|\,d\sigma$.
+
+\begin{lemma}[Archimedean strip-difference]
+\label{lem:ll_arch}
+\lean{logNormGammaArchimedean_strip_diff_ge}
+\leanok
+\uses{thm:gs_Gamma_growth}
+There is a $t$-independent constant $C_{\mathrm a}$ with
+\[
+  A\!\left(\tfrac12+d\right)-A\!\left(\tfrac12\right)\ \ge\ \tfrac{d^2}2\log t-C_{\mathrm a}
+  \qquad(t\ge168\pi).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_Gamma_growth}
+By \Cref{thm:gs_Gamma_growth} (\texttt{norm\_Gamma\_vertical\_le}) applied on the
+fixed strip $[\tfrac14,\tfrac45]$ (which contains $\tfrac\sigma2$ for the full range
+$\sigma\in[\tfrac12,\tfrac12+2d]=[\tfrac12,1.56]$ swept by both width-$d$ strips, since
+$\tfrac{1/2+2d}2=0.78<\tfrac45$)
+there are $0<c_1\le c_2$ with, for $\tfrac{\sigma}2\in[\tfrac14,\tfrac45]$ and
+$|\tfrac t2|\ge1$,
+\[
+  \log c_1+\Bigl(\tfrac\sigma2-\tfrac12\Bigr)\log\tfrac t2-\tfrac\pi4 t
+  \ \le\ \log\bigl|\Gamma(\tfrac{\sigma+it}2)\bigr|
+  \ \le\ \log c_2+\Bigl(\tfrac\sigma2-\tfrac12\Bigr)\log\tfrac t2-\tfrac\pi4 t,
+\]
+(here $\sigma'=\tfrac\sigma2$, $\tau=\tfrac t2$, and $|\tau|^{\sigma'-1/2}
+=(t/2)^{\sigma/2-1/2}$, $e^{-(\pi/2)|\tau|}=e^{-\pi t/4}$). The Gamma contribution to
+$A(a)$ is therefore $\int_a^{a+d}(\tfrac\sigma2-\tfrac12)\log\tfrac t2\,d\sigma
+-\tfrac\pi4 t\,d$ up to an additive error in $[\log c_1\cdot d,\log c_2\cdot d]$. The
+linear-in-$t$ term $-\tfrac\pi4 t\,d$ is $\sigma$-independent and identical for the two
+width-$d$ strips, hence cancels in the difference. For the logarithmic main term, with
+$g(\sigma)=\tfrac\sigma2-\tfrac12$,
+\[
+  \int_{1/2+d}^{1/2+2d}g-\int_{1/2}^{1/2+d}g
+  =\tfrac12\!\left[\int_{1/2+d}^{1/2+2d}\sigma\,d\sigma-\int_{1/2}^{1/2+d}\sigma\,d\sigma\right]
+  =\tfrac12\cdot d^2=\tfrac{d^2}2,
+\]
+so the Gamma part of $A(\tfrac12+d)-A(\tfrac12)$ equals $\tfrac{d^2}2\log\tfrac t2$ up to
+an error of modulus $\le(\log c_2-\log c_1)d=:C_\Gamma$.
+
+For the elementary factor $\tfrac12 s(s-1)$ and the $-\tfrac\sigma2\log\pi$ term: both
+$\sigma\mapsto\log|\tfrac12(\sigma+it)(\sigma-1+it)|$ and $\sigma\mapsto-\tfrac\sigma2\log\pi$
+are continuous, and for $\sigma\in[\tfrac12,1.56]$ and $t\ge168\pi$ the strip-difference
+\[
+  \Bigl[\int_{1/2+d}^{1/2+2d}-\int_{1/2}^{1/2+d}\Bigr]
+    \log\bigl|\tfrac12(\sigma+it)(\sigma-1+it)\bigr|\,d\sigma
+\]
+is bounded in modulus uniformly in $t$: writing $\log|\tfrac12 s(s-1)|
+=\tfrac12\log\bigl(\tfrac14((\sigma^2+t^2))((\sigma-1)^2+t^2)\bigr)$, its $\sigma$-derivative
+is $O(\sigma/t^2)=O(1/t^2)$ on the range, so each strip integral is
+$\tfrac12\log(\tfrac14 t^4)+O(1)=2\log t+O(1)$ and the difference is $O(1)$; likewise
+$-\tfrac\sigma2\log\pi$ contributes a fixed $O(1)$ difference. Call the total
+elementary-plus-$\pi$ difference's lower bound $-C_{\mathrm e}$. Hence
+\[
+  A\!\left(\tfrac12+d\right)-A\!\left(\tfrac12\right)
+  \ \ge\ \tfrac{d^2}2\log\tfrac t2-C_\Gamma-C_{\mathrm e}
+  \ \ge\ \tfrac{d^2}2\log t-C_{\mathrm a},
+\]
+with $C_{\mathrm a}:=\tfrac{d^2}2\log2+C_\Gamma+C_{\mathrm e}$.
+\end{proof}
+
+\section{The tail and the assembly}
+\label{sec:ll_assembly}
+
+\begin{lemma}[Lower bound on the tail]
+\label{lem:ll_tail}
+\lean{logNormZetaIntegral_tail_ge}
+\leanok
+\uses{def:lb_I, lem:lb_I_integrable}
+The integrals
+\[
+  J_2:=\int_{1/2+d}^{1/2+2d}\log|\zeta(\sigma+it)|\,d\sigma,\qquad
+  R:=\int_{1/2+d}^{\infty}\log|\zeta(\sigma+it)|\,d\sigma
+\]
+satisfy $J_2\ge-C_{\mathrm t}$ and $R\ge-C_{\mathrm t}'$ for $t$-independent constants
+$C_{\mathrm t},C_{\mathrm t}'$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:lb_I, lem:lb_I_integrable}
+On $\sigma\ge\tfrac12+d=1.03>1$ the Euler product gives
+$|\zeta(\sigma+it)|\ge\prod_p(1+p^{-\sigma})^{-1}=\zeta(2\sigma)/\zeta(\sigma)$, so
+$\log|\zeta(\sigma+it)|\ge\log\zeta(2\sigma)-\log\zeta(\sigma)$, a $t$-independent lower
+bound. Now $\sigma\mapsto\log\zeta(\sigma)$ is positive, decreasing and integrable on
+$[1.03,\infty)$ (it is $\le\log\zeta(1.03)$ throughout and $=O(2^{-\sigma})$ as
+$\sigma\to\infty$), and $\log\zeta(2\sigma)\ge0$; hence
+$\int_{1.03}^\infty[\log\zeta(2\sigma)-\log\zeta(\sigma)]\,d\sigma\ge
+-\int_{1.03}^\infty\log\zeta(\sigma)\,d\sigma=:-C_{\mathrm t}'$ is finite, giving
+$R\ge-C_{\mathrm t}'$. Restricting to the sub-interval $[1.03,1.56]$ gives
+$J_2\ge-C_{\mathrm t}$ with $C_{\mathrm t}\le C_{\mathrm t}'$. (Both bounds are the
+lower-bound analogue of the tail estimate of \Cref{lem:lb_I_integrable}, where
+$|\zeta-1|\le1$ for $\sigma\ge2$ already controls $[2,\infty)$; the present statement
+extends the control down to $\sigma=1.03$.)
+\end{proof}
+
+\begin{theorem}[Lower bound on $I$]
+\label{thm:ll_main}
+\lean{le_logNormZetaIntegral}
+\leanok
+\uses{def:lb_I, lem:ll_logabs_diff, lem:ll_booker_sum, lem:ll_zeta_sum, lem:ll_arch, lem:ll_tail}
+For $t\ge168\pi$ not an ordinate of a zero of $\zeta$,
+\[
+  -\,I(t)\ \le\ a_2+b_2\log t,\qquad b_2=\tfrac34 d^2=\tfrac{d^2}2\Bigl(\tfrac52-1\Bigr),
+\]
+with $a_2$ an explicit $t$-independent constant. At $d=\tfrac{53}{100}$,
+$b_2=0.2107$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:ll_logabs_diff, lem:ll_booker_sum, lem:ll_zeta_sum, lem:ll_arch, lem:ll_tail}
+Split $I(t)=J+R$ with $J:=\int_{1/2}^{1/2+d}\log|\zeta(\sigma+it)|\,d\sigma$ and $R$ the
+tail of \Cref{lem:ll_tail}. We lower-bound $J$.
+
+\emph{Step 1 (booker identity for the $\xi$-strip difference).} Integrating
+\Cref{lem:ll_logabs_diff} over $s=\tfrac12+x+it$, $x\in[0,d]$, and using
+$\int_0^d\log|\xi(\tfrac12+x+it)|\,dx=\Xi_1$,
+$\int_0^d\log|\xi(\tfrac12+x+d+it)|\,dx=\Xi_2$ (where
+$\Xi_j:=\int_{\,\cdot}\log|\xi|$ over the $j$-th width-$d$ strip), the left-hand sum of
+\Cref{lem:ll_booker_sum} equals $\Xi_2-\Xi_1-d^2\kappa$. Hence, by
+\Cref{lem:ll_booker_sum} and \Cref{lem:ll_zeta_sum},
+\[
+  \Xi_2-\Xi_1-d^2\kappa
+  \ \le\ \tfrac52 d^2\sum_i\operatorname{Re}\frac1{s_d-\rho_i}
+  \ \le\ \tfrac52 d^2\Bigl(\tfrac12\log t+C_\psi\Bigr)
+  =\tfrac54 d^2\log t+\tfrac52 d^2C_\psi.
+\]
+(The exchange of $\sum_i$ and $\int_0^d$ is justified by the uniform $O(|\rho_i|^{-2})$
+domination of the integrand on $[0,d]$ and \Cref{lem:lb_pf_summable}.)
+
+\emph{Step 2 (pass from $\xi$ to $\zeta$).} Since $\log|\xi|=\log|\zeta|+\log|\Lambda_{\mathrm a}|$,
+$\Xi_1=J+A(\tfrac12)$ and $\Xi_2=J_2+A(\tfrac12+d)$, so
+$\Xi_2-\Xi_1=(J_2-J)+\bigl(A(\tfrac12+d)-A(\tfrac12)\bigr)$. Substituting into Step 1
+and solving for $J$,
+\[
+  J\ =\ J_2+\bigl(A(\tfrac12+d)-A(\tfrac12)\bigr)-d^2\kappa-\bigl(\Xi_2-\Xi_1-d^2\kappa\bigr)
+  \ \ge\ J_2+\bigl(A(\tfrac12+d)-A(\tfrac12)\bigr)-d^2\kappa-\tfrac54 d^2\log t-\tfrac52 d^2C_\psi.
+\]
+Now \Cref{lem:ll_arch} gives $A(\tfrac12+d)-A(\tfrac12)\ge\tfrac{d^2}2\log t-C_{\mathrm a}$
+and \Cref{lem:ll_tail} gives $J_2\ge-C_{\mathrm t}$, whence
+\[
+  J\ \ge\ \Bigl(\tfrac{d^2}2-\tfrac54 d^2\Bigr)\log t
+    -\bigl(C_{\mathrm t}+C_{\mathrm a}+d^2\kappa+\tfrac52 d^2C_\psi\bigr)
+  \ =\ -\tfrac34 d^2\log t-C_J.
+\]
+
+\emph{Step 3 (add the tail).} By \Cref{lem:ll_tail}, $R\ge-C_{\mathrm t}'$, so
+\[
+  I(t)=J+R\ \ge\ -\tfrac34 d^2\log t-C_J-C_{\mathrm t}',
+\]
+i.e. $-I(t)\le\tfrac34 d^2\log t+a_2$ with $a_2:=C_J+C_{\mathrm t}'$ an explicit
+$t$-independent constant and $b_2=\tfrac34 d^2=\tfrac{d^2}2(\tfrac52-1)$. At
+$d=\tfrac{53}{100}$, $b_2=\tfrac34(\tfrac{53}{100})^2=0.2107$.
+\end{proof}
+
+\begin{remark}[Where each ingredient is spent]
+The leading $\tfrac34 d^2\log t$ is the residue of two competing $\log t$ terms: the
+pairing bound contributes $+\tfrac54 d^2\log t$ (booker constant $\tfrac52$ times the
+$\tfrac12\log t$ density at $s_d$, \Cref{lem:ll_zeta_sum}), against which the
+archimedean strip-difference returns $-\tfrac{d^2}2\log t$ (\Cref{lem:ll_arch}); their
+difference, $\tfrac54 d^2-\tfrac{d^2}2=\tfrac34 d^2$, is $b_2$. The divergent
+$\pm\tfrac\pi4 t$ growth of $\log|\Gamma|$ never appears in $b_2$: it cancels inside
+\Cref{lem:ll_arch} between the two width-$d$ strips. All constants
+$\kappa,C_\psi,C_{\mathrm a},C_{\mathrm t},C_{\mathrm t}'$ are explicit and
+$t$-independent.
+\end{remark}

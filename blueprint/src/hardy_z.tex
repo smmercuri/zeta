@@ -1,0 +1,428 @@
+% Blueprint: rigorous error bound for Hardy's Z function via arbitrary-order
+% Euler--Maclaurin for the Gamma and zeta components.
+
+\chapter{Rigorous error bound for Hardy's $Z$ function}
+\label{cha:hardy_z}
+
+\section{The Euler--Maclaurin expansion of \texorpdfstring{$\log\Gamma$}{log Gamma}}
+\label{sec:hz_loggamma}
+
+Throughout this section $w\in\mathbb{C}$ with $\operatorname{Re}w>0$, and
+$\operatorname{Log}\Gamma$ denotes the holomorphic branch of $\log\Gamma$ on the
+right half-plane $\Omega:=\{\operatorname{Re}>0\}$: since $\Omega$ is simply connected
+and $\Gamma$ is holomorphic and nowhere zero there, $\log\Gamma$ has a holomorphic
+branch on $\Omega$, unique once normalised to be real on the positive real axis
+($\operatorname{Log}\Gamma(x)=\log\Gamma(x)\in\mathbb{R}$ for $x>0$). Its derivative is
+the digamma function $\psi=\Gamma'/\Gamma$, and its imaginary part is precisely the
+continuous $\arg\Gamma$ (anchored at $\arg\Gamma(\tfrac14)=0$) used to define $\theta$
+in \Cref{def:nf_theta}.
+
+Recall from \Cref{thm:gs_digamma_stirling} that for every $M\in\mathbb{N}$,
+\begin{equation}
+\tag{$\psi$}
+\label{eq:hz_digamma}
+  \psi(w) \;=\; \operatorname{Log}w-\frac1{2w}
+    -\sum_{k=1}^{M}\frac{B_{2k}}{2k}\,w^{-2k}
+    \;-\; R^{\psi}_{2M+1}(w),
+  \qquad R^{\psi}_{2M+1}(w):=\texttt{digammaRemainderIoi}\,(w,2M+1),
+\end{equation}
+with the explicit bound (\Cref{thm:gs_remainder_bound_explicit}, valid $\operatorname{Re}w>0$,
+$2M+1\ge2$, i.e. $M\ge1$)
+\begin{equation}
+\tag{$\psi$-bd}
+\label{eq:hz_digamma_bound}
+  \bigl|R^{\psi}_{2M+1}(w)\bigr|\;\le\;\frac{(2M+1)!}{(2\pi)^{2M}}\,\lvert w\rvert^{-(2M+1)}.
+\end{equation}
+
+\begin{definition}[Stirling approximant of $\log\Gamma$]
+\label{def:hz_stirling}
+\lean{Complex.Stirling.logGammaStirling}
+\leanok
+\uses{def:bernoulli}
+For $M\in\mathbb{N}$ and $\operatorname{Re}w>0$ set
+\[
+  S_M(w)\;:=\;\Bigl(w-\tfrac12\Bigr)\operatorname{Log}w-w+\tfrac12\log(2\pi)
+    +\sum_{k=1}^{M}\frac{B_{2k}}{2k(2k-1)}\,w^{\,1-2k}.
+\]
+\end{definition}
+
+\begin{lemma}[$S_M$ is a primitive of the digamma partial sum]
+\label{lem:hz_stirling_deriv}
+\lean{Complex.Stirling.hasDerivAt_logGammaStirling}
+\leanok
+\uses{def:hz_stirling}
+For $\operatorname{Re}w>0$, $S_M$ is holomorphic and
+\[
+  S_M'(w)\;=\;\operatorname{Log}w-\frac1{2w}-\sum_{k=1}^{M}\frac{B_{2k}}{2k}\,w^{-2k},
+\]
+i.e. $S_M'$ is the truncated digamma series of \textup{($\psi$)}.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Term by term. $\tfrac{d}{dw}\bigl[(w-\tfrac12)\operatorname{Log}w-w\bigr]
+=\operatorname{Log}w+(w-\tfrac12)\tfrac1w-1=\operatorname{Log}w-\tfrac1{2w}$; the
+constant $\tfrac12\log(2\pi)$ differentiates to $0$; and for $k\ge1$,
+$\tfrac{d}{dw}\bigl[\tfrac{B_{2k}}{2k(2k-1)}w^{1-2k}\bigr]
+=\tfrac{B_{2k}}{2k(2k-1)}(1-2k)w^{-2k}=-\tfrac{B_{2k}}{2k}w^{-2k}$. Summing gives
+the claim; holomorphy on $\{\operatorname{Re}>0\}$ is clear ($\operatorname{Log}$ and
+the powers are holomorphic there).
+\end{proof}
+
+\begin{definition}[Improper $\log\Gamma$ remainder]
+\label{def:hz_remainder}
+\lean{Complex.Stirling.logGammaRemainderIoi}
+\leanok
+\uses{def:gs_remainder_Ioi}
+For $\operatorname{Re}w>0$ and $M\ge1$ define
+\[
+  \rho_M(w)\;:=\;\int_0^{\infty} R^{\psi}_{2M+1}(w+\tau)\,d\tau
+    \;=\;\int_0^{\infty}\texttt{digammaRemainderIoi}\,(w+\tau,\,2M+1)\,d\tau .
+\]
+The integrand is continuous in $\tau$ and, by \textup{($\psi$-bd)},
+$\bigl|R^{\psi}_{2M+1}(w+\tau)\bigr|\le (2M+1)!\,(2\pi)^{-2M}(\operatorname{Re}w+\tau)^{-(2M+1)}$
+which is integrable on $[0,\infty)$ (as $2M+1\ge2$), so $\rho_M(w)$ is well defined.
+\end{definition}
+
+\begin{theorem}[Explicit arbitrary-order $\log\Gamma$ remainder bound]
+\label{thm:hz_loggamma_bound}
+\lean{Complex.Stirling.norm_logGammaRemainderIoi_le}
+\leanok
+\uses{def:hz_remainder, thm:gs_remainder_bound_explicit}
+For every $M\ge1$ and every $w$ with $\operatorname{Re}w>0$,
+\[
+  \bigl|\rho_M(w)\bigr|\;\le\;\frac{(2M+1)!}{2M\,(2\pi)^{2M}}\,(\operatorname{Re}w)^{-2M}.
+\]
+In particular, for fixed $\operatorname{Im}w$, $\rho_M(w)\to0$ as $\operatorname{Re}w\to+\infty$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_remainder_bound_explicit}
+By the triangle inequality for the Bochner integral and
+\textup{($\psi$-bd)}, using $\lvert w+\tau\rvert\ge\operatorname{Re}w+\tau>0$,
+\[
+  \bigl|\rho_M(w)\bigr|
+  \le\int_0^\infty\bigl|R^{\psi}_{2M+1}(w+\tau)\bigr|\,d\tau
+  \le\frac{(2M+1)!}{(2\pi)^{2M}}\int_0^\infty(\operatorname{Re}w+\tau)^{-(2M+1)}\,d\tau .
+\]
+With $\sigma:=\operatorname{Re}w>0$ and $2M+1\ge2$,
+$\int_0^\infty(\sigma+\tau)^{-(2M+1)}d\tau=\sigma^{-2M}/(2M)$, giving the bound.
+\end{proof}
+
+The additive Stirling constant $\tfrac12\log(2\pi)$ in \Cref{def:hz_stirling} cannot be
+recovered from the digamma expansion alone (differentiation kills constants). It is
+pinned by the classical real-axis Stirling limit, our sole external analytic input in
+this section (exactly analogous to the role of the vanishing digamma constant,
+\Cref{lem:gs_anchor}, one derivative down).
+
+\begin{lemma}[Real-axis Stirling anchor]
+\label{lem:hz_anchor}
+\lean{Real.Stirling.tendsto_log_Gamma_sub_stirlingRef_atTop}
+\leanok
+For real $x\to+\infty$,
+\[
+  \log\Gamma(x)\;-\;\Bigl[(x-\tfrac12)\log x-x+\tfrac12\log(2\pi)\Bigr]\;\longrightarrow\;0 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is Stirling's approximation for the Gamma function on the positive real axis. It
+follows from mathlib's factorial Stirling equivalence
+\texttt{Stirling.factorial\_isEquivalent\_stirling}
+($n!\sim\sqrt{2\pi n}\,(n/e)^n$, i.e.
+$\log n!-[(n+\tfrac12)\log n-n+\tfrac12\log(2\pi)]\to0$) together with the convexity
+of $\log\circ\Gamma$ on $(0,\infty)$ (mathlib \texttt{convexOn\_log\_Gamma} in the
+\texttt{Real} namespace). Convexity gives \emph{monotone difference quotients}: for
+$x\in[n,n+1]$,
+\[
+  \log\Gamma(n)+ (x-n)\bigl(\log\Gamma(n)-\log\Gamma(n-1)\bigr)
+  \;\le\;\log\Gamma(x)\;\le\;
+  \log\Gamma(n)+(x-n)\bigl(\log\Gamma(n+1)-\log\Gamma(n)\bigr),
+\]
+i.e. $\log\Gamma(x)$ is trapped between the tangent-from-the-left and the chord, both of
+which equal $\log\Gamma(n)+O(1)\cdot(x-n)$ with the $O(1)$ slopes
+$\log\Gamma(n{\pm}1)-\log\Gamma(n)=\log n+o(1)$. Subtracting the smooth reference
+$r(x):=(x-\tfrac12)\log x-x+\tfrac12\log(2\pi)$ (for which $r(x)-r(n)\to0$ uniformly on
+$[n,n+1]$ since $r'(x)=\log x-\tfrac1{2x}$ varies by $o(1)$ across the unit interval) and
+using $\log\Gamma(n)-r(n)\to0$ (the factorial equivalence, as $\log\Gamma(n)=\log(n-1)!$)
+squeezes $\log\Gamma(x)-r(x)\to0$ for all real $x\to+\infty$.
+\end{proof}
+
+\begin{theorem}[Euler--Maclaurin/Stirling expansion of $\log\Gamma$]
+\label{thm:hz_loggamma_em}
+\lean{Complex.Stirling.logGamma_eq_stirling_add_remainder}
+\leanok
+\uses{def:hz_stirling, def:hz_remainder, lem:hz_stirling_deriv, thm:hz_loggamma_bound,
+      lem:hz_anchor, thm:gs_digamma_stirling}
+For every $M\ge1$ and every $w$ with $\operatorname{Re}w>0$,
+\[
+  \operatorname{Log}\Gamma(w)\;=\;S_M(w)\;+\;\rho_M(w).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:hz_stirling_deriv, thm:gs_digamma_stirling, thm:hz_loggamma_bound, lem:hz_anchor}
+Put $g(w):=\operatorname{Log}\Gamma(w)-S_M(w)$, holomorphic on the right half-plane
+$\Omega:=\{\operatorname{Re}>0\}$.
+
+\emph{Shared derivative.} Digamma is the logarithmic derivative of $\Gamma$, so
+$(\operatorname{Log}\Gamma)'=\psi$; with \Cref{lem:hz_stirling_deriv} and \textup{($\psi$)},
+\[
+  g'(w)=\psi(w)-S_M'(w)=-R^{\psi}_{2M+1}(w).
+\]
+
+\emph{Integrating the derivative along the horizontal ray.} We integrate $g'$, which uses
+only the bound on $R^{\psi}$ itself. Since $t\mapsto g(w+t)$ has derivative $-R^{\psi}_{2M+1}(w+t)$ on $[0,n]$ (all
+points have real part $>0$), and $R^{\psi}_{2M+1}(w+\cdot)$ is integrable on $(0,\infty)$ (its norm
+is dominated by $C(\operatorname{Re}w+\tau)^{-(2M+1)}$ via \Cref{thm:hz_loggamma_bound}), the
+fundamental theorem of calculus gives, for every $n\in\mathbb{N}$,
+\[
+  g(w)=\int_0^n R^{\psi}_{2M+1}(w+\tau)\,d\tau+g(w+n).
+\]
+As $n\to\infty$ the truncated integral converges to $\rho_M(w)=\int_0^\infty R^{\psi}_{2M+1}(w+\tau)\,d\tau$
+(partial to improper integral). It remains to show $g(w+n)\to0$.
+
+\emph{The shifted value vanishes.} Split
+$g(w+n)=\bigl(g(w+n)-g(\operatorname{Re}w+n)\bigr)+g(\operatorname{Re}w+n)$. For the real point,
+$g(\operatorname{Re}w+n)=\log\Gamma(\operatorname{Re}w+n)-S_M(\operatorname{Re}w+n)\to0$ by
+\Cref{lem:hz_anchor} (the additive Bernoulli tail $\sum_{k=1}^{M}\tfrac{B_{2k}}{2k(2k-1)}x^{1-2k}\to0$).
+For the difference, integrate $g'=-R^{\psi}\cdot i$ along the vertical segment from
+$\operatorname{Re}w+n$ to $w+n$: by the fundamental theorem of calculus and
+$\|R^{\psi}_{2M+1}(s)\|\le C\|s\|^{-(2M+1)}\le C(\operatorname{Re}w+n)^{-(2M+1)}$,
+\[
+  \bigl\|g(w+n)-g(\operatorname{Re}w+n)\bigr\|
+  \le C\,(\operatorname{Re}w+n)^{-(2M+1)}\,\lvert\operatorname{Im}w\rvert\longrightarrow0.
+\]
+Hence $g(w+n)\to0$, and therefore $g(w)=\rho_M(w)$, which is the claim.
+\end{proof}
+
+\begin{remark}[Sharper decay]
+\label{rem:hz_sharp}
+Repeating the direct centered-kernel/P\'olya argument of \Cref{thm:zeta_error_bound}
+for the kernel $\log(w+x)$ yields the
+one-power-sharper bound $|\rho_M(w)|\le C_M\lvert w\rvert^{-(2M+1)}$. The
+$(\operatorname{Re}w)^{-2M}$ form above is weaker by one factor of $|w|$; it follows
+directly from the digamma bound, and suffices for
+the algorithm, whose shift below makes $\operatorname{Re}w$ as large as desired.
+\end{remark}
+
+\section{The error bound for the Riemann--Siegel theta function}
+\label{sec:hz_theta}
+
+Write $w_T:=\tfrac14+i\tfrac T2$ (real part $\tfrac14>0$). The Riemann--Siegel theta
+$\theta=\texttt{riemannSiegelTheta}$ of \Cref{def:nf_theta} is defined via the continuous
+argument variation $\Delta_{\gamma_\Gamma}\arg\Gamma$ along $\gamma_\Gamma(u)=\tfrac14+i\tfrac u2$.
+To use the $\log\Gamma$ expansion we first record the bridge to the holomorphic branch,
+which is the content asserted in prose by \Cref{def:nf_theta}.
+
+\begin{lemma}[Theta via the holomorphic $\log\Gamma$ branch]
+\label{lem:hz_theta_log}
+\lean{riemannSiegelTheta_eq_im_logGamma}
+\leanok
+\uses{def:nf_theta}
+For every $T\ge0$,
+\[
+  \theta(T)\;=\;\operatorname{Im}\operatorname{Log}\Gamma(w_T)\;-\;\tfrac T2\log\pi ,
+\]
+where $\operatorname{Log}\Gamma$ is the holomorphic branch on $\Omega=\{\operatorname{Re}>0\}$
+normalised real on the positive axis (\Cref{sec:hz_loggamma}); equivalently, the continuous
+$\arg\Gamma$ along $\gamma_\Gamma$ anchored at $\arg\Gamma(\tfrac14)=0$ equals
+$\operatorname{Im}\operatorname{Log}\Gamma(w_T)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:nf_theta}
+The segment $\gamma_\Gamma([0,T])$ lies in $\Omega$, on which $\Gamma$ is holomorphic and
+nowhere zero and $\operatorname{Log}\Gamma$ is a holomorphic primitive of $\psi$ with
+$\operatorname{Im}\operatorname{Log}\Gamma$ real-analytic. By the defining property of the
+continuous argument variation (\Cref{def:nf_argvar}), $\Delta_{\gamma_\Gamma}\arg\Gamma
+=\operatorname{Im}\operatorname{Log}\Gamma(\gamma_\Gamma(T))-\operatorname{Im}\operatorname{Log}\Gamma(\gamma_\Gamma(0))$;
+here $\gamma_\Gamma(T)=w_T$ and $\gamma_\Gamma(0)=\tfrac14$ with
+$\operatorname{Im}\operatorname{Log}\Gamma(\tfrac14)=\arg\Gamma(\tfrac14)=0$ since
+$\Gamma(\tfrac14)>0$. Subtracting $\tfrac T2\log\pi$ gives the claim (\Cref{def:nf_theta}).
+\end{proof}
+
+Its Euler--Maclaurin estimate truncated at order $M$ is
+\[
+  \widetilde\theta_M(T)\;:=\;\operatorname{Im}S_M(w_T)-\tfrac T2\log\pi .
+\]
+
+\begin{corollary}[Theta error, unshifted]
+\label{cor:hz_theta_unshifted}
+\lean{abs_riemannSiegelTheta_sub_stirling_le}
+\leanok
+\uses{cor:hz_theta_shifted}
+For every $M\ge1$ and every $T\ge0$,
+\[
+  \bigl|\theta(T)-\widetilde\theta_M(T)\bigr|
+  \;=\;\bigl|\operatorname{Im}\rho_M(w_T)\bigr|
+  \;\le\;\bigl|\rho_M(w_T)\bigr|
+  \;\le\;\frac{(2M+1)!}{2M\,(2\pi)^{2M}}\Bigl(\tfrac14\Bigr)^{-2M}
+  \;=\;\frac{(2M+1)!}{2M}\Bigl(\tfrac2\pi\Bigr)^{2M}.
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{thm:hz_loggamma_em, thm:hz_loggamma_bound, lem:hz_theta_log}
+Subtract, using \Cref{lem:hz_theta_log} for $\theta(T)$:
+$\theta(T)-\widetilde\theta_M(T)=\operatorname{Im}\bigl(\operatorname{Log}\Gamma(w_T)-S_M(w_T)\bigr)
+=\operatorname{Im}\rho_M(w_T)$ by \Cref{thm:hz_loggamma_em}. Then
+$|\operatorname{Im}z|\le|z|$ and \Cref{thm:hz_loggamma_bound} at $w=w_T$ with
+$\operatorname{Re}w_T=\tfrac14$ give the bound; finally
+$(\tfrac14)^{-2M}=4^{2M}$ and $4^{2M}/(2\pi)^{2M}=(2/\pi)^{2M}$.
+\end{proof}
+
+To match the algorithm, which shifts the argument by an integer $N$ so that the
+Stirling series converges rapidly, we use the exact functional recurrence of
+$\Gamma$.
+
+\begin{lemma}[Exact shift of $\log\Gamma$]
+\label{lem:hz_shift}
+\lean{Complex.logGamma_eq_sub_sum_log_add}
+\leanok
+For $\operatorname{Re}w>0$ and $N\in\mathbb{N}$,
+\[
+  \operatorname{Log}\Gamma(w)\;=\;\operatorname{Log}\Gamma(w+N)\;-\;\sum_{j=0}^{N-1}\operatorname{Log}(w+j).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Induction on $N$ from $\Gamma(z+1)=z\,\Gamma(z)$, i.e.
+$\operatorname{Log}\Gamma(z+1)=\operatorname{Log}(z)+\operatorname{Log}\Gamma(z)$ on the
+right half-plane (both sides holomorphic, agreeing up to $2\pi i\mathbb{Z}$, and equal
+at large real $z$ by the anchoring of the branch). The base case $N=0$ is trivial;
+the inductive step peels one factor.
+\end{proof}
+
+\begin{corollary}[Theta error, shifted: the algorithm's bound]
+\label{cor:hz_theta_shifted}
+\lean{abs_riemannSiegelTheta_sub_stirling_shift_le}
+\leanok
+\uses{lem:hz_shift, thm:hz_loggamma_em, thm:hz_loggamma_bound, lem:hz_theta_log}
+Fix $N\in\mathbb{N}$, $M\ge1$ and $T\ge0$. Writing $w_T=\tfrac14+i\tfrac T2$, the shifted
+order-$M$ Stirling estimate
+\[
+  \widetilde\theta_{M,N}(T)\;:=\;\operatorname{Im}\Bigl(S_M(w_T+N)-\sum_{j=0}^{N-1}\operatorname{Log}(w_T+j)\Bigr)-\tfrac T2\log\pi
+\]
+satisfies
+\[
+  \bigl|\theta(T)-\widetilde\theta_{M,N}(T)\bigr|
+  \;=\;\bigl|\operatorname{Im}\rho_M(w_T+N)\bigr|
+  \;\le\;\frac{(2M+1)!}{2M\,(2\pi)^{2M}}\,\bigl(\tfrac14+N\bigr)^{-2M}.
+\]
+\end{corollary}
+
+\begin{proof}
+\leanok
+\uses{lem:hz_shift, thm:hz_loggamma_em, thm:hz_loggamma_bound, lem:hz_theta_log}
+By \Cref{lem:hz_shift} the finite sum is exact, so
+$\operatorname{Log}\Gamma(w_T)=\bigl[S_M(w_T+N)-\sum_{j=0}^{N-1}\operatorname{Log}(w_T+j)\bigr]+\rho_M(w_T+N)$
+using \Cref{thm:hz_loggamma_em} at $w_T+N$. With \Cref{lem:hz_theta_log} for $\theta(T)$,
+taking imaginary parts and subtracting
+$\tfrac T2\log\pi$ shows $\theta(T)-\widetilde\theta_{M,N}(T)=\operatorname{Im}\rho_M(w_T+N)$.
+Apply \Cref{thm:hz_loggamma_bound} at $w=w_T+N$, with
+$\operatorname{Re}(w_T+N)=\tfrac14+N$.
+\end{proof}
+
+\section{The \texorpdfstring{$Z$}{Z}-function error bound}
+\label{sec:hz_Z}
+
+Hardy's $Z$ is the phase-rotated zeta value on the critical line; the algorithm
+computes its real part (which equals $Z$ itself by the functional equation, though we
+never need that reality for the error bound).
+
+\begin{definition}[Hardy's $Z$ function]
+\label{def:hz_Z}
+\lean{Zeta.hardyZ}
+\leanok
+\uses{def:nf_theta}
+For $t\in\mathbb{R}$ set
+\[
+  Z(t)\;:=\;\operatorname{Re}\bigl(e^{i\theta(t)}\,\zeta(\tfrac12+it)\bigr),
+\]
+with $\theta$ the Riemann--Siegel theta of \Cref{def:nf_theta}. This is the
+real-valued quantity whose sign changes locate the zeros of $\zeta$ on the critical
+line (\texttt{python/src/euler\_maclaurin/zeta\_zeros.py}).
+\end{definition}
+
+\begin{lemma}[Phase perturbation]
+\label{lem:hz_phase}
+\lean{norm_expImul_sub_expImul_le}
+\leanok
+For $\alpha,\beta\in\mathbb{R}$ and $z,w\in\mathbb{C}$,
+\[
+  \bigl\|e^{i\alpha}z-e^{i\beta}w\bigr\|\;\le\;\lvert\alpha-\beta\rvert\,\|z\|+\|z-w\|.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Write $e^{i\alpha}z-e^{i\beta}w=(e^{i\alpha}-e^{i\beta})z+e^{i\beta}(z-w)$.
+Since $e^{i\alpha}-e^{i\beta}=e^{i\beta}(e^{i(\alpha-\beta)}-1)$ and $|e^{i\beta}|=1$,
+\[
+  \bigl\|e^{i\alpha}-e^{i\beta}\bigr\|=\bigl\|e^{i(\alpha-\beta)}-1\bigr\|\le\lvert\alpha-\beta\rvert,
+\]
+the last step being $\|e^{ix}-1\|=\bigl\|\int_0^x i\,e^{iu}\,du\bigr\|\le|x|$ (mathlib's
+\texttt{Complex.norm\_exp\_ofReal\_mul\_I\_sub\_one\_le}). Combining
+with $\|e^{i\beta}(z-w)\|=\|z-w\|$ and the triangle inequality gives the claim.
+\end{proof}
+
+\begin{theorem}[Rigorous $Z$-function error bound]
+\label{thm:hz_Z_bound}
+\lean{abs_hardyZ_sub_re_le}
+\leanok
+\uses{def:hz_Z, lem:hz_phase, cor:hz_theta_shifted, thm:zeta_error_bound}
+Let $t\in\mathbb{R}$, and let $\widetilde\theta\in\mathbb{R}$, $\widetilde\zeta\in\mathbb{C}$
+be any approximations of $\theta(t)$ and $\zeta(\tfrac12+it)$. Put
+$\widetilde Z:=\operatorname{Re}\bigl(e^{i\widetilde\theta}\,\widetilde\zeta\bigr)$. Then
+\[
+  \bigl|Z(t)-\widetilde Z\bigr|
+  \;\le\;\bigl\lvert\theta(t)-\widetilde\theta\bigr\rvert\;\bigl\|\zeta(\tfrac12+it)\bigr\|
+    \;+\;\bigl\|\zeta(\tfrac12+it)-\widetilde\zeta\bigr\|.
+\]
+In particular, for $t\ge0$, taking $\widetilde\theta=\widetilde\theta_{M,N}(t)$ from
+\Cref{cor:hz_theta_shifted} and $\widetilde\zeta$ the order-$M'$ Euler--Maclaurin zeta
+value at $s=\tfrac12+it$ with cutoff $N'$ (so that
+$\zeta(\tfrac12+it)-\widetilde\zeta=R_{M'}(s,N')$ is the zeta remainder of
+\Cref{thm:zeta_em}), the two error factors are bounded explicitly by
+\Cref{cor:hz_theta_shifted} and \Cref{thm:zeta_error_bound} respectively:
+\[
+  \bigl|Z(t)-\widetilde Z\bigr|
+  \;\le\;\frac{(2M+1)!}{2M\,(2\pi)^{2M}}\bigl(\tfrac14+N\bigr)^{-2M}\,\bigl\|\zeta(\tfrac12+it)\bigr\|
+    \;+\;\Bigl|\tfrac{s+2M'+1}{\operatorname{Re}s+2M'+1}\Bigr|\,\lvert t_{M'+1}\rvert,
+\]
+and $\|\zeta(\tfrac12+it)\|\le\|\widetilde\zeta\|+\|R_{M'}(s,N')\|$ makes the whole
+bound computable from the approximants alone.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{def:hz_Z, lem:hz_phase, cor:hz_theta_shifted, thm:zeta_error_bound}
+Since taking real parts is $1$-Lipschitz, $|\operatorname{Re}a-\operatorname{Re}b|\le\|a-b\|$,
+\[
+  \bigl|Z(t)-\widetilde Z\bigr|
+  =\bigl|\operatorname{Re}\bigl(e^{i\theta(t)}\zeta(\tfrac12+it)\bigr)-\operatorname{Re}\bigl(e^{i\widetilde\theta}\widetilde\zeta\bigr)\bigr|
+  \le\bigl\|e^{i\theta(t)}\zeta(\tfrac12+it)-e^{i\widetilde\theta}\widetilde\zeta\bigr\|.
+\]
+Apply \Cref{lem:hz_phase} with $\alpha=\theta(t)$, $\beta=\widetilde\theta$,
+$z=\zeta(\tfrac12+it)$, $\zeta=\widetilde\zeta$ to obtain the first displayed bound.
+Substituting the explicit theta bound (\Cref{cor:hz_theta_shifted}) for
+$|\theta(t)-\widetilde\theta|$ and the explicit zeta remainder bound
+(\Cref{thm:zeta_error_bound}) for $\|\zeta(\tfrac12+it)-\widetilde\zeta\|$ gives the
+second; the final inequality is the triangle inequality
+$\|\zeta(\tfrac12+it)\|\le\|\widetilde\zeta\|+\|\zeta(\tfrac12+it)-\widetilde\zeta\|$.
+\end{proof}
+
+\begin{remark}[Scope]
+\label{rem:hz_scope}
+\Cref{thm:hz_Z_bound} is the analytic error certificate for the value $Z(t)$;
+interval/ball arithmetic on top of it turns the two explicit error factors into a
+machine-checked bound and a certified sign of $Z(t)$. Reality of $Z$ (via the functional equation) and the
+sign-change zero-localisation are downstream of this bound and are not needed for it.
+\end{remark}

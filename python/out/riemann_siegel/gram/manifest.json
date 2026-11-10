@@ -1,0 +1,44 @@
+{
+  "height": 10000.0,
+  "Lehman constant": 5,
+  "gram_cols": [
+    "idx",
+    "left",
+    "right",
+    "left_theta_cutoff",
+    "right_theta_cutoff",
+    "left_theta_bernoulli",
+    "right_theta_bernoulli"
+  ],
+  "zero_cols": [
+    "idx",
+    "left",
+    "right"
+  ],
+  "params": {
+    "method": "riemann_siegel",
+    "prec": 200,
+    "bisection_depth": 0,
+    "epsilon": 0.125,
+    "theta_at_height": {
+      "theta_cutoff": "0",
+      "theta_bernoulli": "2"
+    }
+  },
+  "zeros_map": {
+    "10155": "zeros_10155.txt",
+    "10156": "zeros_10156.txt",
+    "10157": "zeros_10157.txt",
+    "10158": "zeros_10158.txt",
+    "10159": "zeros_10159.txt",
+    "10160": "zeros_10160.txt",
+    "10161": "zeros_10161.txt",
+    "10162": "zeros_10162.txt",
+    "10163": "zeros_10163.txt",
+    "10164": "zeros_10164.txt",
+    "10165": "zeros_10165.txt",
+    "10166": "zeros_10166.txt",
+    "10167": "zeros_10167.txt",
+    "10168": "zeros_10168.txt"
+  }
+}

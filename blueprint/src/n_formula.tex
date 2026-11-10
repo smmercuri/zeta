@@ -1,0 +1,765 @@
+% Blueprint: the exact Riemann--von Mangoldt formula
+%
+%   N(T) = theta(T)/pi + 1 + S(T)
+%
+% relating the zero-counting function N(T) (mathlib/PNT+ `riemannZeta.N`) to the
+% Riemann--Siegel theta function and the argument S(T) = (1/pi) arg zeta(1/2+iT).
+
+\chapter{The exact Riemann--von Mangoldt formula}
+\label{cha:n_formula}
+
+The goal of this chapter is the exact (not merely asymptotic) Riemann--von Mangoldt
+formula
+\[
+  N(T) \;=\; \frac{\theta(T)}{\pi} \;+\; 1 \;+\; S(T),
+  \qquad
+  S(T) := \frac{1}{\pi}\,\Delta_{L}\arg\zeta ,
+\]
+valid whenever $T>0$ is not the ordinate of a zero of $\zeta$. Here $N(T)$ is the
+\emph{zero-counting function} \texttt{riemannZeta.N} of
+\texttt{PrimeNumberTheoremAnd} (the number of zeros of $\zeta$ with imaginary part
+in $(0,T)$, counted with multiplicity), $\theta$ is the Riemann--Siegel theta
+function, and $L$ is the polygonal path $2 \to 2+iT \to \tfrac12+iT$.
+
+This identity is the exact counting tool underlying the certified
+Euler--Maclaurin zero-finder: combined with sign changes of Hardy's
+$Z(t) = e^{i\theta(t)}\zeta(\tfrac12+it)$ (computed in the reference implementation,
+\texttt{python/src/euler\_maclaurin/zeta\_zeros.py}) it certifies that all zeros up to height
+$T$ have been found, by matching the algorithmic count to $N(T)$.
+
+The argument follows Titchmarsh, \emph{The Theory of the Riemann Zeta-Function},
+\S 9.3, and Edwards, \emph{Riemann's Zeta Function}, \S 6.5--6.7.
+
+\section{Prerequisites from mathlib and PrimeNumberTheoremAnd}
+\label{sec:nf_prereqs}
+
+The following are used as black boxes. They fix notation and make the dependency
+edges of the new results explicit.
+
+\begin{definition}[Completed zeta; mathlib]
+\label{def:nf_completedZeta}
+\lean{completedRiemannZeta}
+\leanok
+$\Lambda(s) := \texttt{completedRiemannZeta}(s) = \pi^{-s/2}\,\Gamma(s/2)\,\zeta(s)$
+(\texttt{riemannZeta\_def\_of\_ne\_zero}, with $\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$
+as $\texttt{Gamma}\mathbb{R}$). It is meromorphic with simple poles only at $s=0,1$.
+The entire normalisation $\Lambda_0(s) := \texttt{completedRiemannZeta}_0(s)$ satisfies
+$\Lambda(s) = \Lambda_0(s) - 1/s - 1/(1-s)$ (\texttt{completedRiemannZeta\_eq}) and is
+entire (\texttt{differentiable\_completedZeta}$_0$).
+\end{definition}
+
+\begin{theorem}[Functional equation; mathlib]
+\label{thm:nf_completedZeta_one_sub}
+\lean{completedRiemannZeta_one_sub}
+\leanok
+For all $s$, $\Lambda(1-s) = \Lambda(s)$, and likewise $\Lambda_0(1-s)=\Lambda_0(s)$
+(\texttt{completedRiemannZeta}$_0$\texttt{\_one\_sub}).
+\end{theorem}
+
+\begin{proof}
+\leanok
+In Mathlib as \texttt{completedRiemannZeta\_one\_sub}.
+\end{proof}
+
+\begin{definition}[Zero-counting function; PrimeNumberTheoremAnd]
+\label{def:nf_N}
+\lean{riemannZeta.N}
+\leanok
+$N(T) := \texttt{riemannZeta.N}(T)
+       = \sum_{\rho}\, \operatorname{ord}_\rho(\zeta)$, the sum over zeros $\rho$ of
+$\zeta$ with $\operatorname{Im}\rho \in (0,T)$ (and arbitrary real part) of the order
+\texttt{riemannZeta.order} of $\zeta$ at $\rho$. Built from
+\texttt{riemannZeta.zeroes\_rect} and \texttt{riemannZeta.zeroes\_sum}; finiteness
+of the index set on compacta is \texttt{riemannZeta.zeroes\_on\_Compact\_finite}.
+\end{definition}
+
+\begin{theorem}[No zeros for $\operatorname{Re} s \ge 1$; mathlib]
+\label{thm:nf_zeta_ne_zero_one_le}
+\lean{riemannZeta_ne_zero_of_one_le_re}
+\leanok
+If $\operatorname{Re} s \ge 1$ then $\zeta(s)\neq 0$. Together with the trivial-zero
+classification (\texttt{riemannZeta\_neg\_two\_mul\_nat\_add\_one} and the functional
+equation \texttt{riemannZeta\_one\_sub}) this pins every nonreal zero of $\zeta$ to
+the open critical strip $0<\operatorname{Re} s<1$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+In Mathlib as \texttt{riemannZeta\_ne\_zero\_of\_one\_le\_re}.
+\end{proof}
+
+\begin{theorem}[Rectangle contour scaffolding; PrimeNumberTheoremAnd]
+\label{thm:nf_rectangle}
+\lean{RectangleIntegral}
+\leanok
+\texttt{ResidueCalcOnRectangles.lean} provides the boundary contour integral
+$\texttt{RectangleIntegral}\,f\,z\,w$ of $f$ over $\partial R$ for the rectangle $R$
+with opposite corners $z,w$, its splittings into horizontal/vertical segments
+(\texttt{HIntegral}, \texttt{VIntegral}), Cauchy's theorem on a rectangle for
+holomorphic integrands (\texttt{HolomorphicOn.vanishesOnRectangle}), and the
+pole-extraction lemma \texttt{RectanglePullToNhdOfPole}. These are the building
+blocks for the argument principle below.
+\end{theorem}
+
+\begin{proof}
+\leanok
+In \texttt{PrimeNumberTheoremAnd} (\texttt{ResidueCalcOnRectangles.lean}).
+\end{proof}
+
+\section{The Riemann \texorpdfstring{$\xi$}{xi} function}
+\label{sec:nf_xi}
+
+\begin{definition}[Riemann $\xi$]
+\label{def:nf_xi}
+\lean{riemannXi}
+\leanok
+Set
+\[
+  \xi(s) \;:=\; \tfrac12\, s(s-1)\,\Lambda(s).
+\]
+This is the entire completion of $\zeta$ whose zeros are exactly the nontrivial
+zeros of $\zeta$.
+\end{definition}
+
+\begin{lemma}[$\xi$ is entire]
+\label{lem:nf_xi_entire}
+\lean{differentiable_riemannXi}
+\leanok
+\uses{def:nf_xi, def:nf_completedZeta}
+$\xi$ is differentiable on all of $\mathbb{C}$. Moreover
+$\xi(s) = \tfrac12 s(s-1)\Lambda_0(s) + \tfrac12$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_completedZeta_one_sub}
+From $\Lambda = \Lambda_0 - 1/s - 1/(1-s)$ (\Cref{def:nf_completedZeta}) and
+$s(s-1)/(1-s) = -s$,
+\[
+  \tfrac12 s(s-1)\Lambda(s)
+  = \tfrac12 s(s-1)\Lambda_0(s) - \tfrac12(s-1) + \tfrac12 s
+  = \tfrac12 s(s-1)\Lambda_0(s) + \tfrac12 .
+\]
+The right-hand side is a product/sum of entire functions
+($\Lambda_0$ is entire by \texttt{differentiable\_completedZeta}$_0$), hence entire.
+The pole-cancelling identity is verified pointwise for $s\neq 0,1$ and extends to
+$s\in\{0,1\}$ by continuity; in particular $\xi(0)=\xi(1)=\tfrac12$.
+\end{proof}
+
+\begin{lemma}[Functional equation for $\xi$]
+\label{lem:nf_xi_one_sub}
+\lean{riemannXi_one_sub}
+\leanok
+\uses{def:nf_xi}
+For all $s$, $\xi(1-s) = \xi(s)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_completedZeta_one_sub}
+$\xi(1-s) = \tfrac12 (1-s)(-s)\,\Lambda(1-s)
+          = \tfrac12 s(s-1)\,\Lambda(s) = \xi(s)$,
+using $(1-s)(-s) = s(s-1)$ and \Cref{thm:nf_completedZeta_one_sub}.
+\end{proof}
+
+\begin{lemma}[Conjugation symmetry of $\xi$]
+\label{lem:nf_xi_conj}
+\lean{riemannXi_conj}
+\leanok
+\uses{def:nf_xi}
+For all $s$, $\xi(\overline{s}) = \overline{\xi(s)}$. In particular $\xi$ is
+real on the real axis, and $\xi(\tfrac12+it)\in\mathbb{R}$ for all $t\in\mathbb{R}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:nf_xi_one_sub, lem:nf_xi_entire}
+The completed zeta is conjugation symmetric, $\Lambda(\overline{s})=\overline{\Lambda(s)}$:
+on $\operatorname{Re} s>1$ each factor of the Dirichlet-series representation
+$\Lambda(s)=\pi^{-s/2}\Gamma(s/2)\sum n^{-s}$ is conjugation symmetric, and the identity
+theorem (\texttt{AnalyticOn} uniqueness, as in
+\texttt{Zeta/EulerMaclaurin/Continuation.lean}) extends this to all of $\mathbb{C}$
+(\texttt{Zeta/RiemannXi.lean}).
+Since $s\mapsto \tfrac12 s(s-1)$ has real coefficients it is also conjugation
+symmetric, so $\xi(\overline{s})=\overline{\xi(s)}$.
+
+For $s=\tfrac12+it$ we have $\overline{s}=\tfrac12-it = 1-s$, so by
+\Cref{lem:nf_xi_one_sub}
+$\overline{\xi(s)} = \xi(\overline{s}) = \xi(1-s) = \xi(s)$, i.e. $\xi(\tfrac12+it)$
+is real.
+\end{proof}
+
+\begin{lemma}[$\zeta$ is negative on the real segment $(0,1)$]
+\label{lem:nf_zeta_real_neg}
+\lean{riemannZeta_ofReal_neg_of_mem_Ioo}
+\leanok
+\uses{def:nf_completedZeta}
+For real $\sigma\in(0,1)$ the value $\zeta(\sigma)$ is real and $\zeta(\sigma)<0$; in
+particular $\zeta(\sigma)\neq0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:nf_completedZeta}
+For $\operatorname{Re} s>0$ the analytic continuation of $\zeta$ admits the
+fractional-part representation (Titchmarsh \S2.1)
+\[
+  \zeta(s) \;=\; \frac{s}{s-1} \;-\; s\int_1^\infty \{x\}\,x^{-s-1}\,dx ,
+  \qquad \{x\}:=x-\lfloor x\rfloor\in[0,1) ,
+\]
+the integral converging absolutely for $\operatorname{Re} s>0$ since the integrand is
+$O\!\left(x^{-\operatorname{Re} s-1}\right)$. This is the first-order ($p=1$)
+Euler--Maclaurin expansion of $\sum n^{-s}$ and is available in the project from the
+continuation machinery of \texttt{Zeta/EulerMaclaurin/Continuation.lean}: starting from
+\texttt{riemannZeta\_eq} with $M=0$, $N=1$ (whose remainder term
+$\texttt{remainderℂIoi}\,2\,(y\mapsto y^{-s})\,1$ is, by
+\texttt{remainderℂIoi\_cpow\_eq}, an explicit integral of the periodised Bernoulli
+kernel $\widetilde B_2$ against $x^{-s-2}$), one integration by parts in reverse
+collapses the $\tfrac12 N^{-s}$ and $\widetilde B_2$ terms into the single
+$\widetilde B_1(x)=\{x\}-\tfrac12$ integral; absorbing the constant
+$-\tfrac12$ gives the displayed $\{x\}$-form. In Lean this reduction is packaged as
+\texttt{riemannZeta\_eq\_order\_one}
+($\zeta(s)=\tfrac1{s-1}+\tfrac12+\texttt{remainderℂIoi}\,1\,(y\mapsto y^{-s})\,1$ on
+$\operatorname{Re} s>0$, $s\neq1$): the order-$1$ improper remainder
+$\texttt{remainderℂIoi}\,1$ is obtained from the order-$2$ continuation
+\texttt{riemannZeta\_eq} ($M=0,N=1$) by one reverse integration by parts
+\texttt{remainderℂIoi\_succ\_eq}, and \texttt{remainderℂIoi\_cpow\_eq} exhibits it as the
+$\widetilde B_1=\{x\}-\tfrac12$ integral against $x^{-s-1}$.
+
+\emph{Sign for real $\sigma\in(0,1)$.} Both $\sigma$ and $\sigma-1$ are real, so
+$\zeta(\sigma)\in\mathbb{R}$ (the integral is real). The first term is
+$\dfrac{\sigma}{\sigma-1}=-\dfrac{\sigma}{1-\sigma}<0$ because $0<\sigma<1$. For the
+integral $J:=\int_1^\infty\{x\}\,x^{-\sigma-1}\,dx$ one has $0<J$ (the integrand is
+nonnegative everywhere and strictly positive on $(1,2)$, where $\{x\}=x-1>0$) and
+\[
+  J\;\le\;\int_1^\infty x^{-\sigma-1}\,dx\;=\;\frac1\sigma\;<\;\infty
+\]
+(using $0\le\{x\}<1$). Hence $-\sigma J<0$, and
+$\zeta(\sigma)=-\dfrac{\sigma}{1-\sigma}-\sigma J<0$.
+\end{proof}
+
+\begin{lemma}[{$\xi$ has no zeros on the real segment $[-1,2]$}]
+\label{lem:nf_xi_ne_zero_real}
+\lean{riemannXi_ofReal_ne_zero_of_mem_Icc}
+\leanok
+\uses{def:nf_xi, lem:nf_zeta_real_neg, lem:nf_xi_one_sub, lem:nf_xi_zeros}
+For real $\sigma\in[-1,2]$ one has $\xi(\sigma)\neq0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:nf_zeta_real_neg, lem:nf_xi_one_sub, lem:nf_xi_zeros, thm:nf_zeta_ne_zero_one_le}
+Split $[-1,2]$ into cases.
+\begin{itemize}
+\item $\sigma\in(0,1)$: since $0<\operatorname{Re}\sigma<1$, \Cref{lem:nf_xi_zeros}
+  gives $\xi(\sigma)=0\iff\zeta(\sigma)=0$, and $\zeta(\sigma)\neq0$ by
+  \Cref{lem:nf_zeta_real_neg}.
+\item $\sigma=0$ and $\sigma=1$: $\xi(0)=\xi(1)=\tfrac12\neq0$
+  (\texttt{riemannXi\_zero}, \texttt{riemannXi\_one}).
+\item $\sigma\in(1,2]$: here $\operatorname{Re}\sigma>1$, so the prefactor
+  $\tfrac12\sigma(\sigma-1)\,\pi^{-\sigma/2}\Gamma(\sigma/2)$ is nonzero
+  ($\Gamma(\sigma/2)\neq0$ as $\operatorname{Re}(\sigma/2)>0$) and $\zeta(\sigma)\neq0$
+  (\Cref{thm:nf_zeta_ne_zero_one_le}); hence
+  $\xi(\sigma)=\tfrac12\sigma(\sigma-1)\,\pi^{-\sigma/2}\Gamma(\sigma/2)\,\zeta(\sigma)
+  \neq0$.
+\item $\sigma\in[-1,0)$: by \Cref{lem:nf_xi_one_sub},
+  $\xi(\sigma)=\xi(1-\sigma)$ with $1-\sigma\in(1,2]$, reducing to the previous case.
+\end{itemize}
+The case $(0,1)$ rests on the non-vanishing of $\zeta$ on the open real interval
+(\Cref{lem:nf_zeta_real_neg}): reflecting into $\operatorname{Re}\ge1$ is unavailable
+there, since $1-\sigma\in(0,1)$ again.
+\end{proof}
+
+\begin{lemma}[Zeros of $\xi$ are the nontrivial zeros of $\zeta$]
+\label{lem:nf_xi_zeros}
+\lean{riemannXi_eq_zero_iff}
+\leanok
+\uses{def:nf_xi, def:nf_completedZeta}
+For $0<\operatorname{Re} s<1$ we have $\xi(s)=0 \iff \zeta(s)=0$, and the orders agree:
+$\operatorname{ord}_s(\xi)=\operatorname{ord}_s(\zeta)$ (as
+\texttt{meromorphicOrderAt}). Moreover $\xi$ has no zeros with
+$\operatorname{Re} s\ge 1$ or $\operatorname{Re} s\le 0$ off the real axis; in
+particular $\xi(0)=\xi(1)=\tfrac12\neq0$. (Non-vanishing on the real segment
+$[-1,2]$ is the separate \Cref{lem:nf_xi_ne_zero_real}, which needs the
+real-interval input \Cref{lem:nf_zeta_real_neg}.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_zeta_ne_zero_one_le, lem:nf_xi_one_sub}
+On the open strip the factor $\tfrac12 s(s-1)$ and $\pi^{-s/2}\Gamma(s/2)$ are
+nonzero and holomorphic (here $\operatorname{Re}(s/2)>0$, so $\Gamma(s/2)\neq0$ by
+\texttt{Complex.Gamma\_ne\_zero}), hence $\xi$ and $\zeta$ have the same zeros with
+the same orders there. Outside the strip: for $\operatorname{Re} s\ge1$,
+$\zeta(s)\neq0$ (\Cref{thm:nf_zeta_ne_zero_one_le}) and the prefactor is nonzero away
+from $s=1$ where $\Lambda$ has a pole that the prefactor cancels to $\xi(1)=\tfrac12$;
+on the line $\operatorname{Re} s=0$ with $\operatorname{Im} s\neq0$ there are likewise
+no zeros (apply \texttt{riemannZeta\_one\_sub}: $\zeta(1-s)\neq0$ since
+$\operatorname{Re}(1-s)=1$, and the elementary prefactors $\Gamma$, $\cos(\pi s/2)$ are
+nonzero there); for $\operatorname{Re} s\le0$ off the real axis use $\xi(1-s)=\xi(s)$
+(\Cref{lem:nf_xi_one_sub}) to reflect into $\operatorname{Re}\ge1$. The boundary edge
+values $\xi(0)=\xi(1)=\tfrac12$ come from \Cref{lem:nf_xi_entire}. Non-vanishing on the
+\emph{full} real segment $[-1,2]$ is \Cref{lem:nf_xi_ne_zero_real}; the open interval
+$(0,1)$ needs it, since the reflection $s\mapsto1-s$ maps $(0,1)$ to itself.
+\end{proof}
+
+\begin{lemma}[$N(T)$ counts zeros of $\xi$ in a box]
+\label{lem:nf_N_eq_xi_count}
+\lean{riemannZeta.N_eq_tsum_riemannXi_order}
+\leanok
+\uses{def:nf_N, lem:nf_xi_zeros}
+For $T>0$,
+\[
+  N(T) \;=\; \sum_{\substack{\rho:\ \xi(\rho)=0\\ 0<\operatorname{Im}\rho<T}}
+                \operatorname{ord}_\rho(\xi),
+\]
+the sum over zeros of $\xi$ with imaginary part in $(0,T)$, counted with
+multiplicity. All such $\rho$ lie in the open strip $0<\operatorname{Re}\rho<1$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_zeta_ne_zero_one_le, lem:nf_xi_zeros}
+By \Cref{def:nf_N}, $N(T)$ sums $\operatorname{ord}_\rho(\zeta)$ over zeros $\rho$ of
+$\zeta$ with $0<\operatorname{Im}\rho<T$. The trivial zeros lie on the real axis
+($\operatorname{Im}=0$, excluded), and every remaining zero with positive imaginary
+part has $0<\operatorname{Re}\rho<1$: zeros with $\operatorname{Re}\ge1$ are ruled out
+by \Cref{thm:nf_zeta_ne_zero_one_le}, while those with $\operatorname{Re}\le0$ are
+ruled out, away from the real axis, by the functional equation
+\texttt{riemannZeta\_one\_sub} (its elementary factors $2$, $(2\pi)^{-s}$, $\Gamma$,
+$\cos(\pi s/2)$ are all non-vanishing there). This localization is the Lean lemma
+\texttt{riemannZeta\_re\_mem\_Ioo\_of\_eq\_zero\_of\_im\_ne\_zero}. On the strip
+\Cref{lem:nf_xi_zeros} identifies the zero sets and preserves the order, so the two
+sums agree (after reindexing the index set of $N$, which is
+\texttt{riemannZeta.zeroes\_rect}, along this set equality).
+\end{proof}
+
+\section{Continuous argument variation}
+\label{sec:nf_argvar}
+
+To state $\theta$ and $S$ rigorously we need the net change of the argument of a
+non-vanishing holomorphic function along a path; the naive principal value
+\texttt{Complex.arg} jumps and is wrong for $T$ large.
+
+\begin{definition}[Continuous argument variation]
+\label{def:nf_argvar}
+\lean{argVariation}
+\leanok
+\uses{def:av_argVariation, lem:av_exists, lem:av_unique}
+Let $\gamma:[a,b]\to\mathbb{C}$ be a path and $f:\mathbb{C}\to\mathbb{C}$ continuous
+with $f(\gamma(u))\neq0$ for all $u$. A \emph{continuous logarithm of $f$ along
+$\gamma$} is a continuous $g:[a,b]\to\mathbb{C}$ with $\exp(g(u))=f(\gamma(u))$.
+Such $g$ exists and is unique up to an additive constant in $2\pi i\,\mathbb{Z}$
+(\Cref{lem:av_exists} and \Cref{lem:av_unique}, built by lifting along the covering $\exp$;
+see \Cref{cha:arg_variation}). Define the argument variation
+\[
+  \Delta_\gamma\arg f \;:=\; \operatorname{Im} g(b) - \operatorname{Im} g(a),
+\]
+independent of the chosen $g$ (\Cref{def:av_argVariation}).
+\end{definition}
+
+\begin{lemma}[Additivity and the logarithmic-derivative formula]
+\label{lem:nf_argvar_props}
+\lean{argVariation_trans}
+\leanok
+\uses{def:nf_argvar, lem:av_trans, lem:av_mul, lem:av_reverse, lem:av_integral}
+Argument variation is additive under concatenation of paths and under
+multiplication of integrands:
+$\Delta_\gamma\arg(fg) = \Delta_\gamma\arg f + \Delta_\gamma\arg g$. If $\gamma$ is
+$C^1$ and $f$ holomorphic and non-vanishing on its image, then
+\[
+  \Delta_\gamma\arg f \;=\; \operatorname{Im}\!\int_\gamma \frac{f'(z)}{f(z)}\,dz .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_trans, lem:av_mul, lem:av_reverse, lem:av_integral}
+Additivity under concatenation is \Cref{lem:av_trans} and reversal is
+\Cref{lem:av_reverse}; multiplicativity in the integrand is \Cref{lem:av_mul}
+(the continuous logarithm of a product is the sum of the continuous logarithms).
+The logarithmic-derivative integral formula is \Cref{lem:av_integral}: the anchored
+continuous logarithm $g$ is a $C^1$ primitive of
+$u\mapsto f'(\gamma(u))\gamma'(u)/f(\gamma(u))$ (\Cref{lem:av_hasDerivAt}), so
+$g(b)-g(a)=\int_\gamma f'/f$ by the fundamental theorem of calculus; taking
+imaginary parts gives the claim (the real part being
+$\log|f(\gamma(b))|-\log|f(\gamma(a))|$).
+\end{proof}
+
+\section{The Riemann--Siegel theta function and \texorpdfstring{$S(T)$}{S(T)}}
+\label{sec:nf_theta_S}
+
+\begin{definition}[Riemann--Siegel theta]
+\label{def:nf_theta}
+\lean{riemannSiegelTheta}
+\leanok
+\uses{def:nf_argvar}
+For $T\ge0$ let $\gamma_\Gamma(u) = \tfrac14 + i\tfrac{u}{2}$, $u\in[0,T]$, the
+vertical segment from $\tfrac14$ to $\tfrac14+iT/2$, on which $\Gamma\neq0$ (real
+part $\tfrac14>0$). Define
+\[
+  \theta(T) \;:=\; \Delta_{\gamma_\Gamma}\arg\Gamma \;-\; \frac{T}{2}\log\pi
+  \;=\; \operatorname{Im}\log\Gamma\!\bigl(\tfrac14 + i\tfrac{T}{2}\bigr)
+        - \frac{T}{2}\log\pi ,
+\]
+where $\operatorname{Im}\log\Gamma$ denotes the continuous branch with
+$\theta(0)=0$ (i.e. anchored at $\arg\Gamma(\tfrac14)=0$). This matches
+\texttt{theta} in \texttt{python/src/euler\_maclaurin/gamma\_values.py}.
+\end{definition}
+
+\begin{definition}[The function $S(T)$]
+\label{def:nf_S}
+\lean{argZeta}
+\leanok
+\uses{def:nf_argvar}
+For $T>0$ not an ordinate of a zero of $\zeta$, let $L_T$ be the polygonal path
+$2 \to 2+iT \to \tfrac12+iT$. On $L_T$, $\zeta\neq0$ (the vertical part has
+$\operatorname{Re}=2>1$, and on the horizontal part $\operatorname{Im}=T$ is not an
+ordinate of a zero). Define
+\[
+  S(T) \;:=\; \frac{1}{\pi}\,\Delta_{L_T}\arg\zeta .
+\]
+This is the continuous variation of $\arg\zeta$ from the real value at $s=2$ to
+$s=\tfrac12+iT$, the classical $S(T) = \tfrac1\pi\arg\zeta(\tfrac12+iT)$.
+\end{definition}
+
+\section{The argument principle for a rectangle}
+\label{sec:nf_argument_principle}
+
+This is the central analytic ingredient; its rectangle scaffolding
+(\Cref{thm:nf_rectangle}) is in \texttt{PrimeNumberTheoremAnd}.
+
+\begin{lemma}[Residue of the logarithmic derivative]
+\label{lem:nf_logderiv_residue}
+\lean{meromorphicOrderAt_eq_residue_logDeriv}
+\leanok
+Let $f$ be holomorphic near $z_0$ with $f\not\equiv0$, of order
+$m=\operatorname{ord}_{z_0}(f)\ge0$ (\texttt{meromorphicOrderAt}). Then $f'/f$ has a
+simple pole at $z_0$ with residue $m$: writing $f(z)=(z-z_0)^m h(z)$ with
+$h(z_0)\neq0$, $f'(z)/f(z) = m/(z-z_0) + h'(z)/h(z)$ and $h'/h$ is holomorphic at
+$z_0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+By \texttt{meromorphicOrderAt\_eq\_int\_iff} (or the analytic factorisation at an
+isolated zero), $f(z)=(z-z_0)^m h(z)$ with $h$ holomorphic and $h(z_0)\neq0$ on a
+neighbourhood. Logarithmic differentiation gives the stated decomposition, and
+$h'/h$ is holomorphic since $h\neq0$ near $z_0$.
+\end{proof}
+
+\begin{theorem}[Argument principle on a rectangle]
+\label{thm:nf_argument_principle}
+\lean{rectangle_zero_count_eq_argVariation}
+\leanok
+\uses{thm:nf_rectangle, lem:nf_logderiv_residue, lem:nf_argvar_props}
+Let $R$ be the closed rectangle with corners $z,w$ and let $f$ be holomorphic on a
+neighbourhood of $R$ with $f\neq0$ on the boundary $\partial R$. Then the number of
+zeros of $f$ inside $R$, counted with multiplicity, equals
+\[
+  \frac{1}{2\pi i}\oint_{\partial R}\frac{f'(z)}{f(z)}\,dz
+  \;=\; \frac{1}{2\pi}\,\Delta_{\partial R}\arg f ,
+\]
+the second equality being the net argument variation around the (closed) boundary.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_rectangle, lem:nf_logderiv_residue, lem:nf_argvar_props,
+      thm:ap_main, lem:ap_finite_zeros, thm:ap_residue_sum, lem:ap_integral_eq_argvar}
+This is \Cref{thm:ap_main} of \Cref{cha:argument_principle}, built on the single-pole rectangle residue calculus
+\Cref{thm:nf_rectangle}. The zeros of $f$ in $R$ are finite
+(\Cref{lem:ap_finite_zeros}: isolated zeros of a nonzero holomorphic function on a
+compact set, the rectangle analogue of \texttt{riemannZeta.zeroes\_on\_Compact\_finite}).
+Reducing a finite zero set to the single-zero case by axis-parallel subdivision
+(\Cref{thm:ap_residue_sum}) and using \Cref{lem:nf_logderiv_residue} for the residue,
+the contour integral of $f'/f$ equals $2\pi i\sum_\rho \operatorname{ord}_\rho(f)$.
+The equality with $\tfrac{1}{2\pi}\Delta_{\partial R}\arg f$ is
+\Cref{lem:ap_integral_eq_argvar} (an application of \Cref{lem:nf_argvar_props} edge by
+edge): $\oint_{\partial R} f'/f = \Delta_{\partial R}\log f$ has zero real part on the
+closed loop (single-valued $\log|f|$), so it equals $i\,\Delta_{\partial R}\arg f$.
+\end{proof}
+
+\section{Reduction to the right boundary by symmetry}
+\label{sec:nf_reduction}
+
+\begin{lemma}[Halving the contour]
+\label{lem:nf_halving}
+\lean{argVariation_riemannXi_rectangle_eq_two_mul}
+\leanok
+\uses{thm:nf_argument_principle, lem:nf_xi_one_sub, lem:nf_xi_conj, lem:nf_argvar_props,
+      lem:nf_xi_zeros, lem:nf_xi_ne_zero_real}
+Fix $T>0$ not an ordinate of a zero of $\zeta$, and let $R$ be the rectangle with
+corners $-1$ and $2+iT$. Then $\xi\neq0$ on $\partial R$, and
+\[
+  \tfrac{1}{2\pi}\,\Delta_{\partial R}\arg\xi
+  \;=\; \tfrac1\pi\,\Delta_{L_T}\arg\xi ,
+  \qquad L_T:\ 2 \to 2+iT \to \tfrac12+iT .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:nf_xi_one_sub, lem:nf_xi_conj, lem:nf_xi_zeros, lem:nf_xi_ne_zero_real}
+Non-vanishing of $\xi$ on $\partial R$: the bottom edge $\operatorname{Im}=0$,
+$\operatorname{Re}\in[-1,2]$ carries no zeros of $\xi$ (\Cref{lem:nf_xi_ne_zero_real});
+the
+top edge $\operatorname{Im}=T$ carries none since $T$ is not an ordinate; the right
+edge $\operatorname{Re}=2$ has $\zeta\neq0$; the left edge $\operatorname{Re}=-1$
+reflects under $s\mapsto1-\overline{s}$ to $\operatorname{Re}=2$, where $\xi\neq0$.
+
+\emph{The relevant symmetry is the reflection across the line
+$\operatorname{Re}=\tfrac12$, namely $\rho(s):=1-\overline{s}$, which sends
+$x+iy\mapsto(1-x)+iy$ and hence \textbf{preserves} the rectangle $R=[-1,2]\times[0,T]$.}
+(Beware: the functional-equation map $s\mapsto1-s$ negates the imaginary part and does
+\emph{not} preserve $R$.) Combining $\xi(1-s)=\xi(s)$ (\Cref{lem:nf_xi_one_sub}) with
+$\xi(\overline{s})=\overline{\xi(s)}$ (\Cref{lem:nf_xi_conj}) gives
+\[
+  \xi(\rho(s)) \;=\; \xi(1-\overline{s}) \;=\; \xi(\overline{s}) \;=\;
+  \overline{\xi(s)},
+  \qquad\text{so}\qquad \arg\xi(\rho(s)) = -\arg\xi(s).
+\]
+Traverse $\partial R$ counterclockwise starting at the bottom-edge midpoint
+$\tfrac12$, and split it at the two midpoints $\tfrac12$ and $\tfrac12+iT$ (where
+$\xi\neq0$: $\xi(\tfrac12)>0$, and $\xi(\tfrac12+iT)\neq0$ as $T$ is not an ordinate)
+into
+\[
+  P:\ \tfrac12\to2\to2+iT\to\tfrac12+iT
+  \qquad\text{(right half)},\qquad
+  Q:\ \tfrac12+iT\to-1+iT\to-1\to\tfrac12
+  \qquad\text{(left half)}.
+\]
+The reflection $\rho$ maps the point set of $P$ onto that of $Q$, and the left half
+$Q$ is exactly $\rho\circ P$ \emph{traversed in reverse}. Therefore
+\[
+  \Delta_{Q}\arg\xi
+  = -\,\Delta_{\rho\circ P}\arg\xi
+  = -\,\Delta_{P}\arg(\xi\circ\rho)
+  = -\,\Delta_{P}\bigl(-\arg\xi\bigr)
+  = \Delta_{P}\arg\xi,
+\]
+using additivity/reversal of argument variation (\Cref{lem:nf_argvar_props}) for the
+first equality and $\arg\xi\circ\rho=-\arg\xi$ for the third. Hence
+$\Delta_{\partial R}\arg\xi = \Delta_P\arg\xi + \Delta_Q\arg\xi = 2\,\Delta_P\arg\xi$.
+Finally the initial segment $\tfrac12\to2$ of $P$ lies on the real axis, where
+$\xi>0$ (\Cref{lem:nf_xi_zeros}) so $\arg\xi\equiv0$ contributes $0$; thus
+$\Delta_P\arg\xi = \Delta_{L_T}\arg\xi$. Dividing by $2\pi$ gives the claim.
+\end{proof}
+
+\section{Splitting the argument of \texorpdfstring{$\xi$}{xi} along \texorpdfstring{$L_T$}{L_T}}
+\label{sec:nf_split}
+
+Write $\xi(s) = \tfrac12 s(s-1)\cdot\pi^{-s/2}\cdot\Gamma(s/2)\cdot\zeta(s)$ and apply
+multiplicativity of argument variation (\Cref{lem:nf_argvar_props}) along $L_T$.
+
+\begin{lemma}[Argument of the polynomial factor]
+\label{lem:nf_arg_poly}
+\lean{argVariation_poly_L}
+\leanok
+\uses{def:nf_argvar, def:nf_S, lem:av_slitPlane, lem:nf_argvar_props}
+Along $L_T:2\to2+iT\to\tfrac12+iT$ (with $T>0$), the factor $p(s)=\tfrac12 s(s-1)$
+is non-vanishing and
+\[
+  \Delta_{L_T}\arg p \;=\; \pi .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_slitPlane, lem:nf_argvar_props}
+$p(s)=\tfrac12 s(s-1)$ vanishes only at $s=0,1$, both off $L_T$. By
+multiplicativity (\Cref{lem:nf_argvar_props}), with the nonzero constant
+$\tfrac12$ contributing $0$,
+\[
+  \Delta_{L_T}\arg p
+  = \Delta_{L_T}\arg(s\mapsto s) + \Delta_{L_T}\arg(s\mapsto s-1).
+\]
+Both factors stay in the slit plane $\mathbb{C}\setminus(-\infty,0]$ along $L_T$:
+$s$ has $\operatorname{Re} s\in[\tfrac12,2]>0$ throughout, and $s-1$ has either
+$\operatorname{Re}(s-1)\ge0$ (on the vertical part $\operatorname{Re}=1$) or
+$\operatorname{Im}(s-1)=T\neq0$ (on the horizontal part), so it never meets the
+nonpositive real axis. \Cref{lem:av_slitPlane} therefore evaluates each variation
+as a difference of principal arguments. With $\arg(2)=\arg(1)=0$,
+\[
+  \Delta_{L_T}\arg(s\mapsto s) = \arg(\tfrac12+iT),
+  \qquad
+  \Delta_{L_T}\arg(s\mapsto s-1) = \arg(-\tfrac12+iT).
+\]
+Now $-\tfrac12+iT = -\overline{(\tfrac12+iT)}$ and $\operatorname{Im}(\tfrac12+iT)
+=T>0$; for any $z$ with $\operatorname{Im} z>0$ one has
+$\arg z + \arg(-\overline{z}) = \pi$ (writing $z=re^{i\alpha}$ with
+$\alpha\in(0,\pi)$, $-\overline{z}=re^{i(\pi-\alpha)}$ with $\pi-\alpha\in(0,\pi)$,
+so both arguments are the principal values $\alpha$ and $\pi-\alpha$). Hence
+$\Delta_{L_T}\arg p = \arg(\tfrac12+iT)+\arg(-\tfrac12+iT)=\pi$.
+\end{proof}
+
+\begin{lemma}[Closed-rectangle argument variation of a non-vanishing holomorphic
+function vanishes]
+\label{lem:nf_rect_argvar_holo_zero}
+\lean{rectangleArgVariation_eq_zero_of_analyticOnNhd}
+\leanok
+\uses{thm:nf_argument_principle, lem:nf_argvar_props, thm:nf_rectangle}
+Let $U\subseteq\mathbb{C}$ be open with $f$ analytic and non-vanishing on $U$, and let
+$z,w$ satisfy $\operatorname{Re} z\le\operatorname{Re} w$,
+$\operatorname{Im} z\le\operatorname{Im} w$ and $R:=\mathrm{Rectangle}(z,w)\subseteq U$.
+Then the boundary argument variation vanishes:
+\[
+  \Delta_{\partial R}\arg f \;=\; 0 .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_rectangle, lem:ap_integral_eq_argvar}
+As $f$ is analytic and non-vanishing on $U$, its logarithmic derivative
+$f'/f=\texttt{logDeriv}\,f$ is analytic on $U\supseteq R$. Cauchy's theorem on a
+rectangle (\texttt{HolomorphicOn.vanishesOnRectangle} from
+\texttt{ResidueCalcOnRectangles.lean}, \Cref{thm:nf_rectangle}) gives
+$\texttt{RectangleIntegral}\,(f'/f)\,z\,w=0$. The identity
+\texttt{rectangleIntegral\_logDeriv\_eq\_I\_mul\_rectangleArgVariation}
+(\Cref{lem:ap_integral_eq_argvar}: every edge of $\partial R$ avoids the zeros of $f$,
+since $f\neq0$ throughout $U$) reads
+$\texttt{RectangleIntegral}\,(f'/f)\,z\,w = i\,\Delta_{\partial R}\arg f$. Hence
+$i\,\Delta_{\partial R}\arg f=0$ and, cancelling $i\neq0$,
+$\Delta_{\partial R}\arg f=0$.
+\end{proof}
+
+\begin{lemma}[Argument of the $\Gamma$ and $\pi$ factors give $\theta$]
+\label{lem:nf_arg_theta}
+\lean{argVariation_GammaPi_L}
+\leanok
+\uses{def:nf_theta, def:nf_argvar, lem:nf_argvar_props, lem:nf_rect_argvar_holo_zero,
+      lem:av_reparam, lem:av_slitPlane}
+Along $L_T$, the factors $\pi^{-s/2}$ and $\Gamma(s/2)$ are non-vanishing and
+\[
+  \Delta_{L_T}\arg\bigl(\pi^{-s/2}\Gamma(s/2)\bigr) \;=\; \theta(T) .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:nf_theta, lem:nf_argvar_props, lem:nf_rect_argvar_holo_zero, lem:av_reparam,
+      lem:av_slitPlane}
+Write $\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$ ($=\texttt{Gammaℝ}$). Along $L_T$ both
+$\pi^{-s/2}$ and $\Gamma(s/2)$ are non-vanishing ($\operatorname{Re}(s/2)\ge\tfrac14>0$,
+so $\Gamma(s/2)\neq0$), so multiplicativity (\Cref{lem:nf_argvar_props}, applied on each
+of the two affine segments of $L_T$) gives
+\[
+  \Delta_{L_T}\arg\Gamma_{\mathbb R}
+   = \Delta_{L_T}\arg\bigl(\pi^{-s/2}\bigr) + \Delta_{L_T}\arg\bigl(\Gamma(s/2)\bigr).
+\]
+
+\emph{The $\pi$ factor.} $\pi^{-s/2}=\exp\!\bigl(-\tfrac{s}{2}\log\pi\bigr)$ has the
+\emph{global} continuous logarithm $g(s)=-\tfrac{s}{2}\log\pi$, so directly from the
+definition of the variation (\Cref{def:nf_argvar}),
+$\Delta_{L_T}\arg(\pi^{-s/2})=\operatorname{Im} g(\text{end})-\operatorname{Im}
+g(\text{start})=-\tfrac{\operatorname{Im} s}{2}\log\pi$ between the endpoints $s=2$
+($\operatorname{Im}=0$) and $s=\tfrac12+iT$ ($\operatorname{Im}=T$), namely
+$-\tfrac{T}{2}\log\pi$. (The branch is global, so the variation depends only on the
+endpoints.)
+
+\emph{The $\Gamma$ factor.} Using the affine identity
+$\tfrac12\,\mathrm{lineSeg}(z_0,z_1)=\mathrm{lineSeg}(z_0/2,z_1/2)$ on each segment, the
+image of $L_T$ under $s\mapsto s/2$ is the two-segment path
+$P:\ 1\to1+iT/2\to\tfrac14+iT/2$, and $\Delta_{L_T}\arg\Gamma(s/2)=\Delta_P\arg\Gamma$.
+The defining vertical segment $\gamma_\Gamma(u)=\tfrac14+iu/2$, $u:0\to T$, reparametrises
+($u=Tv$, \Cref{lem:av_reparam}) to $Q:\ \tfrac14\to\tfrac14+iT/2$, so by
+\Cref{def:nf_theta}
+\[
+  \Delta_Q\arg\Gamma \;=\; \theta(T)+\tfrac{T}{2}\log\pi .
+\]
+It remains to prove $\Delta_P\arg\Gamma=\Delta_Q\arg\Gamma$.
+
+\emph{Path-independence via a rectangle.} Let $R'$ be the rectangle with corners
+$z=\tfrac14$ and $w=1+iT/2$, i.e. $R'=[\tfrac14,1]\times[0,\tfrac T2]$. Traversed
+counterclockwise from $\tfrac14$, its boundary is the concatenation
+\[
+  \partial R':\quad
+  \underbrace{\tfrac14\to1}_{B}\ ,\quad
+  \underbrace{1\to1+iT/2\to\tfrac14+iT/2}_{P\ (\text{right then top})}\ ,\quad
+  \underbrace{\tfrac14+iT/2\to\tfrac14}_{\text{reverse of }Q}.
+\]
+$\Gamma$ is analytic and non-vanishing on the open half-plane $\operatorname{Re}>0$
+(\texttt{Complex.differentiableAt\_Gamma} away from the non-positive integers, and
+\texttt{Complex.Gamma\_ne\_zero}), an open set containing $\overline{R'}$. Hence
+\Cref{lem:nf_rect_argvar_holo_zero} gives $\Delta_{\partial R'}\arg\Gamma=0$, and by
+additivity and reversal (\Cref{lem:nf_argvar_props}),
+\[
+  0=\Delta_{\partial R'}\arg\Gamma
+   =\Delta_B\arg\Gamma+\Delta_P\arg\Gamma-\Delta_Q\arg\Gamma .
+\]
+On the bottom edge $B\subseteq(0,\infty)$ the function $\Gamma$ is real and strictly
+positive (\texttt{Complex.Gamma\_ofReal} with \texttt{Real.Gamma\_pos\_of\_pos}), hence
+lies in the slit plane with $\arg\Gamma\equiv0$; so $\Delta_B\arg\Gamma=0$
+(\Cref{lem:av_slitPlane}). Therefore $\Delta_P\arg\Gamma=\Delta_Q\arg\Gamma$.
+
+\emph{Conclusion.} Summing the two factors,
+\[
+  \Delta_{L_T}\arg\Gamma_{\mathbb R}
+   = -\tfrac{T}{2}\log\pi + \Delta_Q\arg\Gamma
+   = -\tfrac{T}{2}\log\pi + \Bigl(\theta(T)+\tfrac{T}{2}\log\pi\Bigr)
+   = \theta(T). \qedhere
+\]
+\end{proof}
+
+\section{The main theorem}
+\label{sec:nf_main}
+
+\begin{theorem}[Exact Riemann--von Mangoldt formula]
+\label{thm:N_formula}
+\lean{riemannZeta.N_eq}
+\leanok
+\uses{lem:nf_N_eq_xi_count, thm:nf_argument_principle, lem:nf_halving,
+      lem:nf_arg_poly, lem:nf_arg_theta, def:nf_S, def:nf_theta}
+Let $T>0$ and suppose $T$ is not the ordinate of any zero of $\zeta$ (equivalently,
+$\zeta(\sigma+iT)\neq0$ for all $\sigma\in\mathbb{R}$). Then
+\[
+  N(T) \;=\; \frac{\theta(T)}{\pi} \;+\; 1 \;+\; S(T).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:nf_N_eq_xi_count, thm:nf_argument_principle, lem:nf_halving,
+      lem:nf_arg_poly, lem:nf_arg_theta, lem:nf_argvar_props}
+Let $R$ be the rectangle with corners $-1$ and $2+iT$. By \Cref{lem:nf_N_eq_xi_count}
+$N(T)$ equals the number of zeros of $\xi$ inside $R$ (all interior zeros lie in the
+strip $0<\operatorname{Re}<1$ and have $0<\operatorname{Im}<T$; none lie on
+$\partial R$ by the hypothesis on $T$). The argument principle
+(\Cref{thm:nf_argument_principle}) gives
+\[
+  N(T) \;=\; \frac{1}{2\pi}\,\Delta_{\partial R}\arg\xi
+        \;=\; \frac{1}{\pi}\,\Delta_{L_T}\arg\xi
+\]
+by the symmetry reduction (\Cref{lem:nf_halving}). Now factor
+$\xi=\tfrac12 s(s-1)\cdot\pi^{-s/2}\Gamma(s/2)\cdot\zeta$ and use multiplicativity of
+argument variation (\Cref{lem:nf_argvar_props}):
+\[
+  \Delta_{L_T}\arg\xi
+  = \Delta_{L_T}\arg\bigl(\tfrac12 s(s-1)\bigr)
+  + \Delta_{L_T}\arg\bigl(\pi^{-s/2}\Gamma(s/2)\bigr)
+  + \Delta_{L_T}\arg\zeta
+  = \pi + \theta(T) + \pi S(T),
+\]
+using \Cref{lem:nf_arg_poly}, \Cref{lem:nf_arg_theta}, and the definition of $S(T)$
+(\Cref{def:nf_S}). Dividing by $\pi$,
+\[
+  N(T) = \frac{1}{\pi}\bigl(\pi + \theta(T) + \pi S(T)\bigr)
+       = \frac{\theta(T)}{\pi} + 1 + S(T). \qedhere
+\]
+\end{proof}
+
+\begin{remark}[Scope and the ordinate hypothesis]
+\label{rem:nf_scope}
+The hypothesis that $T$ is not an ordinate of a zero ensures $\xi\neq0$ on
+$\partial R$, so the argument principle applies cleanly. For $T$ at an ordinate the
+standard convention sets $N(T)=\tfrac12\bigl(N(T^-)+N(T^+)\bigr)$; since
+\texttt{riemannZeta.N} uses the open interval $(0,T)$, a zero exactly at height $T$
+is excluded, and the formula then holds with $S(T)$ interpreted as the limit from
+below. The continuous-argument primitive (\Cref{def:nf_argvar},
+\Cref{lem:nf_argvar_props}) is developed in \Cref{cha:arg_variation}, built on the
+covering-map lift of $\exp$, and the rectangle argument principle
+(\Cref{thm:nf_argument_principle}) in \Cref{cha:argument_principle}. The chapter thus
+rests on the completed-zeta functional equation, the $\xi$ bookkeeping, the
+continuous-argument primitive, and the \texttt{ResidueCalcOnRectangles} scaffolding.
+\end{remark}

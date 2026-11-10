@@ -1,0 +1,36 @@
+\chapter{Certifying the Riemann Hypothesis up to bounded height}
+\label{cha:rh_up_to}
+
+Finding certified counts of zeros of the zeta function on the critical line 
+yields a lower bound of the form $n + 1 \leq N(T)$.
+On the other hand, Turing's method can be used to derive an upper bound 
+of the form $N(g_n)\leq n + 1$. 
+If $T \leq g_n$ then this forces $N(T) = n + 1$ and therefore forces 
+all the zeros of the zeta function on the domain 
+$\{z | \text{Im}(z) \in (0, T)\}$ to be on the critical line.
+
+\begin{theorem}
+\label{thm:rh_up_to}
+\lean{riemannHypothesisUpTo}
+\leanok
+Suppose that $g_n$ is a Gram point satisfying the conditions of 
+Theorem~\ref{thm:n_upper_bound}. Suppose that $Z$ is a certified 
+list of zeros of the zeta function on the subset $\{1/2 + it\mid 0 < t < g_n\}$ 
+of the critical line using a search algorithm. 
+Then all non-trivial zeros of the zeta function in the region 
+$|\text{Im}(s)| < g_n$ are on the critical line.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:n_upper_bound}
+On the real line, the only zeros of $\zeta$ are the trivial zeros.
+Moreover, because $\zeta(\overline{s}) = \overline{\zeta(s)}$, it suffices to 
+consider the zeros in $\{s \mid 0 \leq \text{Im}(s) < g_n\}$.
+The number of such zeros, with multiplicity, is by definition $N(g_n)$.
+
+By Theorem~\ref{thm:n_upper_bound}, $N(g_n)\leq n + 1$. 
+By the certified count there are at least $n + 1$ zeros on 
+$\{1/2 + it \mid 0 \leq t < g_n\}$.
+Therefore all zeros up to height $g_n$ lie on the critical line.
+\end{proof}

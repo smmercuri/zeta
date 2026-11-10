@@ -1,0 +1,260 @@
+% Blueprint: Order-one growth of the Riemann ξ-function
+
+\chapter{Order-one growth of the Riemann \texorpdfstring{$\xi$}{xi}-function}
+\label{cha:xi_order}
+
+Throughout, $\xi$ is \texttt{riemannXi}, entire
+(\texttt{differentiable\_riemannXi}), with $\xi(1-s)=\xi(s)$
+(\texttt{riemannXi\_one\_sub}) and, for $s\neq0,1$,
+\[
+  \xi(s)=\tfrac12\,s(s-1)\,\pi^{-s/2}\,\Gamma(s/2)\,\zeta(s)
+\]
+(\texttt{riemannXi\_eq\_mul\_completedRiemannZeta} together with the mathlib identity
+$\Lambda(s)=\Gamma_{\mathbb R}(s)\,\zeta(s)$ and
+$\Gamma_{\mathbb R}(s)=\pi^{-s/2}\Gamma(s/2)$). The goal of this chapter is the
+order-one growth bound \Cref{thm:xo_order}, which is \Cref{lem:lb_pf_order} of
+\Cref{cha:lehman_bound}.
+
+We use the following inputs: the bounded vertical-strip Gamma bound
+\Cref{thm:gs_Gamma_growth} (\texttt{Complex.norm\_Gamma\_vertical\_le}); the
+tail bound \texttt{norm\_riemannZeta\_sub\_one\_le\_of\_two\_le\_re}
+($|\zeta(s)-1|\le\pi^2/6-1$ for $\Re s\ge2$); the Gamma recurrence
+\texttt{Complex.Gamma\_add\_one} ($\Gamma(z+1)=z\,\Gamma(z)$ for $z\neq0$); and
+continuity/compactness facts from mathlib.
+
+\section{A half-plane upper bound for the Gamma function}
+\label{sec:xo_gamma}
+
+\begin{lemma}[Strip bound packaged for {$[\tfrac14,2]$}]
+\label{lem:xo_gamma_strip_bounded}
+\lean{norm_Gamma_le_strip_quarter_two}
+\leanok
+\uses{thm:gs_Gamma_growth}
+There is a constant $C_0>0$ such that for every $w\in\mathbb C$ with
+$\tfrac14\le\Re w\le2$ and $|w|\ge1$,
+\[
+  \|\Gamma(w)\|\;\le\;C_0\,(1+|w|^{3/2}).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_Gamma_growth}
+Apply \Cref{thm:gs_Gamma_growth} with $a=\tfrac14$, $b=2$ to obtain constants
+$c_1,c_2>0$ with
+$\|\Gamma(\sigma+\tau i)\|\le c_2\,|\tau|^{\sigma-1/2}\,e^{-\pi|\tau|/2}$ whenever
+$\tfrac14\le\sigma\le2$ and $|\tau|\ge1$. Write $w=\sigma+\tau i$ with
+$\sigma=\Re w\in[\tfrac14,2]$, $\tau=\Im w$.
+
+\emph{Case $|\tau|\ge1$.} Since $\sigma-\tfrac12\le\tfrac32$ and $|\tau|\ge1$ we have
+$|\tau|^{\sigma-1/2}\le|\tau|^{3/2}\le|w|^{3/2}$, and $e^{-\pi|\tau|/2}\le1$; hence
+$\|\Gamma(w)\|\le c_2\,|w|^{3/2}\le c_2(1+|w|^{3/2})$.
+
+\emph{Case $|\tau|<1$.} Then $w$ lies in the compact rectangle
+$R=\{\sigma+\tau i:\tfrac14\le\sigma\le2,\ |\tau|\le1\}$, on which $\Gamma$ is
+continuous (no poles, as $\Re\ge\tfrac14>0$). By compactness
+$M_0:=\sup_{w\in R}\|\Gamma(w)\|<\infty$
+(\texttt{IsCompact.exists\_bound\_of\_continuousOn}), so
+$\|\Gamma(w)\|\le M_0\le M_0(1+|w|^{3/2})$.
+
+Taking $C_0=\max(c_2,M_0)$ covers both cases.
+\end{proof}
+
+\begin{lemma}[Half-plane upper bound for $\Gamma$]
+\label{lem:xo_gamma_halfplane}
+\lean{norm_Gamma_le_exp_halfplane}
+\leanok
+\uses{lem:xo_gamma_strip_bounded}
+There is a constant $C_\Gamma>0$ such that for every $z\in\mathbb C$ with
+$\Re z\ge\tfrac14$ and $|z|\ge1$,
+\[
+  \|\Gamma(z)\|\;\le\;\exp\!\bigl(C_\Gamma\,(|z|\log|z|+1)\bigr).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:xo_gamma_strip_bounded}
+Set $m:=\max\bigl(0,\lfloor\Re z\rfloor-1\bigr)\in\mathbb N$ and $w:=z-m$. Then
+$\Re w=\Re z-m\in[\tfrac14,2)$: if $\Re z<2$ then $m=0$ and $\Re w=\Re z\in[\tfrac14,2)$;
+if $\Re z\ge2$ then $m=\lfloor\Re z\rfloor-1$ and
+$\Re w=\Re z-\lfloor\Re z\rfloor+1\in[1,2)$. Also $0\le m\le\Re z\le|z|$.
+
+\emph{Recurrence.} Applying $\Gamma(\zeta+1)=\zeta\,\Gamma(\zeta)$
+(\texttt{Complex.Gamma\_add\_one}; each argument $w+k$ has $\Re(w+k)\ge\tfrac14>0$, so is
+nonzero) for $k=0,1,\dots,m-1$ gives, by induction on $m$,
+\[
+  \Gamma(z)=\Gamma(w+m)=\Gamma(w)\prod_{k=0}^{m-1}(w+k),
+  \qquad\text{hence}\qquad
+  \|\Gamma(z)\|=\|\Gamma(w)\|\prod_{k=0}^{m-1}\|w+k\|.
+\]
+
+\emph{Linear factors.} For $0\le k\le m-1$ write $w+k=z-(m-k)$ with
+$j:=m-k\in\{1,\dots,m\}$. Since $0\le j\le m\le\Re z$, we have
+$(\Re z-j)^2\le(\Re z)^2$, so $\|z-j\|^2=(\Re z-j)^2+(\Im z)^2\le(\Re z)^2+(\Im z)^2=|z|^2$,
+i.e.\ $\|w+k\|\le|z|$. Therefore (using $|z|\ge1$, so $|z|^m\le|z|^{|z|}$ as $m\le|z|$)
+\[
+  \prod_{k=0}^{m-1}\|w+k\|\;\le\;|z|^{m}\;\le\;|z|^{|z|}\;=\;\exp\bigl(|z|\log|z|\bigr).
+\]
+
+\emph{The $\Gamma(w)$ factor.} Here $\Re w\in[\tfrac14,2)$ and $|w|=|z-m|\le|z|+m\le2|z|$;
+also $|w|\ge\Re w\ge\tfrac14$, but we only need a bound, so consider two sub-cases. If
+$|w|\ge1$, \Cref{lem:xo_gamma_strip_bounded} gives
+$\|\Gamma(w)\|\le C_0(1+|w|^{3/2})\le C_0(1+(2|z|)^{3/2})$. If $|w|<1$, then $w$ lies in
+the same compact rectangle $R$ of \Cref{lem:xo_gamma_strip_bounded}, so
+$\|\Gamma(w)\|\le M_0\le C_0(1+(2|z|)^{3/2})$ as well. In either case
+$\|\Gamma(w)\|\le C_0(1+(2|z|)^{3/2})\le C_1\,|z|^{3/2}$ for a constant $C_1$ (using
+$|z|\ge1$).
+
+\emph{Assembly.} Combining,
+$\|\Gamma(z)\|\le C_1\,|z|^{3/2}\exp(|z|\log|z|)$. Since $|z|^{3/2}=\exp(\tfrac32\log|z|)$
+and $\log|z|\le|z|$ for $|z|\ge1$, we get
+$C_1|z|^{3/2}\le\exp(\log C_1+\tfrac32|z|)$, whence
+$\|\Gamma(z)\|\le\exp\bigl(|z|\log|z|+\tfrac32|z|+\log C_1\bigr)$. Both extra terms are
+$\le C_\Gamma(|z|\log|z|+1)$ for a suitable $C_\Gamma>0$: the constant $\log C_1$ is
+absorbed by the $+1$, and $\tfrac32|z|\le\tfrac32 |z|\log|z|+\tfrac32$ once $\log|z|\ge1$
+(i.e.\ $|z|\ge e$), the bounded range $1\le|z|\le e$ contributing only a further
+constant. Hence $\|\Gamma(z)\|\le\exp\bigl(C_\Gamma(|z|\log|z|+1)\bigr)$.
+\end{proof}
+
+\section{A polynomial bound for the zeta function}
+\label{sec:xo_zeta}
+
+\begin{lemma}[Euler--Maclaurin truncation of $\zeta$ at $N=2$]
+\label{lem:xo_zeta_em2}
+\lean{norm_riemannZeta_sub_head_le}
+\leanok
+For every $s\in\mathbb C$ with $\Re s\ge\tfrac12$ and $s\neq1$,
+\[
+  \zeta(s)\;=\;1+2^{-s}-\frac{2^{1-s}}{1-s}-\frac{2^{-s}}2
+            +s\int_{2}^{\infty}\frac{\lfloor x\rfloor+\tfrac12-x}{x^{s+1}}\,dx,
+\]
+and the integral remainder satisfies
+\[
+  \Bigl\|\,s\!\int_{2}^{\infty}\frac{\lfloor x\rfloor+\tfrac12-x}{x^{s+1}}\,dx\,\Bigr\|
+   \;\le\;\frac{|s|\,2^{-\Re s}}{\Re s}\;\le\;\sqrt2\,|s|.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+This is the \texttt{PrimeNumberTheoremAnd} truncated zeta $\zeta_0$ at $N=2$. By
+\texttt{PrimeNumberTheoremAnd.Zeta0EqZeta} (valid for $\Re s>0$, $s\neq1$),
+$\zeta(s)=\zeta_0(2,s)$, where (\texttt{PrimeNumberTheoremAnd.riemannZeta0})
+\[
+  \zeta_0(2,s)=\sum_{n=0}^{2}\frac1{n^{s}}+\frac{-2^{1-s}}{1-s}+\frac{-2^{-s}}2
+   +s\int_{2}^{\infty}\frac{\lfloor x\rfloor+\tfrac12-x}{x^{s+1}}\,dx .
+\]
+Since $0^{s}=0$ for $s\neq0$, the finite sum is $0+1+2^{-s}=1+2^{-s}$, giving the
+displayed identity. For the remainder, \texttt{PrimeNumberTheoremAnd.ZetaBnd\_aux1b}
+(with $N=2$, $\sigma=\Re s>0$) gives
+$\bigl\|\int_{2}^{\infty}(\lfloor x\rfloor+\tfrac12-x)\,x^{-s-1}\,dx\bigr\|
+\le 2^{-\Re s}/\Re s$, so multiplying by $\|s\|=|s|$ yields
+$\le|s|\,2^{-\Re s}/\Re s$. For $\Re s\ge\tfrac12$ the function $\sigma\mapsto2^{-\sigma}/\sigma$
+is decreasing on $[\tfrac12,\infty)$ with value $\sqrt2$ at $\sigma=\tfrac12$, so
+$2^{-\Re s}/\Re s\le\sqrt2$, whence the bound $\sqrt2\,|s|$.
+\end{proof}
+
+\begin{lemma}[Polynomial bound for $\zeta$]
+\label{lem:xo_zeta_poly}
+\lean{norm_riemannZeta_le_const_mul_of_half_le_re}
+\leanok
+\uses{lem:xo_zeta_em2}
+There is a constant $C_\zeta>0$ such that for every $s\in\mathbb C$ with $\Re s\ge\tfrac12$
+and $|s|\ge2$,
+\[
+  \|\zeta(s)\|\;\le\;C_\zeta\,|s|.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:xo_zeta_em2}
+Note first that $|s|\ge2$ forces $\|s-1\|\ge|s|-1\ge1$, so $s\neq1$ and the pole is
+avoided.
+
+\emph{Case $\Re s\ge2$.} Then $\|\zeta(s)-1\|\le\pi^2/6-1$
+(\texttt{norm\_riemannZeta\_sub\_one\_le\_of\_two\_le\_re}), so
+$\|\zeta(s)\|\le\pi^2/6\le(\pi^2/12)\,|s|$ since $|s|\ge2$.
+
+\emph{Case $\tfrac12\le\Re s\le2$.} By the identity and remainder bound of
+\Cref{lem:xo_zeta_em2}, the triangle inequality, $\|s-1\|=\|1-s\|\ge1$, and
+$2^{-\Re s}\le2^{-1/2}$, $2^{1-\Re s}\le2^{1/2}$,
+\[
+  \|\zeta(s)\|\le 1+2^{-\Re s}+\frac{2^{1-\Re s}}{\|1-s\|}+\frac{2^{-\Re s}}2+\sqrt2\,|s|
+   \le 1+2^{-1/2}+2^{1/2}+\tfrac12 2^{-1/2}+\sqrt2\,|s|
+   \le C_\zeta\,|s|,
+\]
+using $|s|\ge2$ to absorb the constant term (e.g.\
+$C_\zeta=\sqrt2+(1+2^{-1/2}+2^{1/2}+\tfrac12 2^{-1/2})/2$).
+
+Taking the larger of the two constants gives $\|\zeta(s)\|\le C_\zeta|s|$ throughout.
+\end{proof}
+
+\section{Assembly: order-one growth of \texorpdfstring{$\xi$}{xi}}
+\label{sec:xo_main}
+
+\begin{theorem}[Order-one growth of $\xi$]
+\label{thm:xo_order}
+\lean{norm_riemannXi_le_exp}
+\leanok
+\uses{lem:xo_gamma_halfplane, lem:xo_zeta_poly}
+There is a constant $C>0$ such that for all $s\in\mathbb C$ with $|s|\ge2$,
+\[
+  \|\xi(s)\|\;\le\;\exp\!\bigl(C\,|s|\log|s|\bigr).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:xo_gamma_halfplane, lem:xo_zeta_poly}
+\emph{Reduction to $\Re s\ge\tfrac12$.} If $\Re s<\tfrac12$, put $s':=1-s$. Then
+$\Re s'=1-\Re s>\tfrac12$ and, since $\Re s\le\tfrac12$,
+\[
+  |s'|^2-|s|^2=|1-s|^2-|s|^2=1-2\Re s\ge0,
+\]
+so $|s'|\ge|s|\ge2$; moreover $|s'|=|1-s|\le1+|s|\le2|s|$. By
+\texttt{riemannXi\_one\_sub}, $\|\xi(s)\|=\|\xi(s')\|$. Hence it suffices to prove
+$\|\xi(s)\|\le\exp(C_0\,|s|\log|s|)$ for all $s$ with $\Re s\ge\tfrac12$, $|s|\ge2$: the
+case $\Re s<\tfrac12$ then follows with the larger constant $C=2C_0(1+\log2)$, because
+$|s'|\log|s'|\le2|s|\log(2|s|)=2|s|(\log2+\log|s|)\le2|s|(1+\log2)\log|s|$ for $|s|\ge2$
+(as $\log|s|\ge\log2$, so $\log2\le\log|s|$, giving $\log2+\log|s|\le(1+\log2)\log|s|$).
+
+\emph{Main case $\Re s\ge\tfrac12$, $|s|\ge2$.} Since $s\neq0,1$,
+\texttt{riemannXi\_eq\_mul\_completedRiemannZeta} and $\Lambda=\Gamma_{\mathbb R}\zeta$
+give
+\[
+  \|\xi(s)\|=\tfrac12\,|s|\,|s-1|\;\pi^{-\Re s/2}\;\|\Gamma(s/2)\|\;\|\zeta(s)\|.
+\]
+We bound the four factors:
+\begin{itemize}
+\item $\tfrac12|s|\,|s-1|\le\tfrac12|s|(|s|+1)\le|s|^2$ (using $|s|\ge1$);
+\item $\pi^{-\Re s/2}\le\pi^{-1/4}\le1$ (as $\Re s\ge\tfrac12$);
+\item $\|\Gamma(s/2)\|\le\exp\bigl(C_\Gamma(|s/2|\log|s/2|+1)\bigr)$ by
+  \Cref{lem:xo_gamma_halfplane}, valid since $\Re(s/2)=\tfrac12\Re s\ge\tfrac14$ and
+  $|s/2|=|s|/2\ge1$. Moreover $|s/2|\log|s/2|=\tfrac12|s|\log(|s|/2)\le\tfrac12|s|\log|s|$,
+  so $\|\Gamma(s/2)\|\le\exp\bigl(\tfrac12 C_\Gamma|s|\log|s|+C_\Gamma\bigr)$;
+\item $\|\zeta(s)\|\le C_\zeta|s|$ by \Cref{lem:xo_zeta_poly}.
+\end{itemize}
+Multiplying,
+\[
+  \|\xi(s)\|\le|s|^2\cdot\exp\bigl(\tfrac12 C_\Gamma|s|\log|s|+C_\Gamma\bigr)\cdot C_\zeta|s|
+   =C_\zeta\,|s|^{3}\,\exp\bigl(\tfrac12 C_\Gamma|s|\log|s|+C_\Gamma\bigr).
+\]
+Finally $|s|^3=\exp(3\log|s|)$ and, for $|s|\ge2$, $\log|s|\le|s|\log|s|$ and the additive
+constants are dominated by $|s|\log|s|\ge2\log2>0$, so the whole right-hand side is at
+most $\exp(C_0\,|s|\log|s|)$ for a suitable $C_0>0$ (e.g.\ any
+$C_0\ge\tfrac12 C_\Gamma+ (3+C_\Gamma+\log C_\zeta)/(2\log2)$). This proves the bound for
+$\Re s\ge\tfrac12$ and, by the reduction above, for all $|s|\ge2$.
+\end{proof}
+
+\begin{remark}
+This chapter proves \Cref{lem:lb_pf_order}: the two statements are the single Lean
+declaration \texttt{norm\_riemannXi\_le\_exp}. Every step reduces to mathlib or project
+lemmas plus elementary estimates; in particular the half-plane
+Gamma bound \Cref{lem:xo_gamma_halfplane} is obtained from the bounded-strip bound
+\Cref{thm:gs_Gamma_growth} by the Gamma recurrence, and the zeta bound \Cref{lem:xo_zeta_poly} from a single $N=2$ Euler--Maclaurin
+truncation. Downstream, \Cref{thm:xo_order} feeds \Cref{lem:lb_pf_summable} (Jensen
+counting) and, through \Cref{cha:hadamard}, the Hadamard factorisation
+\Cref{lem:lb_pf_hadamard}.
+\end{remark}

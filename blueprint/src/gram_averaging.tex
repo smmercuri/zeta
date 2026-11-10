@@ -1,0 +1,324 @@
+% Blueprint: the Gram-point averaging lemma for Turing's method.
+%
+% References: Titchmarsh, *The theory of the Riemann zeta-function* (2nd ed.),
+% \S 9.9 \cite{TitchmarshZeta}; Trudgian, *Improvements to Turing's method*
+% \cite{TrudgianTuring}.
+
+\chapter{The Gram-point averaging lemma}
+\label{cha:gram_averaging}
+
+Turing's method certifies the zero count $N(g_m)$ at a Gram point $g_m$ from the
+integral bound of \Cref{cha:lehman_bound}. One of its analytic inputs is a bound on
+the average, over a forward Gram window, of the normalised Riemann--Siegel phase
+increment
+\[
+  x(t,l)\;:=\;\frac{\theta(t)-\theta(l)}{\pi},
+\]
+where $\theta=\texttt{riemannSiegelTheta}$ is the Riemann--Siegel theta of
+\Cref{def:nf_theta}. This chapter proves that over a Gram interval this average is at
+most $\tfrac12$. The bound is a consequence of the \emph{convexity} of $\theta$.
+
+\begin{definition}[Normalised phase increment]
+\label{def:ga_x}
+\lean{gramCoord}
+\leanok
+For $l,t\in\mathbb{R}$ set
+\[
+  x(t,l)\;=\;\texttt{gramX}\,l\,t\;:=\;\frac{\theta(t)-\theta(l)}{\pi}.
+\]
+\end{definition}
+
+\section{A chord bound for the integral of a convex function}
+\label{sec:ga_chord}
+
+The convexity input enters only through the following elementary trapezoidal
+inequality, which has no special-function content and follows from mathlib's convexity
+API.
+
+\begin{lemma}[Chord integral bound]
+\label{lem:ga_chord}
+\lean{ConvexOn.integral_sub_left_le}
+\leanok
+Let $a<b$ and let $f:\mathbb{R}\to\mathbb{R}$ be convex and continuous on $[a,b]$.
+Then
+\[
+  \int_a^b\bigl(f(t)-f(a)\bigr)\,dt\;\le\;\frac{(b-a)\bigl(f(b)-f(a)\bigr)}{2}.
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+Fix $t\in[a,b]$ and write $t=\alpha a+\beta b$ with
+$\alpha=\frac{b-t}{b-a}\ge0$, $\beta=\frac{t-a}{b-a}\ge0$, $\alpha+\beta=1$. The
+division-free chord inequality of convexity (mathlib
+\texttt{ConvexOn.secant\_mono\_aux1} with the triple $a<t<b$) gives
+\[
+  (b-a)\,f(t)\;\le\;(b-t)\,f(a)+(t-a)\,f(b),
+\]
+i.e.
+\[
+  f(t)-f(a)\;\le\;\frac{t-a}{b-a}\,\bigl(f(b)-f(a)\bigr).
+\]
+Both sides are continuous, hence integrable on $[a,b]$; integrating and using
+$\int_a^b(t-a)\,dt=\tfrac12(b-a)^2$,
+\[
+  \int_a^b\bigl(f(t)-f(a)\bigr)\,dt
+  \;\le\;\frac{f(b)-f(a)}{b-a}\int_a^b(t-a)\,dt
+  \;=\;\frac{f(b)-f(a)}{b-a}\cdot\frac{(b-a)^2}{2}
+  \;=\;\frac{(b-a)\bigl(f(b)-f(a)\bigr)}{2}. \qedhere
+\]
+\end{proof}
+
+\section{The derivative of the Riemann--Siegel theta function}
+\label{sec:ga_deriv}
+
+\begin{lemma}[First derivative of $\theta$]
+\label{lem:ga_theta_deriv}
+\lean{hasDerivAt_riemannSiegelTheta}
+\leanok
+\uses{lem:hz_theta_log}
+For every $T>0$,
+\[
+  \theta'(T)\;=\;\tfrac12\,\operatorname{Re}\psi\!\left(\tfrac14+i\tfrac T2\right)-\tfrac12\log\pi,
+\]
+where $\psi=\texttt{Complex.digamma}$ is the digamma function.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:hz_theta_log}
+By the bridge \Cref{lem:hz_theta_log},
+$\theta(T)=\operatorname{Im}\operatorname{Log}\Gamma(w(T))-\tfrac T2\log\pi$ with
+$w(T)=\tfrac14+i\tfrac T2$ and $\operatorname{Log}\Gamma=\texttt{logGammaComplex}$
+the holomorphic branch of \Cref{sec:hz_loggamma}. On the right half-plane
+$\operatorname{Log}\Gamma$ is a holomorphic primitive of $\psi$
+(\texttt{hasDerivAt\_logGammaComplex}), and $w'(T)=\tfrac i2$, so by the chain rule
+$\tfrac{d}{dT}\operatorname{Log}\Gamma(w(T))=\psi(w(T))\cdot\tfrac i2$. Writing
+$\psi(w)=A+iB$, its imaginary part is $\operatorname{Im}(\tfrac i2(A+iB))=\tfrac A2
+=\tfrac12\operatorname{Re}\psi(w)$. Subtracting the derivative $\tfrac12\log\pi$ of
+the smooth term $\tfrac T2\log\pi$ gives the claim.
+\end{proof}
+
+\section{Convexity of the Riemann--Siegel theta function}
+\label{sec:ga_convex}
+
+The main ingredient is monotonicity of $\operatorname{Re}\psi$ on the vertical
+line, equivalently the non-positivity of $\operatorname{Im}\psi'$ in the upper
+half-plane, where $\psi'=\texttt{deriv Complex.digamma}$ is the trigamma function. We
+prove it through the trigamma \emph{recurrence}. Mathlib defines \texttt{Complex.digamma}
+as $\operatorname{logDeriv}\Gamma$, so we first prove its differentiability.
+
+\begin{lemma}[Differentiability of $\psi$]
+\label{lem:ga_digamma_diff}
+\lean{Complex.differentiableAt_digamma}
+\leanok
+$\psi=\texttt{Complex.digamma}$ is complex-differentiable on $\{\operatorname{Re}>0\}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\psi=\Gamma'/\Gamma$; on $\{\operatorname{Re}>0\}$ the numerator $\Gamma'$ is analytic
+(as the derivative of the analytic, pole-free $\Gamma$) and the denominator $\Gamma$ is
+analytic and non-vanishing (\texttt{Gamma\_ne\_zero\_of\_re\_pos}), so the quotient is
+differentiable.
+\end{proof}
+
+\begin{lemma}[Trigamma recurrence]
+\label{lem:ga_trigamma_rec}
+\lean{Complex.deriv_digamma_add_one}
+\leanok
+\uses{lem:ga_digamma_diff}
+For $\operatorname{Re}s>0$, $\psi'(s+1)=\psi'(s)-s^{-2}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_digamma_diff}
+Differentiate the digamma functional equation $\psi(s+1)=\psi(s)+s^{-1}$
+(\texttt{Complex.digamma\_apply\_add\_one}), valid on the open set $\{\operatorname{Re}>0\}$:
+both sides are differentiable (\Cref{lem:ga_digamma_diff}), so their derivatives agree,
+giving $\psi'(s+1)=\psi'(s)+\tfrac{d}{ds}s^{-1}=\psi'(s)-s^{-2}$.
+\end{proof}
+
+\begin{lemma}[Sign of the quadratic term]
+\label{lem:ga_im_inv_sq}
+\lean{Complex.im_inv_sq_nonpos}
+\leanok
+For $w$ in the closed first quadrant ($0\le\operatorname{Re}w$, $0\le\operatorname{Im}w$),
+$\operatorname{Im}(w^{-2})\le0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\operatorname{Im}(w^{-2})=-\operatorname{Im}(w^2)/\lVert w^2\rVert^2
+=-2(\operatorname{Re}w)(\operatorname{Im}w)/\lVert w^2\rVert^2\le0$.
+\end{proof}
+
+\begin{lemma}[Logarithmic bound on $\psi$]
+\label{lem:ga_digamma_bound}
+\lean{Complex.norm_digamma_le}
+\leanok
+\uses{thm:gs_digamma_stirling}
+For $\operatorname{Re}z>0$ and $\lVert z\rVert\ge1$,
+$\lVert\psi(z)\rVert\le\log\lVert z\rVert+(\pi+3)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:gs_digamma_stirling}
+From the order-$1$ digamma Euler--Maclaurin expansion
+$\psi(z)=\operatorname{Log}z-(2z)^{-1}-\tfrac{B_2}{2}z^{-2}-R^{\psi}_3(z)$
+(\Cref{thm:gs_digamma_stirling}), the principal term satisfies
+$\lVert\operatorname{Log}z\rVert\le\lvert\log\lVert z\rVert\rvert+\lvert\arg z\rvert
+\le\log\lVert z\rVert+\pi$ (using $\lVert z\rVert\ge1$), while each of the three remaining
+terms has norm $\le1$ for $\lVert z\rVert\ge1$ (the remainder via
+\Cref{thm:gs_remainder_bound_explicit}). Summing gives the bound.
+\end{proof}
+
+\begin{lemma}[Decay of trigamma along the shift]
+\label{lem:ga_trigamma_decay}
+\lean{Complex.tendsto_deriv_digamma_add_nat}
+\leanok
+\uses{lem:ga_digamma_bound, lem:ga_digamma_diff}
+For fixed $s$ with $\operatorname{Re}s>0$, $\psi'(s+n)\to0$ as $n\to\infty$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_digamma_bound, lem:ga_digamma_diff}
+On the disc $\lvert z-(s+n)\rvert\le\tfrac12\operatorname{Re}(s+n)$ every point has
+$\operatorname{Re}z\ge\tfrac12\operatorname{Re}(s+n)>0$, so $\psi$ is holomorphic there
+(\Cref{lem:ga_digamma_diff}) and, by \Cref{lem:ga_digamma_bound}, bounded by
+$\log\lVert z\rVert+(\pi+3)\le\log\!\bigl(2\lVert s+n\rVert\bigr)+(\pi+3)$ on the bounding circle.
+Cauchy's derivative estimate (\texttt{Complex.norm\_deriv\_le\_of\_forall\_mem\_sphere\_norm\_le})
+then gives $\lvert\psi'(s+n)\rvert\le\bigl(\log(2\lVert s+n\rVert)+\pi+3\bigr)/\bigl(\tfrac12\operatorname{Re}(s+n)\bigr)$,
+which is $\le(2\log n+2K)/n\to0$ (with $K=\log(2(\lVert s\rVert+1))+\pi+3$), the limit
+$\log n/n\to0$ being \texttt{Real.isLittleO\_log\_id\_atTop}.
+\end{proof}
+
+\begin{lemma}[Non-positivity of $\operatorname{Im}\psi'$]
+\label{lem:ga_im_trigamma_nonpos}
+\lean{Complex.im_deriv_digamma_nonpos}
+\leanok
+\uses{lem:ga_trigamma_rec, lem:ga_im_inv_sq, lem:ga_trigamma_decay}
+For $\operatorname{Re}s>0$ and $\operatorname{Im}s\ge0$, $\operatorname{Im}\psi'(s)\le0$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_trigamma_rec, lem:ga_im_inv_sq, lem:ga_trigamma_decay}
+Iterating the recurrence \Cref{lem:ga_trigamma_rec} gives, for every $n$,
+$\psi'(s)=\psi'(s+n)+\sum_{k=0}^{n-1}(s+k)^{-2}$, hence
+$\operatorname{Im}\psi'(s)=\operatorname{Im}\psi'(s+n)+\sum_{k=0}^{n-1}\operatorname{Im}(s+k)^{-2}$.
+Each summand is $\le0$ by \Cref{lem:ga_im_inv_sq} (the points $s+k$ lie in the closed
+first quadrant), so $\operatorname{Im}\psi'(s)\le\operatorname{Im}\psi'(s+n)$; letting
+$n\to\infty$ and using $\psi'(s+n)\to0$ (\Cref{lem:ga_trigamma_decay}) gives
+$\operatorname{Im}\psi'(s)\le0$.
+\end{proof}
+
+\begin{lemma}[Monotonicity of $\operatorname{Re}\psi$ on a vertical line]
+\label{lem:ga_re_digamma_mono}
+\lean{Complex.monotoneOn_re_digamma_quarter_vertical}
+\leanok
+\uses{lem:ga_digamma_diff, lem:ga_im_trigamma_nonpos}
+The map $T\mapsto\operatorname{Re}\psi\!\left(\tfrac14+i\tfrac T2\right)$ is monotone
+increasing on $[0,\infty)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_digamma_diff, lem:ga_im_trigamma_nonpos}
+With $w(T)=\tfrac14+i\tfrac T2$ one has, by the chain rule and \Cref{lem:ga_digamma_diff},
+$\tfrac{d}{dT}\operatorname{Re}\psi(w(T))=\operatorname{Re}\bigl(\psi'(w(T))\cdot\tfrac i2\bigr)
+=-\tfrac12\operatorname{Im}\psi'\!\left(\tfrac14+i\tfrac T2\right)\ge0$ for $T\ge0$, since
+$\operatorname{Re}w(T)=\tfrac14>0$ and $\operatorname{Im}w(T)=\tfrac T2\ge0$ put $w(T)$ in
+the closed first quadrant (\Cref{lem:ga_im_trigamma_nonpos}). A function with
+non-negative derivative on an interval is monotone increasing.
+\end{proof}
+
+\begin{lemma}[Convexity of $\theta$]
+\label{lem:ga_theta_convex}
+\lean{convexOn_riemannSiegelTheta}
+\leanok
+\uses{lem:ga_theta_deriv, lem:ga_re_digamma_mono}
+$\theta$ is convex on $[0,\infty)$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_theta_deriv, lem:ga_re_digamma_mono}
+By \Cref{lem:ga_theta_deriv} the derivative
+$\theta'(T)=\tfrac12\operatorname{Re}\psi(\tfrac14+i\tfrac T2)-\tfrac12\log\pi$ is,
+up to the additive constant $-\tfrac12\log\pi$ and the factor $\tfrac12$, the
+function of \Cref{lem:ga_re_digamma_mono}, hence monotone increasing on $[0,\infty)$.
+A differentiable function on an interval with monotone increasing derivative is
+convex (mathlib \texttt{MonotoneOn.convexOn\_of\_deriv}), giving the claim.
+\end{proof}
+
+\section{The averaging bound}
+\label{sec:ga_main}
+
+\begin{theorem}[Gram-point averaging]
+\label{thm:ga_main}
+\lean{integral_gramCoord_le}
+\leanok
+\uses{def:ga_x, lem:ga_chord, lem:ga_theta_convex}
+Let $0\le l$ and $h>0$, and suppose $[l,l+h]$ is a Gram interval, i.e.
+$\theta(l+h)-\theta(l)=\pi$. Then
+\[
+  \int_l^{l+h} x(t,l)\,dt\;\le\;\frac h2,
+  \qquad\text{equivalently}\qquad
+  \frac1h\int_l^{l+h} x(t,l)\,dt\;\le\;\frac12 .
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:ga_chord, lem:ga_theta_convex}
+By \Cref{lem:ga_theta_convex}, $\theta$ is convex (and continuous) on $[l,l+h]\subseteq[0,\infty)$.
+\Cref{lem:ga_chord} with $f=\theta$, $a=l$, $b=l+h$ gives
+\[
+  \int_l^{l+h}\bigl(\theta(t)-\theta(l)\bigr)\,dt
+  \;\le\;\frac{h\bigl(\theta(l+h)-\theta(l)\bigr)}{2}
+  \;=\;\frac{h\pi}{2},
+\]
+using the Gram spacing $\theta(l+h)-\theta(l)=\pi$. Dividing by $\pi$ and unfolding
+$x(t,l)=(\theta(t)-\theta(l))/\pi$ (\Cref{def:ga_x}) gives
+$\int_l^{l+h} x(t,l)\,dt\le\tfrac h2$; dividing further by $h>0$ gives the average
+form. The constant is thus $C=\tfrac12$, sharp in the linear limit.
+\end{proof}
+
+\begin{theorem}[Gram-block averaging]
+\label{thm:ga_block}
+\lean{sum_integral_gramCoord_le}
+\leanok
+\uses{def:ga_x, thm:ga_main}
+Let $p_0<p_1<\dots<p_k$ be an increasing block of points with $0\le p_0$, across each of
+which $\theta$ increases by exactly $\pi$ (a \emph{Gram block} of $k$ consecutive Gram
+intervals, $\theta(p_{i+1})-\theta(p_i)=\pi$ for $0\le i<k$). Then
+\[
+  \sum_{i=0}^{k-1}\int_{p_i}^{p_{i+1}} x(t,p_i)\,dt\;\le\;\frac{p_k-p_0}{2}.
+\]
+Equivalently, the average over the block of the \emph{fractional} phase increment
+$\{(\theta(t)-\theta(p_0))/\pi\}$ is at most $\tfrac12$, independently of the number $k$
+of Gram intervals spanned.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:ga_main}
+Each summand is measured from the \emph{left} endpoint $p_i$ of its own Gram interval, so
+$x(t,p_i)$ is exactly the fractional part of the global increment there, and restarts at
+$0$ at every Gram point. Since $0\le p_0\le p_i$ (from the strict inequalities) and
+$\theta(p_{i+1})-\theta(p_i)=\pi$, \Cref{thm:ga_main} applied on $[p_i,p_{i+1}]$ gives
+$\int_{p_i}^{p_{i+1}} x(t,p_i)\,dt\le\tfrac12(p_{i+1}-p_i)$. Summing over $0\le i<k$ and
+telescoping $\sum_{i=0}^{k-1}(p_{i+1}-p_i)=p_k-p_0$ (\lean{Finset.sum_range_sub}) yields
+the claim.
+
+\emph{Remark (why not $k/2$).} A single chord over the whole block bounds the
+\emph{unnormalised} increment $\int_{p_0}^{p_k}(\theta(t)-\theta(p_0))/\pi\,dt$ only by
+$k(p_k-p_0)/2$, which is too weak for Turing's method (it does not force
+$|S(g_n)|<1$ for $k\ge2$). The correct block quantity is the fractional one above, whose
+average stays $\le\tfrac12$; this is what makes the ``Lehman bound over width $<\tfrac12$''
+hypothesis pin the integer $S(g_n)$ to $0$.
+\end{proof}

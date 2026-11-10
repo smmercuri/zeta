@@ -1,0 +1,427 @@
+% Blueprint: continuous argument variation along a path
+
+\chapter{Continuous argument variation along a path}
+\label{cha:arg_variation}
+
+The Riemann--von Mangoldt formula of \Cref{cha:n_formula} is phrased through the
+net change of the argument of a non-vanishing holomorphic function along a path.
+The principal value \texttt{Complex.arg} is discontinuous across the negative real
+axis and so cannot be summed along a long path. This chapter constructs the correct
+object, a \emph{continuous logarithm along a path}, and proves the three
+properties used downstream:
+\begin{enumerate}
+  \item existence and uniqueness up to an additive constant in $2\pi i\,\mathbb Z$
+        (\Cref{lem:av_exists}, \Cref{lem:av_unique});
+  \item additivity under concatenation and multiplicativity in the integrand
+        (\Cref{lem:av_trans}, \Cref{lem:av_mul}, \Cref{lem:av_reverse});
+  \item the logarithmic-derivative integral formula for a $C^1$ path and a
+        holomorphic integrand (\Cref{lem:av_hasDerivAt}, \Cref{lem:av_integral}).
+\end{enumerate}
+A slit-plane evaluation lemma (\Cref{lem:av_slitPlane}) lets one read off the
+variation as a difference of principal arguments whenever the path stays off the
+branch cut; this is what makes the elementary factor computations of
+\Cref{cha:n_formula} concrete.
+
+Throughout, $a\le b$ are reals, $I:=[a,b]=\texttt{Set.Icc}\ a\ b$ carries the
+subspace topology, and $\varphi:I\to\mathbb{C}$ denotes a continuous, nowhere-zero
+function (in applications $\varphi = f\circ\gamma$ for a path $\gamma$ and an
+integrand $f$).
+
+\section{The covering space of the exponential}
+\label{sec:av_covering}
+
+\begin{theorem}[$\exp$ is a covering map onto $\mathbb{C}^\times$; mathlib]
+\label{thm:av_covering}
+\lean{Complex.isCoveringMapOn_exp}
+\leanok
+The complex exponential restricts to a covering map onto the punctured plane:
+$\texttt{IsCoveringMapOn Complex.exp}\ \{0\}^c$. Its deck transformations are the
+translations by $2\pi i\,\mathbb{Z}$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+In Mathlib as \texttt{Complex.isCoveringMapOn\_exp}.
+\end{proof}
+
+\begin{theorem}[Unique continuous lift; mathlib]
+\label{thm:av_lift}
+\lean{IsCoveringMapOn.existsUnique_continuousMap_lifts}
+\leanok
+\uses{thm:av_covering}
+Let $p:E\to X$ be a covering map onto $s\subseteq X$, let $A$ be a simply
+connected, locally path-connected space, and let $h:A\to X$ be continuous with
+$h(A)\subseteq s$. For every basepoint $a_0\in A$ and every $e_0\in E$ with
+$p(e_0)=h(a_0)$ there is a \emph{unique} continuous $F:A\to E$ with $F(a_0)=e_0$
+and $p\circ F = h$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+In Mathlib as \texttt{IsCoveringMapOn.existsUnique\_continuousMap\_lifts}.
+\end{proof}
+
+The domain $I=[a,b]$ qualifies: it is convex, hence contractible
+(\texttt{SimplyConnectedSpace.ofContractible}), hence simply connected, and a
+locally path-connected metric space. We record this once.
+
+\begin{lemma}[The interval is a valid lift domain]
+\label{lem:av_domain}
+\lean{simplyConnectedSpace_Icc}
+\leanok
+\uses{thm:av_lift}
+For $a\le b$ the subtype $\uparrow(\texttt{Set.Icc}\ a\ b)$ is a
+\texttt{SimplyConnectedSpace} and a \texttt{LocPathConnectedSpace}. (These are two
+separate \texttt{instance} declarations; the \texttt{\textbackslash lean} name above
+records the first.)
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\texttt{Set.Icc}\ a\ b$ is convex (\texttt{convex\_Icc}), hence its associated
+straight-line homotopy to the basepoint $a$ exhibits it as contractible; the
+instance \texttt{SimplyConnectedSpace.ofContractible} then yields simple
+connectedness. Local path connectedness holds because $I$ is convex in $\mathbb R$,
+so every point has a neighbourhood basis of (path-connected) subintervals
+(\texttt{Convex.locPathConnectedSpace} / the metric-ball basis). Both are
+\texttt{instance}s once the convexity witness is supplied.
+\end{proof}
+
+\section{Continuous logarithm along a path}
+\label{sec:av_contlog}
+
+\begin{definition}[Continuous logarithm along a path]
+\label{def:av_isContLog}
+\lean{IsContLog}
+\leanok
+\uses{thm:av_covering}
+Given $\varphi:I\to\mathbb{C}$, a function $g:I\to\mathbb{C}$ is a
+\emph{continuous logarithm of $\varphi$} if $g$ is continuous and
+$\exp(g(u))=\varphi(u)$ for all $u\in I$. We write $\texttt{IsContLog}\ \varphi\ g$.
+\end{definition}
+
+If $\texttt{IsContLog}\ \varphi\ g$ then $\varphi$ is automatically continuous and
+nowhere zero (as $\exp$ never vanishes).
+
+\begin{lemma}[Existence and basepoint uniqueness]
+\label{lem:av_exists}
+\lean{exists_isContLog}
+\leanok
+\uses{def:av_isContLog, thm:av_lift, lem:av_domain}
+Let $\varphi:I\to\mathbb{C}$ be continuous with $\varphi(u)\neq0$ for all $u\in I$,
+and let $c\in\mathbb{C}$ satisfy $\exp(c)=\varphi(a)$. Then there exists a unique
+continuous logarithm $g$ of $\varphi$ with $g(a)=c$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:av_lift, thm:av_covering, lem:av_domain}
+Apply \Cref{thm:av_lift} with covering map $p=\texttt{Complex.exp}$ onto
+$s=\{0\}^c$ (\Cref{thm:av_covering}), domain $A=I$ (simply connected and locally
+path-connected by \Cref{lem:av_domain}), continuous map $h=\varphi$ (whose range
+lies in $\{0\}^c$ by the non-vanishing hypothesis), basepoint $a_0=\langle a,\,
+\mathtt{left\_mem\_Icc}\rangle$ and $e_0=c$ (the hypothesis $\exp(c)=\varphi(a)$ is
+exactly $p(e_0)=h(a_0)$). This yields a unique continuous $F:I\to\mathbb{C}$ with
+$F(a_0)=c$ and $\exp\circ F=\varphi$, i.e. a unique continuous logarithm with the
+prescribed initial value.
+\end{proof}
+
+\begin{lemma}[Uniqueness up to $2\pi i\,\mathbb{Z}$ and well-definedness of the variation]
+\label{lem:av_unique}
+\lean{IsContLog.im_sub_eq}
+\leanok
+\uses{def:av_isContLog, lem:av_exists}
+If $g_1$ and $g_2$ are both continuous logarithms of $\varphi$ on $I$, then
+$g_1-g_2$ is constant, equal to some $2\pi i k$ with $k\in\mathbb{Z}$. Consequently
+\[
+  \operatorname{Im} g_1(b) - \operatorname{Im} g_1(a)
+  \;=\;
+  \operatorname{Im} g_2(b) - \operatorname{Im} g_2(a),
+\]
+so $\operatorname{Im} g(b)-\operatorname{Im} g(a)$ does not depend on the chosen
+continuous logarithm $g$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_exists}
+From $\exp(g_1(u))=\varphi(u)=\exp(g_2(u))$ we get
+$\exp(g_1(u)-g_2(u))=1$, so $d(u):=g_1(u)-g_2(u)$ takes values in the discrete
+fibre $2\pi i\,\mathbb{Z}$ (\texttt{Complex.exp\_eq\_one\_iff}). The map $d$ is
+continuous and $I$ is (path-)connected (\Cref{lem:av_domain}); a continuous map
+from a connected space into the discrete set $2\pi i\,\mathbb{Z}$ is constant
+(\texttt{IsPreconnected.subsingleton} applied to the range, or
+\texttt{IsLocallyConstant.apply\_eq\_of\_isPreconnected}). Hence
+$g_1(b)-g_2(b)=g_1(a)-g_2(a)$; taking imaginary parts and rearranging gives the
+displayed equality. (Equivalently: the constant $d\equiv 2\pi i k$ is purely
+imaginary, so its imaginary part cancels in the difference of differences.)
+\end{proof}
+
+\Cref{lem:av_unique} licenses the following definition, which is the object used in
+\Cref{cha:n_formula} as $\Delta_\gamma\arg f$.
+
+\begin{definition}[Argument variation]
+\label{def:av_argVariation}
+\lean{argVariation}
+\leanok
+\uses{def:av_isContLog, lem:av_exists, lem:av_unique}
+For continuous nowhere-zero $\varphi:I\to\mathbb{C}$ define
+\[
+  \Delta\arg\varphi \;:=\; \operatorname{Im} g(b) - \operatorname{Im} g(a),
+\]
+where $g$ is the continuous logarithm of $\varphi$ anchored at
+$g(a)=\texttt{Complex.log}(\varphi(a))$ furnished by \Cref{lem:av_exists}. By
+\Cref{lem:av_unique} the value is independent of the choice of $g$. For an
+integrand $f:\mathbb{C}\to\mathbb{C}$ and a path $\gamma:I\to\mathbb{C}$ with
+$f(\gamma(u))\neq0$ we write $\Delta_\gamma\arg f := \Delta\arg(f\circ\gamma)$.
+\end{definition}
+
+\section{Algebraic properties}
+\label{sec:av_algebra}
+
+\begin{lemma}[Multiplicativity in the integrand]
+\label{lem:av_mul}
+\lean{argVariation_mul}
+\leanok
+\uses{def:av_argVariation, def:av_isContLog}
+If $\varphi,\psi:I\to\mathbb{C}$ are continuous and nowhere zero, then
+\[
+  \Delta\arg(\varphi\cdot\psi) \;=\; \Delta\arg\varphi + \Delta\arg\psi .
+\]
+In particular $\Delta\arg(c\cdot\varphi)=\Delta\arg\varphi$ for a nonzero constant
+$c$, and $\Delta\arg\varphi = 0$ when $\varphi$ is a nonzero real constant.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_unique, def:av_isContLog}
+Let $g,h$ be continuous logarithms of $\varphi,\psi$. Then $g+h$ is continuous and
+$\exp(g(u)+h(u))=\exp(g(u))\exp(h(u))=\varphi(u)\psi(u)$
+(\texttt{Complex.exp\_add}), so $g+h$ is a continuous logarithm of
+$\varphi\psi$. By \Cref{lem:av_unique} the variation of $\varphi\psi$ may be
+computed from $g+h$:
+\[
+  \Delta\arg(\varphi\psi)
+  = \operatorname{Im}(g+h)(b)-\operatorname{Im}(g+h)(a)
+  = \bigl(\operatorname{Im} g(b)-\operatorname{Im} g(a)\bigr)
+   +\bigl(\operatorname{Im} h(b)-\operatorname{Im} h(a)\bigr),
+\]
+using additivity of $\operatorname{Im}$. The constant cases follow: a nonzero
+constant has the constant logarithm $\texttt{log}\,c$, whose imaginary part is
+the same at both endpoints, so $\Delta\arg c = 0$; for a real positive constant
+$\arg = 0$ throughout.
+\end{proof}
+
+\begin{lemma}[Additivity under concatenation]
+\label{lem:av_trans}
+\lean{argVariation_trans}
+\leanok
+\uses{def:av_argVariation, def:av_isContLog}
+Let $a\le m\le b$ and let $\varphi:[a,b]\to\mathbb{C}$ be continuous and nowhere
+zero. Writing $\Delta\arg|_{[x,y]}$ for the variation of $\varphi$ restricted to
+the subinterval $[x,y]$,
+\[
+  \Delta\arg|_{[a,b]}\varphi
+  \;=\; \Delta\arg|_{[a,m]}\varphi + \Delta\arg|_{[m,b]}\varphi .
+\]
+Equivalently, for a path $\gamma$ split as a concatenation $\gamma_1$ then
+$\gamma_2$, $\Delta_{\gamma_1\gamma_2}\arg f = \Delta_{\gamma_1}\arg f +
+\Delta_{\gamma_2}\arg f$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_exists, lem:av_unique}
+Let $g$ be a continuous logarithm of $\varphi$ on $[a,b]$ (\Cref{lem:av_exists}).
+Its restrictions to $[a,m]$ and $[m,b]$ are continuous logarithms of the
+corresponding restrictions of $\varphi$, and by \Cref{lem:av_unique} compute the
+respective variations. Then
+\[
+  \Delta\arg|_{[a,m]} + \Delta\arg|_{[m,b]}
+  = \bigl(\operatorname{Im} g(m)-\operatorname{Im} g(a)\bigr)
+  + \bigl(\operatorname{Im} g(b)-\operatorname{Im} g(m)\bigr)
+  = \operatorname{Im} g(b)-\operatorname{Im} g(a)
+  = \Delta\arg|_{[a,b]},
+\]
+the middle term telescoping.
+\end{proof}
+
+\begin{lemma}[Reversal]
+\label{lem:av_reverse}
+\lean{argVariation_reverse}
+\leanok
+\uses{def:av_argVariation, def:av_isContLog}
+If $\varphi^-(u):=\varphi(a+b-u)$ denotes $\varphi$ traversed in reverse on $I$,
+then $\Delta\arg\varphi^- = -\,\Delta\arg\varphi$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_unique}
+If $g$ is a continuous logarithm of $\varphi$ then $u\mapsto g(a+b-u)$ is a
+continuous logarithm of $\varphi^-$, with endpoint values swapped; hence its
+imaginary-part difference is negated.
+\end{proof}
+
+\begin{lemma}[Invariance under endpoint-preserving reparametrisation]
+\label{lem:av_reparam}
+\lean{argVariation_comp}
+\leanok
+\uses{def:av_argVariation, def:av_isContLog}
+Let $\sigma:[a',b']\to[a,b]$ be continuous with $\sigma(a')=a$ and $\sigma(b')=b$, and
+let $\varphi:[a,b]\to\mathbb{C}$ be continuous and nowhere zero. Then
+\[
+  \Delta_{[a',b']}\arg(\varphi\circ\sigma) \;=\; \Delta_{[a,b]}\arg\varphi .
+\]
+In particular an increasing affine change of parameter (e.g.\ $u=Tv$ sending $[0,1]$ to
+$[0,T]$, or the half-interval splits used to subdivide an affine segment) leaves the
+argument variation unchanged.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_exists}
+Let $g$ be a continuous logarithm of $\varphi$ on $[a,b]$ (\Cref{lem:av_exists}). Since
+$\sigma$ is continuous with $\sigma([a',b'])\subseteq[a,b]$, the composite $g\circ\sigma$
+is continuous on $[a',b']$ and satisfies $\exp(g(\sigma(v)))=\varphi(\sigma(v))$, so it is
+a continuous logarithm of $\varphi\circ\sigma$. Therefore
+\[
+  \Delta_{[a',b']}\arg(\varphi\circ\sigma)
+   = \operatorname{Im} g(\sigma(b')) - \operatorname{Im} g(\sigma(a'))
+   = \operatorname{Im} g(b) - \operatorname{Im} g(a)
+   = \Delta_{[a,b]}\arg\varphi ,
+\]
+using $\sigma(a')=a$, $\sigma(b')=b$.
+\end{proof}
+
+\section{The slit-plane evaluation}
+\label{sec:av_slitPlane}
+
+When the path avoids the branch cut $(-\infty,0]$ the variation is simply the
+difference of principal arguments. This is the workhorse for the explicit factor
+computations in \Cref{cha:n_formula}.
+
+\begin{lemma}[Variation through the slit plane]
+\label{lem:av_slitPlane}
+\lean{argVariation_eq_arg_sub_arg}
+\leanok
+\uses{def:av_argVariation, def:av_isContLog}
+Suppose $\varphi(u)\in\texttt{Complex.slitPlane}$ (i.e.
+$0<\operatorname{Re}\varphi(u)$ or $\operatorname{Im}\varphi(u)\neq0$) for all
+$u\in I$. Then $u\mapsto\texttt{Complex.log}(\varphi(u))$ is a continuous logarithm
+of $\varphi$, and
+\[
+  \Delta\arg\varphi \;=\; \arg\varphi(b) - \arg\varphi(a).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_unique}
+On the slit plane \texttt{Complex.log} is continuous
+(\texttt{Complex.continuousOn\_arg} together with continuity of
+$\log|\cdot|$, or directly \texttt{Continuous.clog} applied to the inclusion) and
+$\exp(\log w)=w$ for $w\neq0$ (\texttt{Complex.exp\_log}). Hence
+$g:=\log\circ\varphi$ is a continuous logarithm of $\varphi$. Since
+$(\log w).\operatorname{Im}=\arg w$ (\texttt{Complex.log\_im}),
+\Cref{lem:av_unique} gives
+$\Delta\arg\varphi = \operatorname{Im} g(b)-\operatorname{Im} g(a)
+= \arg\varphi(b)-\arg\varphi(a)$.
+\end{proof}
+
+\section{The logarithmic-derivative integral formula}
+\label{sec:av_logderiv}
+
+\begin{lemma}[A continuous logarithm is a primitive of $\varphi'/\varphi$]
+\label{lem:av_hasDerivAt}
+\lean{IsContLog.hasDerivAt}
+\leanok
+\uses{def:av_isContLog}
+Let $\varphi:I\to\mathbb{C}$ be continuous and nowhere zero, differentiable at an
+interior point $u_0$ with derivative $\varphi'(u_0)$, and let $g$ be a continuous
+logarithm of $\varphi$. Then $g$ is differentiable at $u_0$ with
+\[
+  g'(u_0) \;=\; \frac{\varphi'(u_0)}{\varphi(u_0)} .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:av_isContLog, lem:av_unique}
+The claim is local. Choose $w_0:=\varphi(u_0)\neq0$ and rotate to the slit plane:
+there is $\alpha\in\mathbb{R}$ with $e^{i\alpha}w_0\in\texttt{slitPlane}$, and by
+continuity $e^{i\alpha}\varphi(u)\in\texttt{slitPlane}$ for $u$ in a neighbourhood
+$U$ of $u_0$. On $U$ the function $L(u):=\log(e^{i\alpha}\varphi(u)) - i\alpha$ is a
+continuous logarithm of $\varphi$ (it differs from $\log$ by the additive constant
+$-i\alpha$ after the rotation), and it is differentiable at $u_0$ by the chain rule
+\texttt{HasDerivAt.clog}/\texttt{Complex.hasDerivAt\_log} (the inner map
+$u\mapsto e^{i\alpha}\varphi(u)$ is differentiable and lands in the slit plane),
+with
+\[
+  L'(u_0) = \frac{(e^{i\alpha}\varphi)'(u_0)}{e^{i\alpha}\varphi(u_0)}
+          = \frac{\varphi'(u_0)}{\varphi(u_0)} .
+\]
+By \Cref{lem:av_unique} the two continuous logarithms $g$ and $L$ of $\varphi$ on
+the connected neighbourhood $U$ differ by a constant in $2\pi i\,\mathbb{Z}$, so
+$g=L+\text{const}$ near $u_0$ and therefore $g$ has the same derivative
+$\varphi'(u_0)/\varphi(u_0)$ at $u_0$.
+\end{proof}
+
+\begin{lemma}[Logarithmic-derivative integral formula]
+\label{lem:av_integral}
+\lean{argVariation_eq_im_integral}
+\leanok
+\uses{lem:av_hasDerivAt, def:av_argVariation}
+Let $\gamma$ be differentiable with continuous derivative on an open neighbourhood of
+$I=[a,b]$ (so $\gamma'$ exists two-sidedly at the endpoints) and $f$ holomorphic and
+non-vanishing on a neighbourhood of the image $\gamma(I)$. Then
+$u\mapsto f(\gamma(u))$ is nowhere zero and
+\[
+  \Delta_\gamma\arg f
+  \;=\; \operatorname{Im}\!\int_a^b \frac{f'(\gamma(u))\,\gamma'(u)}{f(\gamma(u))}\,du
+  \;=\; \operatorname{Im}\!\int_\gamma \frac{f'(z)}{f(z)}\,dz .
+\]
+Moreover the real part of the same integral equals
+$\log|f(\gamma(b))|-\log|f(\gamma(a))|$, so along a \emph{closed} path
+$\gamma(a)=\gamma(b)$ the integral $\int_\gamma f'/f$ is purely imaginary and
+equals $i\,\Delta_\gamma\arg f$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_hasDerivAt}
+Set $\varphi:=f\circ\gamma$, continuous and nowhere zero. By the chain rule
+$\varphi$ is differentiable with $\varphi'(u)=f'(\gamma(u))\gamma'(u)$. Let $g$ be
+the continuous logarithm of $\varphi$ anchored as in \Cref{def:av_argVariation};
+by \Cref{lem:av_hasDerivAt}, $g$ is differentiable on $(a,b)$ with
+$g'(u)=\varphi'(u)/\varphi(u)=f'(\gamma(u))\gamma'(u)/f(\gamma(u))$, and $g'$ is
+continuous (quotient of continuous functions, denominator nonzero), so $g$ is
+$C^1$. The fundamental theorem of calculus
+(\texttt{intervalIntegral.integral\_eq\_sub\_of\_hasDerivAt}, or the
+interior-derivative variant
+\texttt{intervalIntegral.integral\_eq\_sub\_of\_hasDeriv\_right\_of\_le} using only
+continuity on $[a,b]$ and the derivative on $(a,b)$) gives
+\[
+  \int_a^b \frac{f'(\gamma(u))\gamma'(u)}{f(\gamma(u))}\,du
+  = \int_a^b g'(u)\,du = g(b)-g(a).
+\]
+Taking imaginary parts yields the first equality (the second is the definition of
+the path integral $\int_\gamma f'/f$). Taking real parts and using
+$\operatorname{Re} g(u)=\log|\varphi(u)|$ (since $\exp(g(u))=\varphi(u)$ implies
+$\operatorname{Re} g(u)=\log\|\varphi(u)\|$, \texttt{Complex.abs\_exp} /
+\texttt{Complex.re\_log}-style identities) gives the stated real part. For a
+closed path the real part vanishes, leaving $\int_\gamma f'/f = i\,
+\Delta_\gamma\arg f$.
+\end{proof}
+
+\begin{remark}[Relation to \Cref{cha:n_formula}]
+\label{rem:av_scope}
+\Cref{lem:av_exists} and \Cref{lem:av_unique} together supply the existence and uniqueness
+used in \texttt{def:nf\_argvar};
+\Cref{lem:av_trans}, \Cref{lem:av_mul}, \Cref{lem:av_reverse} and \Cref{lem:av_integral} supply the
+additivity, multiplicativity and primitive existence used in
+\texttt{lem:nf\_argvar\_props}; and \Cref{lem:av_slitPlane} supplies the
+continuous tracking used in \texttt{lem:nf\_arg\_poly}. The rectangle argument
+principle (\texttt{thm:nf\_argument\_principle}) and the conjugation symmetry of
+$\Lambda$ (\texttt{lem:nf\_xi\_conj}) are independent of this chapter.
+\end{remark}

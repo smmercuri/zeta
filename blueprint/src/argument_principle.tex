@@ -1,0 +1,416 @@
+% Blueprint: the argument principle on a rectangle
+
+\chapter{The argument principle on a rectangle}
+\label{cha:argument_principle}
+
+The exact Riemann--von Mangoldt formula of \Cref{cha:n_formula} rests on counting
+the zeros of an entire function inside a rectangle by a boundary integral of its
+logarithmic derivative. This is the rectangle \emph{argument principle}
+(\Cref{thm:nf_argument_principle}), proved in this chapter.
+\texttt{PrimeNumberTheoremAnd} supplies a complete \emph{single}-pole rectangle
+residue calculus (\Cref{thm:nf_rectangle}); the work here is to (i) reduce a
+finite set of zeros to the single-zero case by axis-parallel subdivision, and
+(ii) identify the boundary contour integral with the boundary argument variation
+of \Cref{cha:arg_variation}.
+
+Throughout, $f:\mathbb C\to\mathbb C$, and $z,w\in\mathbb C$ are the corners of an
+axis-aligned rectangle, normalised by the \emph{orientation hypothesis}
+$z.\mathrm{re}\le w.\mathrm{re}$ and $z.\mathrm{im}\le w.\mathrm{im}$. We write
+$R:=\texttt{Rectangle}\ z\ w$ for the closed rectangle
+$[z.\mathrm{re},w.\mathrm{re}]\times[z.\mathrm{im},w.\mathrm{im}]$,
+$\partial R:=\texttt{RectangleBorder}\ z\ w$ for its boundary, and
+\[
+  \operatorname{logDeriv} f \;=\; \frac{f'}{f}
+  \;=\; \bigl(z\mapsto \tfrac{\operatorname{deriv} f\,z}{f\,z}\bigr)
+\]
+(\texttt{logDeriv}) for the logarithmic derivative. We abbreviate the integer
+multiplicity of a zero by
+\[
+  m_f(\rho) \;:=\; \bigl(\texttt{meromorphicOrderAt}\ f\ \rho\bigr).\texttt{untopD}\ 0
+  \;\in\;\mathbb Z ,
+\]
+which at an interior zero equals the (positive) order of vanishing; this is the
+same quantity summed in \texttt{riemannZeta.N} via \Cref{lem:nf_N_eq_xi_count}.
+
+\section{Finiteness of the zero set in the rectangle}
+\label{sec:ap_finite}
+
+\begin{lemma}[Zeros in a rectangle are finite]
+\label{lem:ap_finite_zeros}
+\lean{finite_rectangle_inter_setOf_eq_zero}
+\leanok
+Let $U\subseteq\mathbb C$ be open and connected, let $f$ be analytic on $U$
+($\texttt{AnalyticOnNhd}\ \mathbb C\ f\ U$) and not identically zero on $U$, and let
+$R=\texttt{Rectangle}\ z\ w\subseteq U$. Then the zero set
+\[
+  Z \;:=\; \{\rho\in R : f(\rho)=0\}
+\]
+is finite.
+\end{lemma}
+
+\begin{proof}
+\leanok
+On a connected open set on which an analytic function is not identically zero, the
+zero set is \emph{codiscrete}: $f^{-1}\{0\}\in\texttt{codiscreteWithin}\ U$
+(\texttt{AnalyticOnNhd.preimage\_mem\_codiscreteWithin}, whose hypothesis ``$f$ not
+locally zero'' is supplied by the identity theorem
+\texttt{AnalyticOnNhd.eqOn\_zero\_of\_preconnected\_of\_frequently\_eq\_zero} from
+connectedness and $f\not\equiv0$). Concretely, every zero of $f$ in $U$ is isolated:
+$\texttt{analyticOrderAt}\ f\ \rho$ is finite (not $\top$) at each $\rho\in U$, so by
+\texttt{AnalyticAt.eventually\_eq\_zero\_or\_eventually\_ne\_zero} the zeros have no
+accumulation point in $U$. Since $R$ is compact
+(\texttt{IsCompact.reProdIm isCompact\_uIcc isCompact\_uIcc}) and $Z\subseteq R\subseteq U$
+has no accumulation point, $Z$ is finite: an infinite subset of the compact set $R$
+would have an accumulation point lying in $R\subseteq U$, contradicting isolation.
+(This is the rectangle analogue of \texttt{riemannZeta.zeroes\_on\_Compact\_finite}
+in \texttt{PrimeNumberTheoremAnd}, proved by the same codiscreteness-plus-compactness
+argument.)
+\end{proof}
+
+\section{The residue sum of the logarithmic derivative}
+\label{sec:ap_residue_sum}
+
+The per-zero residue is already available.
+
+\begin{lemma}[Residue of the logarithmic derivative]
+\label{lem:ap_logderiv_residue}
+\lean{meromorphicOrderAt_eq_residue_logDeriv}
+\leanok
+Let $f$ be analytic at $\rho$ and not eventually zero there, of order
+$n=\texttt{meromorphicOrderAt}\ f\ \rho\ge0$. Then there are $n\in\mathbb N$ and a
+function $g$ analytic at $\rho$ with $g(\rho)\neq0$ such that $m_f(\rho)=n$,
+$\operatorname{logDeriv} g$ is analytic at $\rho$, and
+\[
+  \operatorname{logDeriv} f \;=\; \frac{n}{\,z-\rho\,} + \operatorname{logDeriv} g
+  \qquad\text{on a punctured neighbourhood of }\rho .
+\]
+In particular $\operatorname{logDeriv} f - \dfrac{m_f(\rho)}{\,z-\rho\,}$ extends
+analytically across $\rho$, hence is $O(1)$ on $\mathring{\mathbb C}\!\setminus\!\{\rho\}$
+near $\rho$ (the residue hypothesis of \Cref{thm:nf_rectangle}).
+\end{lemma}
+
+\begin{proof}\leanok
+This is \texttt{meromorphicOrderAt\_eq\_residue\_logDeriv} in
+\texttt{Zeta/Analysis/Complex/ArgumentPrinciple.lean}. The boundedness clause
+is immediate: the difference equals $\operatorname{logDeriv} g$ near $\rho$, which is
+analytic at $\rho$ and therefore continuous, hence bounded on a punctured
+neighbourhood; equivalently $\bigl(\operatorname{logDeriv} f-m_f(\rho)/(z-\rho)\bigr)
+=O_{\,\mathcal N[\neq]\rho}(1)$.
+\end{proof}
+
+\begin{lemma}[At most one zero: single residue]
+\label{lem:ap_one_zero}
+\lean{rectangleIntegral_logDeriv_eq_two_pi_I_of_subsingleton}
+\leanok
+\uses{thm:nf_rectangle, lem:ap_logderiv_residue}
+Suppose $z.\mathrm{re}\le w.\mathrm{re}$, $z.\mathrm{im}\le w.\mathrm{im}$, that $f$
+is analytic on a neighbourhood of $R=\texttt{Rectangle}\ z\ w$, that $f\neq0$ on
+$\partial R$, and that $Z=\{\rho\in R:f(\rho)=0\}$ has at most one element. Then
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  \;=\; 2\pi i \cdot \sum_{\rho\in Z} m_f(\rho).
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{thm:nf_rectangle, lem:ap_logderiv_residue}
+If $Z=\varnothing$ then $f\neq0$ on all of $R$, so $\operatorname{logDeriv} f$ is
+analytic on $R$ and \texttt{HolomorphicOn.vanishesOnRectangle} gives
+$\texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w=0$, matching the empty
+sum.
+
+If $Z=\{\rho\}$, then $\rho$ lies in the \emph{interior} of $R$: it is in $R$ and not
+on $\partial R$ (where $f\neq0$), so $R\in\mathcal N(\rho)$
+(\texttt{rectangle\_mem\_nhds\_iff}). On $R\setminus\{\rho\}$ we have $f\neq0$, so
+$\operatorname{logDeriv} f$ is holomorphic there. By \Cref{lem:ap_logderiv_residue}
+with $A:=m_f(\rho)$, the difference $\operatorname{logDeriv} f-A/(z-\rho)$ is $O(1)$
+near $\rho$. Hence \texttt{ResidueTheoremOnRectangleWithSimplePole'} applies (with the
+orientation hypotheses and $R\in\mathcal N(\rho)$) and yields
+$\texttt{RectangleIntegral'}\ (\operatorname{logDeriv} f)\ z\ w = A$, i.e.
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  = 2\pi i\,A = 2\pi i\,m_f(\rho),
+\]
+since $\texttt{RectangleIntegral'}=(2\pi i)^{-1}\texttt{RectangleIntegral}$. The sum
+over $Z=\{\rho\}$ is exactly $m_f(\rho)$.
+\end{proof}
+
+\begin{theorem}[Rectangle residue sum for the logarithmic derivative]
+\label{thm:ap_residue_sum}
+\lean{rectangleIntegral_logDeriv_eq_two_pi_I_sum}
+\leanok
+\uses{lem:ap_finite_zeros, lem:ap_one_zero, thm:nf_rectangle}
+Let $U$ be open and connected, $f$ analytic on $U$ and not identically zero, and
+$R=\texttt{Rectangle}\ z\ w\subseteq U$ with $z.\mathrm{re}\le w.\mathrm{re}$,
+$z.\mathrm{im}\le w.\mathrm{im}$ and $f\neq0$ on $\partial R$. Then, with
+$Z=\{\rho\in R:f(\rho)=0\}$ (finite by \Cref{lem:ap_finite_zeros}),
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  \;=\; 2\pi i \cdot \sum_{\rho\in Z} m_f(\rho).
+\]
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:ap_finite_zeros, lem:ap_one_zero, thm:nf_rectangle}
+Strong induction on the cardinality $\lvert Z\rvert$ (finite by
+\Cref{lem:ap_finite_zeros}). If $\lvert Z\rvert\le1$ this is \Cref{lem:ap_one_zero}.
+
+Assume $\lvert Z\rvert\ge2$ and pick two distinct $\rho_1,\rho_2\in Z$. Then either
+their real parts differ or their imaginary parts differ. Consider the former case
+(the latter is symmetric, using a horizontal cut). The finitely many real parts
+$\{\rho.\mathrm{re}:\rho\in Z\}$ do not exhaust the open interval strictly between
+$\min$ and $\max$ of two distinct values among them, so there is a real
+$a\in(z.\mathrm{re},w.\mathrm{re})$ with $a\neq\rho.\mathrm{re}$ for every
+$\rho\in Z$, and with at least one $\rho\in Z$ on each side $\rho.\mathrm{re}<a$,
+$\rho.\mathrm{re}>a$ (choose $a$ strictly between two distinct real parts of $Z$
+while avoiding the finite set of real parts). Split $R$ along the vertical segment
+$\mathrm{re}=a$ into
+\[
+  R_1=\texttt{Rectangle}\ z\ (a+w.\mathrm{im}\,i),
+  \qquad
+  R_2=\texttt{Rectangle}\ (a+z.\mathrm{im}\,i)\ w .
+\]
+On $\partial R_1$ and $\partial R_2$ we have $f\neq0$: their borders consist of
+pieces of $\partial R$ (where $f\neq0$) together with the new cut segment
+$\{a+t i: t\in[z.\mathrm{im},w.\mathrm{im}]\}$, which contains no zero of $f$ because
+$a$ avoids all real parts of $Z$. Consequently $\operatorname{logDeriv} f$ is
+continuous on each border, hence \texttt{RectangleBorderIntegrable}
+(\texttt{ContinuousOn.rectangleBorderIntegrable}), and the horizontal-split lemma
+\texttt{RectangleIntegralHSplit'} (applicable since
+$a\in[[z.\mathrm{re},w.\mathrm{re}]]$ and $f$ is border-integrable on $R$) gives
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  = \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ (a+w.\mathrm{im}\,i)
+  + \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ (a+z.\mathrm{im}\,i)\ w .
+\]
+The zero sets of $f$ in $R_1$ and $R_2$ are $Z_1=\{\rho\in Z:\rho.\mathrm{re}<a\}$ and
+$Z_2=\{\rho\in Z:\rho.\mathrm{re}>a\}$ (no zero has $\mathrm{re}=a$); these partition
+$Z$ and both are proper nonempty subsets, so
+$\lvert Z_1\rvert,\lvert Z_2\rvert<\lvert Z\rvert$. Apply the induction hypothesis to
+$R_1\subseteq U$ and $R_2\subseteq U$ (each still satisfies the orientation and
+border-nonvanishing hypotheses):
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ (a+w.\mathrm{im}\,i)
+  = 2\pi i\sum_{\rho\in Z_1} m_f(\rho),
+  \qquad
+  \cdots = 2\pi i\sum_{\rho\in Z_2} m_f(\rho).
+\]
+Adding and using $\sum_{Z_1}+\sum_{Z_2}=\sum_{Z}$ (disjoint union) gives the claim.
+\end{proof}
+
+\section{The contour integral as boundary argument variation}
+\label{sec:ap_argvar}
+
+We now realise the boundary contour as a closed concatenation of four affine
+segments and connect its integral of $\operatorname{logDeriv} f$ to the argument
+variation of \Cref{cha:arg_variation}. Recall $\texttt{lineSeg}\ P\ Q\ (u)=P+u(Q-P)$
+from \texttt{Zeta/Theta.lean}, and write the four corners of $R$
+counterclockwise from the bottom-left as
+\[
+  P_0=z.\mathrm{re}+z.\mathrm{im}\,i,\quad
+  P_1=w.\mathrm{re}+z.\mathrm{im}\,i,\quad
+  P_2=w.\mathrm{re}+w.\mathrm{im}\,i,\quad
+  P_3=z.\mathrm{re}+w.\mathrm{im}\,i .
+\]
+
+\begin{definition}[Boundary argument variation of a rectangle]
+\label{def:ap_rect_argvar}
+\lean{rectangleArgVariation}
+\leanok
+\uses{def:av_argVariation}
+For $f$ continuous and nonvanishing on $\partial R$, define the counterclockwise
+argument variation of $f$ around $\partial R$ as the sum over the four oriented
+edges
+\[
+  \Delta_{\partial R}\arg f \;:=\;
+  \sum_{k=0}^{3}\ \texttt{argVariation}\ 0\ 1\ \bigl(u\mapsto f(\texttt{lineSeg}\
+  P_k\ P_{k+1}\ u)\bigr),
+  \qquad P_4:=P_0 .
+\]
+The four summands are the variations along bottom ($P_0\to P_1$), right
+($P_1\to P_2$), top ($P_2\to P_3$) and left ($P_3\to P_0$). This is the object
+denoted $\Delta_{\partial R}\arg f$ in \Cref{cha:n_formula}.
+\end{definition}
+
+\begin{lemma}[Real part of the logarithmic-derivative integral]
+\label{lem:ap_re_integral}
+\lean{re_integral_div_eq_log_norm_sub}
+\leanok
+\uses{def:av_isContLog, lem:av_exists}
+Let $\varphi:[a,b]\to\mathbb C$ be continuous, nowhere zero, and differentiable on
+$(a,b)$ with derivative $\varphi'$ such that $\varphi'/\varphi$ is continuous on
+$[a,b]$. Then
+\[
+  \operatorname{Re}\!\int_a^b \frac{\varphi'(u)}{\varphi(u)}\,du
+  \;=\; \log\lVert \varphi(b)\rVert - \log\lVert \varphi(a)\rVert .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{def:av_isContLog, lem:av_exists, lem:av_hasDerivAt}
+This is the real-part companion to \Cref{lem:av_integral}, whose Lean statement
+\texttt{argVariation\_eq\_im\_integral} concerns the imaginary part. Let $g$ be the anchored continuous logarithm of $\varphi$
+furnished by \Cref{lem:av_exists}; by \Cref{lem:av_hasDerivAt} $g$ is a $C^1$
+primitive of $\varphi'/\varphi$ on $(a,b)$, so the fundamental theorem of calculus
+(\texttt{intervalIntegral.integral\_eq\_sub\_of\_hasDeriv\_right\_of\_le}, exactly as
+in the proof of \texttt{argVariation\_eq\_im\_integral}) gives
+$\int_a^b \varphi'/\varphi = g(b)-g(a)$. Taking real parts and using
+$\exp(g(u))=\varphi(u)\Rightarrow\operatorname{Re} g(u)=\log\lVert\varphi(u)\rVert$
+(\texttt{Complex.norm\_exp} / \texttt{Complex.exp\_re}: $\lVert\exp w\rVert
+=\exp(\operatorname{Re} w)$, hence $\operatorname{Re} w=\log\lVert\exp w\rVert$) yields
+$\operatorname{Re}\int_a^b\varphi'/\varphi=\log\lVert\varphi(b)\rVert
+-\log\lVert\varphi(a)\rVert$.
+\end{proof}
+
+\begin{lemma}[Side integral: imaginary part is the $\arg$ variation, real part is $\log\lVert\cdot\rVert$]
+\label{lem:ap_side_integral}
+\lean{argVariation_lineSeg_eq_im_integral}
+\leanok
+\uses{def:av_argVariation, lem:av_integral, lem:ap_re_integral}
+Let $P,Q\in\mathbb C$ and let $f$ be holomorphic and nonvanishing on a neighbourhood
+of the segment $\texttt{lineSeg}\ P\ Q\,([0,1])$. Then $u\mapsto f(\texttt{lineSeg}\
+P\ Q\ u)$ is nowhere zero and, writing
+$J:=\int_0^1 \operatorname{logDeriv} f(\texttt{lineSeg}\ P\ Q\ u)\,(Q-P)\,du$,
+\[
+  \texttt{argVariation}\ 0\ 1\ \bigl(f\circ\texttt{lineSeg}\ P\ Q\bigr)
+  \;=\; \operatorname{Im} J ,
+  \qquad
+  \operatorname{Re} J \;=\; \log\lVert f(Q)\rVert-\log\lVert f(P)\rVert .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:av_integral, lem:ap_re_integral}
+The path $\gamma(u)=\texttt{lineSeg}\ P\ Q\ u=P+u(Q-P)$ is affine, hence smooth with
+constant derivative $\gamma'(u)=Q-P$, and its image is the segment. Set
+$\varphi:=f\circ\gamma$; it is continuous, nowhere zero (on a neighbourhood of the
+image $f\neq0$), and $C^1$ with $\varphi'(u)=f'(\gamma(u))\,\gamma'(u)
+=\operatorname{logDeriv} f(\gamma(u))\,\varphi(u)\,(Q-P)$, so $\varphi'/\varphi
+=\operatorname{logDeriv} f(\gamma(u))\,(Q-P)$ is continuous; thus $J=\int_0^1
+\varphi'/\varphi$. The imaginary part is \Cref{lem:av_integral}
+($\operatorname{logDeriv} f=f'/f$, $\gamma'=Q-P$):
+\[
+  \texttt{argVariation}\ 0\ 1\ (f\circ\gamma)
+  = \operatorname{Im}\!\int_0^1 \frac{f'(\gamma(u))\,\gamma'(u)}{f(\gamma(u))}\,du
+  = \operatorname{Im} J .
+\]
+The real part is \Cref{lem:ap_re_integral} applied to $\varphi$:
+$\operatorname{Re} J = \log\lVert\varphi(1)\rVert-\log\lVert\varphi(0)\rVert
+= \log\lVert f(Q)\rVert-\log\lVert f(P)\rVert$.
+\end{proof}
+
+\begin{lemma}[Contour integral is $i$ times the boundary argument variation]
+\label{lem:ap_integral_eq_argvar}
+\lean{rectangleIntegral_logDeriv_eq_I_mul_rectangleArgVariation}
+\leanok
+\uses{def:ap_rect_argvar, lem:ap_side_integral, thm:nf_rectangle}
+Suppose $f$ is holomorphic on a neighbourhood of $R=\texttt{Rectangle}\ z\ w$ and
+$f\neq0$ on $\partial R$. Then
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  \;=\; i\cdot \Delta_{\partial R}\arg f .
+\]
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:ap_side_integral, def:ap_rect_argvar}
+By definition
+$\texttt{RectangleIntegral}\ g\ z\ w
+=\texttt{HIntegral}\ g\ z.\mathrm{re}\ w.\mathrm{re}\ z.\mathrm{im}
+-\texttt{HIntegral}\ g\ z.\mathrm{re}\ w.\mathrm{re}\ w.\mathrm{im}
++\texttt{VIntegral}\ g\ w.\mathrm{re}\ z.\mathrm{im}\ w.\mathrm{im}
+-\texttt{VIntegral}\ g\ z.\mathrm{re}\ z.\mathrm{im}\ w.\mathrm{im}$,
+where $\texttt{HIntegral}\ g\ x_1\ x_2\ y=\int_{x_1}^{x_2} g(x+yi)\,dx$ and
+$\texttt{VIntegral}\ g\ x\ y_1\ y_2=i\int_{y_1}^{y_2} g(x+yi)\,dy$. Reparametrising
+each affine edge by $u\in[0,1]$ ($x=z.\mathrm{re}+u(w.\mathrm{re}-z.\mathrm{re})$ on
+horizontal edges, $y=z.\mathrm{im}+u(w.\mathrm{im}-z.\mathrm{im})$ on vertical edges,
+the linear change of variables contributing exactly the factor $Q-P=\gamma'$), the
+four signed terms are precisely the four oriented edge integrals
+$J_k:=\int_0^1 \operatorname{logDeriv} f(\texttt{lineSeg}\ P_k\ P_{k+1}\ u)\,(P_{k+1}-P_k)\,du$:
+\[
+  \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  = J_0 + J_1 + J_2 + J_3 ,
+\]
+the signs of \texttt{RectangleIntegral} matching the counterclockwise orientation
+(bottom $P_0\to P_1$ as $+\texttt{HIntegral}$ at $z.\mathrm{im}$; top $P_2\to P_3$ as
+$-\texttt{HIntegral}$ at $w.\mathrm{im}$, i.e. right-to-left; right $P_1\to P_2$ as
+$+\texttt{VIntegral}$ at $w.\mathrm{re}$; left $P_3\to P_0$ as $-\texttt{VIntegral}$
+at $z.\mathrm{re}$, i.e. top-to-bottom). Each closed edge is a compact subset of
+$\partial R$, on which $f\neq0$; since $\{z:f(z)\neq0\}$ is open (continuity of $f$)
+and contains the edge, it contains an open neighbourhood of the edge, and
+intersecting with the neighbourhood of $R$ on which $f$ is holomorphic gives an open
+neighbourhood of the edge on which $f$ is holomorphic and nonvanishing. Hence
+\Cref{lem:ap_side_integral} applies on each edge and gives
+\[
+  \operatorname{Im} J_k = \texttt{argVariation}\ 0\ 1\ (f\circ\texttt{lineSeg}\ P_k\ P_{k+1}),
+  \qquad
+  \operatorname{Re} J_k = \log\lVert f(P_{k+1})\rVert-\log\lVert f(P_k)\rVert .
+\]
+Summing the imaginary parts over $k$ gives $\operatorname{Im}\bigl(\sum_k
+J_k\bigr)=\Delta_{\partial R}\arg f$ (\Cref{def:ap_rect_argvar}). Summing the real
+parts telescopes around the closed loop $P_0\to P_1\to P_2\to P_3\to P_0$:
+\[
+  \operatorname{Re}\Bigl(\sum_{k=0}^{3} J_k\Bigr)
+  = \sum_{k=0}^{3}\bigl(\log\lVert f(P_{k+1})\rVert-\log\lVert f(P_k)\rVert\bigr) = 0
+\]
+(with $P_4=P_0$). Hence $\sum_k J_k$ is purely imaginary, equal to
+$i\,\Delta_{\partial R}\arg f$, which is the claim.
+\end{proof}
+
+\section{The argument principle}
+\label{sec:ap_main}
+
+\begin{theorem}[Argument principle on a rectangle]
+\label{thm:ap_main}
+\lean{rectangle_zero_count_eq_argVariation}
+\leanok
+\uses{thm:ap_residue_sum, lem:ap_integral_eq_argvar, lem:ap_finite_zeros,
+      def:ap_rect_argvar}
+Let $U$ be open and connected, $f$ analytic on $U$ and not identically zero, and
+$R=\texttt{Rectangle}\ z\ w\subseteq U$ with $z.\mathrm{re}\le w.\mathrm{re}$,
+$z.\mathrm{im}\le w.\mathrm{im}$ and $f\neq0$ on $\partial R$. Then, with
+$Z=\{\rho\in R:f(\rho)=0\}$,
+\[
+  \sum_{\rho\in Z} m_f(\rho)
+  \;=\; \frac{1}{2\pi}\,\Delta_{\partial R}\arg f .
+\]
+That is, the number of zeros of $f$ inside $R$, counted with multiplicity, equals
+$\tfrac{1}{2\pi}$ times the boundary argument variation.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:ap_residue_sum, lem:ap_integral_eq_argvar}
+\Cref{thm:ap_residue_sum} and \Cref{lem:ap_integral_eq_argvar} both evaluate the same
+contour integral:
+\[
+  2\pi i \sum_{\rho\in Z} m_f(\rho)
+  \;=\; \texttt{RectangleIntegral}\ (\operatorname{logDeriv} f)\ z\ w
+  \;=\; i\,\Delta_{\partial R}\arg f .
+\]
+Cancelling the nonzero factor $i$ gives $2\pi\sum_{\rho\in Z} m_f(\rho)
+=\Delta_{\partial R}\arg f$; dividing by $2\pi>0$ yields the displayed identity.
+\end{proof}
+
+\begin{remark}[Relation to \Cref{cha:n_formula}]
+\label{rem:ap_scope}
+\Cref{thm:ap_main} \emph{is} \Cref{thm:nf_argument_principle} of \Cref{cha:n_formula}, with
+$\Delta_{\partial R}\arg f$ realised by \Cref{def:ap_rect_argvar}. In the application
+of \Cref{thm:N_formula} one takes $f=\xi$ (entire and $\not\equiv0$, since
+$\xi(2)\neq0$ by \Cref{lem:nf_xi_zeros}) on $U=\mathbb C$ and $R$ the rectangle with
+corners $-1$ and $2+iT$; the hypothesis that $T$ is not the ordinate of a $\zeta$-zero
+gives $\xi\neq0$ on $\partial R$ (\Cref{lem:nf_halving}), and the interior zero set
+$Z$ is exactly the box of $\xi$-zeros counted by $N(T)$ via
+\Cref{lem:nf_N_eq_xi_count}. The symmetry reduction \Cref{lem:nf_halving} then folds
+$\Delta_{\partial R}\arg\xi$ to $2\,\Delta_{L_T}\arg\xi$, and the factorisation
+\Cref{lem:nf_arg_poly} and \Cref{lem:nf_arg_theta} evaluates the latter, completing the
+Riemann--von Mangoldt formula. Every ingredient of the present chapter reduces to the
+single-pole residue calculus \Cref{thm:nf_rectangle}, mathlib's analytic-zero
+codiscreteness, and \Cref{lem:nf_logderiv_residue} and
+\Cref{lem:av_integral}.
+\end{remark}

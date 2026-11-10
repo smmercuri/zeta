@@ -1,0 +1,71 @@
+name = "Zeta"
+defaultTargets = ["Zeta"]
+# Projects depending on a tagged release download its prebuilt archive, if it has one.
+releaseRepo = "https://github.com/smmercuri/zeta"
+preferReleaseBuild = true
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.style.header = false
+
+[[lean_lib]]
+name = "Zeta"
+
+[[lean_lib]]
+name = "Enclosure"
+globs = ["Enclosure", "Enclosure.+"]
+
+# Fast: the builder helpers that touch only `Lean.Expr` and `Nat`. They import no Mathlib and are
+# compiled natively, so they run as machine code. Its globs are disjoint from every other
+# library's, since Lake does not precompile a module claimed by two libraries.
+[[lean_lib]]
+name = "Fast"
+# Lake loads the dylib as a plugin only when its name is the root module's initializer stem.
+libName = "Zeta_Fast"
+roots = ["Fast"]
+globs = ["Fast", "Fast.+"]
+precompileModules = true
+
+# Tangent-number Bernoulli tables. The proof imports `Bernoulli.BernoulliValues`; the rest
+# (e.g. `Bernoulli.Kummer`) is heavy, so this is not a default target.
+[[lean_lib]]
+name = "Bernoulli"
+globs = ["Bernoulli.+"]
+
+# Zero certificates checked by `native_decide`, which also trusts the compiler
+# (`scripts/build.sh --native`). The globs exclude `Native.Eval`, since Lake does not precompile a
+# module in two libraries.
+[[lean_lib]]
+name = "Native"
+globs = ["Native", "Native.Encl", "Native.Const", "Native.Log", "Native.Arctan",
+  "Native.Fix", "Native.RiemannSiegel", "Native.Batch", "Native.BuildCerts", "Native.PluginCheck",
+  "Native.Certificates", "Native.Certificates.+", "Native.CountCertificates", "Native.Main"]
+
+# The Mathlib-free part of `Native` that `native_decide` evaluates, compiled to machine code.
+[[lean_lib]]
+name = "NativeEval"
+# Lake only loads the dylib as a plugin if this is the root module's initializer stem.
+libName = "Zeta_Native_Eval"
+roots = ["Native.Eval"]
+globs = ["Native.Eval", "Native.Eval.+"]
+precompileModules = true
+
+[[require]]
+name = "PrimeNumberTheoremAnd"
+git = "https://github.com/smmercuri/PrimeNumberTheoremAnd"
+rev = "16a8986210e61636b13d58cec400e8c467441b70"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.35.0"
+
+[[lean_lib]]
+name = "Comparator"
+srcDir = "comparator"
+globs = ["Main.+", "Analytic.+", "Reduction.+", "Batches.+", "Shard.+"]
+[lean_lib.leanOptions]
+warn.sorry = false

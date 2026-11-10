@@ -1,0 +1,286 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+
+version: "v0.4"
+
+project:
+  name: "Riemann hypothesis up to bounded height"  # [required]
+  description: "This project provides a kernel-checked proof that the Riemann hypothesis holds up 
+    to a specified height on the critical line."
+  authors: [Salvatore Mercuri, Bhavik Mehta]  # [required]
+  responsible_maintainers: [Salvatore Mercuri, Bhavik Mehta]
+  license: "Apache-2.0"  # [required]
+
+sources:  # [required]
+  - title: "Certifying the Riemann hypothesis up to bounded height (project blueprint)"
+    authors: [Salvatore Mercuri, Bhavik Mehta]
+    id: "https://github.com/smmercuri/zeta"
+    type: "original-proof"
+    location: "blueprint/src"
+    relationship: "formalizes"
+    note: >
+      Written within the project; the kernel-checked verification of RH up to height T, its
+      certificate method and their assembly are new here. The classical results it follows are
+      the sources below.
+    author_endorsement: "n/a"
+  - title: "Note sur les zéros de la fonction ζ(s) de Riemann"
+    authors: [Jørgen Pedersen Gram]
+    id: "Acta Math. 27 (1903), 289-304"
+    type: "article"
+    location: "Gram points"
+    relationship: "background"
+    note: "Gram points, at which the zero counting is done."
+    author_endorsement: "n/a"
+  - title: "Some calculations of the Riemann zeta-function"
+    authors: [Alan M. Turing]
+    id: "Proc. London Math. Soc. (3) 3 (1953), 99-117"
+    type: "article"
+    location: "the zero-counting method"
+    relationship: "adapts"
+    note: "Turing's method: counting the zeros up to a height from sign changes at Gram points."
+    author_endorsement: "n/a"
+  - title: "On the distribution of zeros of the Riemann zeta-function"
+    authors: [R. Sherman Lehman]
+    id: "Proc. London Math. Soc. (3) 20 (1970), 303-320"
+    type: "article"
+    location: "the bound on the integral of S(t)"
+    relationship: "adapts"
+    note: >
+      Lehman's bound |int S| <= A + B log(t2/2pi) with (A, B) = (2.30, 0.128); proved here without
+      zero-freeness hypotheses at the endpoints, with A = 5.
+    author_endorsement: "n/a"
+  - title: "Improvements to Turing's method"
+    authors: [Timothy Trudgian]
+    id: "Math. Comp. 80 (2011), no. 276, 2259-2279"
+    type: "article"
+    location: "Lemma 2.10 (Booker's zero-pairing estimate)"
+    relationship: "adapts"
+    note: "Used in the Lehman bound; Trudgian's sharper constants are not used."
+    author_endorsement: "not-contacted"
+  - title: "Über Riemanns Nachlaß zur analytischen Zahlentheorie"
+    authors: [Carl Ludwig Siegel]
+    id: "Quellen und Studien zur Geschichte der Mathematik, Astronomie und Physik, Abt. B 2 (1932), 45-80"
+    type: "article"
+    location: "§1, §4"
+    relationship: "adapts"
+    note: "The derivation of the Riemann-Siegel formula, with the project's own explicit error bound."
+    author_endorsement: "n/a"
+  - title: "Riemann's Zeta Function"
+    authors: [Harold M. Edwards]
+    id: "Pure and Applied Mathematics 58, Academic Press, 1974"
+    type: "book"
+    location: "Ch. 7 (§7.9); §6.5-6.7"
+    relationship: "background"
+    note: "Exposition of the Riemann-Siegel formula and of the N(T) formula."
+    author_endorsement: "n/a"
+  - title: "The Theory of the Riemann Zeta-Function (2nd ed., revised by D. R. Heath-Brown)"
+    authors: [E. C. Titchmarsh]
+    id: "MR0882550"
+    type: "book"
+    location: "§9.9 (Littlewood's lemma); §§2.12, 3.1, 4.12, 9.4"
+    relationship: "adapts"
+    note: "Littlewood's lemma, Stirling, Hadamard factorisation and the order of xi."
+    author_endorsement: "n/a"
+  - title: "Multiplicative Number Theory (3rd ed.)"
+    authors: [Harold Davenport]
+    id: "Graduate Texts in Mathematics 74, Springer, 2000"
+    type: "book"
+    location: "§§8, 11, 12, 15"
+    relationship: "adapts"
+    note: "The explicit formula for zeta'/zeta; Hadamard factorisation; zero summability."
+    author_endorsement: "n/a"
+  - title: "Distribution of Zeros of Entire Functions (revised ed.)"
+    authors: [B. Ja. Levin]
+    id: "MR0589888; Translations of Mathematical Monographs 5, AMS, 1980"
+    type: "book"
+    relationship: "adapts"
+    note: >
+      Cartan's minimum-modulus estimate. (The blueprint's comment names Levin's "Lectures on
+      Entire Functions", Lecture II, a different book, while citing this MR number.)
+    author_endorsement: "n/a"
+  - title: "The Theory of Functions (2nd ed.)"
+    authors: [E. C. Titchmarsh]
+    id: "MR3155290"
+    type: "book"
+    location: "§8.71"
+    relationship: "adapts"
+    note: "Cartan's minimum-modulus estimate."
+    author_endorsement: "n/a"
+  - title: "Neue Herleitung und explizite Restabschätzung der Riemann-Siegel-Formel"
+    authors: [Wolfgang Gabcke]
+    id: "PhD thesis, Georg-August-Universität Göttingen, 1979"
+    type: "thesis"
+    relationship: "background"
+    note: "Cross-check of the Riemann-Siegel correction coefficients; its sharp constants are not used."
+    author_endorsement: "not-contacted"
+  - title: "Computational strategies for the Riemann zeta function"
+    authors: [Jonathan M. Borwein, David M. Bradley, Richard E. Crandall]
+    id: "J. Comput. Appl. Math. 121 (2000), 247-296"
+    type: "article"
+    location: "§3 (the Euler-Maclaurin error bound)"
+    relationship: "adapts"
+    note: "The truncation-error bound for the Euler-Maclaurin evaluation of zeta (norm_zetaRemainder_le)."
+    author_endorsement: "not-contacted"
+
+related_formalizations:
+  - id: "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd"
+    relationship: "builds-on"
+    note: >
+      Used through a pinned fork (https://github.com/smmercuri/PrimeNumberTheoremAnd): the zero
+      counting function riemannZeta.N and its zero sets, the rectangle-integral and residue
+      calculus behind the argument principle, the finiteness and order results for zeros of
+      zeta, and the Poisson-summation tools used for Riemann-Siegel. As of November 2026 it has
+      only an order-1 Euler-Maclaurin formula; the general order-p formula and its remainder
+      bound are this project's.
+  - id: "https://github.com/leanprover-community/mathlib4"
+    relationship: "builds-on"
+    note: "The Riemann zeta function and the rest of the library the project is built on."
+
+classification:
+  arxiv: ["math.NT", "math.NA", "cs.LO"]
+  msc2020: ["11M26", "11M06", "11Y35", "65G20", "65G30", "68V20"]
+
+status:
+  scope:  "A kernel-checked proof that every nontrivial zero of ζ with |Im s| < 10011 lies on 
+    the critical line, together with the analytic results it rests on 
+    (the N(T) formula, Lehman's bound, Turing's bound at Gram points)."
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["Quot.sound", "propext", "Classical.choice"]  # the kernel theorems; the separate Native library also uses native_decide
+  main_results:
+  - declaration: "riemannZeta.N_eq"
+    file: "Zeta/RiemannVonMangoldt/Main.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
+    comparator_config: "comparator/Analytic/config.json"
+    literature_dependencies: []
+  - declaration: "norm_integral_argZeta_le_five_unconditional"
+    file: "Zeta/ArgZeta/Explicit.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]                
+    comparator_config: "comparator/Analytic/config.json"      
+    literature_dependencies: []
+  - declaration: "riemannZeta.N_le_of_gramPoints"
+    file: "Zeta/Gram/ZeroCounting.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
+    comparator_config: "comparator/Analytic/config.json"
+    literature_dependencies: []
+  - declaration: "Zeta.riemannHypothesisUpTo_10011"
+    file: "Zeta/Main.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
+    comparator_config: "comparator/Main/config.json"
+    literature_dependencies: []
+  - declaration: "Zeta.simpleZerosUpTo_10011"
+    file: "Zeta/Main.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
+    literature_dependencies: []
+
+automation:  # [required]
+  methods:  # [required]
+    - method: "agent"  # [required]
+      models: ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-opus-5-1", "claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code with Lean REPL and the lean-lsp MCP tooling for
+        targeted compilation, a blueprint-driven node-by-node workflow, TeX and Lean reviewer
+        subagents, and file-based persistent memory."
+      cost:
+        wall_time: "about 150 hours of agent activity, over 30 days from late June to August 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); development on laptop"
+      prompting_notes: "Analytic theory: the authors specified the high-level strategy (Turing's
+        zero-counting method); the agent drafted the blueprint from it and formalized it."
+    - method: "agent"
+      models: ["claude-opus-5-1", "claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code in interactive sessions."
+      cost:
+        wall_time: "about 40 hours, mostly in late September 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); development on laptop"
+      prompting_notes: "Riemann-Siegel certificates: Salvatore Mercuri hand-wrote the
+        Riemann-Siegel certification pipeline extending Bhavik Mehta's Euler-Maclaurin
+        development, and then ran agent-led audits of the certificate metaprogram to find
+        optimisations. These were implemented by hand or by the agent, and the agent measured each
+        change to check it was an improvement."
+    - method: "copilot"
+      models: ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-opus-5-1", "claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code in interactive sessions."
+      cost:
+        wall_time: "n/a: conversational review alongside hand-written code"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription)"
+      prompting_notes: "Python reference implementation: the Python implementation was mostly
+        handwritten with the aid of a Claude agent to double-check code and test output. The 
+        Lean file generators in `data_gen` were written entirely by an agent. Some optimisation 
+        work was also implemented by an agent, particularly the store writer files in `data_gen`."
+    - method: "agent"
+      models: ["claude-opus-4-8", "claude-fable-5"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code on a Linux server, with subagents for exploration and audits,
+        scheduled wake-ups for unattended runs, and file-based memory."
+      cost:
+        wall_time: "about 7 days of agent activity, spread across 24 June to 31 July 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); one Linux server"
+      prompting_notes: "Certified arithmetic and the certificate pipeline (Enclosure,
+        Enclosure/BinarySplit, Bernoulli, Zeta/Certificate, the zero-certificate generator):
+        Bhavik Mehta gave the design (kernel-checked ball arithmetic, binary-splitting bounds, a
+        certificate pipeline reading stored zero data) and the method for the Bernoulli numbers,
+        and hand-wrote the implementations, proofs and tactics for some of the special functions;
+        the agent wrote the rest of the functions on that model, and the generator. Both proposed
+        optimisations, which the agent prototyped and compared by interleaved benchmarks to
+        decide acceptance."
+    - method: "agent"
+      models: ["claude-opus-5", "claude-opus-5-5", "claude-fable-5-1"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code sessions running builds in the background, with an interleaved
+        A/B benchmark (a GitHub Actions workflow and a dedicated build server), the Lean
+        profiler, scheduled wake-ups for long unattended runs, and subagents for idea
+        generation and prototypes."
+      cost:
+        wall_time: "about 4 days of agent activity, spread across August to November 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); a shared 32-core server and GitHub-hosted runners"
+      prompting_notes: "Build performance of the certificates: Bhavik Mehta set the targets
+        (CPU time per zero, size of the stored proofs) and decided which changes landed. The
+        agents implemented candidates, prototyped lemmas with sorry before proving them,
+        compared each against a control by interleaved A/B runs, and confirmed every landed
+        change with a full build and #print axioms."
+  spend_usd: "subscription-based usage"
+  notes: ""
+
+fidelity:
+  divergences: >
+    The source is the project's own blueprint, so fidelity is to the blueprint and to the
+    classical results it follows; the places where the Lean statements differ from those are:
+
+    - Lehman's bound (norm_integral_argZeta_le_five_unconditional): proved with additive
+    constant A = 5 in place of Lehman's 2.30, for 168 pi < t1 < t2 and with no zero-freeness
+    hypothesis at t1 or t2. Weaker constants, and conditional forms, are also proved.
+
+    - Riemann-Siegel (abs_hardyZRemainderRS_le): the two-term approximation (main sum with
+    cutoff floor(sqrt T), T = t/2pi, at the order-2 Stirling approximation to theta, plus the
+    corrections Psi(p) and C1(p)/sqrt T) is proved to have error at most
+    25/4 T^(-5/4) + T^(-15/4)/32 for T >= 16, i.e. about 62 t^(-5/4). This is the classical
+    order, but about 1200 times Gabcke's bound for the same approximation, 0.053 t^(-5/4) for
+    t >= 200.
+
+    The main reason for both divergences is that the sharper constants from the literature are 
+    not needed to certify the zeros at the target heights.
+
+review:
+  status: "self-assessed"  # [required]
+  reviewers: [Salvatore Mercuri, Bhavik Mehta]
+  notes: "Each blueprint node and Lean declaration had an AI review pass; the authors checked
+    the final statements and their axioms, making edits as appropriate."
+
+acknowledgements: "Built on mathlib and PrimeNumberTheoremAnd. 
+  Independent checking uses leanprover/comparator and lean4export, and the blueprint uses 
+  leanblueprint. The reference Python implementation uses SageMath and mpmath, and is validated 
+  against the zero tables of the LMFDB. Formalization carried out with Claude Code (Anthropic).
+  The certificates at height 10^8 were built on the Cirrus NCR HPC Service at EPCC
+  (https://www.cirrus.ac.uk), funded by the University of Edinburgh, the Edinburgh and South East
+  Scotland City Region Deal, and UKRI."

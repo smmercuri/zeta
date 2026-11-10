@@ -1,0 +1,42 @@
+% This file makes a printable (PDF) version of the blueprint.
+% Build locally with:  leanblueprint pdf
+% Uses xelatex + unicode-math because the chapters contain some raw unicode
+% math (Greek letters, subscripts). Requires the latinmodern-math / Asana-Math
+% fonts (present in a full TeX Live install).
+
+\documentclass[a4paper]{report}
+
+\usepackage[textwidth=14cm]{geometry}
+\usepackage{xfrac}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\usepackage{mathtools}
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+\usepackage{fontspec}
+\setmathfont{latinmodern-math.otf}
+\setmathfont[range=\varnothing]{Asana-Math.otf}
+
+\usepackage[nameinlink, capitalize]{cleveref}
+
+\usepackage{amsthm}
+\usepackage{etexcmds}
+\usepackage{thmtools}
+
+\input{preamble/common}
+\input{preamble/print}
+
+\title{Certifying the Riemann Hypothesis up to bounded height}
+\author{Salvatore Mercuri, Bhavik Mehta}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\input{content}
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

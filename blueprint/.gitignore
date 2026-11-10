@@ -1,0 +1,25 @@
+# Generated blueprint output. Rebuild with `leanblueprint web` / `leanblueprint pdf`
+# from the repo root; nothing below is meant to live in git.
+
+# plasTeX web build
+web/
+src/web.bbl
+src/web.paux
+
+# latexmk / xelatex PDF build
+print/
+src/*.aux
+src/*.bbl
+src/*.blg
+src/*.fdb_latexmk
+src/*.fls
+src/*.out
+src/*.pdf
+src/*.synctex.gz
+src/*.toc
+
+# stray latexmk logs (repo-root and src runs)
+*.log
+
+# declaration list emitted by `leanblueprint checkdecls`
+lean_decls
