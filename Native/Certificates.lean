@@ -19,6 +19,20 @@ module
 
 public import Zeta.Zeros.Certificates.Fold
 import Native.Certificates.Groups.Level1.Group0001
+import Native.Certificates.Groups.Level1.Group0002
+import Native.Certificates.Groups.Level1.Group0003
+import Native.Certificates.Groups.Level1.Group0004
+import Native.Certificates.Groups.Level1.Group0005
+import Native.Certificates.Groups.Level1.Group0006
+import Native.Certificates.Groups.Level1.Group0007
+import Native.Certificates.Groups.Level1.Group0008
+import Native.Certificates.Groups.Level1.Group0009
+import Native.Certificates.Groups.Level1.Group0010
+import Native.Certificates.Groups.Level1.Group0011
+import Native.Certificates.Groups.Level1.Group0012
+import Native.Certificates.Groups.Level1.Group0013
+import Native.Certificates.Groups.Level1.Group0014
+import Native.Certificates.Groups.Level1.Group0015
 
 @[expose] public section
 
@@ -27,12 +41,68 @@ namespace Native.Certificates
 open Zeta.Certificates
 
 /-- The zeros of batch Groups.Level1.Group0001. -/
-theorem upTo_G0001 : BatchSpec 10156 1000 1000 10011107 1000 :=
+theorem upTo_G0001 : BatchSpec 120052 1000 1000 88225014 1000 :=
   Native.Certificates.Groups.Level1.Group0001.group
 
+/-- The zeros of every batch up to Groups.Level1.Group0002. -/
+theorem upTo_G0002 : BatchSpec 245052 1000 1000 167522796 1000 :=
+  BatchSpec.append upTo_G0001 Native.Certificates.Groups.Level1.Group0002.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0003. -/
+theorem upTo_G0003 : BatchSpec 370052 1000 1000 243123288 1000 :=
+  BatchSpec.append upTo_G0002 Native.Certificates.Groups.Level1.Group0003.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0004. -/
+theorem upTo_G0004 : BatchSpec 495052 1000 1000 316517428 1000 :=
+  BatchSpec.append upTo_G0003 Native.Certificates.Groups.Level1.Group0004.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0005. -/
+theorem upTo_G0005 : BatchSpec 620052 1000 1000 388354744 1000 :=
+  BatchSpec.append upTo_G0004 Native.Certificates.Groups.Level1.Group0005.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0006. -/
+theorem upTo_G0006 : BatchSpec 745052 1000 1000 458998481 1000 :=
+  BatchSpec.append upTo_G0005 Native.Certificates.Groups.Level1.Group0006.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0007. -/
+theorem upTo_G0007 : BatchSpec 870052 1000 1000 528680262 1000 :=
+  BatchSpec.append upTo_G0006 Native.Certificates.Groups.Level1.Group0007.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0008. -/
+theorem upTo_G0008 : BatchSpec 995052 1000 1000 597558249 1000 :=
+  BatchSpec.append upTo_G0007 Native.Certificates.Groups.Level1.Group0008.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0009. -/
+theorem upTo_G0009 : BatchSpec 1120052 1000 1000 665748592 1000 :=
+  BatchSpec.append upTo_G0008 Native.Certificates.Groups.Level1.Group0009.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0010. -/
+theorem upTo_G0010 : BatchSpec 1245052 1000 1000 733339544 1000 :=
+  BatchSpec.append upTo_G0009 Native.Certificates.Groups.Level1.Group0010.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0011. -/
+theorem upTo_G0011 : BatchSpec 1370052 1000 1000 800399256 1000 :=
+  BatchSpec.append upTo_G0010 Native.Certificates.Groups.Level1.Group0011.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0012. -/
+theorem upTo_G0012 : BatchSpec 1495052 1000 1000 866983685 1000 :=
+  BatchSpec.append upTo_G0011 Native.Certificates.Groups.Level1.Group0012.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0013. -/
+theorem upTo_G0013 : BatchSpec 1620052 1000 1000 933138810 1000 :=
+  BatchSpec.append upTo_G0012 Native.Certificates.Groups.Level1.Group0013.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0014. -/
+theorem upTo_G0014 : BatchSpec 1745052 1000 1000 998901744 1000 :=
+  BatchSpec.append upTo_G0013 Native.Certificates.Groups.Level1.Group0014.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0015. -/
+theorem upTo_G0015 : BatchSpec 1748002 1000 1000 1000449286 1000 :=
+  BatchSpec.append upTo_G0014 Native.Certificates.Groups.Level1.Group0015.group rfl rfl rfl
+
 /-- All bracketed critical-line zeros in the store, as one batch statement. -/
-theorem certifiedBatches : BatchSpec 10156 1000 1000 10011107 1000 :=
-  upTo_G0001
+theorem certifiedBatches : BatchSpec 1748002 1000 1000 1000449286 1000 :=
+  upTo_G0015
 
 /-- All bracketed critical-line zeros in the store, as a single certified bundle. -/
 noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
@@ -42,12 +112,12 @@ noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
 into a height bound. -/
 theorem certifiedZeroIntervals_getLast? :
     certifiedZeroIntervals.intervals.getLast?.map (·.snd)
-      = some (Enclosure.sfrac false 10011107 1000) :=
+      = some (Enclosure.sfrac false 1000449286 1000) :=
   certifiedBatches.bundle_getLast?
 
 /-- The bundle's interval count. -/
 theorem certifiedZeroIntervals_length :
-    certifiedZeroIntervals.intervals.length = 10156 :=
+    certifiedZeroIntervals.intervals.length = 1748002 :=
   certifiedBatches.bundle_length
 
 end Native.Certificates

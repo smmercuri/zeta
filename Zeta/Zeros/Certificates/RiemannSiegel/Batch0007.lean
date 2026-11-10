@@ -22,12 +22,12 @@ public import Zeta.Zeros.BuildCertsRS
 namespace Zeta.Certificates.RiemannSiegel.Batch0007
 
 /-- The batch, as the statement the assembler consumes: a certified bundle of 200
-intervals exists, the first starting at `1707173/1000` and the last ending at `1928919/1000`
-(`t ≈ 1707.173 … 1928.919`). The proof is the bundle, built row-by-row from the
+intervals exists, the first starting at `1706928/1000` and the last ending at `1928919/1000`
+(`t ≈ 1706.928 … 1928.919`). The proof is the bundle, built row-by-row from the
 store by `build_batch_rs`, with `is_sign_change`/`fst_error`/`snd_error` discharged by the
 kernel-checked `Enclosure` ball arithmetic. It stays in this module's private
 olean. -/
-theorem batch : BatchSpec 200 1707173 1000 1928919 1000 := by build_batch_rs 1200 1400
+theorem batch : BatchSpec 200 1706928 1000 1928919 1000 := by build_batch_rs 1200 1400
 
 end Zeta.Certificates.RiemannSiegel.Batch0007
 

@@ -19,18 +19,363 @@ module
 
 public import Zeta.Zeros.Certificates.Fold
 import Zeta.Zeros.Certificates.Groups.Level1.Group0001
+import Zeta.Zeros.Certificates.Groups.Level1.Group0002
+import Zeta.Zeros.Certificates.Groups.Level1.Group0003
+import Zeta.Zeros.Certificates.Groups.Level1.Group0004
+import Zeta.Zeros.Certificates.Groups.Level1.Group0005
+import Zeta.Zeros.Certificates.Groups.Level1.Group0006
+import Zeta.Zeros.Certificates.Groups.Level1.Group0007
+import Zeta.Zeros.Certificates.Groups.Level1.Group0008
+import Zeta.Zeros.Certificates.Groups.Level1.Group0009
+import Zeta.Zeros.Certificates.Groups.Level1.Group0010
+import Zeta.Zeros.Certificates.Groups.Level1.Group0011
+import Zeta.Zeros.Certificates.Groups.Level1.Group0012
+import Zeta.Zeros.Certificates.Groups.Level1.Group0013
+import Zeta.Zeros.Certificates.Groups.Level1.Group0014
+import Zeta.Zeros.Certificates.Groups.Level1.Group0015
+import Zeta.Zeros.Certificates.Groups.Level1.Group0016
+import Zeta.Zeros.Certificates.Groups.Level1.Group0017
+import Zeta.Zeros.Certificates.Groups.Level1.Group0018
+import Zeta.Zeros.Certificates.Groups.Level1.Group0019
+import Zeta.Zeros.Certificates.Groups.Level1.Group0020
+import Zeta.Zeros.Certificates.Groups.Level1.Group0021
+import Zeta.Zeros.Certificates.Groups.Level1.Group0022
+import Zeta.Zeros.Certificates.Groups.Level1.Group0023
+import Zeta.Zeros.Certificates.Groups.Level1.Group0024
+import Zeta.Zeros.Certificates.Groups.Level1.Group0025
+import Zeta.Zeros.Certificates.Groups.Level1.Group0026
+import Zeta.Zeros.Certificates.Groups.Level1.Group0027
+import Zeta.Zeros.Certificates.Groups.Level1.Group0028
+import Zeta.Zeros.Certificates.Groups.Level1.Group0029
+import Zeta.Zeros.Certificates.Groups.Level1.Group0030
+import Zeta.Zeros.Certificates.Groups.Level1.Group0031
+import Zeta.Zeros.Certificates.Groups.Level1.Group0032
+import Zeta.Zeros.Certificates.Groups.Level1.Group0033
+import Zeta.Zeros.Certificates.Groups.Level1.Group0034
+import Zeta.Zeros.Certificates.Groups.Level1.Group0035
+import Zeta.Zeros.Certificates.Groups.Level1.Group0036
+import Zeta.Zeros.Certificates.Groups.Level1.Group0037
+import Zeta.Zeros.Certificates.Groups.Level1.Group0038
+import Zeta.Zeros.Certificates.Groups.Level1.Group0039
+import Zeta.Zeros.Certificates.Groups.Level1.Group0040
+import Zeta.Zeros.Certificates.Groups.Level1.Group0041
+import Zeta.Zeros.Certificates.Groups.Level1.Group0042
+import Zeta.Zeros.Certificates.Groups.Level1.Group0043
+import Zeta.Zeros.Certificates.Groups.Level1.Group0044
+import Zeta.Zeros.Certificates.Groups.Level1.Group0045
+import Zeta.Zeros.Certificates.Groups.Level1.Group0046
+import Zeta.Zeros.Certificates.Groups.Level1.Group0047
+import Zeta.Zeros.Certificates.Groups.Level1.Group0048
+import Zeta.Zeros.Certificates.Groups.Level1.Group0049
+import Zeta.Zeros.Certificates.Groups.Level1.Group0050
+import Zeta.Zeros.Certificates.Groups.Level1.Group0051
+import Zeta.Zeros.Certificates.Groups.Level1.Group0052
+import Zeta.Zeros.Certificates.Groups.Level1.Group0053
+import Zeta.Zeros.Certificates.Groups.Level1.Group0054
+import Zeta.Zeros.Certificates.Groups.Level1.Group0055
+import Zeta.Zeros.Certificates.Groups.Level1.Group0056
+import Zeta.Zeros.Certificates.Groups.Level1.Group0057
+import Zeta.Zeros.Certificates.Groups.Level1.Group0058
+import Zeta.Zeros.Certificates.Groups.Level1.Group0059
+import Zeta.Zeros.Certificates.Groups.Level1.Group0060
+import Zeta.Zeros.Certificates.Groups.Level1.Group0061
+import Zeta.Zeros.Certificates.Groups.Level1.Group0062
+import Zeta.Zeros.Certificates.Groups.Level1.Group0063
+import Zeta.Zeros.Certificates.Groups.Level1.Group0064
+import Zeta.Zeros.Certificates.Groups.Level1.Group0065
+import Zeta.Zeros.Certificates.Groups.Level1.Group0066
+import Zeta.Zeros.Certificates.Groups.Level1.Group0067
+import Zeta.Zeros.Certificates.Groups.Level1.Group0068
+import Zeta.Zeros.Certificates.Groups.Level1.Group0069
+import Zeta.Zeros.Certificates.Groups.Level1.Group0070
 
 @[expose] public section
 
 namespace Zeta.Certificates
 
 /-- The zeros of batch Groups.Level1.Group0001. -/
-theorem upTo_G0001 : BatchSpec 10156 1000 1000 10011107 1000 :=
+theorem upTo_G0001 : BatchSpec 24852 1000 1000 21828855 1000 :=
   Zeta.Certificates.Groups.Level1.Group0001.group
 
+/-- The zeros of every batch up to Groups.Level1.Group0002. -/
+theorem upTo_G0002 : BatchSpec 49852 1000 1000 40327924 1000 :=
+  BatchSpec.append upTo_G0001 Zeta.Certificates.Groups.Level1.Group0002.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0003. -/
+theorem upTo_G0003 : BatchSpec 74852 1000 1000 57862857 1000 :=
+  BatchSpec.append upTo_G0002 Zeta.Certificates.Groups.Level1.Group0003.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0004. -/
+theorem upTo_G0004 : BatchSpec 99852 1000 1000 74822148 1000 :=
+  BatchSpec.append upTo_G0003 Zeta.Certificates.Groups.Level1.Group0004.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0005. -/
+theorem upTo_G0005 : BatchSpec 124852 1000 1000 91377303 1000 :=
+  BatchSpec.append upTo_G0004 Zeta.Certificates.Groups.Level1.Group0005.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0006. -/
+theorem upTo_G0006 : BatchSpec 149852 1000 1000 107622802 1000 :=
+  BatchSpec.append upTo_G0005 Zeta.Certificates.Groups.Level1.Group0006.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0007. -/
+theorem upTo_G0007 : BatchSpec 174852 1000 1000 123619988 1000 :=
+  BatchSpec.append upTo_G0006 Zeta.Certificates.Groups.Level1.Group0007.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0008. -/
+theorem upTo_G0008 : BatchSpec 199852 1000 1000 139409432 1000 :=
+  BatchSpec.append upTo_G0007 Zeta.Certificates.Groups.Level1.Group0008.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0009. -/
+theorem upTo_G0009 : BatchSpec 224852 1000 1000 155021681 1000 :=
+  BatchSpec.append upTo_G0008 Zeta.Certificates.Groups.Level1.Group0009.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0010. -/
+theorem upTo_G0010 : BatchSpec 249852 1000 1000 170479656 1000 :=
+  BatchSpec.append upTo_G0009 Zeta.Certificates.Groups.Level1.Group0010.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0011. -/
+theorem upTo_G0011 : BatchSpec 274852 1000 1000 185801296 1000 :=
+  BatchSpec.append upTo_G0010 Zeta.Certificates.Groups.Level1.Group0011.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0012. -/
+theorem upTo_G0012 : BatchSpec 299852 1000 1000 201001000 1000 :=
+  BatchSpec.append upTo_G0011 Zeta.Certificates.Groups.Level1.Group0012.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0013. -/
+theorem upTo_G0013 : BatchSpec 324852 1000 1000 216090565 1000 :=
+  BatchSpec.append upTo_G0012 Zeta.Certificates.Groups.Level1.Group0013.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0014. -/
+theorem upTo_G0014 : BatchSpec 349852 1000 1000 231079819 1000 :=
+  BatchSpec.append upTo_G0013 Zeta.Certificates.Groups.Level1.Group0014.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0015. -/
+theorem upTo_G0015 : BatchSpec 374852 1000 1000 245977067 1000 :=
+  BatchSpec.append upTo_G0014 Zeta.Certificates.Groups.Level1.Group0015.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0016. -/
+theorem upTo_G0016 : BatchSpec 399852 1000 1000 260789123 1000 :=
+  BatchSpec.append upTo_G0015 Zeta.Certificates.Groups.Level1.Group0016.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0017. -/
+theorem upTo_G0017 : BatchSpec 424852 1000 1000 275523310 1000 :=
+  BatchSpec.append upTo_G0016 Zeta.Certificates.Groups.Level1.Group0017.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0018. -/
+theorem upTo_G0018 : BatchSpec 449852 1000 1000 290183223 1000 :=
+  BatchSpec.append upTo_G0017 Zeta.Certificates.Groups.Level1.Group0018.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0019. -/
+theorem upTo_G0019 : BatchSpec 474852 1000 1000 304774757 1000 :=
+  BatchSpec.append upTo_G0018 Zeta.Certificates.Groups.Level1.Group0019.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0020. -/
+theorem upTo_G0020 : BatchSpec 499852 1000 1000 319301797 1000 :=
+  BatchSpec.append upTo_G0019 Zeta.Certificates.Groups.Level1.Group0020.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0021. -/
+theorem upTo_G0021 : BatchSpec 524852 1000 1000 333768072 1000 :=
+  BatchSpec.append upTo_G0020 Zeta.Certificates.Groups.Level1.Group0021.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0022. -/
+theorem upTo_G0022 : BatchSpec 549852 1000 1000 348176925 1000 :=
+  BatchSpec.append upTo_G0021 Zeta.Certificates.Groups.Level1.Group0022.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0023. -/
+theorem upTo_G0023 : BatchSpec 574852 1000 1000 362531514 1000 :=
+  BatchSpec.append upTo_G0022 Zeta.Certificates.Groups.Level1.Group0023.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0024. -/
+theorem upTo_G0024 : BatchSpec 599852 1000 1000 376834143 1000 :=
+  BatchSpec.append upTo_G0023 Zeta.Certificates.Groups.Level1.Group0024.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0025. -/
+theorem upTo_G0025 : BatchSpec 624852 1000 1000 391087867 1000 :=
+  BatchSpec.append upTo_G0024 Zeta.Certificates.Groups.Level1.Group0025.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0026. -/
+theorem upTo_G0026 : BatchSpec 649852 1000 1000 405294673 1000 :=
+  BatchSpec.append upTo_G0025 Zeta.Certificates.Groups.Level1.Group0026.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0027. -/
+theorem upTo_G0027 : BatchSpec 674852 1000 1000 419456216 1000 :=
+  BatchSpec.append upTo_G0026 Zeta.Certificates.Groups.Level1.Group0027.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0028. -/
+theorem upTo_G0028 : BatchSpec 699852 1000 1000 433575123 1000 :=
+  BatchSpec.append upTo_G0027 Zeta.Certificates.Groups.Level1.Group0028.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0029. -/
+theorem upTo_G0029 : BatchSpec 724852 1000 1000 447652875 1000 :=
+  BatchSpec.append upTo_G0028 Zeta.Certificates.Groups.Level1.Group0029.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0030. -/
+theorem upTo_G0030 : BatchSpec 749852 1000 1000 461691110 1000 :=
+  BatchSpec.append upTo_G0029 Zeta.Certificates.Groups.Level1.Group0030.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0031. -/
+theorem upTo_G0031 : BatchSpec 774852 1000 1000 475691485 1000 :=
+  BatchSpec.append upTo_G0030 Zeta.Certificates.Groups.Level1.Group0031.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0032. -/
+theorem upTo_G0032 : BatchSpec 799852 1000 1000 489654994 1000 :=
+  BatchSpec.append upTo_G0031 Zeta.Certificates.Groups.Level1.Group0032.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0033. -/
+theorem upTo_G0033 : BatchSpec 824852 1000 1000 503583371 1000 :=
+  BatchSpec.append upTo_G0032 Zeta.Certificates.Groups.Level1.Group0033.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0034. -/
+theorem upTo_G0034 : BatchSpec 849852 1000 1000 517477710 1000 :=
+  BatchSpec.append upTo_G0033 Zeta.Certificates.Groups.Level1.Group0034.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0035. -/
+theorem upTo_G0035 : BatchSpec 874852 1000 1000 531339161 1000 :=
+  BatchSpec.append upTo_G0034 Zeta.Certificates.Groups.Level1.Group0035.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0036. -/
+theorem upTo_G0036 : BatchSpec 899852 1000 1000 545168808 1000 :=
+  BatchSpec.append upTo_G0035 Zeta.Certificates.Groups.Level1.Group0036.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0037. -/
+theorem upTo_G0037 : BatchSpec 924852 1000 1000 558967666 1000 :=
+  BatchSpec.append upTo_G0036 Zeta.Certificates.Groups.Level1.Group0037.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0038. -/
+theorem upTo_G0038 : BatchSpec 949852 1000 1000 572736694 1000 :=
+  BatchSpec.append upTo_G0037 Zeta.Certificates.Groups.Level1.Group0038.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0039. -/
+theorem upTo_G0039 : BatchSpec 974852 1000 1000 586476793 1000 :=
+  BatchSpec.append upTo_G0038 Zeta.Certificates.Groups.Level1.Group0039.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0040. -/
+theorem upTo_G0040 : BatchSpec 999852 1000 1000 600188819 1000 :=
+  BatchSpec.append upTo_G0039 Zeta.Certificates.Groups.Level1.Group0040.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0041. -/
+theorem upTo_G0041 : BatchSpec 1024852 1000 1000 613873576 1000 :=
+  BatchSpec.append upTo_G0040 Zeta.Certificates.Groups.Level1.Group0041.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0042. -/
+theorem upTo_G0042 : BatchSpec 1049852 1000 1000 627531831 1000 :=
+  BatchSpec.append upTo_G0041 Zeta.Certificates.Groups.Level1.Group0042.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0043. -/
+theorem upTo_G0043 : BatchSpec 1074852 1000 1000 641164309 1000 :=
+  BatchSpec.append upTo_G0042 Zeta.Certificates.Groups.Level1.Group0043.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0044. -/
+theorem upTo_G0044 : BatchSpec 1099852 1000 1000 654771698 1000 :=
+  BatchSpec.append upTo_G0043 Zeta.Certificates.Groups.Level1.Group0044.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0045. -/
+theorem upTo_G0045 : BatchSpec 1124852 1000 1000 668354518 1000 :=
+  BatchSpec.append upTo_G0044 Zeta.Certificates.Groups.Level1.Group0045.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0046. -/
+theorem upTo_G0046 : BatchSpec 1149852 1000 1000 681913800 1000 :=
+  BatchSpec.append upTo_G0045 Zeta.Certificates.Groups.Level1.Group0046.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0047. -/
+theorem upTo_G0047 : BatchSpec 1174852 1000 1000 695449732 1000 :=
+  BatchSpec.append upTo_G0046 Zeta.Certificates.Groups.Level1.Group0047.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0048. -/
+theorem upTo_G0048 : BatchSpec 1199852 1000 1000 708963016 1000 :=
+  BatchSpec.append upTo_G0047 Zeta.Certificates.Groups.Level1.Group0048.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0049. -/
+theorem upTo_G0049 : BatchSpec 1224852 1000 1000 722453925 1000 :=
+  BatchSpec.append upTo_G0048 Zeta.Certificates.Groups.Level1.Group0049.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0050. -/
+theorem upTo_G0050 : BatchSpec 1249852 1000 1000 735923785 1000 :=
+  BatchSpec.append upTo_G0049 Zeta.Certificates.Groups.Level1.Group0050.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0051. -/
+theorem upTo_G0051 : BatchSpec 1274852 1000 1000 749372553 1000 :=
+  BatchSpec.append upTo_G0050 Zeta.Certificates.Groups.Level1.Group0051.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0052. -/
+theorem upTo_G0052 : BatchSpec 1299852 1000 1000 762800165 1000 :=
+  BatchSpec.append upTo_G0051 Zeta.Certificates.Groups.Level1.Group0052.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0053. -/
+theorem upTo_G0053 : BatchSpec 1324852 1000 1000 776207751 1000 :=
+  BatchSpec.append upTo_G0052 Zeta.Certificates.Groups.Level1.Group0053.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0054. -/
+theorem upTo_G0054 : BatchSpec 1349852 1000 1000 789595878 1000 :=
+  BatchSpec.append upTo_G0053 Zeta.Certificates.Groups.Level1.Group0054.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0055. -/
+theorem upTo_G0055 : BatchSpec 1374852 1000 1000 802964832 1000 :=
+  BatchSpec.append upTo_G0054 Zeta.Certificates.Groups.Level1.Group0055.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0056. -/
+theorem upTo_G0056 : BatchSpec 1399852 1000 1000 816314348 1000 :=
+  BatchSpec.append upTo_G0055 Zeta.Certificates.Groups.Level1.Group0056.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0057. -/
+theorem upTo_G0057 : BatchSpec 1424852 1000 1000 829645614 1000 :=
+  BatchSpec.append upTo_G0056 Zeta.Certificates.Groups.Level1.Group0057.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0058. -/
+theorem upTo_G0058 : BatchSpec 1449852 1000 1000 842958736 1000 :=
+  BatchSpec.append upTo_G0057 Zeta.Certificates.Groups.Level1.Group0058.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0059. -/
+theorem upTo_G0059 : BatchSpec 1474852 1000 1000 856254073 1000 :=
+  BatchSpec.append upTo_G0058 Zeta.Certificates.Groups.Level1.Group0059.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0060. -/
+theorem upTo_G0060 : BatchSpec 1499852 1000 1000 869531970 1000 :=
+  BatchSpec.append upTo_G0059 Zeta.Certificates.Groups.Level1.Group0060.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0061. -/
+theorem upTo_G0061 : BatchSpec 1524852 1000 1000 882792495 1000 :=
+  BatchSpec.append upTo_G0060 Zeta.Certificates.Groups.Level1.Group0061.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0062. -/
+theorem upTo_G0062 : BatchSpec 1549852 1000 1000 896036501 1000 :=
+  BatchSpec.append upTo_G0061 Zeta.Certificates.Groups.Level1.Group0062.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0063. -/
+theorem upTo_G0063 : BatchSpec 1574852 1000 1000 909264296 1000 :=
+  BatchSpec.append upTo_G0062 Zeta.Certificates.Groups.Level1.Group0063.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0064. -/
+theorem upTo_G0064 : BatchSpec 1599852 1000 1000 922475651 1000 :=
+  BatchSpec.append upTo_G0063 Zeta.Certificates.Groups.Level1.Group0064.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0065. -/
+theorem upTo_G0065 : BatchSpec 1624852 1000 1000 935671121 1000 :=
+  BatchSpec.append upTo_G0064 Zeta.Certificates.Groups.Level1.Group0065.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0066. -/
+theorem upTo_G0066 : BatchSpec 1649852 1000 1000 948851249 1000 :=
+  BatchSpec.append upTo_G0065 Zeta.Certificates.Groups.Level1.Group0066.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0067. -/
+theorem upTo_G0067 : BatchSpec 1674852 1000 1000 962015516 1000 :=
+  BatchSpec.append upTo_G0066 Zeta.Certificates.Groups.Level1.Group0067.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0068. -/
+theorem upTo_G0068 : BatchSpec 1699852 1000 1000 975165236 1000 :=
+  BatchSpec.append upTo_G0067 Zeta.Certificates.Groups.Level1.Group0068.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0069. -/
+theorem upTo_G0069 : BatchSpec 1724852 1000 1000 988299612 1000 :=
+  BatchSpec.append upTo_G0068 Zeta.Certificates.Groups.Level1.Group0069.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0070. -/
+theorem upTo_G0070 : BatchSpec 1748002 1000 1000 1000449286 1000 :=
+  BatchSpec.append upTo_G0069 Zeta.Certificates.Groups.Level1.Group0070.group rfl rfl rfl
+
 /-- All bracketed critical-line zeros in the store, as one batch statement. -/
-theorem certifiedBatches : BatchSpec 10156 1000 1000 10011107 1000 :=
-  upTo_G0001
+theorem certifiedBatches : BatchSpec 1748002 1000 1000 1000449286 1000 :=
+  upTo_G0070
 
 /-- All bracketed critical-line zeros in the store, as a single certified bundle. -/
 noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
@@ -40,12 +385,12 @@ noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
 into a height bound. -/
 theorem certifiedZeroIntervals_getLast? :
     certifiedZeroIntervals.intervals.getLast?.map (·.snd)
-      = some (Enclosure.sfrac false 10011107 1000) :=
+      = some (Enclosure.sfrac false 1000449286 1000) :=
   certifiedBatches.bundle_getLast?
 
 /-- The bundle's interval count. -/
 theorem certifiedZeroIntervals_length :
-    certifiedZeroIntervals.intervals.length = 10156 :=
+    certifiedZeroIntervals.intervals.length = 1748002 :=
   certifiedBatches.bundle_length
 
 end Zeta.Certificates

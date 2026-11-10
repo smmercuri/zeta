@@ -1,5 +1,5 @@
 {
-  "height": 10000.0,
+  "height": 1000000.0,
   "Lehman constant": 5,
   "gram_cols": [
     "idx",
@@ -22,23 +22,34 @@
     "epsilon": 0.125,
     "theta_at_height": {
       "theta_cutoff": "0",
-      "theta_bernoulli": "2"
+      "theta_bernoulli": "1"
     }
   },
   "zeros_map": {
-    "10155": "zeros_10155.txt",
-    "10156": "zeros_10156.txt",
-    "10157": "zeros_10157.txt",
-    "10158": "zeros_10158.txt",
-    "10159": "zeros_10159.txt",
-    "10160": "zeros_10160.txt",
-    "10161": "zeros_10161.txt",
-    "10162": "zeros_10162.txt",
-    "10163": "zeros_10163.txt",
-    "10164": "zeros_10164.txt",
-    "10165": "zeros_10165.txt",
-    "10166": "zeros_10166.txt",
-    "10167": "zeros_10167.txt",
-    "10168": "zeros_10168.txt"
+    "1748001": "zeros_1748001.txt",
+    "1748002": "zeros_1748002.txt",
+    "1748003": "zeros_1748003.txt",
+    "1748004": "zeros_1748004.txt",
+    "1748005": "zeros_1748005.txt",
+    "1748006": "zeros_1748006.txt",
+    "1748007": "zeros_1748007.txt",
+    "1748008": "zeros_1748008.txt",
+    "1748009": "zeros_1748009.txt",
+    "1748010": "zeros_1748010.txt",
+    "1748011": "zeros_1748011.txt",
+    "1748012": "zeros_1748012.txt",
+    "1748013": "zeros_1748013.txt",
+    "1748014": "zeros_1748014.txt",
+    "1748015": "zeros_1748015.txt",
+    "1748016": "zeros_1748016.txt",
+    "1748017": "zeros_1748017.txt",
+    "1748018": "zeros_1748018.txt",
+    "1748019": "zeros_1748019.txt",
+    "1748020": "zeros_1748020.txt",
+    "1748021": "zeros_1748021.txt",
+    "1748022": "zeros_1748022.txt",
+    "1748023": "zeros_1748023.txt",
+    "1748024": "zeros_1748024.txt",
+    "1748025": "zeros_1748025.txt"
   }
 }

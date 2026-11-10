@@ -1,0 +1,13 @@
+{
+    "challenge_module": "Batches.RiemannSiegel.Batch1555.Challenge",
+    "solution_module": "Batches.RiemannSiegel.Batch1555.Solution",
+    "theorem_names": [
+        "Comparator.batch_RS1555"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": false
+}
