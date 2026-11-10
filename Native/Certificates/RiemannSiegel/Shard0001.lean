@@ -68,18 +68,18 @@ end Native.Certificates.RiemannSiegel.Batch0005
 
 namespace Native.Certificates.RiemannSiegel.Batch0006
 
-/-- Zeta zeros #1001–#1200 (`t ≈ 1480.141 … 1707.173`), bracketed by
+/-- Zeta zeros #1001–#1200 (`t ≈ 1480.141 … 1706.928`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1480141 1000 1707173 1000 := by
+theorem batch : BatchSpec 200 1480141 1000 1706928 1000 := by
   build_batch_rs +native 1000 1200
 
 end Native.Certificates.RiemannSiegel.Batch0006
 
 namespace Native.Certificates.RiemannSiegel.Batch0007
 
-/-- Zeta zeros #1201–#1400 (`t ≈ 1707.173 … 1928.919`), bracketed by
+/-- Zeta zeros #1201–#1400 (`t ≈ 1706.928 … 1928.919`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1707173 1000 1928919 1000 := by
+theorem batch : BatchSpec 200 1706928 1000 1928919 1000 := by
   build_batch_rs +native 1200 1400
 
 end Native.Certificates.RiemannSiegel.Batch0007

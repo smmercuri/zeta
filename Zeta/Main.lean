@@ -18,19 +18,19 @@ namespace Zeta
 
 open Zeta.Certificates
 
-/-- The Riemann Hypothesis holds up to height 10011: every zero of `riemannZeta` with
-`|im| < 10011`, other than the trivial zeros and `s = 1`, has real part `1/2`. -/
-theorem riemannHypothesisUpTo_10011 : RiemannHypothesisUpTo 10011 :=
+/-- The Riemann Hypothesis holds up to height 100013: every zero of `riemannZeta` with
+`|im| < 100013`, other than the trivial zeros and `s = 1`, has real part `1/2`. -/
+theorem riemannHypothesisUpTo_100013 : RiemannHypothesisUpTo 100013 :=
   fun s h_zero h_nontrivial h_one h_im =>
     riemannHypothesisUpTo certifiedZeroCount s h_zero h_nontrivial h_one
-      (h_im.trans_le ((show (10011 : ℝ) ≤ Gram.gp1.fst by norm_num).trans
+      (h_im.trans_le ((show (100013 : ℝ) ≤ Gram.gp1.fst by norm_num).trans
         (GramPoint.certificate_left_lt_gramPoint Gram.gp1_cert).le))
 
-/-- Every zero up to height 10011 is simple: every zero of `riemannZeta` with
-`0 < im < 10011` has order `1`. -/
-theorem simpleZerosUpTo_10011 : SimpleZerosUpTo 10011 :=
+/-- Every zero up to height 100013 is simple: every zero of `riemannZeta` with
+`0 < im < 100013` has order `1`. -/
+theorem simpleZerosUpTo_100013 : SimpleZerosUpTo 100013 :=
   (simpleZerosUpTo certifiedZeroCount).mono
-    ((show (10011 : ℝ) ≤ Gram.gp1.fst by norm_num).trans
+    ((show (100013 : ℝ) ≤ Gram.gp1.fst by norm_num).trans
       (GramPoint.certificate_left_lt_gramPoint Gram.gp1_cert).le)
 
 end Zeta
@@ -38,15 +38,15 @@ end Zeta
 end
 
 /--
-info: 'Zeta.riemannHypothesisUpTo_10011' depends on axioms:
+info: 'Zeta.riemannHypothesisUpTo_100013' depends on axioms:
 [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Zeta.riemannHypothesisUpTo_10011
+#print axioms Zeta.riemannHypothesisUpTo_100013
 
 /--
-info: 'Zeta.simpleZerosUpTo_10011' depends on axioms:
+info: 'Zeta.simpleZerosUpTo_100013' depends on axioms:
 [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs (whitespace := lax) in
-#print axioms Zeta.simpleZerosUpTo_10011
+#print axioms Zeta.simpleZerosUpTo_100013

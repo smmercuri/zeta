@@ -19,18 +19,43 @@ module
 
 public import Zeta.Zeros.Certificates.Fold
 import Zeta.Zeros.Certificates.Groups.Level1.Group0001
+import Zeta.Zeros.Certificates.Groups.Level1.Group0002
+import Zeta.Zeros.Certificates.Groups.Level1.Group0003
+import Zeta.Zeros.Certificates.Groups.Level1.Group0004
+import Zeta.Zeros.Certificates.Groups.Level1.Group0005
+import Zeta.Zeros.Certificates.Groups.Level1.Group0006
 
 @[expose] public section
 
 namespace Zeta.Certificates
 
 /-- The zeros of batch Groups.Level1.Group0001. -/
-theorem upTo_G0001 : BatchSpec 10156 1000 1000 10011107 1000 :=
+theorem upTo_G0001 : BatchSpec 24852 1000 1000 21828855 1000 :=
   Zeta.Certificates.Groups.Level1.Group0001.group
 
+/-- The zeros of every batch up to Groups.Level1.Group0002. -/
+theorem upTo_G0002 : BatchSpec 49852 1000 1000 40327924 1000 :=
+  BatchSpec.append upTo_G0001 Zeta.Certificates.Groups.Level1.Group0002.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0003. -/
+theorem upTo_G0003 : BatchSpec 74852 1000 1000 57862857 1000 :=
+  BatchSpec.append upTo_G0002 Zeta.Certificates.Groups.Level1.Group0003.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0004. -/
+theorem upTo_G0004 : BatchSpec 99852 1000 1000 74822148 1000 :=
+  BatchSpec.append upTo_G0003 Zeta.Certificates.Groups.Level1.Group0004.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0005. -/
+theorem upTo_G0005 : BatchSpec 124852 1000 1000 91377303 1000 :=
+  BatchSpec.append upTo_G0004 Zeta.Certificates.Groups.Level1.Group0005.group rfl rfl rfl
+
+/-- The zeros of every batch up to Groups.Level1.Group0006. -/
+theorem upTo_G0006 : BatchSpec 138090 1000 1000 100013924 1000 :=
+  BatchSpec.append upTo_G0005 Zeta.Certificates.Groups.Level1.Group0006.group rfl rfl rfl
+
 /-- All bracketed critical-line zeros in the store, as one batch statement. -/
-theorem certifiedBatches : BatchSpec 10156 1000 1000 10011107 1000 :=
-  upTo_G0001
+theorem certifiedBatches : BatchSpec 138090 1000 1000 100013924 1000 :=
+  upTo_G0006
 
 /-- All bracketed critical-line zeros in the store, as a single certified bundle. -/
 noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
@@ -40,12 +65,12 @@ noncomputable def certifiedZeroIntervals : CertifiedZeroIntervals :=
 into a height bound. -/
 theorem certifiedZeroIntervals_getLast? :
     certifiedZeroIntervals.intervals.getLast?.map (·.snd)
-      = some (Enclosure.sfrac false 10011107 1000) :=
+      = some (Enclosure.sfrac false 100013924 1000) :=
   certifiedBatches.bundle_getLast?
 
 /-- The bundle's interval count. -/
 theorem certifiedZeroIntervals_length :
-    certifiedZeroIntervals.intervals.length = 10156 :=
+    certifiedZeroIntervals.intervals.length = 138090 :=
   certifiedBatches.bundle_length
 
 end Zeta.Certificates

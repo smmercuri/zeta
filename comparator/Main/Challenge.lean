@@ -8,16 +8,16 @@ import Mathlib.NumberTheory.LSeries.RiemannZeta
 /-!
 # Comparator challenge: the headline theorem
 
-The frozen statement, proved by `sorry`. It is `Zeta.RiemannHypothesisUpTo 10011` written
+The frozen statement, proved by `sorry`. It is `Zeta.RiemannHypothesisUpTo 100013` written
 out in full, so that it mentions only Mathlib's `riemannZeta` and the challenge imports nothing
-of this project: every zero of `ζ` with `|im s| < 10011`, other than the trivial zeros and
+of this project: every zero of `ζ` with `|im s| < 100013`, other than the trivial zeros and
 `s = 1`, lies on the critical line.
 -/
 
 namespace Comparator
 
-theorem riemannHypothesisUpTo_10011 :
-    ∀ s, riemannZeta s = 0 → (¬∃ n : ℕ, s = -2 * (n + 1)) → s ≠ 1 → |s.im| < 10011 →
+theorem riemannHypothesisUpTo_100013 :
+    ∀ s, riemannZeta s = 0 → (¬∃ n : ℕ, s = -2 * (n + 1)) → s ≠ 1 → |s.im| < 100013 →
       s.re = 1 / 2 :=
   sorry
 
