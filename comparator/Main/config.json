@@ -2,7 +2,7 @@
     "challenge_module": "Main.Challenge",
     "solution_module": "Main.Solution",
     "theorem_names": [
-        "Comparator.riemannHypothesisUpTo_10011"
+        "Comparator.riemannHypothesisUpTo_1895609"
     ],
     "permitted_axioms": [
         "propext",

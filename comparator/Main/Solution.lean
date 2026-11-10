@@ -8,17 +8,17 @@ import Zeta.Main
 /-!
 # Comparator solution: the headline theorem
 
-The challenge statement, discharged by the project's `Zeta.riemannHypothesisUpTo_10011`
-(whose type `RiemannHypothesisUpTo 10011` unfolds to it). Comparator re-checks the whole
+The challenge statement, discharged by the project's `Zeta.riemannHypothesisUpTo_1895609`
+(whose type `RiemannHypothesisUpTo 1895609` unfolds to it). Comparator re-checks the whole
 dependency tree, certificate batches included, so every batch's private olean must be full-size
 (`proofs.sh restore`).
 -/
 
 namespace Comparator
 
-theorem riemannHypothesisUpTo_10011 :
-    ∀ s, riemannZeta s = 0 → (¬∃ n : ℕ, s = -2 * (n + 1)) → s ≠ 1 → |s.im| < 10011 →
+theorem riemannHypothesisUpTo_1895609 :
+    ∀ s, riemannZeta s = 0 → (¬∃ n : ℕ, s = -2 * (n + 1)) → s ≠ 1 → |s.im| < 1895609 →
       s.re = 1 / 2 :=
-  Zeta.riemannHypothesisUpTo_10011
+  Zeta.riemannHypothesisUpTo_1895609
 
 end Comparator

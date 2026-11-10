@@ -1,8 +1,8 @@
 {
-  "rows": 10104,
+  "rows": 3504799,
   "rows_per_file": 250000,
-  "height": "10011.107",
-  "end": 10011.107,
+  "height": "1895609.307",
+  "end": 1895609.307,
   "cols": [
     "idx",
     "left",
@@ -20,8 +20,78 @@
   "files": [
     {
       "file": "zeros_00001.txt",
-      "rows": 10104,
-      "height": "10011.107"
+      "rows": 250000,
+      "height": "170602.749"
+    },
+    {
+      "file": "zeros_00002.txt",
+      "rows": 250000,
+      "height": "319417.763"
+    },
+    {
+      "file": "zeros_00003.txt",
+      "rows": 250000,
+      "height": "461803.682"
+    },
+    {
+      "file": "zeros_00004.txt",
+      "rows": 250000,
+      "height": "600298.404"
+    },
+    {
+      "file": "zeros_00005.txt",
+      "rows": 250000,
+      "height": "736031.456"
+    },
+    {
+      "file": "zeros_00006.txt",
+      "rows": 250000,
+      "height": "869638.124"
+    },
+    {
+      "file": "zeros_00007.txt",
+      "rows": 250000,
+      "height": "1001524.580"
+    },
+    {
+      "file": "zeros_00008.txt",
+      "rows": 250000,
+      "height": "1131971.659"
+    },
+    {
+      "file": "zeros_00009.txt",
+      "rows": 250000,
+      "height": "1261185.234"
+    },
+    {
+      "file": "zeros_00010.txt",
+      "rows": 250000,
+      "height": "1389320.836"
+    },
+    {
+      "file": "zeros_00011.txt",
+      "rows": 250000,
+      "height": "1516501.725"
+    },
+    {
+      "file": "zeros_00012.txt",
+      "rows": 250000,
+      "height": "1642826.573"
+    },
+    {
+      "file": "zeros_00013.txt",
+      "rows": 250000,
+      "height": "1768376.651"
+    },
+    {
+      "file": "zeros_00014.txt",
+      "rows": 250000,
+      "height": "1893219.350"
+    },
+    {
+      "file": "zeros_00015.txt",
+      "rows": 4799,
+      "height": "1895609.307"
     }
   ]
 }
