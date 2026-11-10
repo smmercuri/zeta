@@ -18,7 +18,7 @@
   "params": {
     "method": "riemann_siegel",
     "prec": 200,
-    "bisection_depth": 0,
+    "bisection_depth": 10,
     "epsilon": 0.125,
     "theta_at_height": {
       "theta_cutoff": "0",

@@ -17,159 +17,211 @@ import Zeta.Zeros.Certificates.Basic
 namespace Comparator
 
 /-- The statement exported by batch EulerMaclaurin.Batch0001. -/
-abbrev Spec.EM0001 : Prop := Zeta.Certificates.BatchSpec 52 1000 1000 149500 1000
+abbrev Spec.EM0001 : Prop :=
+  Zeta.Certificates.BatchSpec 52 141316429581936 10000000000000 1474241981709691 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0001. -/
-abbrev Spec.RS0001 : Prop := Zeta.Certificates.BatchSpec 200 149500 1000 474603 1000
+abbrev Spec.RS0001 : Prop :=
+  Zeta.Certificates.BatchSpec 200 1499335940486741 10000000000000 4738760481595414 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0002. -/
-abbrev Spec.RS0002 : Prop := Zeta.Certificates.BatchSpec 200 474603 1000 748976 1000
+abbrev Spec.RS0002 : Prop :=
+  Zeta.Certificates.BatchSpec 200 4755104902703413 10000000000000 7484014024026909 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0003. -/
-abbrev Spec.RS0003 : Prop := Zeta.Certificates.BatchSpec 200 748976 1000 1004192 1000
+abbrev Spec.RS0003 : Prop :=
+  Zeta.Certificates.BatchSpec 200 7506188513826209 10000000000000 1003572594935436 1000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0004. -/
-abbrev Spec.RS0004 : Prop := Zeta.Certificates.BatchSpec 200 1004192 1000 1246504 1000
+abbrev Spec.RS0004 : Prop :=
+  Zeta.Certificates.BatchSpec 200 10046561220687909 10000000000000 12456592361013876 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0005. -/
-abbrev Spec.RS0005 : Prop := Zeta.Certificates.BatchSpec 200 1246504 1000 1480141 1000
+abbrev Spec.RS0005 : Prop :=
+  Zeta.Certificates.BatchSpec 200 12473572725094385 10000000000000 14797636903807742 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0006. -/
-abbrev Spec.RS0006 : Prop := Zeta.Certificates.BatchSpec 200 1480141 1000 1707173 1000
+abbrev Spec.RS0006 : Prop :=
+  Zeta.Certificates.BatchSpec 200 14807612352355157 10000000000000 17066236852837636 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0007. -/
-abbrev Spec.RS0007 : Prop := Zeta.Certificates.BatchSpec 200 1707173 1000 1928919 1000
+abbrev Spec.RS0007 : Prop :=
+  Zeta.Certificates.BatchSpec 200 17078739133639345 10000000000000 19284217808110302 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0008. -/
-abbrev Spec.RS0008 : Prop := Zeta.Certificates.BatchSpec 200 1928919 1000 2146286 1000
+abbrev Spec.RS0008 : Prop :=
+  Zeta.Certificates.BatchSpec 200 19294846389605636 10000000000000 21455117522456821 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0009. -/
-abbrev Spec.RS0009 : Prop := Zeta.Certificates.BatchSpec 200 2146286 1000 2359934 1000
+abbrev Spec.RS0009 : Prop :=
+  Zeta.Certificates.BatchSpec 200 21466224944531084 10000000000000 23594700836549074 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0010. -/
-abbrev Spec.RS0010 : Prop := Zeta.Certificates.BatchSpec 200 2359934 1000 2570361 1000
+abbrev Spec.RS0010 : Prop :=
+  Zeta.Certificates.BatchSpec 200 23602980757498223 10000000000000 25699532507711299 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0011. -/
-abbrev Spec.RS0011 : Prop := Zeta.Certificates.BatchSpec 200 2570361 1000 2777958 1000
+abbrev Spec.RS0011 : Prop :=
+  Zeta.Certificates.BatchSpec 200 25709490438399161 10000000000000 27775148314789649 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0012. -/
-abbrev Spec.RS0012 : Prop := Zeta.Certificates.BatchSpec 200 2777958 1000 2983035 1000
+abbrev Spec.RS0012 : Prop :=
+  Zeta.Certificates.BatchSpec 200 27782803657207275 10000000000000 29825254557468404 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0013. -/
-abbrev Spec.RS0013 : Prop := Zeta.Certificates.BatchSpec 200 2983035 1000 3185847 1000
+abbrev Spec.RS0013 : Prop :=
+  Zeta.Certificates.BatchSpec 200 29838237569796339 10000000000000 31852167436678768 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0014. -/
-abbrev Spec.RS0014 : Prop := Zeta.Certificates.BatchSpec 200 3185847 1000 3386605 1000
+abbrev Spec.RS0014 : Prop :=
+  Zeta.Certificates.BatchSpec 200 31865446855042937 10000000000000 33861681621073747 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0015. -/
-abbrev Spec.RS0015 : Prop := Zeta.Certificates.BatchSpec 200 3386605 1000 3585487 1000
+abbrev Spec.RS0015 : Prop :=
+  Zeta.Certificates.BatchSpec 200 33871476118801034 10000000000000 35852086235109158 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0016. -/
-abbrev Spec.RS0016 : Prop := Zeta.Certificates.BatchSpec 200 3585487 1000 3782644 1000
+abbrev Spec.RS0016 : Prop :=
+  Zeta.Certificates.BatchSpec 200 35856804132647363 10000000000000 37823990302801586 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0017. -/
-abbrev Spec.RS0017 : Prop := Zeta.Certificates.BatchSpec 200 3782644 1000 3977721 1000
+abbrev Spec.RS0017 : Prop :=
+  Zeta.Certificates.BatchSpec 200 3783125714657218 1000000000000 39771161556209296 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0018. -/
-abbrev Spec.RS0018 : Prop := Zeta.Certificates.BatchSpec 200 3977721 1000 4172292 1000
+abbrev Spec.RS0018 : Prop :=
+  Zeta.Certificates.BatchSpec 200 39786856538283028 10000000000000 41721332674402514 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0019. -/
-abbrev Spec.RS0019 : Prop := Zeta.Certificates.BatchSpec 200 4172292 1000 4364995 1000
+abbrev Spec.RS0019 : Prop :=
+  Zeta.Certificates.BatchSpec 200 41728735352622095 10000000000000 43645490886860532 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0020. -/
-abbrev Spec.RS0020 : Prop := Zeta.Certificates.BatchSpec 200 4364995 1000 4556407 1000
+abbrev Spec.RS0020 : Prop :=
+  Zeta.Certificates.BatchSpec 200 43656705900452182 10000000000000 45555964395553613 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0021. -/
-abbrev Spec.RS0021 : Prop := Zeta.Certificates.BatchSpec 200 4556407 1000 4746605 1000
+abbrev Spec.RS0021 : Prop :=
+  Zeta.Certificates.BatchSpec 200 45568839205062031 10000000000000 47458437261490247 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0022. -/
-abbrev Spec.RS0022 : Prop := Zeta.Certificates.BatchSpec 200 4746605 1000 4935659 1000
+abbrev Spec.RS0022 : Prop :=
+  Zeta.Certificates.BatchSpec 200 47468390277430321 10000000000000 49352025623991367 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0023. -/
-abbrev Spec.RS0023 : Prop := Zeta.Certificates.BatchSpec 200 4935659 1000 5123633 1000
+abbrev Spec.RS0023 : Prop :=
+  Zeta.Certificates.BatchSpec 200 49361303558317226 10000000000000 5123303439086908 1000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0024. -/
-abbrev Spec.RS0024 : Prop := Zeta.Certificates.BatchSpec 200 5123633 1000 5310583 1000
+abbrev Spec.RS0024 : Prop :=
+  Zeta.Certificates.BatchSpec 200 51240613046737765 10000000000000 53100334216185056 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0025. -/
-abbrev Spec.RS0025 : Prop := Zeta.Certificates.BatchSpec 200 5310583 1000 5496562 1000
+abbrev Spec.RS0025 : Prop :=
+  Zeta.Certificates.BatchSpec 200 53106051792285316 10000000000000 54960900389518161 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0026. -/
-abbrev Spec.RS0026 : Prop := Zeta.Certificates.BatchSpec 200 5496562 1000 5681847 1000
+abbrev Spec.RS0026 : Prop :=
+  Zeta.Certificates.BatchSpec 200 54972576186524129 10000000000000 56812428346198639 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0027. -/
-abbrev Spec.RS0027 : Prop := Zeta.Certificates.BatchSpec 200 5681847 1000 5865789 1000
+abbrev Spec.RS0027 : Prop :=
+  Zeta.Certificates.BatchSpec 200 5682091950903244 1000000000000 58655302098386137 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0028. -/
-abbrev Spec.RS0028 : Prop := Zeta.Certificates.BatchSpec 200 5865789 1000 6049119 1000
+abbrev Spec.RS0028 : Prop :=
+  Zeta.Certificates.BatchSpec 200 58660398160965096 10000000000000 60489549714024747 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0029. -/
-abbrev Spec.RS0029 : Prop := Zeta.Certificates.BatchSpec 200 6049119 1000 6231645 1000
+abbrev Spec.RS0029 : Prop :=
+  Zeta.Certificates.BatchSpec 200 60492336424468222 10000000000000 62311874923239168 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0030. -/
-abbrev Spec.RS0030 : Prop := Zeta.Certificates.BatchSpec 200 6231645 1000 6413398 1000
+abbrev Spec.RS0030 : Prop :=
+  Zeta.Certificates.BatchSpec 200 62322333386424273 10000000000000 64130438955081561 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0031. -/
-abbrev Spec.RS0031 : Prop := Zeta.Certificates.BatchSpec 200 6413398 1000 6594411 1000
+abbrev Spec.RS0031 : Prop :=
+  Zeta.Certificates.BatchSpec 200 64138303394887834 10000000000000 65940353507412974 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0032. -/
-abbrev Spec.RS0032 : Prop := Zeta.Certificates.BatchSpec 200 6594411 1000 6774712 1000
+abbrev Spec.RS0032 : Prop :=
+  Zeta.Certificates.BatchSpec 200 65951803027269634 10000000000000 67745736448044183 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0033. -/
-abbrev Spec.RS0033 : Prop := Zeta.Certificates.BatchSpec 200 6774712 1000 6954777 1000
+abbrev Spec.RS0033 : Prop :=
+  Zeta.Certificates.BatchSpec 200 67749374195622971 10000000000000 69538082857590846 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0034. -/
-abbrev Spec.RS0034 : Prop := Zeta.Certificates.BatchSpec 200 6954777 1000 7133286 1000
+abbrev Spec.RS0034 : Prop :=
+  Zeta.Certificates.BatchSpec 200 69552605775620616 10000000000000 71328754643895982 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0035. -/
-abbrev Spec.RS0035 : Prop := Zeta.Certificates.BatchSpec 200 7133286 1000 7311607 1000
+abbrev Spec.RS0035 : Prop :=
+  Zeta.Certificates.BatchSpec 200 71340032716278944 10000000000000 73111919112571079 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0036. -/
-abbrev Spec.RS0036 : Prop := Zeta.Certificates.BatchSpec 200 7311607 1000 7489758 1000
+abbrev Spec.RS0036 : Prop :=
+  Zeta.Certificates.BatchSpec 200 7311880312564467 1000000000000 74894114651320107 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0037. -/
-abbrev Spec.RS0037 : Prop := Zeta.Certificates.BatchSpec 200 7489758 1000 7666428 1000
+abbrev Spec.RS0037 : Prop :=
+  Zeta.Certificates.BatchSpec 200 74897995397670488 10000000000000 76658030162383117 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0038. -/
-abbrev Spec.RS0038 : Prop := Zeta.Certificates.BatchSpec 200 7666428 1000 7842968 1000
+abbrev Spec.RS0038 : Prop :=
+  Zeta.Certificates.BatchSpec 200 76665023716662429 10000000000000 7842774179189174 1000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0039. -/
-abbrev Spec.RS0039 : Prop := Zeta.Certificates.BatchSpec 200 7842968 1000 8018952 1000
+abbrev Spec.RS0039 : Prop :=
+  Zeta.Certificates.BatchSpec 200 78437406724195854 10000000000000 8018639538509875 1000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0040. -/
-abbrev Spec.RS0040 : Prop := Zeta.Certificates.BatchSpec 200 8018952 1000 8193959 1000
+abbrev Spec.RS0040 : Prop :=
+  Zeta.Certificates.BatchSpec 200 801934993599093 100000000000 81932340840321036 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0041. -/
-abbrev Spec.RS0041 : Prop := Zeta.Certificates.BatchSpec 200 8193959 1000 8369321 1000
+abbrev Spec.RS0041 : Prop :=
+  Zeta.Certificates.BatchSpec 200 81949277457317373 10000000000000 83689250950107535 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0042. -/
-abbrev Spec.RS0042 : Prop := Zeta.Certificates.BatchSpec 200 8369321 1000 8543737 1000
+abbrev Spec.RS0042 : Prop :=
+  Zeta.Certificates.BatchSpec 200 8369980091874897 1000000000000 85433428904775393 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0043. -/
-abbrev Spec.RS0043 : Prop := Zeta.Certificates.BatchSpec 200 8543737 1000 8717662 1000
+abbrev Spec.RS0043 : Prop :=
+  Zeta.Certificates.BatchSpec 200 85437510999290248 10000000000000 87170038989389028 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0044. -/
-abbrev Spec.RS0044 : Prop := Zeta.Certificates.BatchSpec 200 8717662 1000 8891108 1000
+abbrev Spec.RS0044 : Prop :=
+  Zeta.Certificates.BatchSpec 200 87181394552240031 10000000000000 88905398354416649 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0045. -/
-abbrev Spec.RS0045 : Prop := Zeta.Certificates.BatchSpec 200 8891108 1000 9063657 1000
+abbrev Spec.RS0045 : Prop :=
+  Zeta.Certificates.BatchSpec 200 88913060956934119 10000000000000 90630668526384742 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0046. -/
-abbrev Spec.RS0046 : Prop := Zeta.Certificates.BatchSpec 200 9063657 1000 9236187 1000
+abbrev Spec.RS0046 : Prop :=
+  Zeta.Certificates.BatchSpec 200 90643979320349079 10000000000000 92355271623173913 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0047. -/
-abbrev Spec.RS0047 : Prop := Zeta.Certificates.BatchSpec 200 9236187 1000 9408275 1000
+abbrev Spec.RS0047 : Prop :=
+  Zeta.Certificates.BatchSpec 200 92372552763113325 10000000000000 9407745874961031 1000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0048. -/
-abbrev Spec.RS0048 : Prop := Zeta.Certificates.BatchSpec 200 9408275 1000 9579935 1000
+abbrev Spec.RS0048 : Prop :=
+  Zeta.Certificates.BatchSpec 200 94094704618024964 10000000000000 95794498814600944 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0049. -/
-abbrev Spec.RS0049 : Prop := Zeta.Certificates.BatchSpec 200 9579935 1000 9751603 1000
+abbrev Spec.RS0049 : Prop :=
+  Zeta.Certificates.BatchSpec 200 95811250075996844 10000000000000 97507733956030869 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0050. -/
-abbrev Spec.RS0050 : Prop := Zeta.Certificates.BatchSpec 200 9751603 1000 9922434 1000
+abbrev Spec.RS0050 : Prop :=
+  Zeta.Certificates.BatchSpec 200 97519826594825524 10000000000000 99217173113207611 10000000000000
 
 /-- The statement exported by batch RiemannSiegel.Batch0051. -/
-abbrev Spec.RS0051 : Prop := Zeta.Certificates.BatchSpec 104 9922434 1000 10011107 1000
+abbrev Spec.RS0051 : Prop :=
+  Zeta.Certificates.BatchSpec 104 99225538032609107 10000000000000 100108599713733597 10000000000000
 
 end Comparator

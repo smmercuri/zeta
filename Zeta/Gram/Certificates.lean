@@ -305,10 +305,10 @@ theorem gp15_cert : gp15.Certificate where
   fst_bound := by gram_bound
   snd_bound := by gram_bound
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10011.534110000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10011.550750000000000000000000000000`). -/
 abbrev z1_1 : ZIntervalRS where
-  fst := 10011.53411
-  snd := 10011.64063
+  fst := 10011.55075
+  snd := 10011.55242
   fst_le_snd := by norm_num
 
 theorem z1_1_cert : z1_1.Certificate where
@@ -335,10 +335,10 @@ theorem blk1_cert : blk1.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z1_1_cert
   contains_zero := ⟨z1_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10012.066680000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10012.096630000000000000000000000000`). -/
 abbrev z2_1 : ZIntervalRS where
-  fst := 10012.06668
-  snd := 10012.17320
+  fst := 10012.09663
+  snd := 10012.09997
   fst_le_snd := by norm_num
 
 theorem z2_1_cert : z2_1.Certificate where
@@ -365,10 +365,10 @@ theorem blk2_cert : blk2.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z2_1_cert
   contains_zero := ⟨z2_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10013.025300000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10013.032790000000000000000000000000`). -/
 abbrev z3_1 : ZIntervalRS where
-  fst := 10013.02530
-  snd := 10013.13182
+  fst := 10013.03279
+  snd := 10013.03363
   fst_le_snd := by norm_num
 
 theorem z3_1_cert : z3_1.Certificate where
@@ -395,10 +395,10 @@ theorem blk3_cert : blk3.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z3_1_cert
   contains_zero := ⟨z3_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10013.770880000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10013.836620000000000000000000000000`). -/
 abbrev z4_1 : ZIntervalRS where
-  fst := 10013.77088
-  snd := 10013.87740
+  fst := 10013.83662
+  snd := 10013.83704
   fst_le_snd := by norm_num
 
 theorem z4_1_cert : z4_1.Certificate where
@@ -425,10 +425,10 @@ theorem blk4_cert : blk4.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z4_1_cert
   contains_zero := ⟨z4_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10015.049010000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10015.055250000000000000000000000000`). -/
 abbrev z5_1 : ZIntervalRS where
-  fst := 10015.04901
-  snd := 10015.15553
+  fst := 10015.05525
+  snd := 10015.05567
   fst_le_snd := by norm_num
 
 theorem z5_1_cert : z5_1.Certificate where
@@ -455,10 +455,10 @@ theorem blk5_cert : blk5.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z5_1_cert
   contains_zero := ⟨z5_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10015.581550000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10015.610680000000000000000000000000`). -/
 abbrev z6_1 : ZIntervalRS where
-  fst := 10015.58155
-  snd := 10015.68807
+  fst := 10015.61068
+  snd := 10015.61110
   fst_le_snd := by norm_num
 
 theorem z6_1_cert : z6_1.Certificate where
@@ -485,10 +485,10 @@ theorem blk6_cert : blk6.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z6_1_cert
   contains_zero := ⟨z6_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10016.646630000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10016.655370000000000000000000000000`). -/
 abbrev z7_1 : ZIntervalRS where
-  fst := 10016.64663
-  snd := 10016.75315
+  fst := 10016.65537
+  snd := 10016.65559
   fst_le_snd := by norm_num
 
 theorem z7_1_cert : z7_1.Certificate where
@@ -515,10 +515,10 @@ theorem blk7_cert : blk7.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z7_1_cert
   contains_zero := ⟨z7_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10017.818200000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10017.828170000000000000000000000000`). -/
 abbrev z8_1 : ZIntervalRS where
-  fst := 10017.81820
-  snd := 10017.92452
+  fst := 10017.82817
+  snd := 10017.82901
   fst_le_snd := by norm_num
 
 theorem z8_1_cert : z8_1.Certificate where
@@ -545,10 +545,10 @@ theorem blk8_cert : blk8.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z8_1_cert
   contains_zero := ⟨z8_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10018.350730000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10018.377360000000000000000000000000`). -/
 abbrev z9_1 : ZIntervalRS where
-  fst := 10018.35073
-  snd := 10018.45724
+  fst := 10018.37736
+  snd := 10018.38402
   fst_le_snd := by norm_num
 
 theorem z9_1_cert : z9_1.Certificate where
@@ -575,10 +575,10 @@ theorem blk9_cert : blk9.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z9_1_cert
   contains_zero := ⟨z9_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10019.096260000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10019.119560000000000000000000000000`). -/
 abbrev z10_1 : ZIntervalRS where
-  fst := 10019.09626
-  snd := 10019.20277
+  fst := 10019.11956
+  snd := 10019.12290
   fst_le_snd := by norm_num
 
 theorem z10_1_cert : z10_1.Certificate where
@@ -605,10 +605,10 @@ theorem blk10_cert : blk10.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z10_1_cert
   contains_zero := ⟨z10_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10020.267790000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10020.331030000000000000000000000000`). -/
 abbrev z11_1 : ZIntervalRS where
-  fst := 10020.26779
-  snd := 10020.37430
+  fst := 10020.33103
+  snd := 10020.33145
   fst_le_snd := by norm_num
 
 theorem z11_1_cert : z11_1.Certificate where
@@ -635,10 +635,10 @@ theorem blk11_cert : blk11.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z11_1_cert
   contains_zero := ⟨z11_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10020.800300000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10020.806960000000000000000000000000`). -/
 abbrev z12_1 : ZIntervalRS where
-  fst := 10020.80030
-  snd := 10020.90681
+  fst := 10020.80696
+  snd := 10020.81362
   fst_le_snd := by norm_num
 
 theorem z12_1_cert : z12_1.Certificate where
@@ -665,10 +665,10 @@ theorem blk12_cert : blk12.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z12_1_cert
   contains_zero := ⟨z12_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10021.865310000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10021.882780000000000000000000000000`). -/
 abbrev z13_1 : ZIntervalRS where
-  fst := 10021.86531
-  snd := 10021.97182
+  fst := 10021.88278
+  snd := 10021.88362
   fst_le_snd := by norm_num
 
 theorem z13_1_cert : z13_1.Certificate where
@@ -695,10 +695,10 @@ theorem blk13_cert : blk13.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z13_1_cert
   contains_zero := ⟨z13_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10022.504300000000000000000000000000`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10022.591660000000000000000000000000`). -/
 abbrev z14_1 : ZIntervalRS where
-  fst := 10022.50430
-  snd := 10022.61081
+  fst := 10022.59166
+  snd := 10022.59251
   fst_le_snd := by norm_num
 
 theorem z14_1_cert : z14_1.Certificate where

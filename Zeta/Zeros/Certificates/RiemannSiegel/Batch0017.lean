@@ -10,8 +10,8 @@ Do not edit by hand: regenerate instead.
 
 Batch 17: zeta zeros #3201–#3400 (200 intervals), bracketed by the
 riemann_siegel approximant.
-params: {"bisection_depth": 0, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
-  "prec": 200, "widen": true, "window_retries": 100}
+params: {"bisection_depth": 10, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
+  "prec": 200, "widen": false, "window_retries": 100}
 -/
 module
 
@@ -22,12 +22,14 @@ public import Zeta.Zeros.BuildCertsRS
 namespace Zeta.Certificates.RiemannSiegel.Batch0017
 
 /-- The batch, as the statement the assembler consumes: a certified bundle of 200
-intervals exists, the first starting at `3782644/1000` and the last ending at `3977721/1000`
-(`t ≈ 3782.644 … 3977.721`). The proof is the bundle, built row-by-row from the
+intervals exists, the first starting at `3783125714657218/1000000000000`
+and the last ending at `39771161556209296/10000000000000`
+(`t ≈ 3783.1257146 … 3977.1161556`). The proof is the bundle, built row-by-row from the
 store by `build_batch_rs`, with `is_sign_change`/`fst_error`/`snd_error` discharged by the
 kernel-checked `Enclosure` ball arithmetic. It stays in this module's private
 olean. -/
-theorem batch : BatchSpec 200 3782644 1000 3977721 1000 := by build_batch_rs 3200 3400
+theorem batch : BatchSpec 200 3783125714657218 1000000000000 39771161556209296 10000000000000 := by
+  build_batch_rs 3200 3400
 
 end Zeta.Certificates.RiemannSiegel.Batch0017
 

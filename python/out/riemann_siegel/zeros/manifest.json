@@ -1,7 +1,7 @@
 {
   "rows": 10104,
   "rows_per_file": 250000,
-  "height": "10011.107",
+  "height": "10010.8599713733597",
   "end": 10011.107,
   "cols": [
     "idx",
@@ -11,9 +11,9 @@
   "params": {
     "method": "riemann_siegel",
     "prec": 200,
-    "bisection_depth": 0,
+    "bisection_depth": 10,
     "epsilon": 0.125,
-    "widen": true,
+    "widen": false,
     "window_retries": 100,
     "halving_depth": 10
   },
@@ -21,7 +21,7 @@
     {
       "file": "zeros_00001.txt",
       "rows": 10104,
-      "height": "10011.107"
+      "height": "10010.8599713733597"
     }
   ]
 }

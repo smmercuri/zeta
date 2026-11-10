@@ -1,7 +1,7 @@
 {
   "rows": 52,
   "rows_per_file": 250000,
-  "height": "149.500",
+  "height": "147.4241981709691",
   "end": 149.5,
   "cols": [
     "idx",
@@ -18,9 +18,9 @@
     "N": null,
     "M": 20,
     "b": 1.25,
-    "bisection_depth": 0,
+    "bisection_depth": 10,
     "epsilon": 0.125,
-    "widen": true,
+    "widen": false,
     "window_retries": 100,
     "halving_depth": 10
   },
@@ -28,7 +28,7 @@
     {
       "file": "zeros_00001.txt",
       "rows": 52,
-      "height": "149.500"
+      "height": "147.4241981709691"
     }
   ]
 }

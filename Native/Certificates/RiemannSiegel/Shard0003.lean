@@ -10,8 +10,8 @@ Do not edit by hand: regenerate instead.
 
 Native RiemannSiegel shard 3: batches 51–51, zeta zeros #10001–#10104,
 checked by compiled evaluation (`native_decide` on `Native.checkTiling`).
-params: {"bisection_depth": 0, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
-  "prec": 200, "widen": true, "window_retries": 100}
+params: {"bisection_depth": 10, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
+  "prec": 200, "widen": false, "window_retries": 100}
 -/
 module
 
@@ -23,9 +23,9 @@ open Zeta.Certificates
 
 namespace Native.Certificates.RiemannSiegel.Batch0051
 
-/-- Zeta zeros #10001–#10104 (`t ≈ 9922.434 … 10011.107`), bracketed by
+/-- Zeta zeros #10001–#10104 (`t ≈ 9922.5538032 … 10010.859971`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 104 9922434 1000 10011107 1000 := by
+theorem batch : BatchSpec 104 99225538032609107 10000000000000 100108599713733597 10000000000000 := by
   build_batch_rs +native 10000 10104
 
 end Native.Certificates.RiemannSiegel.Batch0051

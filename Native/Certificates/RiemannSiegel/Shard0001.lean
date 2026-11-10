@@ -10,8 +10,8 @@ Do not edit by hand: regenerate instead.
 
 Native RiemannSiegel shard 1: batches 1–25, zeta zeros #1–#5000,
 checked by compiled evaluation (`native_decide` on `Native.checkTiling`).
-params: {"bisection_depth": 0, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
-  "prec": 200, "widen": true, "window_retries": 100}
+params: {"bisection_depth": 10, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
+  "prec": 200, "widen": false, "window_retries": 100}
 -/
 module
 
@@ -23,225 +23,225 @@ open Zeta.Certificates
 
 namespace Native.Certificates.RiemannSiegel.Batch0001
 
-/-- Zeta zeros #1–#200 (`t ≈ 149.500 … 474.603`), bracketed by
+/-- Zeta zeros #1–#200 (`t ≈ 149.93359404 … 473.87604815`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 149500 1000 474603 1000 := by
+theorem batch : BatchSpec 200 1499335940486741 10000000000000 4738760481595414 10000000000000 := by
   build_batch_rs +native 0 200
 
 end Native.Certificates.RiemannSiegel.Batch0001
 
 namespace Native.Certificates.RiemannSiegel.Batch0002
 
-/-- Zeta zeros #201–#400 (`t ≈ 474.603 … 748.976`), bracketed by
+/-- Zeta zeros #201–#400 (`t ≈ 475.51049027 … 748.40140240`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 474603 1000 748976 1000 := by
+theorem batch : BatchSpec 200 4755104902703413 10000000000000 7484014024026909 10000000000000 := by
   build_batch_rs +native 200 400
 
 end Native.Certificates.RiemannSiegel.Batch0002
 
 namespace Native.Certificates.RiemannSiegel.Batch0003
 
-/-- Zeta zeros #401–#600 (`t ≈ 748.976 … 1004.192`), bracketed by
+/-- Zeta zeros #401–#600 (`t ≈ 750.61885138 … 1003.5725949`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 748976 1000 1004192 1000 := by
+theorem batch : BatchSpec 200 7506188513826209 10000000000000 1003572594935436 1000000000000 := by
   build_batch_rs +native 400 600
 
 end Native.Certificates.RiemannSiegel.Batch0003
 
 namespace Native.Certificates.RiemannSiegel.Batch0004
 
-/-- Zeta zeros #601–#800 (`t ≈ 1004.192 … 1246.504`), bracketed by
+/-- Zeta zeros #601–#800 (`t ≈ 1004.6561220 … 1245.6592361`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1004192 1000 1246504 1000 := by
+theorem batch : BatchSpec 200 10046561220687909 10000000000000 12456592361013876 10000000000000 := by
   build_batch_rs +native 600 800
 
 end Native.Certificates.RiemannSiegel.Batch0004
 
 namespace Native.Certificates.RiemannSiegel.Batch0005
 
-/-- Zeta zeros #801–#1000 (`t ≈ 1246.504 … 1480.141`), bracketed by
+/-- Zeta zeros #801–#1000 (`t ≈ 1247.3572725 … 1479.7636903`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1246504 1000 1480141 1000 := by
+theorem batch : BatchSpec 200 12473572725094385 10000000000000 14797636903807742 10000000000000 := by
   build_batch_rs +native 800 1000
 
 end Native.Certificates.RiemannSiegel.Batch0005
 
 namespace Native.Certificates.RiemannSiegel.Batch0006
 
-/-- Zeta zeros #1001–#1200 (`t ≈ 1480.141 … 1707.173`), bracketed by
+/-- Zeta zeros #1001–#1200 (`t ≈ 1480.7612352 … 1706.6236852`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1480141 1000 1707173 1000 := by
+theorem batch : BatchSpec 200 14807612352355157 10000000000000 17066236852837636 10000000000000 := by
   build_batch_rs +native 1000 1200
 
 end Native.Certificates.RiemannSiegel.Batch0006
 
 namespace Native.Certificates.RiemannSiegel.Batch0007
 
-/-- Zeta zeros #1201–#1400 (`t ≈ 1707.173 … 1928.919`), bracketed by
+/-- Zeta zeros #1201–#1400 (`t ≈ 1707.8739133 … 1928.4217808`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1707173 1000 1928919 1000 := by
+theorem batch : BatchSpec 200 17078739133639345 10000000000000 19284217808110302 10000000000000 := by
   build_batch_rs +native 1200 1400
 
 end Native.Certificates.RiemannSiegel.Batch0007
 
 namespace Native.Certificates.RiemannSiegel.Batch0008
 
-/-- Zeta zeros #1401–#1600 (`t ≈ 1928.919 … 2146.286`), bracketed by
+/-- Zeta zeros #1401–#1600 (`t ≈ 1929.4846389 … 2145.5117522`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 1928919 1000 2146286 1000 := by
+theorem batch : BatchSpec 200 19294846389605636 10000000000000 21455117522456821 10000000000000 := by
   build_batch_rs +native 1400 1600
 
 end Native.Certificates.RiemannSiegel.Batch0008
 
 namespace Native.Certificates.RiemannSiegel.Batch0009
 
-/-- Zeta zeros #1601–#1800 (`t ≈ 2146.286 … 2359.934`), bracketed by
+/-- Zeta zeros #1601–#1800 (`t ≈ 2146.6224944 … 2359.4700836`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 2146286 1000 2359934 1000 := by
+theorem batch : BatchSpec 200 21466224944531084 10000000000000 23594700836549074 10000000000000 := by
   build_batch_rs +native 1600 1800
 
 end Native.Certificates.RiemannSiegel.Batch0009
 
 namespace Native.Certificates.RiemannSiegel.Batch0010
 
-/-- Zeta zeros #1801–#2000 (`t ≈ 2359.934 … 2570.361`), bracketed by
+/-- Zeta zeros #1801–#2000 (`t ≈ 2360.2980757 … 2569.9532507`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 2359934 1000 2570361 1000 := by
+theorem batch : BatchSpec 200 23602980757498223 10000000000000 25699532507711299 10000000000000 := by
   build_batch_rs +native 1800 2000
 
 end Native.Certificates.RiemannSiegel.Batch0010
 
 namespace Native.Certificates.RiemannSiegel.Batch0011
 
-/-- Zeta zeros #2001–#2200 (`t ≈ 2570.361 … 2777.958`), bracketed by
+/-- Zeta zeros #2001–#2200 (`t ≈ 2570.9490438 … 2777.5148314`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 2570361 1000 2777958 1000 := by
+theorem batch : BatchSpec 200 25709490438399161 10000000000000 27775148314789649 10000000000000 := by
   build_batch_rs +native 2000 2200
 
 end Native.Certificates.RiemannSiegel.Batch0011
 
 namespace Native.Certificates.RiemannSiegel.Batch0012
 
-/-- Zeta zeros #2201–#2400 (`t ≈ 2777.958 … 2983.035`), bracketed by
+/-- Zeta zeros #2201–#2400 (`t ≈ 2778.2803657 … 2982.5254557`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 2777958 1000 2983035 1000 := by
+theorem batch : BatchSpec 200 27782803657207275 10000000000000 29825254557468404 10000000000000 := by
   build_batch_rs +native 2200 2400
 
 end Native.Certificates.RiemannSiegel.Batch0012
 
 namespace Native.Certificates.RiemannSiegel.Batch0013
 
-/-- Zeta zeros #2401–#2600 (`t ≈ 2983.035 … 3185.847`), bracketed by
+/-- Zeta zeros #2401–#2600 (`t ≈ 2983.8237569 … 3185.2167436`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 2983035 1000 3185847 1000 := by
+theorem batch : BatchSpec 200 29838237569796339 10000000000000 31852167436678768 10000000000000 := by
   build_batch_rs +native 2400 2600
 
 end Native.Certificates.RiemannSiegel.Batch0013
 
 namespace Native.Certificates.RiemannSiegel.Batch0014
 
-/-- Zeta zeros #2601–#2800 (`t ≈ 3185.847 … 3386.605`), bracketed by
+/-- Zeta zeros #2601–#2800 (`t ≈ 3186.5446855 … 3386.1681621`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 3185847 1000 3386605 1000 := by
+theorem batch : BatchSpec 200 31865446855042937 10000000000000 33861681621073747 10000000000000 := by
   build_batch_rs +native 2600 2800
 
 end Native.Certificates.RiemannSiegel.Batch0014
 
 namespace Native.Certificates.RiemannSiegel.Batch0015
 
-/-- Zeta zeros #2801–#3000 (`t ≈ 3386.605 … 3585.487`), bracketed by
+/-- Zeta zeros #2801–#3000 (`t ≈ 3387.1476118 … 3585.2086235`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 3386605 1000 3585487 1000 := by
+theorem batch : BatchSpec 200 33871476118801034 10000000000000 35852086235109158 10000000000000 := by
   build_batch_rs +native 2800 3000
 
 end Native.Certificates.RiemannSiegel.Batch0015
 
 namespace Native.Certificates.RiemannSiegel.Batch0016
 
-/-- Zeta zeros #3001–#3200 (`t ≈ 3585.487 … 3782.644`), bracketed by
+/-- Zeta zeros #3001–#3200 (`t ≈ 3585.6804132 … 3782.3990302`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 3585487 1000 3782644 1000 := by
+theorem batch : BatchSpec 200 35856804132647363 10000000000000 37823990302801586 10000000000000 := by
   build_batch_rs +native 3000 3200
 
 end Native.Certificates.RiemannSiegel.Batch0016
 
 namespace Native.Certificates.RiemannSiegel.Batch0017
 
-/-- Zeta zeros #3201–#3400 (`t ≈ 3782.644 … 3977.721`), bracketed by
+/-- Zeta zeros #3201–#3400 (`t ≈ 3783.1257146 … 3977.1161556`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 3782644 1000 3977721 1000 := by
+theorem batch : BatchSpec 200 3783125714657218 1000000000000 39771161556209296 10000000000000 := by
   build_batch_rs +native 3200 3400
 
 end Native.Certificates.RiemannSiegel.Batch0017
 
 namespace Native.Certificates.RiemannSiegel.Batch0018
 
-/-- Zeta zeros #3401–#3600 (`t ≈ 3977.721 … 4172.292`), bracketed by
+/-- Zeta zeros #3401–#3600 (`t ≈ 3978.6856538 … 4172.1332674`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 3977721 1000 4172292 1000 := by
+theorem batch : BatchSpec 200 39786856538283028 10000000000000 41721332674402514 10000000000000 := by
   build_batch_rs +native 3400 3600
 
 end Native.Certificates.RiemannSiegel.Batch0018
 
 namespace Native.Certificates.RiemannSiegel.Batch0019
 
-/-- Zeta zeros #3601–#3800 (`t ≈ 4172.292 … 4364.995`), bracketed by
+/-- Zeta zeros #3601–#3800 (`t ≈ 4172.8735352 … 4364.5490886`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 4172292 1000 4364995 1000 := by
+theorem batch : BatchSpec 200 41728735352622095 10000000000000 43645490886860532 10000000000000 := by
   build_batch_rs +native 3600 3800
 
 end Native.Certificates.RiemannSiegel.Batch0019
 
 namespace Native.Certificates.RiemannSiegel.Batch0020
 
-/-- Zeta zeros #3801–#4000 (`t ≈ 4364.995 … 4556.407`), bracketed by
+/-- Zeta zeros #3801–#4000 (`t ≈ 4365.6705900 … 4555.5964395`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 4364995 1000 4556407 1000 := by
+theorem batch : BatchSpec 200 43656705900452182 10000000000000 45555964395553613 10000000000000 := by
   build_batch_rs +native 3800 4000
 
 end Native.Certificates.RiemannSiegel.Batch0020
 
 namespace Native.Certificates.RiemannSiegel.Batch0021
 
-/-- Zeta zeros #4001–#4200 (`t ≈ 4556.407 … 4746.605`), bracketed by
+/-- Zeta zeros #4001–#4200 (`t ≈ 4556.8839205 … 4745.8437261`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 4556407 1000 4746605 1000 := by
+theorem batch : BatchSpec 200 45568839205062031 10000000000000 47458437261490247 10000000000000 := by
   build_batch_rs +native 4000 4200
 
 end Native.Certificates.RiemannSiegel.Batch0021
 
 namespace Native.Certificates.RiemannSiegel.Batch0022
 
-/-- Zeta zeros #4201–#4400 (`t ≈ 4746.605 … 4935.659`), bracketed by
+/-- Zeta zeros #4201–#4400 (`t ≈ 4746.8390277 … 4935.2025623`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 4746605 1000 4935659 1000 := by
+theorem batch : BatchSpec 200 47468390277430321 10000000000000 49352025623991367 10000000000000 := by
   build_batch_rs +native 4200 4400
 
 end Native.Certificates.RiemannSiegel.Batch0022
 
 namespace Native.Certificates.RiemannSiegel.Batch0023
 
-/-- Zeta zeros #4401–#4600 (`t ≈ 4935.659 … 5123.633`), bracketed by
+/-- Zeta zeros #4401–#4600 (`t ≈ 4936.1303558 … 5123.3034390`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 4935659 1000 5123633 1000 := by
+theorem batch : BatchSpec 200 49361303558317226 10000000000000 5123303439086908 1000000000000 := by
   build_batch_rs +native 4400 4600
 
 end Native.Certificates.RiemannSiegel.Batch0023
 
 namespace Native.Certificates.RiemannSiegel.Batch0024
 
-/-- Zeta zeros #4601–#4800 (`t ≈ 5123.633 … 5310.583`), bracketed by
+/-- Zeta zeros #4601–#4800 (`t ≈ 5124.0613046 … 5310.0334216`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 5123633 1000 5310583 1000 := by
+theorem batch : BatchSpec 200 51240613046737765 10000000000000 53100334216185056 10000000000000 := by
   build_batch_rs +native 4600 4800
 
 end Native.Certificates.RiemannSiegel.Batch0024
 
 namespace Native.Certificates.RiemannSiegel.Batch0025
 
-/-- Zeta zeros #4801–#5000 (`t ≈ 5310.583 … 5496.562`), bracketed by
+/-- Zeta zeros #4801–#5000 (`t ≈ 5310.6051792 … 5496.0900389`), bracketed by
 the riemann_siegel approximant and checked by compiled evaluation. -/
-theorem batch : BatchSpec 200 5310583 1000 5496562 1000 := by
+theorem batch : BatchSpec 200 53106051792285316 10000000000000 54960900389518161 10000000000000 := by
   build_batch_rs +native 4800 5000
 
 end Native.Certificates.RiemannSiegel.Batch0025

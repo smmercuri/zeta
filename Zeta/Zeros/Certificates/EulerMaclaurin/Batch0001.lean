@@ -10,8 +10,8 @@ Do not edit by hand: regenerate instead.
 
 Batch 1: zeta zeros #1–#52 (52 intervals), bracketed by the
 euler_maclaurin approximant.
-params: {"M": 20, "N": null, "b": 1.25, "bisection_depth": 0, "epsilon": 0.125, "halving_depth": 10,
-  "method": "euler_maclaurin", "prec": 1000, "widen": true, "window_retries": 100}
+params: {"M": 20, "N": null, "b": 1.25, "bisection_depth": 10, "epsilon": 0.125, "halving_depth":
+  10, "method": "euler_maclaurin", "prec": 1000, "widen": false, "window_retries": 100}
 -/
 module
 
@@ -22,12 +22,14 @@ public import Zeta.Zeros.BuildCerts
 namespace Zeta.Certificates.EulerMaclaurin.Batch0001
 
 /-- The batch, as the statement the assembler consumes: a certified bundle of 52
-intervals exists, the first starting at `1000/1000` and the last ending at `149500/1000`
-(`t ≈ 1.000 … 149.500`). The proof is the bundle, built row-by-row from the
+intervals exists, the first starting at `141316429581936/10000000000000`
+and the last ending at `1474241981709691/10000000000000`
+(`t ≈ 14.131642958 … 147.42419817`). The proof is the bundle, built row-by-row from the
 store by `build_batch`, with `is_sign_change`/`fst_error`/`snd_error` discharged by the
 kernel-checked `Enclosure` ball arithmetic. It stays in this module's private
 olean. -/
-theorem batch : BatchSpec 52 1000 1000 149500 1000 := by build_batch 0 52
+theorem batch : BatchSpec 52 141316429581936 10000000000000 1474241981709691 10000000000000 := by
+  build_batch 0 52
 
 end Zeta.Certificates.EulerMaclaurin.Batch0001
 

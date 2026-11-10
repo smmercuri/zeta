@@ -30,216 +30,216 @@ namespace Native.Certificates.Groups.Level1.Group0001
 open Zeta.Certificates
 
 /-- The zeros of batch EulerMaclaurin.Batch0001. -/
-theorem upTo_EM0001 : BatchSpec 52 1000 1000 149500 1000 :=
+theorem upTo_EM0001 : BatchSpec 52 141316429581936 10000000000000 1474241981709691 10000000000000 :=
   Zeta.Certificates.EulerMaclaurin.Batch0001.batch
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0001. -/
-theorem upTo_RS0001 : BatchSpec 252 1000 1000 474603 1000 :=
+theorem upTo_RS0001 : BatchSpec 252 141316429581936 10000000000000 4738760481595414 10000000000000 :=
   BatchSpec.append upTo_EM0001 Native.Certificates.RiemannSiegel.Batch0001.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0002. -/
-theorem upTo_RS0002 : BatchSpec 452 1000 1000 748976 1000 :=
+theorem upTo_RS0002 : BatchSpec 452 141316429581936 10000000000000 7484014024026909 10000000000000 :=
   BatchSpec.append upTo_RS0001 Native.Certificates.RiemannSiegel.Batch0002.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0003. -/
-theorem upTo_RS0003 : BatchSpec 652 1000 1000 1004192 1000 :=
+theorem upTo_RS0003 : BatchSpec 652 141316429581936 10000000000000 1003572594935436 1000000000000 :=
   BatchSpec.append upTo_RS0002 Native.Certificates.RiemannSiegel.Batch0003.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0004. -/
-theorem upTo_RS0004 : BatchSpec 852 1000 1000 1246504 1000 :=
+theorem upTo_RS0004 : BatchSpec 852 141316429581936 10000000000000 12456592361013876 10000000000000 :=
   BatchSpec.append upTo_RS0003 Native.Certificates.RiemannSiegel.Batch0004.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0005. -/
-theorem upTo_RS0005 : BatchSpec 1052 1000 1000 1480141 1000 :=
+theorem upTo_RS0005 : BatchSpec 1052 141316429581936 10000000000000 14797636903807742 10000000000000 :=
   BatchSpec.append upTo_RS0004 Native.Certificates.RiemannSiegel.Batch0005.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0006. -/
-theorem upTo_RS0006 : BatchSpec 1252 1000 1000 1707173 1000 :=
+theorem upTo_RS0006 : BatchSpec 1252 141316429581936 10000000000000 17066236852837636 10000000000000 :=
   BatchSpec.append upTo_RS0005 Native.Certificates.RiemannSiegel.Batch0006.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0007. -/
-theorem upTo_RS0007 : BatchSpec 1452 1000 1000 1928919 1000 :=
+theorem upTo_RS0007 : BatchSpec 1452 141316429581936 10000000000000 19284217808110302 10000000000000 :=
   BatchSpec.append upTo_RS0006 Native.Certificates.RiemannSiegel.Batch0007.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0008. -/
-theorem upTo_RS0008 : BatchSpec 1652 1000 1000 2146286 1000 :=
+theorem upTo_RS0008 : BatchSpec 1652 141316429581936 10000000000000 21455117522456821 10000000000000 :=
   BatchSpec.append upTo_RS0007 Native.Certificates.RiemannSiegel.Batch0008.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0009. -/
-theorem upTo_RS0009 : BatchSpec 1852 1000 1000 2359934 1000 :=
+theorem upTo_RS0009 : BatchSpec 1852 141316429581936 10000000000000 23594700836549074 10000000000000 :=
   BatchSpec.append upTo_RS0008 Native.Certificates.RiemannSiegel.Batch0009.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0010. -/
-theorem upTo_RS0010 : BatchSpec 2052 1000 1000 2570361 1000 :=
+theorem upTo_RS0010 : BatchSpec 2052 141316429581936 10000000000000 25699532507711299 10000000000000 :=
   BatchSpec.append upTo_RS0009 Native.Certificates.RiemannSiegel.Batch0010.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0011. -/
-theorem upTo_RS0011 : BatchSpec 2252 1000 1000 2777958 1000 :=
+theorem upTo_RS0011 : BatchSpec 2252 141316429581936 10000000000000 27775148314789649 10000000000000 :=
   BatchSpec.append upTo_RS0010 Native.Certificates.RiemannSiegel.Batch0011.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0012. -/
-theorem upTo_RS0012 : BatchSpec 2452 1000 1000 2983035 1000 :=
+theorem upTo_RS0012 : BatchSpec 2452 141316429581936 10000000000000 29825254557468404 10000000000000 :=
   BatchSpec.append upTo_RS0011 Native.Certificates.RiemannSiegel.Batch0012.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0013. -/
-theorem upTo_RS0013 : BatchSpec 2652 1000 1000 3185847 1000 :=
+theorem upTo_RS0013 : BatchSpec 2652 141316429581936 10000000000000 31852167436678768 10000000000000 :=
   BatchSpec.append upTo_RS0012 Native.Certificates.RiemannSiegel.Batch0013.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0014. -/
-theorem upTo_RS0014 : BatchSpec 2852 1000 1000 3386605 1000 :=
+theorem upTo_RS0014 : BatchSpec 2852 141316429581936 10000000000000 33861681621073747 10000000000000 :=
   BatchSpec.append upTo_RS0013 Native.Certificates.RiemannSiegel.Batch0014.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0015. -/
-theorem upTo_RS0015 : BatchSpec 3052 1000 1000 3585487 1000 :=
+theorem upTo_RS0015 : BatchSpec 3052 141316429581936 10000000000000 35852086235109158 10000000000000 :=
   BatchSpec.append upTo_RS0014 Native.Certificates.RiemannSiegel.Batch0015.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0016. -/
-theorem upTo_RS0016 : BatchSpec 3252 1000 1000 3782644 1000 :=
+theorem upTo_RS0016 : BatchSpec 3252 141316429581936 10000000000000 37823990302801586 10000000000000 :=
   BatchSpec.append upTo_RS0015 Native.Certificates.RiemannSiegel.Batch0016.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0017. -/
-theorem upTo_RS0017 : BatchSpec 3452 1000 1000 3977721 1000 :=
+theorem upTo_RS0017 : BatchSpec 3452 141316429581936 10000000000000 39771161556209296 10000000000000 :=
   BatchSpec.append upTo_RS0016 Native.Certificates.RiemannSiegel.Batch0017.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0018. -/
-theorem upTo_RS0018 : BatchSpec 3652 1000 1000 4172292 1000 :=
+theorem upTo_RS0018 : BatchSpec 3652 141316429581936 10000000000000 41721332674402514 10000000000000 :=
   BatchSpec.append upTo_RS0017 Native.Certificates.RiemannSiegel.Batch0018.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0019. -/
-theorem upTo_RS0019 : BatchSpec 3852 1000 1000 4364995 1000 :=
+theorem upTo_RS0019 : BatchSpec 3852 141316429581936 10000000000000 43645490886860532 10000000000000 :=
   BatchSpec.append upTo_RS0018 Native.Certificates.RiemannSiegel.Batch0019.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0020. -/
-theorem upTo_RS0020 : BatchSpec 4052 1000 1000 4556407 1000 :=
+theorem upTo_RS0020 : BatchSpec 4052 141316429581936 10000000000000 45555964395553613 10000000000000 :=
   BatchSpec.append upTo_RS0019 Native.Certificates.RiemannSiegel.Batch0020.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0021. -/
-theorem upTo_RS0021 : BatchSpec 4252 1000 1000 4746605 1000 :=
+theorem upTo_RS0021 : BatchSpec 4252 141316429581936 10000000000000 47458437261490247 10000000000000 :=
   BatchSpec.append upTo_RS0020 Native.Certificates.RiemannSiegel.Batch0021.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0022. -/
-theorem upTo_RS0022 : BatchSpec 4452 1000 1000 4935659 1000 :=
+theorem upTo_RS0022 : BatchSpec 4452 141316429581936 10000000000000 49352025623991367 10000000000000 :=
   BatchSpec.append upTo_RS0021 Native.Certificates.RiemannSiegel.Batch0022.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0023. -/
-theorem upTo_RS0023 : BatchSpec 4652 1000 1000 5123633 1000 :=
+theorem upTo_RS0023 : BatchSpec 4652 141316429581936 10000000000000 5123303439086908 1000000000000 :=
   BatchSpec.append upTo_RS0022 Native.Certificates.RiemannSiegel.Batch0023.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0024. -/
-theorem upTo_RS0024 : BatchSpec 4852 1000 1000 5310583 1000 :=
+theorem upTo_RS0024 : BatchSpec 4852 141316429581936 10000000000000 53100334216185056 10000000000000 :=
   BatchSpec.append upTo_RS0023 Native.Certificates.RiemannSiegel.Batch0024.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0025. -/
-theorem upTo_RS0025 : BatchSpec 5052 1000 1000 5496562 1000 :=
+theorem upTo_RS0025 : BatchSpec 5052 141316429581936 10000000000000 54960900389518161 10000000000000 :=
   BatchSpec.append upTo_RS0024 Native.Certificates.RiemannSiegel.Batch0025.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0026. -/
-theorem upTo_RS0026 : BatchSpec 5252 1000 1000 5681847 1000 :=
+theorem upTo_RS0026 : BatchSpec 5252 141316429581936 10000000000000 56812428346198639 10000000000000 :=
   BatchSpec.append upTo_RS0025 Native.Certificates.RiemannSiegel.Batch0026.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0027. -/
-theorem upTo_RS0027 : BatchSpec 5452 1000 1000 5865789 1000 :=
+theorem upTo_RS0027 : BatchSpec 5452 141316429581936 10000000000000 58655302098386137 10000000000000 :=
   BatchSpec.append upTo_RS0026 Native.Certificates.RiemannSiegel.Batch0027.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0028. -/
-theorem upTo_RS0028 : BatchSpec 5652 1000 1000 6049119 1000 :=
+theorem upTo_RS0028 : BatchSpec 5652 141316429581936 10000000000000 60489549714024747 10000000000000 :=
   BatchSpec.append upTo_RS0027 Native.Certificates.RiemannSiegel.Batch0028.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0029. -/
-theorem upTo_RS0029 : BatchSpec 5852 1000 1000 6231645 1000 :=
+theorem upTo_RS0029 : BatchSpec 5852 141316429581936 10000000000000 62311874923239168 10000000000000 :=
   BatchSpec.append upTo_RS0028 Native.Certificates.RiemannSiegel.Batch0029.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0030. -/
-theorem upTo_RS0030 : BatchSpec 6052 1000 1000 6413398 1000 :=
+theorem upTo_RS0030 : BatchSpec 6052 141316429581936 10000000000000 64130438955081561 10000000000000 :=
   BatchSpec.append upTo_RS0029 Native.Certificates.RiemannSiegel.Batch0030.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0031. -/
-theorem upTo_RS0031 : BatchSpec 6252 1000 1000 6594411 1000 :=
+theorem upTo_RS0031 : BatchSpec 6252 141316429581936 10000000000000 65940353507412974 10000000000000 :=
   BatchSpec.append upTo_RS0030 Native.Certificates.RiemannSiegel.Batch0031.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0032. -/
-theorem upTo_RS0032 : BatchSpec 6452 1000 1000 6774712 1000 :=
+theorem upTo_RS0032 : BatchSpec 6452 141316429581936 10000000000000 67745736448044183 10000000000000 :=
   BatchSpec.append upTo_RS0031 Native.Certificates.RiemannSiegel.Batch0032.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0033. -/
-theorem upTo_RS0033 : BatchSpec 6652 1000 1000 6954777 1000 :=
+theorem upTo_RS0033 : BatchSpec 6652 141316429581936 10000000000000 69538082857590846 10000000000000 :=
   BatchSpec.append upTo_RS0032 Native.Certificates.RiemannSiegel.Batch0033.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0034. -/
-theorem upTo_RS0034 : BatchSpec 6852 1000 1000 7133286 1000 :=
+theorem upTo_RS0034 : BatchSpec 6852 141316429581936 10000000000000 71328754643895982 10000000000000 :=
   BatchSpec.append upTo_RS0033 Native.Certificates.RiemannSiegel.Batch0034.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0035. -/
-theorem upTo_RS0035 : BatchSpec 7052 1000 1000 7311607 1000 :=
+theorem upTo_RS0035 : BatchSpec 7052 141316429581936 10000000000000 73111919112571079 10000000000000 :=
   BatchSpec.append upTo_RS0034 Native.Certificates.RiemannSiegel.Batch0035.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0036. -/
-theorem upTo_RS0036 : BatchSpec 7252 1000 1000 7489758 1000 :=
+theorem upTo_RS0036 : BatchSpec 7252 141316429581936 10000000000000 74894114651320107 10000000000000 :=
   BatchSpec.append upTo_RS0035 Native.Certificates.RiemannSiegel.Batch0036.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0037. -/
-theorem upTo_RS0037 : BatchSpec 7452 1000 1000 7666428 1000 :=
+theorem upTo_RS0037 : BatchSpec 7452 141316429581936 10000000000000 76658030162383117 10000000000000 :=
   BatchSpec.append upTo_RS0036 Native.Certificates.RiemannSiegel.Batch0037.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0038. -/
-theorem upTo_RS0038 : BatchSpec 7652 1000 1000 7842968 1000 :=
+theorem upTo_RS0038 : BatchSpec 7652 141316429581936 10000000000000 7842774179189174 1000000000000 :=
   BatchSpec.append upTo_RS0037 Native.Certificates.RiemannSiegel.Batch0038.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0039. -/
-theorem upTo_RS0039 : BatchSpec 7852 1000 1000 8018952 1000 :=
+theorem upTo_RS0039 : BatchSpec 7852 141316429581936 10000000000000 8018639538509875 1000000000000 :=
   BatchSpec.append upTo_RS0038 Native.Certificates.RiemannSiegel.Batch0039.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0040. -/
-theorem upTo_RS0040 : BatchSpec 8052 1000 1000 8193959 1000 :=
+theorem upTo_RS0040 : BatchSpec 8052 141316429581936 10000000000000 81932340840321036 10000000000000 :=
   BatchSpec.append upTo_RS0039 Native.Certificates.RiemannSiegel.Batch0040.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0041. -/
-theorem upTo_RS0041 : BatchSpec 8252 1000 1000 8369321 1000 :=
+theorem upTo_RS0041 : BatchSpec 8252 141316429581936 10000000000000 83689250950107535 10000000000000 :=
   BatchSpec.append upTo_RS0040 Native.Certificates.RiemannSiegel.Batch0041.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0042. -/
-theorem upTo_RS0042 : BatchSpec 8452 1000 1000 8543737 1000 :=
+theorem upTo_RS0042 : BatchSpec 8452 141316429581936 10000000000000 85433428904775393 10000000000000 :=
   BatchSpec.append upTo_RS0041 Native.Certificates.RiemannSiegel.Batch0042.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0043. -/
-theorem upTo_RS0043 : BatchSpec 8652 1000 1000 8717662 1000 :=
+theorem upTo_RS0043 : BatchSpec 8652 141316429581936 10000000000000 87170038989389028 10000000000000 :=
   BatchSpec.append upTo_RS0042 Native.Certificates.RiemannSiegel.Batch0043.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0044. -/
-theorem upTo_RS0044 : BatchSpec 8852 1000 1000 8891108 1000 :=
+theorem upTo_RS0044 : BatchSpec 8852 141316429581936 10000000000000 88905398354416649 10000000000000 :=
   BatchSpec.append upTo_RS0043 Native.Certificates.RiemannSiegel.Batch0044.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0045. -/
-theorem upTo_RS0045 : BatchSpec 9052 1000 1000 9063657 1000 :=
+theorem upTo_RS0045 : BatchSpec 9052 141316429581936 10000000000000 90630668526384742 10000000000000 :=
   BatchSpec.append upTo_RS0044 Native.Certificates.RiemannSiegel.Batch0045.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0046. -/
-theorem upTo_RS0046 : BatchSpec 9252 1000 1000 9236187 1000 :=
+theorem upTo_RS0046 : BatchSpec 9252 141316429581936 10000000000000 92355271623173913 10000000000000 :=
   BatchSpec.append upTo_RS0045 Native.Certificates.RiemannSiegel.Batch0046.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0047. -/
-theorem upTo_RS0047 : BatchSpec 9452 1000 1000 9408275 1000 :=
+theorem upTo_RS0047 : BatchSpec 9452 141316429581936 10000000000000 9407745874961031 1000000000000 :=
   BatchSpec.append upTo_RS0046 Native.Certificates.RiemannSiegel.Batch0047.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0048. -/
-theorem upTo_RS0048 : BatchSpec 9652 1000 1000 9579935 1000 :=
+theorem upTo_RS0048 : BatchSpec 9652 141316429581936 10000000000000 95794498814600944 10000000000000 :=
   BatchSpec.append upTo_RS0047 Native.Certificates.RiemannSiegel.Batch0048.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0049. -/
-theorem upTo_RS0049 : BatchSpec 9852 1000 1000 9751603 1000 :=
+theorem upTo_RS0049 : BatchSpec 9852 141316429581936 10000000000000 97507733956030869 10000000000000 :=
   BatchSpec.append upTo_RS0048 Native.Certificates.RiemannSiegel.Batch0049.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0050. -/
-theorem upTo_RS0050 : BatchSpec 10052 1000 1000 9922434 1000 :=
+theorem upTo_RS0050 : BatchSpec 10052 141316429581936 10000000000000 99217173113207611 10000000000000 :=
   BatchSpec.append upTo_RS0049 Native.Certificates.RiemannSiegel.Batch0050.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0051. -/
-theorem upTo_RS0051 : BatchSpec 10156 1000 1000 10011107 1000 :=
+theorem upTo_RS0051 : BatchSpec 10156 141316429581936 10000000000000 100108599713733597 10000000000000 :=
   BatchSpec.append upTo_RS0050 Native.Certificates.RiemannSiegel.Batch0051.batch rfl rfl rfl
 
 /-- The zeros of every batch in this group:
 EulerMaclaurin.Batch0001–RiemannSiegel.Batch0051. -/
-theorem group : BatchSpec 10156 1000 1000 10011107 1000 :=
+theorem group : BatchSpec 10156 141316429581936 10000000000000 100108599713733597 10000000000000 :=
   upTo_RS0051
 
 end Native.Certificates.Groups.Level1.Group0001
