@@ -7,11 +7,9 @@ Intervals are certified on the critical line, proving the location of
 nontrivial zeros with configurable precision. 
 The main theorem is proved fully in the kernel, depending 
 only on the standard axiom set `[propext, Classical.choice, Quot.sound]`.
-The kernel is asked only to check: both the zero search and the numerical 
-evaluation inside the proofs are done outside it (see [Architecture](#architecture)).
 Our current record is $T = 100,000,300$: the $248,008,818$ zeros with imaginary part between $0$ and
 the Gram point $g \approx 100,000,300.797$ just above $T$ all lie on the critical line.
-
+At this height, the proof spans 6 million Lean files and 66 million lines of code.
 
 ---
 
@@ -53,17 +51,17 @@ Heights reached at each trust layer; see [Architecture](#architecture) for the r
 | **Kernel** | [10,011](https://github.com/smmercuri/zeta/tree/v1-1e4) | 10,156 | laptop<sup>[4](#note-laptop)</sup> | 1 min 29 s | 0.13 | 46 |
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 18 min 25 s | 2.5 | 65 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | server<sup>[5](#note-server)</sup> | 1 h 40 min | 79 | 164 |
-| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | server | 133 h 58 min<sup>[7](#note-previous)</sup> | 6,417 | 1,093 |
+| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | server | 66 h 3 min | 3,161 | 538 |
 | | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | HPC<sup>[6](#note-hpc)</sup> | 49 h 55 min<sup>[7](#note-previous)</sup> | 244,190 | 3,545 |
 | **Native** | [10,011](https://github.com/smmercuri/zeta/tree/v1-1e4) | 10,156 | laptop | 26 s | 0.012 | 4.3 |
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 1 min 9 s | 0.11 | 2.9 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | laptop | 14 min | 1.9 | 3.9 |
-| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 5 h 20 min<sup>[7](#note-previous)</sup> | 46.7 | 8.0 |
+| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 3 h 47 min | 33.4 | 5.7 |
 | | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 85 h 20 min<sup>[7](#note-previous)</sup> | 4,018 | 58 |
 | **Python** | [10,011](https://github.com/smmercuri/zeta/tree/v1-1e4) | 10,156 | laptop | 39 s | 0.027 | 9.7 |
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 1 min 40 s | 0.19 | 4.9 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | laptop | 17 min | 2.6 | 5.3 |
-| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 5 h 48 min<sup>[7](#note-previous)</sup> | 53 | 9.0 |
+| | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 4 h 44 min | 45 | 7.7 |
 | | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 40 h 28 min<sup>[7](#note-previous)</sup> | 1,927 | 28 |
 
 1. <a id="note-zeros"></a>**Zeros.** The number of zeros certified on the critical line, namely those with positive imaginary part below the first Gram point above `T`. Since `T` is that Gram point rounded down, this can slightly exceed the number in `(0, T)`.
@@ -82,8 +80,8 @@ Heights reached at each trust layer; see [Architecture](#architecture) for the r
 6. <a id="note-hpc"></a>**HPC.** EPCC's [Cirrus](https://www.cirrus.ac.uk/) supercomputer, whose
    nodes each have 288 cores, 576 threads and 745 GB RAM. This project had a budget of 128
    concurrent nodes, of which up to 57 were used concurrently.
-7. <a id="note-previous"></a>**Previous version.** All timings at $10^7$ and $10^8$ (kernel, native and
-   Python) were measured with an earlier version of the project. They are not directly comparable 
+7. <a id="note-previous"></a>**Previous version.** All timings at $10^8$ were measured with an 
+   earlier version of the project. They are not directly comparable 
    with the kernel timings at lower heights, which were measured with the current version and are 
    substantially faster (at $10^6$, 1 h 40 min against 3 h 28 min previously).
 
@@ -105,12 +103,8 @@ these results correspond to, without the zero data or generated Lean certificate
 GitHub storage limitations.
 At these tags, `Zeta/Main.lean` therefore still states the $10^4$ theorem and certificates.
 To obtain the main theorem at the tag's height, download the zeros from Zenodo
-([1e7](https://zenodo.org/records/24090490) and [1e8](https://zenodo.org/records/24085183), which also hold the
-build logs and archives), unpack them into the repository, and run `./gen_certificates.sh` (in the repository root
-at these tags). Each Zenodo record's README gives the exact commands.
-Their comparator targets are also on Zenodo, with instructions in each record's `COMPARATOR.md`. Use those
-rather than the targets committed at these two tags, which are for $10^4$, and avoid `gen_certificates.sh --comparator`,
-which is impractical at this scale.
+([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://zenodo.org/records/24085183)), unpack them into the repository, and run `scripts/gen_certificates.sh`
+(`./gen_certificates.sh` at `v1-1e8`). Each Zenodo record's README gives the exact commands.
 
 ---
 
@@ -122,18 +116,18 @@ Install Lean through [elan](https://github.com/leanprover/elan); the toolchain i
 git clone https://github.com/smmercuri/zeta.git && cd zeta
 lake exe cache get
 ```
-The first build also compiles the `PrimeNumberTheoremAnd` dependency. The Python proposer is
-only needed to regenerate the certificate data: see [`python/README.md`](python/README.md#installation).
+The first build also compiles the `PrimeNumberTheoremAnd` dependency. 
+Python is only required to try different heights or regenerate Lean certificates;
+see [`python/README.md`](python/README.md#installation) for installation.
 
 ---
 
 ## Build
 
-This assumes the zero stores and Lean certificate files are already generated, as they are on each
-branch.
+This assumes the zero stores and Lean certificate files are already generated.
 
 ```bash
-scripts/build.sh                     # the headline theorem Zeta.riemannHypothesisUpTo_<T>
+scripts/build.sh                     # the main theorem Zeta.riemannHypothesisUpTo_<T>
 scripts/build.sh --native            # its native counterpart Native.riemannHypothesisUpTo_<T>
 scripts/build.sh --native --endpoint # faster than --native alone, skips kernel-run prechecks
 scripts/build.sh --proofs=archive    # losslessly compress each batch's proof term once built
@@ -144,8 +138,7 @@ scripts/build.sh --retries 5         # the kernel raises a failing interval's pr
 ```
 `build.sh` wraps `lake build`: it sizes the number of parallel workers to the free memory
 (override with `LEAN_NUM_THREADS`) and warns when the proof terms would fill the disk (see
-[Scaling](#scaling)). `Zeta.Main` checks the headline theorem's axioms with `#guard_msgs`, so the
-build fails if they change.
+[Scaling](#scaling)). 
 
 To try a new height, run the entire pipeline in the `zeta` conda environment:
 
@@ -159,7 +152,7 @@ scripts `store.py` for generating zeros. Leave out `--build` to stop once the ce
 individual steps and the `zeta` environment are described in [`python/README.md`](python/README.md#usage).
 
 To depend on a tagged release, point your `require` at its tag, and Lake will download its prebuilt
-archive if the release has one. Your project must use the same Lean toolchain and Mathlib version
+archive if the release has one. Your project must use the same platform, Lean toolchain and Mathlib version
 as that release, otherwise Lake will rebuild every certificate from source. Files that import the
 certificates must also start with `module`, because the archive has placeholders in place of the
 proof terms.
@@ -170,9 +163,7 @@ proof terms.
 
 [`leanprover/comparator`](https://github.com/leanprover/comparator) checks independently that the
 proof establishes exactly the statement in a separate challenge file, using only the standard
-axioms, by re-checking the whole dependency tree in a fresh kernel. `comparator/` sets this up
-sharded (one challenge per batch, plus a reduction), which is the main method, and globally (one
-challenge for the main theorem). See [`comparator/README.md`](comparator/README.md).
+axioms, by re-checking the whole dependency tree in a fresh kernel.
 
 To run it, build the tools at tag `v4.35.0` in `.comparator-tools/` (gitignored), using this
 project's Lean version, from the repository root:
@@ -182,20 +173,24 @@ cd .comparator-tools
 echo 'leanprover/lean4:v4.35.0' > lean-toolchain
 lake build lean4export comparator
 ```
-The tools must match the Lean version of the checkout (`lean-toolchain`). The `v1-1e7` and `v1-1e8`
-tags use Lean `v4.33.1`, so for them use tag `v4.33.0` and `leanprover/lean4:v4.33.1`.
+The tools must match the Lean version of the checkout (`lean-toolchain`). The `v1-1e8`
+tag uses Lean `v4.33.1`, so for it use tag `v4.33.0` and `leanprover/lean4:v4.33.1`.
 Then verify the main theorem's statement in shards:
 ```bash
 comparator/sharded_run.sh [--size 10] [--jobs 1]
 ```
-This checks the reduction and every batch, and gives one verdict at the end. It does not check the
-formal theorem `Zeta.riemannHypothesisUpTo_<T>` itself; see
+This checks each batch's statement and the reduction, which collectively imply the main 
+theorem's statement. It does not check `Zeta.riemannHypothesisUpTo_<T>` itself; see
 [`comparator/README.md`](comparator/README.md#running) for what it establishes 
 and the warning below for why this is the default comparator setup.
 
 Comparator can also be run on a single target with `comparator/run.sh <config.json>`, on chosen
 batches with `comparator/shard.sh RiemannSiegel/Batch0001 RiemannSiegel/Batch0002`, or on a
 reproducible random sample with `comparator/sharded_run.sh --sample 300 --seed <public value>`.
+
+The comparator targets for the `v1-1e7` and `v1-1e8` tags are on Zenodo ([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://zenodo.org/records/24085183)), with instructions in each record's `COMPARATOR.md`. Use those
+rather than the targets committed at these two tags, which are for $10^4$, and avoid `gen_certificates.sh --comparator`,
+which is impractical at this scale.
 
 > **Warning.** The global check (`comparator/run.sh --force`) of `Zeta.riemannHypothesisUpTo_<T>` is currently impractical beyond
 > `1e4`. This is because our proofs contain many large dyadic literals 
@@ -205,17 +200,14 @@ reproducible random sample with `comparator/sharded_run.sh --sample 300 --seed <
 
 ## Architecture 
 
-The core design principle is to keep as much of the computation outside the 
-kernel as possible, since the kernel is slow. 
 There are two components which work in a proposer-certifier architecture.
 The proposer is a Python library which searches for zeta zeros and Gram points 
 and stores them as data.
 The certifier consists of a metaprogram which evaluates numerical quantities in 
 compiled code and emits a proof certifying the numerical Python artifacts. 
 The kernel only needs to check the side conditions within these proofs, 
-which are comparisons of natural-number literals; the kernel is able to 
-do this quickly with GMP arithmetic.
-Further details on the Python code can be found in [`python/README.md`](python/README.md).
+which are comparisons of natural-number literals which it can do quickly with 
+GMP arithmetic.
 
 The following zero interval certificate for the Riemann-Siegel
 approximation is an example of what the metaprogram proves:
@@ -234,12 +226,10 @@ so that this also represents a sign change of the true `Z`-function.
 There are similar certificates for proving that an interval contains a
 Gram point. All of these proofs are assembled, the zeros are counted 
 and Turing's method is applied to prove that the Riemann hypothesis holds 
-up to some height $T$. This is proved fully in the kernel, depending 
-only on the standard axiom set `[propext, Classical.choice, Quot.sound]`.
+up to some height $T$. 
 
-Because the kernel proof is computationally expensive, this architecture 
-becomes a proposer-checker-certifier model in high-compute scenarios 
-(for example, beyond `T = 1e6`).
+In high-compute scenarios (for example, beyond $10^6$) this architecture 
+becomes a proposer-checker-certifier model.
 The proposer runs as usual; however prior to the kernel build we run a 
 native sibling of the metaprogram within `Native`. 
 This allows `native_decide`, thus making the metaprogram significantly faster 
@@ -312,6 +302,8 @@ degree of trust.
 - The Python proposer is untrusted. It tracks analytic truncation bounds throughout, but not
   floating-point roundoff, and serves only as a provider of numerical evidence.
   The Lean metaprogram itself is similarly untrusted, as it only proposes proofs.
+- `Zeta/Main.lean` checks the main theorem's axioms with `#guard_msgs`, so the build fails if
+  they ever differ from `[propext, Classical.choice, Quot.sound]`.
 - The native checker is proved sound in Lean. Additional trust is required that its compiled
   code runs correctly. It is used only for the Riemann-Siegel batches, which make up the vast
   majority of batches; the small number of Euler-Maclaurin and Gram point certificates are always
@@ -320,28 +312,26 @@ degree of trust.
   The kernel checks every batch during the build, after which its proof term in the private 
   `olean` is either compressed losslessly or replaced by a placeholder with its SHA-256 recorded.
   Where proofs are discarded, the proofs cannot be inspected afterwards without re-running
-  the build. Trust at these heights depends additionally on our published build logs, and 
-  our provided comparator configurations allow users to sample and verify individual batches.
-  We have run a successful comparator check on height $10^4$, and sharded
-  comparator runs on heights $10^5$ and $10^6$.
+  the build. Trust at these heights depends additionally on our published build archives on Zenodo, and 
+  comparator runs to verify sampled batches.
+  We have run a successful comparator check at height $10^4$, and complete sharded
+  comparator checks at heights $10^5$ and $10^6$.
 
 --- 
 
 ## Scaling
 
-Scaling the project to work for large heights presents a number of 
-computational challenges.
-A certificate for each zero must be proved.
-Up to the Gram point just above 100,000,300 there are 248,008,818 zeros and so writing an 
-efficient kernel-checked numerical proof and organising how the collection of
-all these proofs should be structured are challenges.
+Up to the Gram point just above 100,000,300 there are 248,008,818 zeros and 
+certificates for each must be proved.
+Writing an efficient kernel-checked numerical proof and organising how the collection of
+all these proofs should be structured are both challenges.
 At $10^8$ (tag [`v1-1e8`](https://github.com/smmercuri/zeta/tree/v1-1e8), commit `3dab6480a8`), 
-the `Zeta` library had 6,013,447 modules and 240,354,586 lines of Lean.
+the `Zeta` library had 6,013,447 modules and 66,053,983 lines of Lean code (the total line 
+count of 240,354,586 is inflated by certificate module documentation).
 
 ### Kernel 
 
-Following the design principle in [Architecture](#architecture), the kernel 
-only confirms results the metaprogram has already computed. For instance:
+The following are some of the ways in which kernel computation is optimised.
 - The metaprogram computes numerical values in advance, and the kernel needs only 
   to compare numbers and confirm the results, mostly via natural-number literals.
 - Sealing is used throughout. Sub-proofs are emitted as separate auxiliary lemmas, 
@@ -364,7 +354,6 @@ This reduces the precision of each zero's location, but it enables lower working
 precision in Lean's kernel and speeds up computation. 
 However, the Python module can be configured to locate zeros more precisely, by 
 disabling interval maximisation and using bisection search. 
-See the [Python README](python/README.md) for details. 
 We provide a branch `1e4-prec` with a working example of higher zero precision.
 The build time for this configuration up to height $10^4$ is longer at $0.33$ CPU hours 
 (vs. $0.13$ CPU hours with widened intervals).
@@ -391,8 +380,8 @@ into subdirectories of $10,000$ batch files.
 The _public_ interface of each batch module is `BatchSpec`, which is just the 
 existential statement that there is a list of certified zeros in a given range. 
 Everything else is private.
-Batch specs are assembled through a tree of groups: each level-`1` group 
-assembles at most `125` batches, each level-`i + 1` group at most `125` 
+Batch specs are assembled through a tree of groups.
+A level-`0` group is a batch, each level-`i + 1` group assembles at most `125` 
 level-`i` groups, and levels are added until at most `125` groups remain 
 for the final assembler.
 This bounds every assembling module at `125` imports.
@@ -443,31 +432,19 @@ at a given height. Running `scripts/build.sh --native` will perform this.
 This is particularly useful for catching failing zero checks that occur due to 
 working precision selection.
 Precision selection is adaptive in the metaprogram, meaning that if 
-there is a failure then working precision is raised ($100$-fold each time) until 
-the check passes or it has been raised $3$ times (by default).
-Running the native module will alert you to whether the kernel will fail at the 
-cap value supplied via `--retries` (default `3`); this is a prediction via a model of the kernel's enclosure widths.
-This can then be set via CLI in the full build using the `--retries` flag, 
-e.g. `scripts/build.sh --retries 5`.
+there is a failure then working precision is raised $100$-fold and retried, 
+up to `--retries` times (default $3$). 
+The native run predicts whether the kernel would still fail at the capped number 
+of retries, so it can be raised before the kernel run (e.g., via `scripts/build.sh --retries 5`).
 The prediction costs about one extra evaluation of each endpoint; when the native theorem is 
 the deliverable, `scripts/build.sh --native --endpoint` skips it.
 
 ### Building
 
-When running a full build on the kernel, the provided build script `scripts/build.sh` 
-uses as many workers as fit in memory, up to the number of cores.
-It uses more workers at lower heights, where batches need less memory.
-Since batches are sized to a memory of $3.35$ GB per worker, this will 
-limit machines which have less than this.
-This can be overridden by setting `LEAN_NUM_THREADS` as usual.
-The script also provides an `--estimate` flag which will test two batches 
-and provide an estimate for the resultant build time; it will not perform
-the full build with this flag.
-On a laptop or a server, for heights `1e4` through `1e7`, the build script 
-is used in a single command, running a build over all zero certificates in the 
-range `(0, T)`.
-
-On the Cirrus supercomputer, in order to leverage concurrency across the 
+Batches are sized to $3.35$ GB per worker, so a machine with less memory than that per core 
+runs fewer workers than it has cores (see [Build](#build) for overriding this and for `--estimate`).
+On a laptop or a server, heights $10^4$ through $10^7$ build with a single `scripts/build.sh` 
+command over the whole range `(0, T)`. On the Cirrus supercomputer, in order to leverage concurrency across the 
 budgeted 128 nodes, the height range `(0, 1e8)` was split up into 175 
 independent ranges, each of which was built on a separate node. 
 The number of nodes was increased gradually, to a peak of 57, until 
