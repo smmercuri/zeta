@@ -11,8 +11,8 @@ block across three kinds of file:
     block's zero file.  `zeros_map` is the authoritative list of zero files.
 
 `gram_block.txt`
-    One row per gram point — a *flat* list in increasing index order, so `k` blocks
-    are described by `k+1` rows — with seven comma-separated fields
+    One row per gram point (a *flat* list in increasing index order, so `k` blocks
+    are described by `k+1` rows) with seven comma-separated fields
 
         idx, lower, upper, lower_cutoff, upper_cutoff, lower_bernoulli, upper_bernoulli
 
@@ -36,9 +36,8 @@ a free-form header is tolerated in either file (`store_gram.py` writes none).
 
 Because the blocks tile consecutively, adjacent blocks share a gram point (block `k`'s
 right endpoint is block `k+1`'s left endpoint).  We therefore emit each gram point in
-`gram_block.txt` exactly once — as `gp1, gp2, …` with one `Certificate` apiece — and let
-each block reference the shared `gp{k}`/`gp{k+1}` rather than redefining and re-certifying
-`gpL`/`gpR` per block.  We then emit one `ZeroInterval`/`Certificate` per contained zero, a
+`gram_block.txt` exactly once, as `gp1, gp2, …` with one `Certificate` apiece, and each
+block references the shared `gp{k}`/`gp{k+1}`.  We then emit one `ZeroInterval`/`Certificate` per contained zero, a
 `GramBlock`/`Certificate` per block, and finally one `CertifiedGramBlockSeq` bundling every
 block with the chain, Lehman `wide`, and `168π` height obligations.
 
@@ -47,16 +46,15 @@ Everything numeric and *decidable* (`fst_le_snd`, `_nonneg`, the `_pos` fields, 
 discharged by `norm_num` / `decide` / `fin_cases`.  The obligations needing rigorous
 transcendental enclosures are handled as follows:
 
-  * gram points : `fst_bound`, `snd_bound` — `gram_bound`.  Bracketing a gram point is a
+  * gram points : `fst_bound`, `snd_bound`, by `gram_bound`.  Bracketing a gram point is a
     question about `theta` alone, so this is method-independent and always discharged.
-  * zeros       : `is_sign_change`, `fst_error`, `snd_error` — `hardy_sign_change` /
-    `hardy_error_ok_full` when the store's dialect `proves_obligations` (Euler-Maclaurin);
-    `sorry` otherwise (Riemann-Siegel, pending the engine's generalisation).
-  * sequence    : `wide` (needs `Real.log`/`π` bounds), `high` (needs a `π` bound) — emitted
+  * zeros       : `is_sign_change`, `fst_error`, `snd_error`, by the dialect's certificate
+    tactics when the store's dialect `proves_obligations`; `sorry` otherwise.
+  * sequence    : `wide` (needs `Real.log`/`π` bounds), `high` (needs a `π` bound), emitted
     as `sorry` when the data is out of range.
 
 The store carries the approximant's parameters for the zeros and the theta Stirling
-shift/order for the gram points, so they are read straight from it and never recomputed here.
+shift/order for the gram points, so they are read straight from it.
 The working precision is read from `manifest["params"]` purely to record it in the
 generated file's provenance header; `gen_wide` and `gen_high` derive their bounds
 from the bracket endpoints alone.
@@ -89,18 +87,16 @@ from data_gen.lean_dialect import LeanDialect, dialect_for
 # A gram point is one data line of seven fields in the grouped layout (matching the
 # zero lines and the file's column header):
 #   idx, lower, upper, lower_cutoff, upper_cutoff, lower_bernoulli, upper_bernoulli
-# We reorder them into the `GramPt` layout below — shift/order paired per endpoint,
-# as `GramPoint` expects — so the lower-endpoint pair feeds `fstVal` and the
-# upper-endpoint pair `sndVal`.  Nothing is recomputed; the pipeline emits the theta
-# Stirling parameters directly (`store_gram.theta_params_rule`).
-# The store's gram brackets are refined to ~1e-27, which certifies nothing in Lean: the
-# `gram_bound` enclosure runs at working precision `D = 1e8·(t/30)`, i.e. a resolution of
-# ~2e-10 at t ≈ 1420, so a margin that small is invisible to it. We therefore widen each
-# bracket outward before emitting it. This is always sound — the interval still contains the
-# gram point — and it strictly *increases* both certificate margins, since `fst_bound` is
-# `idx·π − θ(fst)` (bigger as `fst` drops) and `snd_bound` is `θ(snd) − idx·π` (bigger as `snd`
-# rises). It is the same trade the zero brackets make by being stored at few decimal places
-# (`IMPORT_DP` in `config.py`).
+# We reorder them into the `GramPt` layout below (shift/order paired per endpoint,
+# as `GramPoint` expects), so the lower-endpoint pair feeds `fstVal` and the
+# upper-endpoint pair `sndVal`.  The pipeline emits the theta Stirling parameters
+# directly (`store_gram.theta_params_rule`).
+# The store's gram brackets are refined to ~1e-27, far below the resolution of the
+# `gram_bound` enclosure, which runs at working precision `D = 1e8·(t/30)`. We therefore widen
+# each bracket outward before emitting it. The widened interval still contains the gram point,
+# and both certificate margins grow, since `fst_bound` is `idx·π − θ(fst)` (bigger as `fst`
+# drops) and `snd_bound` is `θ(snd) − idx·π` (bigger as `snd` rises). The zero brackets make
+# the same trade by being stored at few decimal places (`IMPORT_DP` in `config.py`).
 getcontext().prec = 80
 
 
@@ -137,8 +133,8 @@ def parse_gram_points(path: Path) -> list[GramPt]:
         if len(parts) != 7:
             continue
         idx, lo, hi, lc, rc, lb, rb = parts
-        # Widen here rather than at emission, so the block gaps, `separated` and
-        # `contains_zero` are all computed against the brackets that actually get emitted.
+        # Widen at parse time, so the block gaps, `separated` and `contains_zero` are all
+        # computed against the emitted brackets.
         pts.append((idx, widen_down(lo), widen_up(hi), lc, lb, rc, rb))
     return pts
 
@@ -226,9 +222,8 @@ def gen_gram_points(gram_pts: list[GramPt]) -> str:
     """Emit one `GramPoint` abbrev + `Certificate` per row of `gram_block.txt`.
 
     Blocks tile consecutively, so the interior gram points are shared between adjacent
-    blocks (block `k`'s right endpoint is block `k+1`'s left endpoint).  Defining each
-    gram point once here — rather than re-emitting `gpL`/`gpR` per block — halves the
-    gram-point definitions and their `sorry`-carrying certificates."""
+    blocks (block `k`'s right endpoint is block `k+1`'s left endpoint), and each is
+    defined and certified once here."""
     return "\n".join(
         gen_gram_point(gram_point_name(k), g[0], g)
         for k, g in enumerate(gram_pts, start=1))
@@ -253,10 +248,10 @@ def gen_block(i: int, block: Block, dialect: LeanDialect) -> str:
     # inside it as the existential witness for `contains_zero`; if none does (e.g. unrefined,
     # `bisection_depth = 0` data where a zero's bracket still touches a gram point) fall back
     # to `sorry`.
-    # Compare against the *widened* bounds, which are what the emitted `gpL`/`gpR` carry --
-    # not the store's exact ones.  Widening moves `gpL.snd` up and `gpR.fst` down, so the gap
-    # Lean sees is strictly narrower than the store's; checking the store's gap would accept a
-    # witness whose `norm_num` membership goals are false.
+    # Compare against the *widened* bounds, the ones the emitted `gpL`/`gpR` carry.
+    # Widening moves `gpL.snd` up and `gpR.fst` down, so the gap Lean sees is strictly
+    # narrower than the store's, and a witness must fit this narrower gap for its `norm_num`
+    # membership goals to hold.
     gap_lo, gap_hi = Decimal(widen_up(block["left"][2])), Decimal(widen_down(block["right"][1]))
     witness = next(
         (zn for zn, row in zip(znames, zs)
@@ -294,14 +289,13 @@ theorem blk{i}_cert : blk{i}.Certificate where
 #: Must be tight enough that `E^p` beats `x^q`; `2.7` is not, once `p` is large.
 LOG_BASE = 2.718
 
-#: Largest denominator tried when fitting a rational bound `p/q` to `log`. Each step of `q`
-#: refines the bound by `1/q`, so a handful of values already beats the integer bound by an
-#: order of magnitude.
+#: Largest denominator tried when fitting a rational bound `p/q` to `log`. A denominator `q`
+#: gives a bound within `1/q` of `log x`.
 MAX_LOG_DENOM = 20
 
 
 def gen_wide(blocks: list[Block]) -> str:
-    """Proof of `wide` — an elementary `π`/`log` inequality (no ζ values, no ball arithmetic).
+    """Proof of `wide`, an elementary `π`/`log` inequality.
 
     Let `a = last.right.right`, `RHS = (last.right.left - first.left.right)/2`. We must show
     `LEHMAN_CONST + LEHMAN_LOG_COEFF·log(a/2π) < RHS`. Upper-bound `a/2π` by the rational
@@ -310,14 +304,14 @@ def gen_wide(blocks: list[Block]) -> str:
     `x^q < E^p ≤ e^p` (with `E` a rational lower bound for `e`) we get `q·log x < p`, and
     `nlinarith` finishes.
 
-    `q = 1` is the integer bound this used to be limited to, which fails whenever the Lehman
-    margin is under `LEHMAN_LOG_COEFF` — the slack left over by `get_wide_gramBlock` is a fraction of a
-    gram step, so that happens regularly and increasingly often as the height grows. Falls back
-    to `sorry` only when no `p/q` with `q ≤ MAX_LOG_DENOM` fits.
+    `q = 1` gives an integer bound, which fails whenever the Lehman margin is under
+    `LEHMAN_LOG_COEFF`; the slack left by `get_wide_gramBlock` is a fraction of a gram step,
+    so larger `q` are often needed. Falls back to `sorry` only when no `p/q` with
+    `q ≤ MAX_LOG_DENOM` fits.
     """
     n = len(blocks)
-    # Reference the gram-point abbrevs (defeq to the goal's `getLast`/`head` projections)
-    # rather than inlining the 40-digit literals — keeps the `show`/`have` lines short.
+    # Reference the gram-point abbrevs (defeq to the goal's `getLast`/`head` projections),
+    # which keeps the `show`/`have` lines short.
     # The last block's right endpoint is gram point `n+1`; the first block's left is `gp1`.
     last, first = gram_point_name(n + 1), gram_point_name(1)
     aN, rlN, frN = f"{last}.snd", f"{last}.fst", f"{first}.snd"
@@ -357,7 +351,7 @@ def gen_wide(blocks: list[Block]) -> str:
 
 
 def gen_high(blocks: list[Block]) -> str:
-    """Proof of `high : LEHMAN_MIN_HEIGHT_PI·π < head.left.left` — needs only `π < PI_UPPER`.
+    """Proof of `high : LEHMAN_MIN_HEIGHT_PI·π < head.left.left`, from `π < PI_UPPER`.
     `sorry` when the data sits below that height."""
     fll = blocks[0]["left"][1]
     floor_t = LEHMAN_MIN_HEIGHT_PI * float(PI_UPPER)
@@ -411,15 +405,18 @@ abbrev certifiedGramBlockSeq : CertifiedGramBlockSeq where
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    argv = sys.argv[1:]
+    style = "--ignore-style" in argv
+    argv = [a for a in argv if a != "--ignore-style"]
+    if len(argv) != 2:
         raise SystemExit(
-            "usage: gen_gram_certificates.py <out_path> <store>\n"
-            "  output first, store second — the same order as gen_zero_certificates.py and\n"
+            "usage: gen_gram_certificates.py <out_path> <store> [--ignore-style]\n"
+            "  output first, store second, the same order as gen_zero_certificates.py and\n"
             "  gen_count_certificate.py; e.g.\n"
             "  gen_gram_certificates.py ../Zeta/Gram/Certificates.lean out/riemann_siegel/gram"
         )
-    out_path = Path(sys.argv[1])
-    store = Path(sys.argv[2])
+    out_path = Path(argv[0])
+    store = Path(argv[1])
     if not (store / "manifest.json").is_file():
         raise SystemExit(f"{store}: no manifest.json (is this a gram store?)")
 
@@ -456,9 +453,9 @@ Do not edit by hand: regenerate instead.
 
 {len(blocks)} good gram blocks ({n_zeros} bracketed zeros) packaged as one
 `CertifiedGramBlockSeq`, with the zeros bracketed by the {dialect.method} approximant.
-Gram-point theta-Stirling parameters are read straight from the store — bracketing a gram
-point is a question about `theta`, so they are the same whichever approximant certified the
-zeros ({theta}, working precision {prec} bits).
+Gram-point theta-Stirling parameters are read straight from the store and are the same
+whichever approximant certified the zeros
+({theta}, working precision {prec} bits).
 
 The gram points' `fst_bound`/`snd_bound` are discharged by `gram_bound` (kernel-checked
 `Enclosure` ball arithmetic): bracketing a gram point is a question about `theta` alone, so
@@ -487,7 +484,7 @@ open Zeta.Certificates Real Set
     bundle = gen_bundle(blocks)
     footer = "\nend Zeta.Certificates.Gram\n\nend\n"
 
-    write_module(out_path, header + gram_points + "\n" + body + "\n" + bundle + footer)
+    write_module(out_path, header + gram_points + "\n" + body + "\n" + bundle + footer, style)
     print(f"wrote {out_path} ({len(blocks)} blocks, {n_zeros} zeros)")
 
 

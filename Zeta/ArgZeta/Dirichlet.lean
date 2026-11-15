@@ -50,7 +50,7 @@ private lemma summable_and_riemannZeta_ofReal_eq_tsum {σ : ℝ} (hσ : 1 < σ) 
     push_cast
     ring
 
-/-- **The shifted `p`-series Riemann-sum window.** For real `σ > 1` and a shift `k`, the tail
+/-- The shifted `p`-series Riemann-sum window: for real `σ > 1` and a shift `k`, the tail
 integral `∫_{k+1}^{∞} x^{-σ} dx = (k+1)^{1-σ}/(σ-1)` is bounded by the shifted `p`-series
 `∑_{n} (n+k+1)^{-σ}`. -/
 private lemma integral_Ioi_rpow_le_tsum_shift {σ : ℝ} (hσ : 1 < σ) (k : ℕ) :
@@ -69,7 +69,7 @@ private lemma integral_Ioi_rpow_le_tsum_shift {σ : ℝ} (hσ : 1 < σ) (k : ℕ
   show ((k : ℝ) + 1 + (i : ℝ)) ^ (-σ) = a (i + k)
   simp only [ha]; congr 1; push_cast; ring
 
-/-- **Lower bound for `ζ` on the real axis** (`lem:le_zeta_pole_lower`). For real `σ > 1`,
+/-- Lower bound for `ζ` on the real axis (`lem:le_zeta_pole_lower`). For real `σ > 1`,
 `1 / (σ - 1) ≤ Re ζ(σ)`. -/
 theorem one_div_sub_one_le_riemannZeta_ofReal {σ : ℝ} (hσ : 1 < σ) :
     1 / (σ - 1) ≤ (riemannZeta (σ : ℂ)).re := by
@@ -77,7 +77,7 @@ theorem one_div_sub_one_le_riemannZeta_ofReal {σ : ℝ} (hσ : 1 < σ) :
   rw [hzeq, Complex.ofReal_re]
   simpa using integral_Ioi_rpow_le_tsum_shift hσ 0
 
-/-- **Sharp lower bound for `ζ` on the real axis** (`lem:ls_zeta_lower_sharp`). For real `σ > 1`,
+/-- Sharp lower bound for `ζ` on the real axis (`lem:ls_zeta_lower_sharp`). For real `σ > 1`,
 `ζ(σ) ≥ 1 + 2^{-σ} + 3^{-σ} + 4^{1-σ}/(σ-1)`. This sharpens
 `one_div_sub_one_le_riemannZeta_ofReal`, which drops the first three terms. -/
 theorem riemannZeta_ofReal_ge_sharp {σ : ℝ} (hσ : 1 < σ) :
@@ -111,7 +111,7 @@ section Digamma
 open Complex.Stirling MeasureTheory
 open scoped Nat Real
 
-/-- **Order-`1`-to-order-`2` digamma-remainder recurrence** (`lem:le_digamma_recurrence`). For
+/-- Order-`1`-to-order-`2` digamma-remainder recurrence (`lem:le_digamma_recurrence`). For
 `Re s > 0`, `digammaRemainderIoi s 1 - digammaRemainderIoi s 2 = B₂/2 · s⁻²` (with `B₂ = 1/6`, so
 the coefficient has modulus `1/12`). -/
 theorem digammaRemainderIoi_one_sub_two {s : ℂ} (hs : 0 < s.re) :
@@ -184,7 +184,7 @@ theorem digammaRemainderIoi_one_sub_two {s : ℂ} (hs : 0 < s.re) :
   rw [funext hfin] at hL
   exact tendsto_nhds_unique hL hR
 
-/-- **Explicit order-`1` digamma-remainder bound** (`lem:le_digamma_const`). For `Re s > 0`,
+/-- Explicit order-`1` digamma-remainder bound (`lem:le_digamma_const`). For `Re s > 0`,
 `‖digammaRemainderIoi s 1‖ ≤ (1/π + 1/12) · ‖s‖⁻²`. -/
 theorem norm_digammaRemainderIoi_one_le {s : ℂ} (hs : 0 < s.re) :
     ‖digammaRemainderIoi s 1‖ ≤ (1 / π + 1 / 12) * ‖s‖ ^ (-(2 : ℤ)) := by
@@ -250,7 +250,7 @@ private lemma tendsto_negZetaDerivAntideriv {σ : ℝ} (hσ : 1 < σ) :
     - 1 / (σ - 1) ^ 2 * x ^ (1 - σ)) = negZetaDerivAntideriv σ from rfl] at hcomb
   simpa using hcomb
 
-/-- **Explicit bound on `-ζ'` on the real axis** (`lem:le_neg_deriv_zeta`). For real `σ > 1`,
+/-- Explicit bound on `-ζ'` on the real axis (`lem:le_neg_deriv_zeta`). For real `σ > 1`,
 `-ζ'(σ) ≤ (log 2) 2^{-σ} + (log 3) 3^{-σ} + 3^{1-σ}(log 3/(σ-1) + 1/(σ-1)²)`. -/
 theorem neg_deriv_riemannZeta_ofReal_le {σ : ℝ} (hσ : 1 < σ) :
     (- deriv riemannZeta (σ : ℂ)).re ≤
@@ -342,7 +342,7 @@ private lemma log_rpow_neg_le {σ : ℝ} (hσ : 1 < σ) :
          by nlinarith [log_three_le, Real.log_nonneg (by norm_num : (1 : ℝ) ≤ 3), e3,
             Real.rpow_nonneg (by norm_num : (0 : ℝ) ≤ 3) (-σ)]⟩
 
-/-- Numerical endgame of `tsum_vonMangoldt_norm_le`: at `σ = 103/100` the explicit bound of
+/-- The numerical step of `tsum_vonMangoldt_norm_le`: at `σ = 103/100` the explicit bound of
 `neg_deriv_riemannZeta_ofReal_le` times `σ - 1` is at most `35`. -/
 private lemma explicit_neg_deriv_bound_mul_le {σ : ℝ} (hσdef : σ = 103 / 100) :
     (Real.log 2 * 2 ^ (-σ) + Real.log 3 * 3 ^ (-σ)
@@ -365,7 +365,7 @@ private lemma explicit_neg_deriv_bound_mul_le {σ : ℝ} (hσdef : σ = 103 / 10
   rw [show σ - 1 = 3 / 100 by rw [hσdef]; norm_num]
   linarith [hEbig]
 
-/-- **The Dirichlet-sum modulus as `(-ζ')/ζ` at a real abscissa.** For real `σ > 1`,
+/-- The Dirichlet-sum modulus as `(-ζ')/ζ` at a real abscissa: for real `σ > 1`,
 `∑ₙ ‖Λ(n) n^{-σ}‖ = (-ζ'(σ)).re · (ζ(σ).re)⁻¹`, with `ζ(σ).re > 0` and `(-ζ'(σ)).re ≥ 0`. -/
 private lemma tsum_norm_term_vonMangoldt_eq_and_pos {σ : ℝ} (hσ : 1 < σ) :
     ∑' n, ‖LSeries.term ↗Λ (σ : ℂ) n‖
@@ -409,7 +409,7 @@ private lemma tsum_norm_term_vonMangoldt_eq_and_pos {σ : ℝ} (hσ : 1 < σ) :
   refine ⟨hDeq, hζpos, ?_⟩
   nlinarith [hDeq ▸ tsum_nonneg (fun n ↦ norm_nonneg (LSeries.term ↗Λ s n)), inv_pos.mpr hζpos]
 
-/-- **The explicit Dirichlet-sum majorant at a real abscissa.** For real `σ > 1`,
+/-- The explicit Dirichlet-sum majorant at a real abscissa: for real `σ > 1`,
 `∑ₙ ‖Λ(n) n^{-σ}‖` is at most the closed form of `neg_deriv_riemannZeta_ofReal_le` times
 `σ - 1`. -/
 private lemma tsum_norm_term_vonMangoldt_le_mul {σ : ℝ} (hσ : 1 < σ) :
@@ -429,7 +429,7 @@ private lemma tsum_norm_term_vonMangoldt_le_mul {σ : ℝ} (hσ : 1 < σ) :
   rw [hDeq]
   exact mul_le_mul hAle hinvle (inv_pos.mpr hζpos).le (hAnn.trans hAle)
 
-/-- **Explicit Dirichlet-sum bound** (`lem:le_dirichlet_bound`). At the abscissa `σ = 103/100`
+/-- Explicit Dirichlet-sum bound (`lem:le_dirichlet_bound`). At the abscissa `σ = 103/100`
 (`= ½ + d`, `d = 53/100`), `D(σ) = ∑ₙ ‖Λ(n) n^{-σ}‖ ≤ 35`. -/
 theorem tsum_vonMangoldt_norm_le :
     ∑' n, ‖LSeries.term ↗Λ ((103 / 100 : ℝ) : ℂ) n‖ ≤ 35 :=
@@ -455,7 +455,7 @@ private lemma inner_pole_bound_124 :
     = Real.log 3 * (25 / 6) + 625 / 36 by ring]
   linarith [log_three_le]
 
-/-- Numerical endgame at `σ = 124/100` (`= ½ + d`, `d = 74/100`): the explicit majorant of
+/-- The numerical step at `σ = 124/100` (`= ½ + d`, `d = 74/100`): the explicit majorant of
 `neg_deriv_riemannZeta_ofReal_le` times `σ - 1` is at most `28/5`. -/
 private lemma explicit_neg_deriv_bound_mul_le_124 {σ : ℝ} (hσdef : σ = 124 / 100) :
     (Real.log 2 * 2 ^ (-σ) + Real.log 3 * 3 ^ (-σ)
@@ -473,7 +473,7 @@ private lemma explicit_neg_deriv_bound_mul_le_124 {σ : ℝ} (hσdef : σ = 124 
   rw [show σ - 1 = 6 / 25 by rw [hσdef]; norm_num]
   linarith [hEbig]
 
-/-- **Explicit Dirichlet-sum bound at `σ = 124/100`** (`= ½ + d`, `d = 74/100`): `D(σ) ≤ 28/5`.
+/-- Explicit Dirichlet-sum bound at `σ = 124/100` (`= ½ + d`, `d = 74/100`): `D(σ) ≤ 28/5`.
 The deeper abscissa, further from the pole at `σ = 1`, collapses the `35` of
 `tsum_vonMangoldt_norm_le`. -/
 theorem tsum_vonMangoldt_norm_le_124 :
@@ -484,8 +484,7 @@ theorem tsum_vonMangoldt_norm_le_124 :
 /-! ### The sharp Dirichlet constant at `σ = 124/100` (`sec:ls_five`)
 
 The sharp bound `D(124/100) ≤ 379/100` (`tsum_vonMangoldt_norm_le_124_sharp`), improving the
-`28/5` of `tsum_vonMangoldt_norm_le_124`. It is the decisive input to the tight `C_ψ ≤ 319/100`,
-hence to `A ≤ 5`. -/
+`28/5` of `tsum_vonMangoldt_norm_le_124`. It feeds the tight `C_ψ ≤ 319/100`, hence `A ≤ 5`. -/
 
 /-- `42/100 ≤ 2^{-124/100}` (`(42/100)^{25} ≤ 2^{-31}`). -/
 private lemma rpow_two_neg_124_ge : (42 / 100 : ℝ) ≤ (2 : ℝ) ^ (-(124 / 100) : ℝ) :=
@@ -524,7 +523,7 @@ private lemma rpow_three_one_sub_124_le : (3 : ℝ) ^ (1 - 124 / 100 : ℝ) ≤ 
     (by rw [rpow_pow_25 (by norm_num)
       (show (1 - 124 / 100 : ℝ) * (25 : ℕ) = -(6 : ℕ) by push_cast; norm_num)]; norm_num)
 
-/-- **Sharp numerical value of `ζ` at `σ = 124/100`** (`lem:ls_zeta_lower_sharp`, evaluated):
+/-- Sharp numerical value of `ζ` at `σ = 124/100` (`lem:ls_zeta_lower_sharp`, evaluated):
 `ζ(124/100) ≥ 462/100`, versus the crude `1/(σ-1) = 25/6 ≈ 4.17`. -/
 private lemma riemannZeta_ofReal_124_ge :
     (462 / 100 : ℝ) ≤ (riemannZeta ((124 / 100 : ℝ) : ℂ)).re := by
@@ -535,7 +534,7 @@ private lemma riemannZeta_ofReal_124_ge :
   linarith [riemannZeta_ofReal_ge_sharp (σ := (124 / 100 : ℝ)) (by norm_num),
     rpow_two_neg_124_ge, rpow_three_neg_124_ge, h4div]
 
-/-- **Sharp numerator bound** (`lem:ls_dirichlet_sharp`, numerator): `-ζ'(124/100) ≤ 35/2`. -/
+/-- Sharp numerator bound (`lem:ls_dirichlet_sharp`, numerator): `-ζ'(124/100) ≤ 35/2`. -/
 private lemma neg_deriv_riemannZeta_124_le :
     (- deriv riemannZeta ((124 / 100 : ℝ) : ℂ)).re ≤ 35 / 2 := by
   refine (neg_deriv_riemannZeta_ofReal_le (by norm_num : (1 : ℝ) < 124 / 100)).trans ?_
@@ -550,7 +549,7 @@ private lemma neg_deriv_riemannZeta_124_le :
     mul_le_mul rpow_three_one_sub_124_le inner_pole_bound_124 (by positivity) (by norm_num)
   linarith [ht1, ht2, ht3]
 
-/-- **Sharp explicit Dirichlet-sum bound at `σ = 124/100`** (`lem:ls_dirichlet_sharp`):
+/-- Sharp explicit Dirichlet-sum bound at `σ = 124/100` (`lem:ls_dirichlet_sharp`):
 `D(124/100) ≤ 379/100`, sharpening the `28/5` of `tsum_vonMangoldt_norm_le_124`. -/
 theorem tsum_vonMangoldt_norm_le_124_sharp :
     ∑' n, ‖LSeries.term ↗Λ ((124 / 100 : ℝ) : ℂ) n‖ ≤ 379 / 100 := by
@@ -571,7 +570,7 @@ theorem tsum_vonMangoldt_norm_le_124_sharp :
 private lemma le_norm_of_im_eq {z : ℂ} {t : ℝ} (ht : 0 < t) (h : z.im = t) : t ≤ ‖z‖ := by
   simpa [h, abs_of_pos ht] using Complex.abs_im_le_norm z
 
-/-- **The digamma term on the shifted line** (`lem:le_zeta_sum_explicit`, `lem:ls_Cpsi`). For
+/-- The digamma term on the shifted line (`lem:le_zeta_sum_explicit`, `lem:ls_Cpsi`). For
 `1/2 < d ≤ 1` and `t ≥ 168π`, at `s_d = 1/2 + d + it` the digamma real part obeys
 `Re ψ(s_d/2) ≤ log t - log 2 + 2/100`. -/
 private lemma re_digamma_shiftedLine_le {d t : ℝ} (hdlt : 1 / 2 < d) (hd1 : d ≤ 1)
@@ -614,9 +613,9 @@ private lemma re_logDeriv_riemannZeta_le_of_re {s : ℂ} {σ D : ℝ} (hσ : 1 <
     tsum_congr fun n ↦ by rw [LSeries.norm_term_eq, LSeries.norm_term_eq, hsre, Complex.ofReal_re]]
   exact hVM
 
-/-- **Explicit log-`t` witness for the zero sum** (`lem:le_zeta_sum_explicit`). For `d = 53/100`
-(so `s_d = 103/100 + it`), `∑ᵢ Re 1/(s_d - ρᵢ) ≤ ½ log t + 39` for all `t ≥ 168π`. This
-de-existentialises `tsum_re_inv_riemannXiZeros_sub_le`. -/
+/-- Explicit log-`t` witness for the zero sum (`lem:le_zeta_sum_explicit`). For `d = 53/100`
+(so `s_d = 103/100 + it`), `∑ᵢ Re 1/(s_d - ρᵢ) ≤ ½ log t + 39` for all `t ≥ 168π`: an explicit
+constant for `tsum_re_inv_riemannXiZeros_sub_le`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_le_explicit (t : ℝ) (ht : 168 * π ≤ t) :
     ∑' i, (((1 / 2 : ℂ) + ((53 / 100 : ℝ) : ℂ) + (t : ℂ) * I - riemannXiZeros i)⁻¹).re
       ≤ 1 / 2 * Real.log t + 39 := by
@@ -648,8 +647,8 @@ theorem tsum_re_inv_riemannXiZeros_sub_le_explicit (t : ℝ) (ht : 168 * π ≤ 
   rw [tsum_re_inv_riemannXiZeros_sub_eq hre hs1 hsne hPair]
   linarith [b2, b3, hpsi_bound, hDir35, hlogπ_nonneg]
 
-/-- **Tight log-`t` witness for the zero sum at depth `d = 74/100`, parametric in the Dirichlet
-input** (`lem:ls_Cpsi`, `lem:ls_Cpsi_sharp`). At `s_d = 124/100 + it`,
+/-- Tight log-`t` witness for the zero sum at depth `d = 74/100`, parametric in the Dirichlet
+input (`lem:ls_Cpsi`, `lem:ls_Cpsi_sharp`). At `s_d = 124/100 + it`,
 `∑ᵢ Re 1/(s_d - ρᵢ) ≤ ½ log t + (D - 3/5)` for `t ≥ 168π`, given only the Dirichlet bound
 `Re(ζ'/ζ(s_d)) ≤ D` supplied through `hVM`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_le_tight_of {t D : ℝ} (ht : 168 * π ≤ t)
@@ -690,14 +689,14 @@ theorem tsum_re_inv_riemannXiZeros_sub_le_tight_of {t D : ℝ} (ht : 168 * π �
   rw [tsum_re_inv_riemannXiZeros_sub_eq hre hs1 hsne hPair]
   linarith [b2, b3, hpsi_bound, hDir, hlogπ_ge, hlog2_ge]
 
-/-- **Tight log-`t` witness for the zero sum** (`lem:ls_Cpsi`): additive constant
+/-- Tight log-`t` witness for the zero sum (`lem:ls_Cpsi`): additive constant
 `28/5 - 3/5 = 5`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_le_tight (t : ℝ) (ht : 168 * π ≤ t) :
     ∑' i, (((1 / 2 : ℂ) + ((74 / 100 : ℝ) : ℂ) + (t : ℂ) * I - riemannXiZeros i)⁻¹).re
       ≤ 1 / 2 * Real.log t + 5 := by
   linarith [tsum_re_inv_riemannXiZeros_sub_le_tight_of ht tsum_vonMangoldt_norm_le_124]
 
-/-- **Sharp log-`t` witness for the zero sum** (`lem:ls_Cpsi_sharp`): additive constant
+/-- Sharp log-`t` witness for the zero sum (`lem:ls_Cpsi_sharp`): additive constant
 `379/100 - 3/5 = 319/100`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_le_tight_sharp (t : ℝ) (ht : 168 * π ≤ t) :
     ∑' i, (((1 / 2 : ℂ) + ((74 / 100 : ℝ) : ℂ) + (t : ℂ) * I - riemannXiZeros i)⁻¹).re

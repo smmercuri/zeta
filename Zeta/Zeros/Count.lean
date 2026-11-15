@@ -24,8 +24,8 @@ below that height onto the critical line (`Zeta/Zeros/RiemannHypothesisUpTo.lean
 
 - `riemannZeta.zeroes_rect_Ioo_finite`: `ζ` has finitely many zeros of height in `(0, T)`.
 - `riemannZeta.le_N_of_certifiedZeroIntervals`: `C.intervals.length ≤ N(C.height)`, the
-  certified lower bound on the zero count. Stated here rather than beside
-  `CertifiedZeroIntervals` so that the certificate batches never import the counting side.
+  certified lower bound on the zero count. Stated in this file, outside the import closure of the
+  certificate batches.
 -/
 @[expose] public section
 
@@ -42,7 +42,7 @@ theorem riemannZeta.zeroes_rect_Ioo_finite (T : ℝ) :
   have hre := riemannZeta_re_mem_Ioo_of_eq_zero_of_im_ne_zero hz0 hzim.1.ne'
   exact ⟨Complex.mem_reProdIm.mpr ⟨⟨hre.1.le, hre.2.le⟩, ⟨hzim.1.le, hzim.2.le⟩⟩, hz0⟩
 
-/-- **The certified-zero lower bound on `N`.** A certified list of zero intervals witnesses at
+/-- The certified-zero lower bound on `N`: a certified list of zero intervals witnesses at
 least as many `ζ`-zeros below its height as it has intervals:
 `C.intervals.length ≤ N(C.height)`. -/
 theorem riemannZeta.le_N_of_certifiedZeroIntervals (C : CertifiedZeroIntervals) :

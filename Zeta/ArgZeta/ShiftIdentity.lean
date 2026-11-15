@@ -21,7 +21,7 @@ public import Mathlib.NumberTheory.LSeries.Dirichlet
 # The reflection symmetry of the zeros of `ξ`, and the shift-by-`d` log-modulus identity
 
 The multiset of zeros of `ξ` is invariant under the reflection `ρ ↦ 1 - conj ρ` across the
-critical line — the one place the functional equation enters Lehman's lower bound. Also the
+critical line; this is where the functional equation enters Lehman's lower bound. Also the
 shift-by-`d` log-modulus identity built on the Hadamard product, the summed booker bound it feeds,
 and the log-`t` coefficient extracted from the explicit formula.
 
@@ -55,7 +55,7 @@ instance : Countable RiemannXiZerosIndex := by
       (MeromorphicOn.divisor riemannXi ⊤).discreteSupport).to_subtype
   infer_instance
 
-/-- **Schwarz reflection (analytic form).** If `g` is analytic at `conj u`, then the reflected
+/-- Schwarz reflection (analytic form). If `g` is analytic at `conj u`, then the reflected
 function `w ↦ conj (g (conj w))` is analytic at `u`. -/
 theorem AnalyticAt.conj_conj {g : ℂ → ℂ} {u : ℂ}
     (hg : AnalyticAt ℂ g (starRingEnd ℂ u)) :
@@ -133,7 +133,7 @@ theorem divisor_riemannXi_one_sub_conj (z : ℂ) :
   rw [divisor_eq_analyticOrderNatAt hf, divisor_eq_analyticOrderNatAt hf]
   simp only [analyticOrderNatAt, analyticOrderAt_riemannXi_one_sub_conj]
 
-/-- **The reflection reindexing involution** underlying `lem:ll_reflection`: a self-inverse
+/-- The reflection reindexing involution underlying `lem:ll_reflection`: a self-inverse
 bijection `e` of the zero-enumeration index type with
 `riemannXiZeros (e i) = 1 - conj (riemannXiZeros i)`. -/
 theorem exists_equiv_riemannXiZeros_one_sub_conj :
@@ -164,8 +164,8 @@ theorem exists_equiv_riemannXiZeros_one_sub_conj :
   rintro ⟨a, k⟩
   rfl
 
-/-- **Reflection reindexing of the zeros** (`lem:ll_reflection`). Summing any `g` over the zeros
-of `ξ` is invariant under reflecting each zero `ρ` to `1 - conj ρ`. No summability is needed. -/
+/-- Reflection reindexing of the zeros (`lem:ll_reflection`). Summing any `g` (summable or not)
+over the zeros of `ξ` is invariant under reflecting each zero `ρ` to `1 - conj ρ`. -/
 theorem tsum_riemannXiZeros_one_sub_conj {M : Type*} [AddCommMonoid M] [TopologicalSpace M]
     (g : ℂ → M) :
     ∑' i, g (riemannXiZeros i) = ∑' i, g (1 - starRingEnd ℂ (riemannXiZeros i)) := by
@@ -174,7 +174,7 @@ theorem tsum_riemannXiZeros_one_sub_conj {M : Type*} [AddCommMonoid M] [Topologi
       = ∑' i, g (riemannXiZeros (e i)) := (e.tsum_eq (fun i ↦ g (riemannXiZeros i))).symm
     _ = ∑' i, g (1 - starRingEnd ℂ (riemannXiZeros i)) := by simp_rw [hval]
 
-/-- **Summability is invariant under the reflection reindexing.** The family `i ↦ g(1 - conj ρᵢ)`
+/-- Summability is invariant under the reflection reindexing: the family `i ↦ g(1 - conj ρᵢ)`
 is summable iff `i ↦ g(ρᵢ)` is. -/
 theorem summable_riemannXiZeros_one_sub_conj_iff {M : Type*} [AddCommMonoid M] [TopologicalSpace M]
     (g : ℂ → M) :
@@ -188,7 +188,7 @@ theorem summable_riemannXiZeros_one_sub_conj_iff {M : Type*} [AddCommMonoid M] [
 
 /-! ## The shift-by-`d` log-modulus identity (`lem:ll_logabs_diff`) -/
 
-/-- Each enumerated zero is genuinely a zero of `ξ`: `ξ(ρᵢ) = 0`. -/
+/-- Each enumerated zero is a zero of `ξ`: `ξ(ρᵢ) = 0`. -/
 theorem riemannXi_riemannXiZeros_eq_zero (i : RiemannXiZerosIndex) :
     riemannXi (riemannXiZeros i) = 0 := by
   have hf : AnalyticOnNhd ℂ riemannXi ⊤ := analyticOnNhd_riemannXi
@@ -235,7 +235,7 @@ private lemma log_norm_one_sub_div {ρ : ℂ} (hρ : ρ ≠ 0) {w : ℂ} (hw : w
   rw [hh, norm_div, Real.log_div (norm_ne_zero_iff.mpr (sub_ne_zero.mpr fun h ↦ hw h.symm))
     (norm_ne_zero_iff.mpr hρ), norm_sub_rev]
 
-/-- **Shift-by-`d` log-modulus identity** (`lem:ll_logabs_diff`). There is a real constant
+/-- Shift-by-`d` log-modulus identity (`lem:ll_logabs_diff`). There is a real constant
 `κ = B + ∑ᵢ Re(1/ρᵢ)` (with `B` the Hadamard constant) such that, for every `s` not a zero of `ξ`
 and with `s + d` not a zero,
 `∑ᵢ [log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖] = log‖ξ(s+d)‖ - log‖ξ(s)‖ - dκ`. -/
@@ -405,7 +405,7 @@ private lemma continuous_shiftLogIntegrand {ρ : ℂ} (t d : ℝ) (hρt : ρ.im 
     exact sub_ne_zero_of_im_eq (z := (1 / 2 : ℂ) + (x : ℂ) + (t : ℂ) * I)
       (complex_line_im x t) hρt
 
-/-- **The booker integrand is the sum of two shift-differences.** With `w = ρ - (1/2 + it)` and
+/-- The booker integrand is the sum of two shift-differences. With `w = ρ - (1/2 + it)` and
 `ρ* = 1 - conj ρ` the reflected zero, Lehman's booker integrand is
 `[log‖s+d-ρ‖ - log‖s-ρ‖] + [log‖s+d-ρ*‖ - log‖s-ρ*‖]`. -/
 private lemma bookerIntegrand_eq_shiftLog (ρ : ℂ) (t d x : ℝ) (hρt : ρ.im ≠ t) :
@@ -446,7 +446,7 @@ private lemma bookerIntegrand_eq_shiftLog (ρ : ℂ) (t d x : ℝ) (hρt : ρ.im
   unfold shiftLogIntegrand
   ring
 
-/-- **Per-zero booker pairing bound** (`lem:lb_booker` at the zero `ρ` and its reflection
+/-- Per-zero booker pairing bound (`lem:lb_booker` at the zero `ρ` and its reflection
 `ρ* = 1 - conj ρ`), parametric in the pairing constant `c ≥ 2`:
 `∫₀ᵈ[…ρ…] + ∫₀ᵈ[…ρ*…] ≤ c·d²(Re 1/(s_d-ρ) + Re 1/(s_d-ρ*))` at `s_d = 1/2 + d + it`. -/
 private lemma shiftLogIntegral_add_le_of {ρ : ℂ} (t : ℝ) {d : ℝ} (hd : 1 / 2 < d)
@@ -516,7 +516,7 @@ theorem summable_re_inv_riemannXiZeros_sub {s : ℂ} (hs : ∀ i, s ≠ riemannX
   refine (h2.sub summable_re_inv_riemannXiZeros).congr (fun i ↦ ?_)
   rw [Complex.add_re, one_div, one_div, add_sub_cancel_right]
 
-/-- **A zero-free ordinate exists** (`lem:le_good_ordinate`). There is a real `t₀` with
+/-- A zero-free ordinate exists (`lem:le_good_ordinate`). There is a real `t₀` with
 `(ρᵢ).im ≠ t₀` for every index `i`. -/
 theorem exists_forall_riemannXiZeros_im_ne :
     ∃ t₀ : ℝ, ∀ i, (riemannXiZeros i).im ≠ t₀ := by
@@ -526,7 +526,7 @@ theorem exists_forall_riemannXiZeros_im_ne :
   obtain ⟨t₀, ht₀⟩ := Set.nonempty_compl.mpr hne
   exact ⟨t₀, fun i h ↦ ht₀ ⟨i, h⟩⟩
 
-/-- **Reflected zero sum cancels on the critical line** (`lem:le_refl_sum_zero`). If `s₀`
+/-- The reflected zero sum cancels on the critical line (`lem:le_refl_sum_zero`). If `s₀`
 satisfies `conj s₀ = 1 - s₀` (i.e. `Re s₀ = 1/2`), then `∑ᵢ Re(1/(s₀ - ρᵢ)) = 0`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_critical_eq_zero {s₀ : ℂ}
     (hconj : starRingEnd ℂ s₀ = 1 - s₀) :
@@ -567,7 +567,7 @@ private lemma deriv_riemannXi_one_sub (s : ℂ) :
   have hd : HasDerivAt riemannXi (deriv riemannXi s) s := (differentiable_riemannXi s).hasDerivAt
   linear_combination -(hcomp.unique hd)
 
-/-- **The logarithmic derivative of `ξ` is imaginary on the critical line**
+/-- The logarithmic derivative of `ξ` is imaginary on the critical line
 (`lem:le_re_logderiv_zero`): if `conj s₀ = 1 - s₀` (i.e. `Re s₀ = 1/2`), then
 `Re(ξ'/ξ(s₀)) = 0`. -/
 theorem re_logDeriv_riemannXi_critical_eq_zero {s₀ : ℂ}
@@ -593,7 +593,7 @@ private lemma re_tsum_partialFraction_add {s : ℂ} (hsne : ∀ i, s ≠ riemann
     tsum_congr (fun i ↦ by rw [Complex.add_re, one_div, one_div]),
     hPair.tsum_add summable_re_inv_riemannXiZeros]
 
-/-- **The reflection constant `κ` vanishes** (`lem:le_kappa_zero`). The Hadamard constant
+/-- The reflection constant `κ` vanishes (`lem:le_kappa_zero`). The Hadamard constant
 `B = Re(ξ'/ξ(0))` and the zero sum `∑ᵢ Re(1/ρᵢ)` cancel. -/
 theorem hadamardConst_add_tsum_re_inv_riemannXiZeros_eq_zero :
     (logDeriv riemannXi 0).re + ∑' i, ((riemannXiZeros i)⁻¹).re = 0 := by
@@ -610,7 +610,7 @@ theorem hadamardConst_add_tsum_re_inv_riemannXiZeros_eq_zero :
     tsum_re_inv_riemannXiZeros_sub_critical_eq_zero hconj, zero_add] at hkey
   linarith
 
-/-- **Real part of the Davenport explicit formula, solved for the zero sum.** For `0 < Re s`,
+/-- The real part of the Davenport explicit formula, solved for the zero sum. For `0 < Re s`,
 `s ≠ 1` not a zero of `ξ`, with the pairing density summable,
 `∑ᵢ Re 1/(s - ρᵢ) = Re(ζ'/ζ(s)) + Re(1/s) + Re(1/(s-1)) - ½ log π + ½ Re ψ(s/2)`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_eq {s : ℂ} (hre : 0 < s.re) (hs1 : s ≠ 1)
@@ -631,7 +631,7 @@ theorem tsum_re_inv_riemannXiZeros_sub_eq {s : ℂ} (hre : 0 < s.re) (hs1 : s �
   rw [re_tsum_partialFraction_add hsne hPair] at hexp
   linarith [hexp, hκ]
 
-/-- **Summability of the pairing density** `i ↦ Re 1/(s_d - ρᵢ)` at the abscissa
+/-- Summability of the pairing density`i ↦ Re 1/(s_d - ρᵢ)` at the abscissa
 `s_d = 1/2 + d + it` (`d > 1/2`). -/
 lemma summable_pairDensity {t d : ℝ} (hd : 1 / 2 < d) :
     Summable (fun i ↦ (((1 / 2 : ℂ) + (d : ℂ) + (t : ℂ) * I - riemannXiZeros i)⁻¹).re) :=
@@ -658,7 +658,7 @@ lemma Complex.re_one_div_le_norm_inv (w : ℂ) : (1 / w).re ≤ ‖w‖⁻¹ := 
 lemma Complex.one_div_re_le_one {z : ℂ} (hz : 1 ≤ ‖z‖) : (1 / z).re ≤ 1 :=
   (Complex.re_one_div_le_norm_inv z).trans ((inv_le_one₀ (by linarith)).2 hz)
 
-/-- **Common setup for the shifted-abscissa zero-sum witnesses.** For `1/2 < d` and `0 < t`, at
+/-- Common setup for the shifted-abscissa zero-sum witnesses. For `1/2 < d` and `0 < t`, at
 `s = 1/2 + d + it`: the coordinates `Re s = 1/2 + d`, `Im s = t`, the positivity `Re s > 0` and
 `Re s > 1`, the explicit-formula side conditions `s ≠ 1` and `s ≠ ρᵢ`, and the norm bounds
 `1/2 + d ≤ ‖s‖`, `‖s‖ > 0`, `‖s‖ ≤ (1/2 + d) + t`. -/
@@ -692,7 +692,7 @@ private lemma abs_sub_sub_le (a b c : ℝ) : |a - b - c| ≤ |a| + |b| + |c| :=
   abs_le.mpr ⟨by linarith [neg_abs_le a, le_abs_self b, le_abs_self c],
               by linarith [le_abs_self a, neg_abs_le b, neg_abs_le c]⟩
 
-/-- **Eventual `O(|ρᵢ|⁻²)` bound for the shift integrand**:
+/-- Eventual `O(|ρᵢ|⁻²)` bound for the shift integrand:
 `‖shiftLogIntegrand t d ρᵢ x‖ ≤ C‖ρᵢ⁻¹‖²` for `x ∈ (0,d]` and cofinitely many `i`. -/
 private lemma exists_eventually_forall_norm_shiftLogIntegrand_le {t d : ℝ} (hd : 1 / 2 < d)
     (ht : ∀ i, (riemannXiZeros i).im ≠ t) :
@@ -742,7 +742,7 @@ private lemma exists_eventually_forall_norm_shiftLogIntegrand_le {t d : ℝ} (hd
     (abs_log_norm_one_sub_div_add_re_le (ρ := ρ) hs_C0 hsmall)) hE3).trans (le_of_eq ?_)
   ring
 
-/-- **Summability of the shift-difference integrals** `i ↦ ∫₀ᵈ[log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖]dx`. -/
+/-- Summability of the shift-difference integrals`i ↦ ∫₀ᵈ[log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖]dx`. -/
 private lemma summable_shiftLogIntegral {t d : ℝ} (hd : 1 / 2 < d)
     (ht : ∀ i, (riemannXiZeros i).im ≠ t) :
     Summable (fun i ↦ shiftLogIntegral t d (riemannXiZeros i)) := by
@@ -757,7 +757,7 @@ private lemma summable_shiftLogIntegral {t d : ℝ} (hd : 1 / 2 < d)
         intervalIntegral.norm_integral_le_of_norm_le_const hi
     _ = C * d * ‖(riemannXiZeros i)⁻¹‖ ^ 2 := by rw [sub_zero, abs_of_pos hd0]; ring
 
-/-- **Sum–integral interchange for the shift integrand** (`lem:ll_booker`). With
+/-- Sum–integral interchange for the shift integrand (`lem:ll_booker`). With
 `s = 1/2 + x + it`,
 `∑ᵢ ∫₀ᵈ[log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖] dx = ∫₀ᵈ ∑ᵢ[log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖] dx`. -/
 theorem tsum_shiftLogIntegral_eq_intervalIntegral_tsum {t d : ℝ} (hd : 1 / 2 < d)
@@ -802,7 +802,7 @@ theorem tsum_shiftLogIntegral_eq_intervalIntegral_tsum {t d : ℝ} (hd : 1 / 2 <
     _ = ∫ x in (0 : ℝ)..d, ∑' i, shiftLogIntegrand t d (riemannXiZeros i) x := by
         rw [intervalIntegral.integral_of_le hd0.le]
 
-/-- **The summed booker bound** (`lem:ll_booker_sum`), parametric in the pairing constant `c ≥ 2`:
+/-- The summed booker bound (`lem:ll_booker_sum`), parametric in the pairing constant `c ≥ 2`:
 `∑ᵢ ∫₀ᵈ[log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖] dx ≤ c d² ∑ᵢ Re 1/(s_d - ρᵢ)`, with `s = 1/2 + x + it` and
 `s_d = 1/2 + d + it`. -/
 theorem integral_tsum_log_norm_shift_le_of {t d : ℝ} (hd : 1 / 2 < d)
@@ -837,8 +837,8 @@ theorem integral_tsum_log_norm_shift_le_of {t d : ℝ} (hd : 1 / 2 < d)
           rw [tsum_mul_left, hSc.tsum_add hSch, ← hreflc]; ring
   linarith
 
-/-- The `c = 5/2` case of `integral_tsum_log_norm_shift_le_of`, the constant consumed by the
-current lower-bound assembly. -/
+/-- The `c = 5/2` case of `integral_tsum_log_norm_shift_le_of`, the constant the lower-bound
+assembly uses. -/
 theorem integral_tsum_log_norm_shift_le {t d : ℝ} (hd : 1 / 2 < d)
     (ht : ∀ i, (riemannXiZeros i).im ≠ t) :
     ∑' i, shiftLogIntegral t d (riemannXiZeros i)
@@ -851,7 +851,7 @@ theorem integral_tsum_log_norm_shift_le {t d : ℝ} (hd : 1 / 2 < d)
 open scoped LSeries.notation
 open ArithmeticFunction
 
-/-- **The Dirichlet-series bound on `Re(ζ'/ζ)` for `Re s > 1`**: `Re(ζ'/ζ(s))` is dominated by
+/-- The Dirichlet-series bound on `Re(ζ'/ζ)` for `Re s > 1`: `Re(ζ'/ζ(s))` is dominated by
 `∑ₙ ‖Λ(n) n^{-s}‖`, whose value depends only on `Re s`. -/
 lemma re_logDeriv_riemannZeta_le {s : ℂ} (hs : 1 < s.re) :
     (logDeriv riemannZeta s).re ≤ ∑' n, ‖LSeries.term ↗Λ s n‖ := by
@@ -863,7 +863,7 @@ lemma re_logDeriv_riemannZeta_le {s : ℂ} (hs : 1 < s.re) :
     _ = ‖LSeries ↗Λ s‖ := by rw [hlogD, norm_neg]
     _ ≤ ∑' n, ‖LSeries.term ↗Λ s n‖ := norm_tsum_le_tsum_norm hsum
 
-/-- **Real-part bound on the digamma function.** Given a remainder bound `‖R(z)‖ ≤ C‖z‖⁻¹` at
+/-- Real-part bound on the digamma function. Given a remainder bound `‖R(z)‖ ≤ C‖z‖⁻¹` at
 order `0`, `Re ψ(z) ≤ log‖z‖ + (½+C)/‖z‖` for `Re z > 0`. -/
 lemma re_digamma_le {z : ℂ} (hz : 0 < z.re) {C : ℝ}
     (hC : ‖digammaRemainderIoi z 1‖ ≤ C * ‖z‖ ^ (-(1 : ℤ))) :
@@ -887,7 +887,7 @@ lemma re_digamma_le {z : ℂ} (hz : 0 < z.re) {C : ℝ}
   have efr : (2 * ‖z‖)⁻¹ + C * (‖z‖)⁻¹ = (1 / 2 + C) / ‖z‖ := by field_simp
   linarith [e1, e2, efr]
 
-/-- **Bound on the zero sum at the abscissa `s_d = ½ + d + it`** (`lem:ll_zeta_sum`). For `d > ½`
+/-- Bound on the zero sum at the abscissa `s_d = ½ + d + it` (`lem:ll_zeta_sum`). For `d > ½`
 there is a `t`-independent constant `C` with `∑ᵢ Re 1/(s_d - ρᵢ) ≤ ½ log t + C` for `t ≥ 168π`. -/
 theorem tsum_re_inv_riemannXiZeros_sub_le {d : ℝ} (hd : 1 / 2 < d) :
     ∃ C : ℝ, ∀ t : ℝ, 168 * π ≤ t →

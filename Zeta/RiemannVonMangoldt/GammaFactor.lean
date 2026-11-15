@@ -55,7 +55,7 @@ private theorem argVariation_cpow_pi_seg (z₀ z₁ : ℂ) :
     Complex.neg_im, Complex.div_ofNat_im, Complex.neg_re, Complex.div_ofNat_re]
   ring
 
-/-- **The `π`-factor.** Along `L_T : 2 → 2 + iT → ½ + iT`,
+/-- The `π`-factor: along `L_T : 2 → 2 + iT → ½ + iT`,
 `Δ_{L_T} arg(π^{-s/2}) = -(T/2) log π`. -/
 private theorem argVariationContourL_cpow_pi {T : ℝ} :
     argVariationContourL (fun s ↦ (↑π : ℂ) ^ (-s / 2)) T = -(T / 2) * Real.log π := by
@@ -163,7 +163,7 @@ private theorem argVariation_Gamma_vseg_reparam {T : ℝ} (hT : 0 < T) :
   field_simp
   ring
 
-/-- **The `Γ`-factor.** Along `L_T : 2 → 2 + iT → ½ + iT`,
+/-- The `Γ`-factor: along `L_T : 2 → 2 + iT → ½ + iT`,
 `Δ_{L_T} arg(Γ(s/2)) = argVariation 0 T (u ↦ Γ(¼ + iu/2))`, the defining segment of `θ`. -/
 private theorem argVariationContourL_Gamma_half {T : ℝ} (hT : 0 < T) :
     argVariationContourL (fun s ↦ Complex.Gamma (s / 2)) T
@@ -210,8 +210,7 @@ private theorem argVariation_Gammaℝ_seg (z₀ z₁ : ℂ) (h0 : 0 < z₀.re) (
     (continuousOn_Gamma_comp ((continuous_lineSeg z₀ z₁).div_const 2) hre)
     (fun u hu ↦ Gamma_ne_zero_of_re_pos (hre u hu))
 
-/-- **The argument of the `Γ` and `π` factors is `θ`.** For `T > 0`,
-`Δ_{L_T} arg Γ_ℝ = θ(T)` along `L_T : 2 → 2 + iT → ½ + iT`. -/
+/-- **The argument of the `Γ` and `π` factors is `θ`** along `L_T : 2 → 2 + iT → ½ + iT`. -/
 theorem argVariation_GammaPi_L {T : ℝ} (hT : 0 < T) :
     argVariationContourL Complex.Gammaℝ T = riemannSiegelTheta T := by
   -- Split `Γ_ℝ = π^{-s/2}·Γ(s/2)` on each of the two segments of `L_T`, then add up the

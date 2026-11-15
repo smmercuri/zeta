@@ -34,7 +34,7 @@ drive it.
 
 open Complex Filter Topology MeasureTheory Set
 
-/-- **Partial-sum bound for the Dirichlet series** (`lem:lb_sum_rpow`). For `0 < σ < 1` and
+/-- Partial-sum bound for the Dirichlet series (`lem:lb_sum_rpow`). For `0 < σ < 1` and
 `N ≥ 1`, `∑_{n=0}^N n^{-σ} ≤ N^{1-σ}/(1-σ) + 1`. The `Finset.range (N+1)` phrasing (whose `n = 0`
 term vanishes) interfaces directly with the `riemannZeta0` partial sum. -/
 theorem Real.sum_range_rpow_neg_le {σ : ℝ} (hσ0 : 0 < σ) (hσ1 : σ < 1) {N : ℕ} (hN : 1 ≤ N) :
@@ -79,7 +79,7 @@ private theorem abs_floor_bundle {t : ℝ} (ht : 3 < |t|) :
   have htpos : (0 : ℝ) < |t| := by linarith
   ⟨htpos, Nat.floor_pos.mpr (by linarith), Nat.floor_le htpos.le⟩
 
-/-- **Term 1 of the Euler–Maclaurin bound for `ζ`**: the Dirichlet partial sum `∑_{n ≤ N} n^{-s}`
+/-- Term 1 of the Euler–Maclaurin bound for `ζ`: the Dirichlet partial sum `∑_{n ≤ N} n^{-s}`
 at `N = ⌊|t|⌋₊`, `s = σ + it`, has modulus `≤ |t|^{1-σ}/(1-σ) + |t|^{1-σ}`. -/
 private theorem norm_sum_one_div_cpow_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 : ℝ) 1) (ht : 3 < |t|) :
     ‖∑ n ∈ Finset.range (⌊|t|⌋₊ + 1), 1 / (n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * I)‖
@@ -104,7 +104,7 @@ private theorem norm_sum_one_div_cpow_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 :
     simpa using Real.rpow_le_rpow_of_exponent_le (by linarith : (1 : ℝ) ≤ |t|) h1mσ.le
   linarith
 
-/-- **Term 2 of the Euler–Maclaurin bound for `ζ`**: the boundary term `-N^{1-s}/(1-s)`
+/-- Term 2 of the Euler–Maclaurin bound for `ζ`: the boundary term `-N^{1-s}/(1-s)`
 (`N = ⌊|t|⌋₊`, `s = σ + it`) has modulus `≤ 2|t|^{1-σ}`. -/
 private theorem norm_neg_cpow_one_sub_div_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 : ℝ) 1)
     (ht : 3 < |t|) :
@@ -116,7 +116,7 @@ private theorem norm_neg_cpow_one_sub_div_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 /
   exact (UpperBnd_aux6 ht ⟨hσ.1, by linarith [hσ.2]⟩ (add_mul_I_ne_one (abs_pos.mp htpos))
     Npos N_le_t).1
 
-/-- **Term 3 of the Euler–Maclaurin bound for `ζ`**: the boundary term `-N^{-s}/2`
+/-- Term 3 of the Euler–Maclaurin bound for `ζ`: the boundary term `-N^{-s}/2`
 (`N = ⌊|t|⌋₊`, `s = σ + it`) has modulus `≤ |t|^{1-σ}`. -/
 private theorem norm_neg_cpow_neg_div_two_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 : ℝ) 1)
     (ht : 3 < |t|) :
@@ -127,7 +127,7 @@ private theorem norm_neg_cpow_neg_div_two_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 /
   exact (UpperBnd_aux6 ht ⟨hσ.1, by linarith [hσ.2]⟩ (add_mul_I_ne_one (abs_pos.mp htpos))
     Npos N_le_t).2.1
 
-/-- **Term 4 of the Euler–Maclaurin bound for `ζ`**: the tail integral
+/-- Term 4 of the Euler–Maclaurin bound for `ζ`: the tail integral
 `s · ∫_N^∞ (⌊x⌋ + ½ - x) x^{-(s+1)} dx` (`N = ⌊|t|⌋₊`, `s = σ + it`) has modulus
 `≤ 16|t|^{1-σ}`. -/
 private theorem norm_riemannZeta0_tail_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 : ℝ) 1) (ht : 3 < |t|) :
@@ -145,9 +145,10 @@ private theorem norm_riemannZeta0_tail_le {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 
     (by positivity)).trans (le_of_eq ?_)
   rw [show |t| ^ (1 - σ) = |t| * |t| ^ (-σ) from hpow.symm]; ring
 
-/-- **Convexity-free strip bound for `ζ`** (`lem:lb_zeta_strip`). For `1/2 < σ < 1` and `3 < |t|`,
-`‖ζ(σ + it)‖ ≤ 11/(1-σ) · |t|^{1-σ}`. The constant `11` (rather than the blueprint's sharper `7`)
-affects only the additive constant `a₁` of `lem:lb_I_upper`, never the coefficient `b₁`. -/
+/-- Convexity-free strip bound for `ζ` (`lem:lb_zeta_strip`). For `1/2 < σ < 1` and `3 < |t|`,
+`‖ζ(σ + it)‖ ≤ 11/(1-σ) · |t|^{1-σ}`. The blueprint states the sharper constant `7`; the constant
+enters only the additive constant `a₁` of `lem:lb_I_upper`, and the coefficient `b₁` is
+independent of it. -/
 theorem norm_riemannZeta_le_of_mem_strip {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 : ℝ) 1) (ht : 3 < |t|) :
     ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖ ≤ 11 / (1 - σ) * |t| ^ (1 - σ) := by
   rw [mul_comm Complex.I (t : ℂ)]
@@ -172,7 +173,7 @@ theorem norm_riemannZeta_le_of_mem_strip {σ t : ℝ} (hσ : σ ∈ Ioo (1 / 2 :
       = (1 / (1 - σ) + 20) * |t| ^ (1 - σ) := by ring
     _ ≤ 11 / (1 - σ) * |t| ^ (1 - σ) := mul_le_mul_of_nonneg_right hscalar hL.le
 
-/-- **Bound near `σ = 1`** (`lem:lb_zeta_near_one`). There is a constant `C > 0` with
+/-- Bound near `σ = 1` (`lem:lb_zeta_near_one`). There is a constant `C > 0` with
 `|ζ(σ + it)| ≤ C·log|t|` for all `σ ∈ [1,2]` and `|t| > 3`. -/
 theorem exists_norm_riemannZeta_le_const_mul_log :
     ∃ C : ℝ, 0 < C ∧ ∀ σ t : ℝ, σ ∈ Icc (1 : ℝ) 2 → 3 < |t| →
@@ -187,7 +188,7 @@ theorem exists_norm_riemannZeta_le_const_mul_log :
   have h := hbound σ t ht hmem
   rwa [mul_comm Complex.I (t : ℂ)]
 
-/-- **Explicit form of the bound near `σ = 1`.** For `σ ∈ [1, 2]` and `|t| > 3`,
+/-- Explicit form of the bound near `σ = 1`. For `σ ∈ [1, 2]` and `|t| > 3`,
 `|ζ(σ + it)| ≤ C₁·log|t|` with `C₁ = e^{1/2}·(5 + 8·2) = 21·e^{1/2}`. -/
 theorem norm_riemannZeta_le_const_mul_log {σ t : ℝ} (hσ : σ ∈ Icc (1 : ℝ) 2) (ht : 3 < |t|) :
     ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖ ≤ Real.exp (1 / 2) * (5 + 8 * 2) * Real.log |t| := by
@@ -242,9 +243,9 @@ private theorem integral_strip_majorant (L : ℝ) :
   simp only [smul_eq_mul]
   ring
 
-/-- **Elementary strip bound for `ζ` on `σ > 1`** (`lem:ls_upper_elem`). For real `σ > 1` and any
-`t`, `‖ζ(σ + it)‖ ≤ σ/(σ - 1)`. This `t`-independent majorant is what lowers the `I(t)`
-coefficient from `3/16` to `1/8` in `logNormZetaIntegral_le_five`. -/
+/-- Elementary strip bound for `ζ` on `σ > 1` (`lem:ls_upper_elem`). For real `σ > 1` and any
+`t`, `‖ζ(σ + it)‖ ≤ σ/(σ - 1)`. This `t`-independent majorant gives the `I(t)` coefficient `1/8`
+in `logNormZetaIntegral_le_five`. -/
 theorem norm_riemannZeta_le_div_sub_one {σ t : ℝ} (hσ : 1 < σ) :
     ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖ ≤ σ / (σ - 1) := by
   have hσ1 : (0 : ℝ) < σ - 1 := by linarith
@@ -281,7 +282,7 @@ private theorem integrableOn_log_norm_riemannZeta_subset {t : ℝ} {S : Set ℝ}
     IntegrableOn (fun σ : ℝ ↦ Real.log ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖) S :=
   (integrableOn_log_norm_riemannZeta_Ioi ht hzero).mono_set hS
 
-/-- **Four-way split of `I(t)`** over the ranges `(1/2, 1]`, `(1, 2]`, `(2, 4]`, `(4, ∞)`, for
+/-- Four-way split of `I(t)` over the ranges `(1/2, 1]`, `(1, 2]`, `(2, 4]`, `(4, ∞)`, for
 `t ≠ 0` off the zeros of `ζ` on the ray `{σ + it : σ ≥ 1/2}`. -/
 private theorem logNormZetaIntegral_eq_add {t : ℝ} (ht : t ≠ 0)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
@@ -307,7 +308,7 @@ private theorem logNormZetaIntegral_eq_add {t : ℝ} (ht : t ≠ 0)
     setIntegral_union (Ioc_disjoint_Ioi le_rfl) measurableSet_Ioi ig_c ig_d]
   ring
 
-/-- **Range `(1/2, 1]` bound.** For `3 < t` off the zeros of `ζ`,
+/-- Range `(1/2, 1]` bound. For `3 < t` off the zeros of `ζ`,
 `∫_{(1/2,1]} log‖ζ(σ + it)‖ dσ ≤ ½log11 + (log t)/8 + (½log2 + ½)`. This block is the source of
 the leading `⅛ log t` of the upper bound on `I(t)`. -/
 private theorem integral_log_norm_riemannZeta_Ioc_half_one_le {t : ℝ} (ht : 3 < t)
@@ -349,7 +350,7 @@ private theorem integral_log_norm_riemannZeta_Ioc_half_one_le {t : ℝ} (ht : 3 
     _ = 1 / 2 * Real.log 11 + Real.log t / 8 + (1 / 2 * Real.log 2 + 1 / 2) :=
         integral_strip_majorant _
 
-/-- **Range `(2, 4]` bound.** For `t ≠ 0` off the zeros of `ζ`, the `t`-independent
+/-- Range `(2, 4]` bound. For `t ≠ 0` off the zeros of `ζ`, the `t`-independent
 `∫_{(2,4]} log‖ζ(σ + it)‖ dσ ≤ 2·log(π²/6)`. -/
 private theorem integral_log_norm_riemannZeta_Ioc_two_four_le {t : ℝ} (ht : t ≠ 0)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
@@ -379,7 +380,7 @@ private theorem integral_log_norm_riemannZeta_Ioc_two_four_le {t : ℝ} (ht : t 
         rw [← intervalIntegral.integral_of_le (by norm_num : (2 : ℝ) ≤ 4),
           intervalIntegral.integral_const]; norm_num
 
-/-- **Range `(4, ∞)` bound.** For `t ≠ 0` off the zeros of `ζ`, `∫_{(4,∞)} log‖ζ(σ + it)‖ dσ` is
+/-- Range `(4, ∞)` bound. For `t ≠ 0` off the zeros of `ζ`, `∫_{(4,∞)} log‖ζ(σ + it)‖ dσ` is
 bounded by the convergent `∫_{(4,∞)} 8(π²/6 - 1)·exp(-(log 2)·σ) dσ`. -/
 private theorem integral_log_norm_riemannZeta_Ioi_four_le {t : ℝ} (ht : t ≠ 0)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
@@ -398,7 +399,7 @@ private theorem integral_log_norm_riemannZeta_Ioi_four_le {t : ℝ} (ht : t ≠ 
     _ ≤ 8 * (Real.pi ^ 2 / 6 - 1) * Real.exp (-(Real.log 2 * σ)) :=
         abs_log_norm_riemannZeta_le_exp (le_of_lt hσmem)
 
-/-- **Parametric upper bound on `I`, abstract middle block** (`lem:lb_I_upper`). Given any bound
+/-- Parametric upper bound on `I`, abstract middle block (`lem:lb_I_upper`). Given any bound
 `∫_{(1,2]} log‖ζ(σ + it)‖ dσ ≤ M₂ + β₂·log t` on the middle strip, the upper bound on `I(t)` has
 leading coefficient `⅛ + β₂`. -/
 theorem logNormZetaIntegral_le_of_middle {M₂ β₂ : ℝ} {t : ℝ} (ht : 168 * Real.pi ≤ t)
@@ -417,7 +418,7 @@ theorem logNormZetaIntegral_le_of_middle {M₂ β₂ : ℝ} {t : ℝ} (ht : 168 
     integral_log_norm_riemannZeta_Ioc_two_four_le htpos.ne' hzero,
     integral_log_norm_riemannZeta_Ioi_four_le htpos.ne' hzero]
 
-/-- **Absorption of the `log log t` term.** For `1 < t`,
+/-- Absorption of the `log log t` term. For `1 < t`,
 `log(log t) ≤ (1/16)·log t + (4log2 - 1)`. -/
 private theorem log_log_le_div_sixteen_add {t : ℝ} (ht : 1 < t) :
     Real.log (Real.log t) ≤ 1 / 16 * Real.log t + (4 * Real.log 2 - 1) := by
@@ -429,7 +430,7 @@ private theorem log_log_le_div_sixteen_add {t : ℝ} (ht : 1 < t) :
   push_cast at h16
   linarith
 
-/-- **Parametric upper bound on `I` via the `hC₁`-route** (`lem:lb_I_upper`). From any bound
+/-- Parametric upper bound on `I` via the `hC₁`-route (`lem:lb_I_upper`). From any bound
 `‖ζ(σ + it)‖ ≤ C₁·log|t|` on `[1, 2]`, with leading coefficient `b₁ = ⅛ + 1/16 = 3/16`. -/
 theorem logNormZetaIntegral_le_of_bound {C₁ : ℝ} (hC₁0 : 0 < C₁)
     (hC₁ : ∀ σ t : ℝ, σ ∈ Icc (1 : ℝ) 2 → 3 < |t| →
@@ -472,9 +473,8 @@ theorem logNormZetaIntegral_le_of_bound {C₁ : ℝ} (hC₁0 : 0 < C₁)
           linarith [log_log_le_div_sixteen_add htgt1]
   linarith [logNormZetaIntegral_le_of_middle ht hzero hmid]
 
-/-- **Elementary upper bound on `I`** (`lem:ls_upper_elem`). The `t`-independent middle block of
-the elementary strip bound leaves no `log log t` term, so the leading coefficient is
-`b₁ = 1/8` rather than `3/16`. -/
+/-- Elementary upper bound on `I` (`lem:ls_upper_elem`). The middle block of the elementary strip
+bound is `t`-independent, so the leading coefficient is `b₁ = 1/8`. -/
 theorem logNormZetaIntegral_le_elem {t : ℝ} (ht : 168 * Real.pi ≤ t)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
     logNormZetaIntegral t ≤
@@ -551,7 +551,7 @@ private theorem exp_tail_lt_half : (Real.pi ^ 2 / 6 - 1) / (2 * Real.log 2) < 1 
   rw [div_lt_iff₀ (by positivity)]
   nlinarith [pi_sq_lt_d4, Real.log_two_gt_d9]
 
-/-- **Explicit elementary upper bound on `I`**: `I(t) ≤ 5 + (1/8)·log t` for `t ≥ 168π` off the
+/-- Explicit elementary upper bound on `I`: `I(t) ≤ 5 + (1/8)·log t` for `t ≥ 168π` off the
 zeros. The true additive constant of `logNormZetaIntegral_le_elem` is `≈ 4.89`. -/
 theorem logNormZetaIntegral_le_five {t : ℝ} (ht : 168 * Real.pi ≤ t)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
@@ -560,7 +560,7 @@ theorem logNormZetaIntegral_le_five {t : ℝ} (ht : 168 * Real.pi ≤ t)
   rw [integral_exp_tail_eq]
   linarith [log_eleven_le, log_pi_sq_div_six_lt, exp_tail_lt_half, Real.log_two_lt_d9]
 
-/-- **Upper bound on `I`** (`lem:lb_I_upper`), with the additive constant `a₁` existential. -/
+/-- Upper bound on `I` (`lem:lb_I_upper`), with the additive constant `a₁` existential. -/
 theorem logNormZetaIntegral_le :
     ∃ a₁ : ℝ, ∀ t : ℝ, 168 * Real.pi ≤ t →
       (∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) →
@@ -568,7 +568,7 @@ theorem logNormZetaIntegral_le :
   obtain ⟨C₁, hC₁0, hC₁⟩ := exists_norm_riemannZeta_le_const_mul_log
   exact ⟨_, fun t ht hzero ↦ logNormZetaIntegral_le_of_bound hC₁0 hC₁ ht hzero⟩
 
-/-- **Explicit upper bound on `I`**: `I(t) ≤ 9 + (3/16)·log t` for all `t ≥ 168π` off the zeros.
+/-- Explicit upper bound on `I`: `I(t) ≤ 9 + (3/16)·log t` for all `t ≥ 168π` off the zeros.
 At the pinned constant `C₁ = 21·e^{1/2}` the true additive constant is `≈ 8.83`. -/
 theorem logNormZetaIntegral_le_nine {t : ℝ} (ht : 168 * Real.pi ≤ t)
     (hzero : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :

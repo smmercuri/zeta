@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Zeta.Certificate.Bernoulli
@@ -14,8 +19,8 @@ rectangle arithmetic:
 
 - a `CNamed` is a rectangle proof `Complex.IsNear z …` for an explicit `z`, with the components
   recovered as `And` projections;
-- `cAddNamed`/`cSubNamed`/`cMulNamed` combine components and pass through
-  `Complex.IsNear.add/sub/mul`, naming the result `z + w`/`z - w`/`z * w`;
+- `cAddNamed`/`cSubNamed`/`cMulNamed` combine components through `Complex.IsNear.addLitP`,
+  `subLitP` and `mul`, naming the result `z + w`/`z - w`/`z * w`;
 - `cnamedOfEq` renames along a proven equality (a leaf or step identity).
 
 Interval arithmetic carries all values; the equalities only ever rename.
@@ -31,28 +36,18 @@ open Complex Complex.Stirling
 open Lean Meta
 
 /-- Trace class for the coarse phases of the certificate tactics (`hardy_sign_change`,
-`hardy_error_ok`, `gram_bound`), attributing elaboration time to the enclosure builders. -/
+`hardy_error_ok_full`, `gram_bound`), attributing elaboration time to the enclosure builders. -/
 initialize registerTraceClass `BSN.phases
 
 /-- Wrap a builder phase in a `trace.BSN.phases` node for profiler attribution. -/
 meta def withPhase {α : Type} (name : String) (k : MetaM α) : MetaM α :=
-  withTraceNode `BSN.phases (fun _ => return m!"{name}") k
+  withTraceNode `BSN.phases (fun _ ↦ return m!"{name}") k
 
-/-- The LHS of the equality a renaming lemma proves, sourced from the lemma's *declared* type
-(instantiated at the head application's arguments) rather than from the assembled proof term via
-`inferType`. `he` must be `f a₀ … aₖ` for a constant `f` whose declared type ends in an `Eq`; the
-LHS is that `Eq`'s left side with the binders substituted by the supplied arguments.
-
-Reading a stored declared type (cf. `bernRealLemma`) is carry-the-data-compatible: the value
-threads from static source (the lemma's own statement) and the carried application arguments, not
-from a runtime-assembled proof term (which is what the banned `inferType` reads), and any mismatch
-is caught by the kernel. The renaming sites whose LHS is a plain, instance-free application
-(`headSumC s b`, `logSumC t b`, `zetaApproximant s M N`, `riemannSiegelThetaStirlingErrorBound M N`,
-`riemannSiegelThetaStirlingErrorBound' M N t`,
-`(↑r).re`) build that LHS directly at the producer instead; this helper covers the remaining sites
-whose surface form is a `Finset.sum`, an `⟨sfrac, sfrac⟩` rectangle, or a mathlib projection, where
-a hand-built literal would have to reproduce the exact numeral shapes the `of_eq` transport is tuned
-for (see the `ascPochhammer_succ_eval_c` docstring). -/
+/-- The LHS of the equality a renaming lemma proves, read from the lemma's declared type
+instantiated at the arguments of `he = f a₀ … aₖ` (`f` a constant whose type ends in an `Eq`)
+rather than by `inferType`. For surface forms (a `Finset.sum`, an
+`⟨sfrac, sfrac⟩` rectangle, a mathlib projection) whose exact numeral shapes are hard to build by
+hand; plain applications are built directly at the producer. -/
 meta def lemmaLhs (he : Expr) : MetaM Expr := do
   let fn := he.getAppFn
   let some nm := fn.constName?
@@ -63,10 +58,8 @@ meta def lemmaLhs (he : Expr) : MetaM Expr := do
     | throwError "lemmaLhs: {nm}'s conclusion is not an `Eq`: {inst}"
   return l
 
-/-- `ofEqNear` for the named layer: transport the enclosure onto the equality's LHS `z'`
-(`Real.IsNear.of_eq`). The caller passes `z'` directly (the conclusion's left side of the lemma
-that produced `he`), matching the engine-side `ofEqNear`, so it is never read back by
-`inferType`. -/
+/-- `ofEqNear` for the named layer: transport the enclosure along `he` onto its LHS `z'`, which
+the caller passes directly rather than having it read back by `inferType`. -/
 meta def ofEqNearHe (z' he : Expr) (r : RNear) : MetaM RNear := do
   ofEqNear z' he r
 
@@ -88,13 +81,12 @@ meta def mkCNamed (z proof : Expr) (re im : RNear) : MetaM CNamed := do
   let reProof := mkAppN (mkConst ``Complex.IsNear.re_isNear) args
   let imProof := mkAppN (mkConst ``Complex.IsNear.im_isNear) args
   -- `re_isNear`/`im_isNear` conclude `Real.IsNear z.re …`/`Real.IsNear z.im …`, so the component
-  -- reals are `Complex.re z`/`Complex.im z` (built directly, no `inferType` via `nearReal`).
+  -- reals are `Complex.re z`/`Complex.im z`, built directly.
   return { z, proof, re := { re with proof := reProof, x := mkApp (mkConst ``Complex.re) z },
                      im := { im with proof := imProof, x := mkApp (mkConst ``Complex.im) z } }
 
-/-! The result complex value of a combinator is a fixed function of its inputs' values, so build it
-directly (matching the `Complex.IsNear.add/sub/mul/mk` conclusions) instead of reading it back off
-the assembled proof by `inferType`. Any mismatch is caught by the kernel. -/
+/-! The result complex value of a combinator is a fixed function of its inputs' values, built
+directly to match the `Complex.IsNear.add/sub/mul/mk` conclusions; the kernel checks the match. -/
 
 private meta def cplxTyE : Expr := mkConst ``Complex
 
@@ -135,9 +127,8 @@ meta def cnamedOfParts (z : Expr) (c : CNear) : CNamed :=
 Higher stride means fewer, larger sealed lemmas (fewer `addDecl` calls, higher peak memory). -/
 meta def checkpointStride : ℕ := 8
 
-/-- Seal a named rectangle's accumulated proof behind a module aux lemma (statement-keyed,
-like `cachedNear`), so the accumulation loops can checkpoint every few steps: each checkpoint
-is checked once at its own size and later steps cite the constant. -/
+/-- Seal a named rectangle's accumulated proof behind a statement-keyed module aux lemma (like
+`cachedNear`), so later accumulation steps cite the constant. -/
 meta def cnamedCheckpoint (x : CNamed) : MetaM CNamed := do
   let ty := mkAppN (mkConst ``Complex.IsNear)
     #[x.z, toExpr x.re.neg, natLitShared x.re.cn, natLitShared x.re.cd, natLitShared x.re.rn,
@@ -147,7 +138,7 @@ meta def cnamedCheckpoint (x : CNamed) : MetaM CNamed := do
   mkCNamed x.z (mkConst nm) x.re x.im
 
 /-- Rename a named rectangle along `he : z' = z` (`Complex.IsNear.of_eq`). The caller passes the
-target name `z'` (the equality's LHS) directly, so it is never read back by `inferType`. -/
+target name `z'` (the equality's LHS) directly. -/
 meta def cnamedOfEq (z' he : Expr) (x : CNamed) : MetaM CNamed := do
   let proof := mkAppN (mkConst ``Complex.IsNear.of_eq)
     #[z', x.z, toExpr x.re.neg, natLitShared x.re.cn, natLitShared x.re.cd, natLitShared x.re.rn,
@@ -155,9 +146,8 @@ meta def cnamedOfEq (z' he : Expr) (x : CNamed) : MetaM CNamed := do
       natLitShared x.im.rn, natLitShared x.im.rd, he, x.proof]
   mkCNamed z' proof x.re x.im
 
-/-- Exact constant leaf: given `he : Z = ⟨sfrac rneg rcn rcd, sfrac ineg icn icd⟩` (a leaf
-identity, whose component numerators the kernel evaluates against the literal fields), a
-radius-zero rectangle named `Z`. -/
+/-- Exact constant leaf: the radius-zero rectangle named `Z`, given a leaf identity
+`he : Z = ⟨sfrac rneg rcn rcd, sfrac ineg icn icd⟩`. -/
 meta def cnamedConst (he : Expr) (rneg : Bool) (rcn rcd : ℕ) (ineg : Bool) (icn icd : ℕ) :
     MetaM CNamed := do
   let mkC (neg : Bool) (cn cd : ℕ) : MetaM RNear := do
@@ -173,9 +163,8 @@ meta def cnamedConst (he : Expr) (rneg : Bool) (rcn rcd : ℕ) (ineg : Bool) (ic
   let zmk := mkMkC reC.x imC.x
   cnamedOfEq (← lemmaLhs he) he { z := zmk, proof := pf, re := reC, im := imC }
 
-/-- Shared assembly of the named binary combinators: components already combined into `reS`/
-`imS` (enclosing the appropriate projection combination), passed through the rectangle lemma
-`thm` (`Complex.IsNear.add/sub/mul`); the result value is read off the conclusion's type. -/
+/-- Named product: the combined components `reS`/`imS` passed through the rectangle lemma `thm`
+(`Complex.IsNear.mul`), named `x.z * y.z`. -/
 private meta def cnamedCombine (thm : Name) (x y : CNamed) (reS imS : RNear) : MetaM CNamed := do
   let proof := mkAppN (mkConst thm)
     #[x.z, y.z, toExpr reS.neg, natLitShared reS.cn, natLitShared reS.cd, natLitShared reS.rn,
@@ -185,11 +174,8 @@ private meta def cnamedCombine (thm : Name) (x y : CNamed) (reS imS : RNear) : M
   let z' := mkMulC x.z y.z
   mkCNamed z' proof reS imS
 
-/-- Shared assembly of the paired named `add`/`sub`: one application of the paired-input lemma
-`thm` (`Complex.IsNear.addLitP`/`subLitP`) consumes `x.proof`/`y.proof` directly. Result
-fields are the `addCentreFields`/`addLikeFields` arithmetic; when a component exceeds the
-renorm cap (`renormFields?`), a rectangle-level recentre rounds it (`recentre2` when both
-components need it, `recentreRe`/`recentreIm` when only one does). -/
+/-- Named `add`/`sub` through one application of the paired-input lemma `thm`
+(`Complex.IsNear.addLitP`/`subLitP`), recentring any component that exceeds the renorm cap. -/
 private meta def cnamedCombineP (thm : Name) (x y : CNamed) (sub : Bool) : MetaM CNamed := do
   let (rNeg, rCnPre) := addCentreFields x.re y.re sub
   let (iNeg, iCnPre) := addCentreFields x.im y.im sub
@@ -251,8 +237,7 @@ meta def cAddNamed (x y : CNamed) : MetaM CNamed := do
 meta def cSubNamed (x y : CNamed) : MetaM CNamed := do
   cnamedCombineP ``Complex.IsNear.subLitP x y true
 
-/-- Named multiplication: `(z·w).re = z.re·w.re − z.im·w.im`, `(z·w).im = z.re·w.im + z.im·w.re`
-componentwise, passed through `Complex.IsNear.mul`. -/
+/-- Named multiplication, componentwise through `Complex.IsNear.mul`. -/
 meta def cMulNamed (x y : CNamed) : MetaM CNamed := do
   let reS ← subNear (← mulNearRaw x.re y.re) (← mulNearRaw x.im y.im)
   let imS ← addNear (← mulNearRaw x.re y.im) (← mulNearRaw x.im y.re)
@@ -276,9 +261,8 @@ meta def mkSAddNatNamed (tE htE : Expr) (tneg : Bool) (tn td n : ℕ) : MetaM CN
     #[tE, toExpr tneg, natLitShared tn, natLitShared td, natLitShared n, htE]
   cnamedConst he false (1 + 2 * n) 2 tneg tn td
 
-/-- Named rectangle of `(ascPochhammer ℂ m).eval s` (`m ≥ 1`): the base `m = 1` is `s` renamed
-through `ascPochhammer_one_eval`; each step multiplies by the named leaf `s + i` and renames
-through `ascPochhammer_succ_eval_c`. Radius stays zero until `renorm` caps the exact fields. -/
+/-- Named rectangle of `(ascPochhammer ℂ m).eval s` (`m ≥ 1`), a product of the named leaves
+`s + i`. The radius stays zero until `renorm` caps the exact fields. -/
 meta def mkPochNamed (tE htE : Expr) (tneg : Bool) (tn td m : ℕ) : MetaM CNamed := do
   unless 1 ≤ m do throwError "mkPochNamed: m must be at least 1"
   let s ← mkSNamed tE htE tneg tn td
@@ -303,9 +287,8 @@ elab "poch_named% " tnn:num tdn:num mn:num : term => do
   let htE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) tE
   return (← mkPochNamed tE htE false tn td mn.getNat).proof
 
-/-- Benchmark: the named enclosure of `(ascPochhammer ℂ 3).eval s = s(s+1)(s+2)` at
-`t = 14.1` — the value every zeta Bernoulli term consumes. Reference (mpmath `rf(s,3)`):
-`≈ -892.77 - 2722.146i`. -/
+/-- Benchmark: the named enclosure of `(ascPochhammer ℂ 3).eval s` at `t = 14.1`. Reference
+(mpmath `rf(s,3)`): `≈ -892.77 - 2722.146i`. -/
 example := poch_named% 141 10 3
 
 /-! ### The named zeta approximant -/
@@ -322,7 +305,7 @@ meta def cnamedOfMk (c : CNear) : MetaM CNamed := do
   return { z := zmk, proof := pf, re := c.re, im := c.im }
 
 /-- Named rectangle of `(n:ℂ)^{-s}` at `s = ½ + i·t`: the cpow builder's rectangle, renamed
-through `cpow_neg_s_mk` (whose right side is exactly the builder's assembled pair). -/
+through `cpow_neg_s_mk`. -/
 meta def mkCpowNegSNamed (tE htE : Expr) (tn td n D : ℕ) : MetaM CNamed := do
   let c ← withPhase "cpow: certificates" (mkCpowIntCNear n (-1) (-(tn : ℤ)) td D)
   withPhase "cpow: named assembly" do
@@ -330,10 +313,8 @@ meta def mkCpowNegSNamed (tE htE : Expr) (tn td n D : ℕ) : MetaM CNamed := do
       #[tE, natLitShared tn, natLitShared td, natLitShared n, htE, reflBoolTrue]
     cnamedOfEq (← lemmaLhs he) he (← cnamedOfMk c)
 
-/-- The `sfrac`-form Bernoulli value lemma for `bernoulli (2k)`: `(name, neg, num, den)`.
-Backed by the `bern_real_k` lemmas `derive_bern_real` generates in
-`Enclosure.BinarySplit.Functions.Bernoulli`; the tuple is read back off the lemma statement's
-`sfrac`. -/
+/-- The `sfrac`-form Bernoulli value lemma `bern_real_k` for `bernoulli (2k)`, as
+`(name, neg, num, den)` read off its statement. -/
 meta def bernRealLemma (k : ℕ) : MetaM (Name × Bool × ℕ × ℕ) := do
   let nm := Name.mkStr1 "BSN" ++ Name.mkSimple ("bern_real_" ++ toString k)
   let some info := (← getEnv).find? nm
@@ -355,13 +336,11 @@ meta def bernRealLemma (k : ℕ) : MetaM (Name × Bool × ℕ × ℕ) := do
     | throwError "bernRealLemma: {nm} has a non-literal denominator"
   return (nm, neg, bn, bd)
 
-/-- Memo-reuse guard: every constant cited by the stored proofs must exist in the current
-environment. Serially elaborated modules always pass; under parallel elaboration another
-command's aux lemmas may not yet be in this command's env branch, in which case the builder
-reruns (and `mkAuxLemma` re-dedupes statement-keyed). -/
+/-- Memo-reuse guard: whether every constant cited by the stored proofs exists in the current
+environment (under parallel elaboration another command's aux lemmas may not). -/
 meta def proofsInEnv (es : Array Expr) : MetaM Bool := do
   let env ← getEnv
-  return es.all fun e => e.getUsedConstants.all env.contains
+  return es.all fun e ↦ e.getUsedConstants.all env.contains
 
 /-- Build-once cache for enclosures of closed values: the enclosure proof is emitted as a
 module aux lemma (`mkAuxLemma` dedupes by statement) and every use cites the constant. -/
@@ -372,31 +351,45 @@ meta def cachedNear (build : MetaM RNear) : MetaM RNear := do
   let nm ← withPhase "seal: mkAuxLemma" do mkAuxLemma [] ty r.proof
   return { r with proof := mkConst nm }
 
-/-- `cachedNear` for a closed constant that depends only on the working precision (`log π`,
-`(2π)⁻¹`, …): built and sealed once per `(tag, D)` per module, so neither the meta build nor the
-kernel check is repeated per endpoint. Memoized in `sealedConstCache`, guarded by `proofsInEnv`. -/
-meta def sealedConst (tag : String) (D : ℕ) (build : MetaM RNear) : MetaM RNear := do
-  if let some r := (← sealedConstCache.get)[(tag, D)]? then
+/-- `cachedNear build`, memoized under `key` in `cache`. -/
+meta def memoCachedNear {κ : Type} [BEq κ] [Hashable κ] (cache : IO.Ref (Std.HashMap κ RNear))
+    (key : κ) (build : MetaM RNear) : MetaM RNear := do
+  if let some r := (← cache.get)[key]? then
     if ← proofsInEnv #[r.proof] then return r
   let r ← cachedNear build
-  sealedConstCache.modify (·.insert (tag, D) r)
+  cache.modify (·.insert key r)
   return r
 
-/-- Named rectangle of `zetaApproximant (½ + i·t) M N`: the head sum peeled term-at-a-time
-(`head_sum_base`/`head_sum_succ`) over named `n^{-s}` rectangles, the Bernoulli tail peeled
-likewise over exact leaves (coefficient, incremental named Pochhammer, integer-power
-reciprocal), assembled into the folded form and renamed through `zetaApproximant_eq_folded'`. -/
+/-- `cachedNear build` for an enclosure at the endpoint `tE`, memoized under `key` in `cache` with
+`tE` stored as a guard. -/
+meta def memoCachedNearAt {κ : Type} [BEq κ] [Hashable κ]
+    (cache : IO.Ref (Std.HashMap κ (Expr × RNear))) (key : κ) (tE : Expr) (build : MetaM RNear) :
+    MetaM RNear := do
+  if let some (tE', r) := (← cache.get).get? key then
+    if tE' == tE && (← proofsInEnv #[r.proof]) then
+      return r
+  let r ← cachedNear build
+  cache.modify (·.insert key (tE, r))
+  return r
+
+/-- `cachedNear` for a closed constant that depends only on the working precision (`log π`,
+`(2π)⁻¹`, …): built and sealed once per `(tag, D)`, memoized in `sealedConstCache`. -/
+meta def sealedConst (tag : String) (D : ℕ) (build : MetaM RNear) : MetaM RNear :=
+  memoCachedNear sealedConstCache (tag, D) build
+
+/-- Named rectangle of `zetaApproximant (½ + i·t) M N`, assembled in the folded form of
+`zetaApproximant_eq_folded'`. -/
 private meta def mkZetaApproxNamedCore (tE htE : Expr) (tn td M N D : ℕ) : MetaM CNamed := do
   unless 1 ≤ N do throwError "mkZetaApproxNamed: N must be at least 1"
   let s ← mkSNamed tE htE false tn td
   let sE := s.z
-  -- head: ∑_{Ico 1 N} n^{-s}, accumulated through the NAMED partial sum `headSumC` so each
+  -- head: ∑_{Ico 1 N} n^{-s}, accumulated through the named partial sum `headSumC` so each
   -- peel step's statement is a small application, then renamed onto the `Finset.sum` form once
   let head ← withPhase "zeta: head sum" do
     let mut head ← cnamedConst (mkApp (mkConst ``head_sum_c_base) sE) false 0 1 false 0 1
     let mut headStart := 1
-    -- `1^{-s} = 1` exactly, so seed the accumulator at `headSumC s 2 = 1` and start at `n = 2`,
-    -- skipping the wasted full `cpow` leaf for `n = 1` (`head_sum_c_two`).
+    -- `1^{-s} = 1` exactly, so seed the accumulator at `headSumC s 2 = 1` (`head_sum_c_two`) and
+    -- start the `cpow` leaves at `n = 2`.
     if 2 ≤ N then
       head ← cnamedConst (mkApp (mkConst ``head_sum_c_two) sE) false 1 1 false 0 1
       headStart := 2
@@ -463,9 +456,8 @@ private meta def mkZetaApproxNamedCore (tE htE : Expr) (tn td M N D : ℕ) : Met
     let foldLhs := mkApp3 (mkConst ``zetaApproximant) sE (natLitShared M) (natLitShared N)
     cnamedOfEq foldLhs heFold folded
 
-/-- `mkZetaApproxNamedCore` through the process-level memo (`zetaNamedCache`, keyed by
-`(M, N, tn, td, D)` with a `tE` guard): on a hit the stored `CNamed` is returned as-is, so
-obligations sharing the same `t` skip the reconstruction. -/
+/-- `mkZetaApproxNamedCore` memoized in `zetaNamedCache` (keyed by `(M, N, tn, td, D)`, guarded
+by `tE`). -/
 meta def mkZetaApproxNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM CNamed := do
   let key := (M, N, tn, td, D)
   if let some (tE', z, proof, re, im) := (← zetaNamedCache.get).get? key then
@@ -476,7 +468,7 @@ meta def mkZetaApproxNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM CNamed :=
   return x
 
 open Elab Term in
-/-- `zetaNamed% M N tn td D` : the rectangle enclosure of the NAMED
+/-- `zetaNamed% M N tn td D` : the rectangle enclosure of the named
 `zetaApproximant (½ + i·(tn/td)) M N`. -/
 elab "zetaNamed% " Mn:num Nn:num tnn:num tdn:num Dn:num : term => do
   let tn := tnn.getNat; let td := tdn.getNat
@@ -484,9 +476,8 @@ elab "zetaNamed% " Mn:num Nn:num tnn:num tdn:num Dn:num : term => do
   let htE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) tE
   return (← mkZetaApproxNamed tE htE tn td Mn.getNat Nn.getNat Dn.getNat).proof
 
-/-- Benchmark: the fully named `zetaApproximant (½ + 14.1i) 3 6` rectangle — the Tier-3 target
-shape for the zeta half of the certificate. Reference (mpmath, same finite formula):
-`≈ 0.0045251353 - 0.0269845252i`. -/
+/-- Benchmark: the named `zetaApproximant (½ + 14.1i) 3 6` rectangle. Reference (mpmath, same
+finite formula): `≈ 0.0045251353 - 0.0269845252i`. -/
 example := zetaNamed% 3 6 141 10 100000000
 
 /-! ### The named theta and Hardy `Z` approximants -/
@@ -499,9 +490,7 @@ meta def mkCongrArgC (f a b h : Expr) : Expr :=
 meta def mkEqTransR (a b c h1 h2 : Expr) : Expr :=
   mkAppN (Expr.const ``Eq.trans [1]) #[mkConst ``Real, a, b, c, h1, h2]
 
-/-- The rectangle of `((r : ℝ) : ℂ)` from an enclosure of the real `r`: real part renamed
-through `Complex.ofReal_re`, imaginary part the zero constant renamed through
-`Complex.ofReal_im` and `sfrac_zero_eq`. -/
+/-- The rectangle of `((r : ℝ) : ℂ)` from an enclosure of the real `r`. -/
 meta def cnamedOfReal (r : RNear) : MetaM CNamed := do
   let rE := r.x
   let heRe := mkApp (mkConst ``Complex.ofReal_re) rE
@@ -521,10 +510,8 @@ meta def cnamedOfReal (r : RNear) : MetaM CNamed := do
   let imP ← ofEqNearHe imTy heIm zeroC
   return cnamedOfParts z { re := reP, im := imP }
 
-/-- Named complex inverse: `normSq z` assembled from the components and renamed
-(`normSq_eq_mul_add_mul`), reciprocated through the monotone image, and the components of
-`z⁻¹` renamed through `inv_re_eq_mul`/`inv_im_eq_mul`. Needs `normSq z` strictly positive
-(true for every `w + j`). -/
+/-- Named complex inverse, through the reciprocal of `normSq z`. Needs `normSq z > 0` (true
+for every `w + j`). -/
 meta def cInvNamed (x : CNamed) (D : ℕ) : MetaM CNamed := do
   let nsqRaw ← addNear (← mulNear x.re x.re) (← mulNear x.im x.im)
   let heNsq := mkApp (mkConst ``Complex.normSq_eq_mul_add_mul) x.z
@@ -532,7 +519,6 @@ meta def cInvNamed (x : CNamed) (D : ℕ) : MetaM CNamed := do
   -- the reciprocal image's dyadic grain is absolute, so scale the precision by the
   -- magnitude of `normSq`: the inverse (~1/normSq) then carries relative precision ~1/D,
   -- and the components stay ~1/D relative after the multiply by `z.re`/`z.im` (~√normSq).
-  -- Without this, inverting a large power collapses the enclosure to pure radius.
   let inv ← mkInvImageNear nsq (D * max 1 (nsq.cn / nsq.cd))
   let heReInv := mkApp (mkConst ``Complex.inv_re_eq_mul) x.z
   let reP ← ofEqNearHe (← lemmaLhs heReInv) heReInv (← mulNear x.re inv)
@@ -547,8 +533,8 @@ meta def mkWNamed (tE htE : Expr) (tn td j : ℕ) : MetaM CNamed := do
     #[tE, toExpr false, natLitShared tn, natLitShared td, natLitShared j, htE, reflBoolTrue]
   cnamedConst he false ((1 + 4 * j) * td) (4 * td) false (2 * tn) (4 * td)
 
-/-- Named rectangle of `Complex.log (w + j)`: the `cLogNear` rectangle (about the explicit
-`⟨sfrac, sfrac⟩` pair), renamed through `congrArg Complex.log (w_shift_mk …)`. -/
+/-- Named rectangle of `Complex.log (w + j)`: the `cLogNear` rectangle, renamed through
+`congrArg Complex.log (w_shift_mk …)`. -/
 meta def mkLogWNamed (tE htE : Expr) (tn td j D : ℕ) : MetaM CNamed := do
   let c ← withPhase "clog: certificates" (cLogNear ((1 + 4 * j) * td) (2 * tn) (4 * td) D)
   withPhase "clog: named assembly" do
@@ -616,14 +602,12 @@ meta def mkStirlingNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM CNamed := d
       ssum ← cnamedCheckpoint ssum
   acc ← cAddNamed acc ssum
   -- rename the assembled body onto the compact `logGammaStirling M (w+N)` through a cited
-  -- equality, so the kernel never re-derives the gamma-series expansion per bracket point
+  -- equality, so the kernel checks the gamma-series expansion once, in that lemma
   let heStir := mkAppN (mkConst ``logGammaStirling_unfold) #[natLitShared M, wE]
   cnamedOfEq (← lemmaLhs heStir) heStir acc
 
-/-- Enclosure of the NAMED theta approximant
-`(logGammaStirling M (w+N) − ∑_{j<N} log(w+j)).im − t/2·log π`: the imaginary component of the
-named difference (a projection, so already the surface expression), minus the renamed
-`(t/2)·log π` product. -/
+/-- Enclosure of the named theta approximant
+`(logGammaStirling M (w+N) − ∑_{j<N} log(w+j)).im − t/2·log π`. -/
 meta def mkThetaNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
   let S ← withPhase "theta: stirling" (mkStirlingNamed tE htE tn td M N D)
   let L ← withPhase "theta: log sum" do
@@ -647,14 +631,14 @@ meta def mkThetaNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
     let logPi ← sealedConst "log π" D do mkLogImageNear (← mkPiNear D) D
     subNear diff.im (← mulNear tHalf logPi)
 
-/-- Enclosure of the NAMED Hardy `Z` approximant `Re(e^{iθ̃}·ζ̃)`: cos/sin images of the named
-theta against the named zeta rectangle, renamed through `re_exp_mul`. -/
+/-- Enclosure of the named Hardy `Z` approximant `Re(e^{iθ̃}·ζ̃)`, renamed through
+`re_exp_mul`. -/
 meta def mkHardyZNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
   -- the theta shift is `thetaShift M = 2 * M` (height-independent), decoupled from the zeta
   -- cutoff N
   let θ ← mkThetaNamed tE htE tn td M (2 * M) D
   let ζ ← mkZetaApproxNamed tE htE tn td M N D
-  withPhase "hardyZ: trig + assemble" do
+  withPhase "Zeta.hardyZ: trig + assemble" do
     let c ← mkCosImageNear θ D
     let s ← mkSinImageNear θ D
     let raw ← subNear (← mulNear c ζ.re) (← mulNear s ζ.im)
@@ -663,7 +647,7 @@ meta def mkHardyZNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
     ofEqNearHe (← lemmaLhs he) he raw
 
 open Elab Term in
-/-- `thetaNamed% M N tn td D` : an enclosure of the NAMED theta approximant. -/
+/-- `thetaNamed% M N tn td D` : an enclosure of the named theta approximant. -/
 elab "thetaNamed% " Mn:num Nn:num tnn:num tdn:num Dn:num : term => do
   let tn := tnn.getNat; let td := tdn.getNat
   let tE := sfracExpr false tn td
@@ -675,23 +659,22 @@ Hardy `Z` phase). Reference: `≈ -1.7427221027`. -/
 example := thetaNamed% 3 6 141 10 100000000
 
 open Elab Term in
-/-- `hardyZNamed% M N tn td D` : an enclosure of the NAMED Hardy `Z` approximant body. -/
+/-- `hardyZNamed% M N tn td D` : an enclosure of the named Hardy `Z` approximant body. -/
 elab "hardyZNamed% " Mn:num Nn:num tnn:num tdn:num Dn:num : term => do
   let tn := tnn.getNat; let td := tdn.getNat
   let tE := sfracExpr false tn td
   let htE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) tE
   return (← mkHardyZNamed tE htE tn td Mn.getNat Nn.getNat Dn.getNat).proof
 
-/-- Benchmark: the named Hardy `Z` value `Re(e^{iθ̃}·ζ̃)` at `t = 14.1`, `M = 3`, `N = 6` — the
-full Tier-3 target (definitionally `hardyZApproximantEM 3 6 14.1`). Reference:
-`≈ -0.0273608563`. -/
+/-- Benchmark: the named Hardy `Z` value `Re(e^{iθ̃}·ζ̃)` at `t = 14.1`, `M = 3`, `N = 6`
+(definitionally `hardyZApproximantEM 3 6 14.1`). Reference: `≈ -0.0273608563`. -/
 example := hardyZNamed% 3 6 141 10 100000000
 
 /-! ### The named error bound and the certificate tactics -/
 
-/-- `Real.IsNear.of_eq` with the left side supplied directly and `he` a `rfl`-style proof the
-kernel accepts by unfolding — used to rename a reducible application (`hardyZApproximantEM …`,
-`hardyZErrorBoundStrong …`) onto its assembled body. -/
+/-- `Real.IsNear.of_eq` with the left side supplied directly and `he` a `rfl`-style proof, for
+renaming a reducible application (`hardyZApproximantEM …`, `hardyZErrorBoundStrong …`) onto its
+assembled body. -/
 meta def ofEqNearAt (x he : Expr) (r : RNear) : MetaM RNear := do
   let proof := mkAppN (mkConst ``Real.IsNear.of_eq)
     #[x, r.x, toExpr r.neg, natLitShared r.cn, natLitShared r.cd,
@@ -714,15 +697,10 @@ meta def mkRPowNamed (base : RNear) (m : ℕ) : MetaM RNear := do
       #[bE, natLitShared (i - 1), natLitShared i, reflBoolTrue]
     acc ← ofEqNearHe (← lemmaLhs heStep) heStep prod
     if i % checkpointStride == 0 then
-      let ty := mkAppN (mkConst ``Real.IsNear)
-        #[acc.x, toExpr acc.neg, natLitShared acc.cn, natLitShared acc.cd, natLitShared acc.rn,
-          natLitShared acc.rd]
-      let nm ← mkAuxLemma [] ty acc.proof
-      acc := { acc with proof := mkConst nm }
+      acc ← cachedNear (pure acc)
   return acc
 
-/-- Named `‖z‖`: the square root image of the componentwise product sum, renamed through
-`norm_eq_sqrt_mul_add`. -/
+/-- Named `‖z‖`, as the square root of the componentwise product sum. -/
 meta def mkNormNamed (x : CNamed) (D : ℕ) : MetaM RNear := do
   let nsq ← addNear (← mulNear x.re x.re) (← mulNear x.im x.im)
   let sq ← mkSqrtImageNear nsq D
@@ -755,7 +733,7 @@ meta def mkThetaErrNamed (M N D : ℕ) : MetaM RNear := do
   ofEqNearHe errLhs he raw
 
 /-- Named enclosure of `riemannSiegelThetaStirlingErrorBound' M N t` at `t = tn/td`: the exact
-rational `theta_err_eq'` supplies times the reciprocal image of the named `(2π)^{2M}` power. -/
+rational from `theta_err_eq'` times the reciprocal image of the named `(2π)^{2M}` power. -/
 meta def mkThetaErrNamed' (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
   let piPow ← mkTwoPiPowNamed M D
   let A := Nat.factorial (2 * M + 1) * 2 ^ (2 * M + 1) * (16 * td ^ 2) ^ M
@@ -784,7 +762,7 @@ meta def mkThetaErrNamed' (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := d
 /-- Named enclosure of the strengthened Hardy `Z` error bound
 `θerr·‖ζ̃‖ + zetaRemainderBound (½+it) M N`. -/
 meta def mkErrStrongNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
-  -- the theta error uses the height-independent shift `thetaShift M = 2 * M`, not the zeta cutoff N
+  -- the theta error uses the height-independent shift `thetaShift M = 2 * M`
   let θerr ← withPhase "err: theta error bound" (mkThetaErrNamed M (2 * M) D)
   let ζ ← mkZetaApproxNamed tE htE tn td M N D
   let normζ ← withPhase "err: ‖ζ̃‖" (mkNormNamed ζ D)
@@ -849,31 +827,17 @@ meta def recognizeRat' (e : Expr) : MetaM (Bool × ℕ × ℕ × Expr × Expr) :
     let (n, u, v, h) ← recognizeRat e'
     return (n, u, v, h, e')
 
-/-- The canonical cached enclosure of `hardyZApproximantEM M N t`: built once per `(M, N, t, D)`,
-stated at the canonical application so every obligation can rename it onto its goal by a refl
-transport. Memoized per process (`hardyZNamedCache`). -/
-meta def mkHardyZCached (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
-  let key := (M, N, tn, td, D)
-  if let some (tE', r) := (← hardyZNamedCache.get).get? key then
-    if tE' == tE && (← proofsInEnv #[r.proof]) then
-      return r
-  let r ← cachedNear do
+/-- The cached enclosure of `hardyZApproximantEM M N t`, stated at the canonical application
+and memoized per `(M, N, t, D)` in `hardyZNamedCache`. -/
+meta def mkHardyZCached (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear :=
+  memoCachedNearAt hardyZNamedCache (M, N, tn, td, D) tE do
     let r ← mkHardyZNamed tE htE tn td M N D
     let xC := mkAppN (mkConst ``hardyZApproximantEM) #[natLitShared M, natLitShared N, tE]
     ofEqNearAt xC (mkReflR r.x) r
-  hardyZNamedCache.modify (·.insert key (tE, r))
-  return r
 
-/-- The cached theta Stirling error bound enclosure: `t`-independent, so it is shared across
-both error obligations of every certificate at the same `(M, N, D)`. -/
-meta def mkThetaErrCached (M N D : ℕ) : MetaM RNear := do
-  cachedNear do
-    mkThetaErrNamed M N D
-
-/-- A resolved Hardy-`Z` site: the subject expression `x` the proof is about, the literal cutoffs
-`M`, `N`, and the endpoint `tE = sfrac false tn td` with its proof `htE` and numeric height `tn/td`.
-The goal-facing tactics obtain this by parsing the goal; `build_certs` fills it straight from the
-row, so the endpoint value is used as it stands rather than rebuilt into a term and reparsed. -/
+/-- A resolved Hardy-`Z` site: the subject expression `x`, the literal cutoffs `M`, `N`, and the
+endpoint `tE = sfrac false tn td` with its proof `htE` and numeric height `tn/td`. Filled by
+parsing the goal (`resolveHardyZSite`) or straight from a row (`build_certs`). -/
 structure HardyZSite where
   /-- The subject expression the enclosure is transported onto. -/
   x : Expr
@@ -890,15 +854,14 @@ structure HardyZSite where
   /-- The endpoint expression `sfrac false tn td`. -/
   tE : Expr
 
-/-- The height-scaled default working precision for a site: enclosure noise grows ~linearly in `t`
-(the `t/2·log π` phase product), so `D` scales with the height to keep the margin uniform. -/
+/-- The default working precision for a site, scaled with the height since enclosure noise grows
+about linearly in `t`. -/
 meta def siteD (s : HardyZSite) (D? : Option ℕ) : ℕ :=
   D?.getD (100000000 * max 1 (s.tn / (30 * s.td)))
 
 open Elab Tactic Term in
 /-- Parse a subject expression `x` (reducing to `hardyZApproximantEM M N t`) into its resolved
-`HardyZSite`; rejects a nonpositive `t`. The goal-facing tactics use this to recover the site the
-`build_certs` path already holds. -/
+`HardyZSite`; rejects a nonpositive `t`. -/
 meta def resolveHardyZSite (x : Expr) (who : String) : MetaM HardyZSite := do
   let x' ← headTo x ``hardyZApproximantEM
   let args := x'.getAppArgs
@@ -912,9 +875,23 @@ meta def resolveHardyZSite (x : Expr) (who : String) : MetaM HardyZSite := do
 
 /-- The named enclosure of one site's Hardy-`Z` value, transported onto the site's subject `x`. -/
 meta def mkHardyZSiteNear (s : HardyZSite) (D? : Option ℕ := none) : MetaM RNear := do
-  let r ← withPhase s!"hardyZ enclosure t={s.tn}/{s.td}"
+  let r ← withPhase s!"Zeta.hardyZ enclosure t={s.tn}/{s.td}"
     (mkHardyZCached s.tE s.htE s.tn s.td s.M s.N (siteD s D?))
   ofEqNearAt s.x (mkReflR r.x) r
+
+/-- A proof of `aE * bE < 0` from enclosures `ra` of `aE` and `rb` of `bE` that clear zero with
+opposite signs (`neg_val`/`pos_val`); `who` prefixes the same-sign error. -/
+meta def mulNegOfSignsNear (who : String) (ra : RNear) (aE : Expr) (rb : RNear) (bE : Expr) :
+    MetaM Expr := do
+  let mkSignPf (x : Expr) (r : RNear) : Expr :=
+    mkAppN (mkConst (if r.neg then ``Real.IsNear.neg_val else ``Real.IsNear.pos_val))
+      #[x, natLitShared r.cn, natLitShared r.cd, natLitShared r.rn, natLitShared r.rd, r.proof,
+        reflBoolTrue, reflBoolTrue, reflBoolTrue]
+  if ra.neg && !rb.neg then
+    return mkAppN (mkConst ``mul_neg_of_neg_pos_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
+  else if !ra.neg && rb.neg then
+    return mkAppN (mkConst ``mul_neg_of_pos_neg_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
+  else throwError "{who}: both endpoint values have the same sign"
 
 /-- Core of `hardy_sign_change` on two resolved sites: enclose both, extract their signs
 (`neg_val`/`pos_val`), and combine into `sa.x * sb.x < 0`. -/
@@ -927,15 +904,7 @@ meta def hardySignChangeSites (sa sb : HardyZSite) (D? : Option ℕ := none) : M
     return (named, s.x)
   let (ra, aE) ← mkSide sa
   let (rb, bE) ← mkSide sb
-  let mkSignPf (x : Expr) (r : RNear) : Expr :=
-    mkAppN (mkConst (if r.neg then ``Real.IsNear.neg_val else ``Real.IsNear.pos_val))
-      #[x, natLitShared r.cn, natLitShared r.cd, natLitShared r.rn, natLitShared r.rd, r.proof,
-        reflBoolTrue, reflBoolTrue, reflBoolTrue]
-  if ra.neg && !rb.neg then
-    return mkAppN (mkConst ``mul_neg_of_neg_pos_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
-  else if !ra.neg && rb.neg then
-    return mkAppN (mkConst ``mul_neg_of_pos_neg_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
-  else throwError "hardy_sign_change: both endpoint values have the same sign"
+  mulNegOfSignsNear "hardy_sign_change" ra aE rb bE
 
 /-- Goal-facing `hardy_sign_change` core: parse both product factors into sites, then delegate to
 `hardySignChangeSites`. -/
@@ -944,10 +913,9 @@ meta def hardySignChangeCore (a b : Expr) (D? : Option ℕ := none) : MetaM Expr
     (← resolveHardyZSite b "hardy_sign_change") D?
 
 open Elab Tactic Term in
-/-- `hardy_sign_change` closes `hardyZApproximantEM M N tl * hardyZApproximantEM M N tr < 0`:
-builds named enclosures of both factors, extracts the two signs (`neg_val`/`pos_val`), and
-combines them. `t` arguments in any recognised rational surface form; each factor may sit
-behind a reducible wrapper (e.g. `ZeroInterval.leftVal I` for a literal `I`). -/
+/-- `hardy_sign_change` closes `hardyZApproximantEM M N tl * hardyZApproximantEM M N tr < 0`,
+with `t` in any recognised rational surface form; each factor may sit behind a reducible wrapper
+(e.g. `ZeroInterval.leftVal I` for a literal `I`). -/
 elab "hardy_sign_change" : tactic => do
   let ty ← (← getMainGoal).getType
   let_expr LT.lt _ _ lhs _ := ty
@@ -957,51 +925,39 @@ elab "hardy_sign_change" : tactic => do
   let pf ← hardySignChangeCore a b
   liftMetaFinishingTactic (·.assign pf)
 
-/-- Core of `hardy_error_ok` on a resolved site `s` and a bound `bnd` (enclosing as
-`hardyZErrorBoundStrong M N t`): build the two named enclosures, meta-check the margin, and return
-the `norm_gt_of_isNear` proof of `‖s.x‖ > bnd`. -/
-meta def hardyErrOkSite (s : HardyZSite) (bnd : Expr) (D? : Option ℕ := none) : MetaM Expr := do
-  let D := siteD s D?
-  let rZ ← withPhase s!"hardyZ enclosure t={s.tn}/{s.td}"
-    (mkHardyZCached s.tE s.htE s.tn s.td s.M s.N D)
-  let hx ← ofEqNearAt s.x (mkReflR rZ.x) rZ
-  let rE ← withPhase s!"errStrong enclosure t={s.tn}/{s.td}"
-    (cachedNear (mkErrStrongNamed s.tE s.htE s.tn s.td s.M s.N D))
-  let he ← ofEqNearAt bnd (mkReflR rE.x) rE
-  -- meta-check the margin before emitting the kernel condition
+/-- Whether `‖x‖ > e` follows from the enclosures `hx`, `he` by `norm_gt_of_isNear`: the meta
+mirror of its `Nat.blt` condition. -/
+meta def normGtMarginOk (hx he : RNear) : Bool :=
   let eUp := (if he.neg then 0 else he.cn) * (he.rd * (hx.cd * hx.rd))
     + he.rn * (he.cd * (hx.cd * hx.rd)) + hx.rn * (he.cd * (he.rd * hx.cd))
   let xLo := hx.cn * (he.cd * (he.rd * hx.rd))
     + (if he.neg then he.cn else 0) * (he.rd * (hx.cd * hx.rd))
-  unless eUp < xLo do
-    throwError "hardy_error_ok: the error bound is not below the value's margin; \
-      increase M or N"
-  return mkAppN (mkConst ``norm_gt_of_isNear)
-    #[s.x, bnd, toExpr hx.neg, toExpr he.neg, natLitShared hx.cn, natLitShared hx.cd,
+  eUp < xLo
+
+/-- `norm_gt_of_isNear` at `x`, `e` with the enclosures `hx`, `he`. -/
+meta def mkNormGtOfIsNear (x e : Expr) (hx he : RNear) : Expr :=
+  mkAppN (mkConst ``norm_gt_of_isNear)
+    #[x, e, toExpr hx.neg, toExpr he.neg, natLitShared hx.cn, natLitShared hx.cd,
       natLitShared hx.rn, natLitShared hx.rd, natLitShared he.cn, natLitShared he.cd,
-      natLitShared he.rn, natLitShared he.rd,
-      hx.proof, he.proof, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
+      natLitShared he.rn, natLitShared he.rd, hx.proof, he.proof, reflBoolTrue, reflBoolTrue,
+      reflBoolTrue, reflBoolTrue, reflBoolTrue]
 
-/-- Goal-facing `hardy_error_ok` core: parse the subject `x` into a site, then delegate to
-`hardyErrOkSite`. -/
-meta def hardyErrOkCore (x bnd : Expr) (D? : Option ℕ := none) : MetaM Expr := do
-  hardyErrOkSite (← resolveHardyZSite x "hardy_error_ok") bnd D?
+/-- A `norm_gt_of_isNear` proof of `‖s.x‖ > bnd` on a resolved site `s`, for a bound `bnd`
+enclosing as `hardyZErrorBoundStrong M N t`. -/
+meta def hardyErrOkSite (s : HardyZSite) (bnd : Expr) (D? : Option ℕ := none) : MetaM Expr := do
+  let D := siteD s D?
+  let hx ← mkHardyZSiteNear s (some D)
+  let rE ← withPhase s!"errStrong enclosure t={s.tn}/{s.td}"
+    (cachedNear (mkErrStrongNamed s.tE s.htE s.tn s.td s.M s.N D))
+  let he ← ofEqNearAt bnd (mkReflR rE.x) rE
+  -- meta-check the margin before emitting the kernel condition
+  unless normGtMarginOk hx he do
+    throwError "hardy_error_ok_full: the error bound is not below the value's margin; \
+      increase M or N"
+  return mkNormGtOfIsNear s.x bnd hx he
 
-open Elab Tactic Term in
-/-- `hardy_error_ok` closes `‖hardyZApproximantEM M N t‖ > hardyZErrorBoundStrong M N t`: named
-enclosures of the value and the strengthened error bound, compared by `norm_gt_of_isNear`. -/
-elab "hardy_error_ok" : tactic => do
-  let ty ← (← getMainGoal).getType
-  let_expr GT.gt _ _ lhs rhs := ty
-    | throwError "hardy_error_ok: goal must be `‖Z̃(t)‖ > hardyZErrorBoundStrong M N t`"
-  let_expr Norm.norm _ _ x := lhs
-    | throwError "hardy_error_ok: expected a norm on the left"
-  let pf ← hardyErrOkCore x rhs
-  liftMetaFinishingTactic (·.assign pf)
-
-/-- Core of `hardy_error_ok_full` on a resolved site `s`: proof of
-`‖s.x‖ > hardyZErrorBoundEM M N t`, chaining the strengthened comparison from `hardyErrOkSite`
-through `hardyZErrorBoundEM_le_strong`. -/
+/-- Core of `hardy_error_ok_full` on a resolved site `s`: a proof of
+`‖s.x‖ > hardyZErrorBoundEM M N t`. -/
 meta def hardyErrOkFullSite (s : HardyZSite) (D? : Option ℕ := none) : MetaM Expr := do
   let strong :=
       mkAppN (mkConst ``hardyZErrorBoundStrong) #[natLitShared s.M, natLitShared s.N, s.tE]
@@ -1015,10 +971,8 @@ meta def hardyErrOkFullSite (s : HardyZSite) (D? : Option ℕ := none) : MetaM E
   return mkAppN (mkConst ``gt_trans_le) #[normX, strong, rhs, glue, pfStrong]
 
 open Elab Tactic Term in
-/-- `hardy_error_ok_full` closes `‖hardyZApproximantEM M N t‖ > hardyZErrorBoundEM M N t` (the
-working bound, with the opaque `‖zetaRemainder‖`): chains the strengthened comparison from
-the core through `hardyZErrorBoundEM_le_strong` (the `1 ≤ N` side condition is a kernel
-`Nat.ble` literal). -/
+/-- `hardy_error_ok_full` closes `‖hardyZApproximantEM M N t‖ > hardyZErrorBoundEM M N t`, the
+working bound with the opaque `‖zetaRemainder‖`. -/
 elab "hardy_error_ok_full" : tactic => do
   let ty ← (← getMainGoal).getType
   let_expr GT.gt _ _ lhs _ := ty
@@ -1037,15 +991,13 @@ meta def mkIdxPiNamed (idx D : ℕ) : MetaM RNear := do
   let he := mkApp (mkConst ``natCast_mul_pi_eq) (natLitShared idx)
   ofEqNearHe (← lemmaLhs he) he raw
 
-/-- Named enclosure of `riemannSiegelThetaApproximant M N t`: `mkThetaNamed`'s enclosure of the
-assembled phase, renamed onto the approximant through the proven
-`riemannSiegelThetaApproximant_named` (so the kernel matches by the lemma's type, not by
-delta-unfolding the gamma series). -/
+/-- Named enclosure of `riemannSiegelThetaApproximant M N t`: `mkThetaNamed` renamed through
+`riemannSiegelThetaApproximant_named`. -/
 meta def mkThetaApproxNamed (tE htE : Expr) (tn td M N D : ℕ) : MetaM RNear := do
   let θ ← mkThetaNamed tE htE tn td M N D
   let x := mkAppN (mkConst ``riemannSiegelThetaApproximant) #[natLitShared M, natLitShared N, tE]
   -- cite the proven unfolding of the approximant so the kernel matches the rename by the lemma's
-  -- stated type rather than delta-expanding `logGammaStirling` at each bracket point
+  -- stated type
   let he := mkAppN (mkConst ``riemannSiegelThetaApproximant_named)
     #[natLitShared M, natLitShared N, tE]
   ofEqNearAt x he θ
@@ -1113,62 +1065,15 @@ elab "gram_bound" : tactic => do
       x.proof, e.proof, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
   liftMetaFinishingTactic (·.assign pf)
 
-/-! ### A Gram-point benchmark
+/-! ### Smoke tests
 
-The 290th Gram point `g₂₉₀ ≈ 530.5318655440`, with a widened bracket (`~4e-3` margins): `θ̃`
-sits below `290π` at the left endpoint and above it at the right, clearing the `‖w‖`-form
-Stirling error bound at order `2` with no shift (`~2e-11` at this height). -/
+The Euler–Maclaurin tactics that `gen_gram_certificates.py` emits for a Gram block below the
+Riemann–Siegel range, on the bracket `[14.1, 14.2]` of the first zero. -/
 
-/-- Left form: `θ̃(530.53) < 290π` with margin above the Stirling error bound. -/
-theorem gram290_left :
-    ((290 : ℕ) : ℝ) * Real.pi - riemannSiegelThetaApproximant 2 0 530.53
-      > riemannSiegelThetaStirlingErrorBound' 2 0 530.53 := by
-  gram_bound
-
-/-- Right form: `290π < θ̃(530.534)` with margin above the Stirling error bound. -/
-theorem gram290_right :
-    riemannSiegelThetaApproximant 2 0 530.534 - ((290 : ℕ) : ℝ) * Real.pi
-      > riemannSiegelThetaStirlingErrorBound' 2 0 530.534 := by
-  gram_bound
-
-/-! ### The first-zero certificate
-
-The three Certificate obligations for the interval `[14.1, 14.2]` (which brackets the first
-nontrivial zero `t₁ ≈ 14.1347`) at `M = 3`, `N = 6`, each discharged by one tactic call. -/
-
-/-- The endpoint values change sign across `[14.1, 14.2]`. -/
-theorem first_zero_sign_change :
-    hardyZApproximantEM 3 6 14.1 * hardyZApproximantEM 3 6 14.2 < 0 := by
+example : hardyZApproximantEM 3 6 14.1 * hardyZApproximantEM 3 6 14.2 < 0 := by
   hardy_sign_change
 
-/-- The left endpoint value clears the strengthened error bound. -/
-theorem first_zero_left_error :
-    ‖hardyZApproximantEM 3 6 14.1‖ > hardyZErrorBoundStrong 3 6 14.1 := by
-  hardy_error_ok
-
-/-- The right endpoint value clears the strengthened error bound. -/
-theorem first_zero_right_error :
-    ‖hardyZApproximantEM 3 6 14.2‖ > hardyZErrorBoundStrong 3 6 14.2 := by
-  hardy_error_ok
-
-/-! ### The tight first-zero certificate
-
-The same three obligations on the width-`10⁻⁵` bracket `(14.13472, 14.13473)` at `M = 3`,
-`N = 20`: the first zero `t₁ = 14.13472514…` is pinned to five correct decimals. -/
-
-/-- Sign change across the width-`10⁻⁵` bracket of the first zero. -/
-theorem first_zero_sign_change_tight :
-    hardyZApproximantEM 3 20 14.13472 * hardyZApproximantEM 3 20 14.13473 < 0 := by
-  hardy_sign_change
-
-/-- The left endpoint of the tight bracket clears the strengthened error bound. -/
-theorem first_zero_left_error_tight :
-    ‖hardyZApproximantEM 3 20 14.13472‖ > hardyZErrorBoundStrong 3 20 14.13472 := by
-  hardy_error_ok
-
-/-- The right endpoint of the tight bracket clears the strengthened error bound. -/
-theorem first_zero_right_error_tight :
-    ‖hardyZApproximantEM 3 20 14.13473‖ > hardyZErrorBoundStrong 3 20 14.13473 := by
-  hardy_error_ok
+example : ‖hardyZApproximantEM 3 6 14.1‖ > hardyZErrorBoundEM 3 6 14.1 := by
+  hardy_error_ok_full
 
 end BSN

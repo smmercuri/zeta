@@ -2,17 +2,21 @@
 # Build the project with Lake's parallelism sized to this machine and to the certified height,
 # optionally discarding or archiving each certificate batch's proof term as it is built.
 #
-#   ./build.sh                          # default target(s), auto-sized, proof terms kept
-#   ./build.sh Zeta.Main                # any lake build targets
-#   ./build.sh --proofs=discard         # replace each batch's proof term by a placeholder + hash
-#   ./build.sh --proofs=archive         # ... by a lossless archive + hash
-#   ./build.sh --native                 # the `Native` library instead: the same theorem with the
+#   scripts/build.sh                    # default target(s), auto-sized, proof terms kept
+#   scripts/build.sh Zeta.Main          # any lake build targets
+#   scripts/build.sh --proofs=discard   # replace each batch's proof term by a placeholder + hash
+#   scripts/build.sh --proofs=archive   # ... by a lossless archive + hash
+#   scripts/build.sh --native           # the `Native` library instead: the same theorem with the
 #                                       #   Riemann–Siegel batches checked by `native_decide`
-#   ./build.sh --estimate [--native]    # build two sample batches (shards), measure them, and
+#   scripts/build.sh --native --endpoint   # native as the result, not as a precheck: skips the
+#                                       #   prediction of the kernel-checked build
+#   scripts/build.sh --proofs=auto      # keep proof terms if they fit easily, else archive, else
+#                                       #   discard; stops if even that would not leave room
+#   scripts/build.sh --estimate [--native]    # build two sample batches (shards), measure them, and
 #                                       #   project the whole build; later runs size from it
-#   ./build.sh --retries K              # the kernel raises a failing row's precision up to K times
+#   scripts/build.sh --retries K        # the kernel raises a failing row's precision up to K times
 #                                       #   (default 3); `--native` says when that is too few
-#   LEAN_NUM_THREADS=8 ./build.sh       # explicit override of the worker count
+#   LEAN_NUM_THREADS=8 scripts/build.sh       # explicit override of the worker count
 #
 # Workers. Each certificate batch is a separate `lean` process. All of them map the same imported
 # oleans (≈ SHARED_GB), so that part is paid once; what each extra worker costs is its *private*
@@ -55,6 +59,10 @@
 # every zero clears its error bound by more than the kernel's enclosures will be wide after the
 # kernel's retries (3, or `--retries K`); zeros that do not are gathered into a banner at the end
 # ("THE KERNEL-CHECKED BUILD WILL FAIL ON THESE ZEROS"), with the K that fixes them, exit status 3.
+# `--endpoint` (with `--native`; sets ZETA_NATIVE_ENDPOINT=1) is for when the native theorem is
+# the result: it skips that prediction, which costs about one more evaluation of each endpoint.
+# Each batch it builds logs a marker instead; a later precheck that reuses such a batch has no
+# prediction for it, so it lists those batches, gives no all-clear, and exits with status 3.
 # On Linux it puts the toolchain's library directory on `LD_LIBRARY_PATH` (else loading the checker
 # fails with "libLake_shared.so: cannot open shared object file"); a bare `lake build Native…`
 # there needs
@@ -84,29 +92,37 @@
 # Proof terms. Once a batch is built, `lake build` never reads its proof term again (see
 # `proofs.sh`), so with `--proofs=discard` or `--proofs=archive` each batch's `.olean.private` is
 # shrunk as soon as Lake finishes it, by `proofs.sh` running alongside the build at low priority.
-# Only the batches in flight are ever full-size on disk. `./proofs.sh restore` gives them back.
+# Only the batches in flight are ever full-size on disk. `scripts/proofs.sh restore` gives them back.
 set -euo pipefail
+# A background `lake build` ignores SIGINT (see `run_lake`), so on Ctrl-C stop the whole process
+# group with TERM, which Lake and its workers do not ignore.
+trap 'trap - INT TERM; kill 0' INT TERM
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 SHARED_GB=2.5      # imported oleans, mapped once and shared by every worker
-BASE_GB=0.6        # per-worker private memory independent of the batch
-PER_ROW_NU_GB=2.4e-5  # per-worker private memory per batch row per unit of ν, proof term included
-ROW_KB=48          # proof-term disk per batch row independent of height
+# Per-worker private memory, independent of the batch and per batch row per unit of ν: the model
+# the generator sizes batches with (`BATCH_BASE_GB`, `BATCH_ROW_NU_GB` in `python/src/config.py`).
+constants=$(PYTHONPATH=python/src python3 -c \
+  'from config import BATCH_BASE_GB, BATCH_ROW_NU_GB; print(BATCH_BASE_GB, BATCH_ROW_NU_GB)')
+read -r BASE_GB PER_ROW_NU_GB <<< "$constants"
+ROW_KB=48         # proof-term disk per batch row independent of height
 ROW_NU_KB=3.24     # proof-term disk per batch row per unit of ν
 DISK_WARN=0.5      # warn when the proof terms would take this share of the free disk
 
 PROOFS=keep
 NATIVE=0
+ENDPOINT=0
 ESTIMATE=0
 RETRIES=3          # the kernel's precisionRetriesRS (Zeta/Zeros/BuildCertsRS.lean), unless --retries
 args=()
 while (( $# )); do
   case $1 in
     --native) NATIVE=1 ;;
+    --endpoint) ENDPOINT=1 ;;
     --estimate) ESTIMATE=1 ;;
-    --proofs=keep|--proofs=discard|--proofs=archive) PROOFS=${1#--proofs=} ;;
-    --proofs=*) echo "build.sh: --proofs must be keep, discard or archive" >&2; exit 2 ;;
+    --proofs=keep|--proofs=discard|--proofs=archive|--proofs=auto) PROOFS=${1#--proofs=} ;;
+    --proofs=*) echo "build.sh: --proofs must be keep, discard, archive or auto" >&2; exit 2 ;;
     --retries|--retries=*)
       if [[ $1 == --retries ]]; then RETRIES=${2:-}; shift; else RETRIES=${1#--retries=}; fi
       [[ $RETRIES =~ ^[0-9]+$ ]] || { echo "build.sh: --retries needs a number" >&2; exit 2; }
@@ -117,7 +133,11 @@ while (( $# )); do
   shift
 done
 set -- ${args[@]+"${args[@]}"}
+(( ! ENDPOINT || NATIVE )) || { echo "build.sh: --endpoint applies to --native builds" >&2; exit 2; }
+# read by `endpointBuild` (Native/BuildCerts.lean); unset so a precheck never inherits it
+if (( ENDPOINT )); then export ZETA_NATIVE_ENDPOINT=1; else unset ZETA_NATIVE_ENDPOINT; fi
 if (( NATIVE )); then
+  if [[ $PROOFS == auto ]]; then PROOFS=keep; fi
   if [[ $PROOFS != keep ]]; then
     echo "build.sh: --native builds no kernel-checked Riemann–Siegel batch; drop --proofs" >&2
     exit 2
@@ -126,7 +146,7 @@ if (( NATIVE )); then
 fi
 
 # the largest batch's rows·ν, from the zero stores' manifests and the generator's batch sizes
-load_max=$(python3 build_tools.py load-max 2>/dev/null || echo 12000)
+load_max=$(python3 scripts/build_tools.py load-max 2>/dev/null || echo 12000)
 
 cores=0; avail_gb=0
 case "$(uname -s)" in
@@ -167,7 +187,7 @@ fi
 # `unmeasured` says why, for the banner below.
 unmeasured="no --estimate of a $MODE build ($ESTIMATE_FILE)"
 if [[ -f $ESTIMATE_FILE ]] && (( ! ESTIMATE )); then
-  measured=$(python3 build_tools.py constants "$ESTIMATE_FILE" "$load_max")
+  measured=$(python3 scripts/build_tools.py constants "$ESTIMATE_FILE" "$load_max")
   if [[ $measured == stale* ]]; then
     unmeasured=${measured#stale }
   else
@@ -199,21 +219,25 @@ else
 fi
 
 if (( ESTIMATE )); then
-  exec python3 build_tools.py estimate --mode "$MODE" --cores "$cores" --avail-gb "$avail_gb" \
+  exec python3 scripts/build_tools.py estimate --mode "$MODE" --cores "$cores" --avail-gb "$avail_gb" \
     --out "$ESTIMATE_FILE"
 fi
 
 # Proof-term disk estimate for the batches not yet built, against the free disk. Skipped when
-# every target named is outside `Zeta` (e.g. `./build.sh Enclosure`), which builds no batch.
+# every target named is outside `Zeta` (e.g. `scripts/build.sh Enclosure`), which builds no batch.
 wants_batches=1
 if (( $# )); then
   wants_batches=0
   for t in "$@"; do [[ $t == Zeta || $t == Zeta.* ]] && wants_batches=1; done
 fi
-if (( wants_batches )); then
-  python3 build_tools.py disk --proofs "$PROOFS" --row-kb "$ROW_KB" --row-nu-kb "$ROW_NU_KB" \
+if (( wants_batches )) && [[ $PROOFS == auto ]]; then
+  PROOFS=$(python3 scripts/build_tools.py disk --proofs auto --row-kb "$ROW_KB" --row-nu-kb "$ROW_NU_KB" \
+    --warn "$DISK_WARN" --workers "$LEAN_NUM_THREADS") || exit 2
+elif (( wants_batches )); then
+  python3 scripts/build_tools.py disk --proofs "$PROOFS" --row-kb "$ROW_KB" --row-nu-kb "$ROW_NU_KB" \
     --warn "$DISK_WARN" --workers "$LEAN_NUM_THREADS" >&2 || true
 fi
+if [[ $PROOFS == auto ]]; then PROOFS=keep; fi
 
 # A worker count sized from the default constants (a fit at lower heights) can be far off at this
 # height, so say so where it cannot be missed.
@@ -223,7 +247,7 @@ if [[ -n $unmeasured ]] && (( sized && (NATIVE || wants_batches) )); then
     printf '!%.0s' {1..98}; echo
     echo "!! WORKER COUNT NOT MEASURED AT THIS HEIGHT: $unmeasured."
     echo "!! The default constants give ${LEAN_NUM_THREADS} workers (≈ ${per_worker} GB each at rows·ν ${load_max})."
-    echo "!! For a measured count, stop and run first (a few minutes):   ./build.sh --estimate$( (( NATIVE )) && echo ' --native')"
+    echo "!! For a measured count, stop and run first (a few minutes):   scripts/build.sh --estimate$( (( NATIVE )) && echo ' --native')"
     printf '!%.0s' {1..98}; echo
     echo
   } >&2
@@ -236,13 +260,27 @@ fi
 # built, are checked against the kernel's retries (RETRIES, `--retries`): the zeros they do not
 # cover go into one banner at the end, and the exit status is then 3.
 KERNEL_RISK="KERNEL PRECISION"
+NO_REPORT="NO RETRY REPORT"   # `endpointMarker`: a batch built with --endpoint
 if (( NATIVE )); then
   lake build Native.PluginCheck
   log=$(mktemp "${TMPDIR:-/tmp}/native-build.XXXXXX")
   rc=0
-  lake build "$@" 2>&1 | tee "$log" || rc=$?
+  # the markers go to the log only: one per batch would flood the terminal
+  lake build "$@" 2>&1 | tee "$log" | { grep -v -F "$NO_REPORT" || true; } || rc=$?
+  if (( ENDPOINT )); then rm -f "$log"; exit $rc; fi
+  unreported=$(grep -F "$NO_REPORT" "$log" | sed "s/.*$NO_REPORT: //" | sort -u || true)
   reported=$(grep -F "$KERNEL_RISK" "$log" | sed "s/.*$KERNEL_RISK: //" | sort -u || true)
   rm -f "$log"
+  if [[ -n $unreported ]]; then
+    {
+      echo
+      echo "build.sh: $(grep -c . <<< "$unreported") batch(es) were built earlier with --native --endpoint and carry no"
+      echo "  prediction of the kernel-checked build, so this precheck is incomplete. Rebuild them with:"
+      echo "    rm -rf .lake/build/lib/lean/Native/Certificates .lake/build/ir/Native/Certificates"
+      echo "    scripts/build.sh --native"
+    } >&2
+    (( rc )) || rc=3
+  fi
   # the reported zeros the kernel's retries do not cover: more raises needed, or none will do
   fails=$(awk -v r="$RETRIES" '
     match($0, /needs [0-9]+ raise/) { k = substr($0, RSTART + 6, RLENGTH - 12) + 0; if (k > r) print; next }
@@ -257,11 +295,11 @@ if (( NATIVE )); then
     {
       echo
       printf '!%.0s' {1..98}; echo
-      echo "!! THE KERNEL-CHECKED BUILD (./build.sh) WILL FAIL ON THESE ZEROS with $RETRIES retries"
+      echo "!! THE KERNEL-CHECKED BUILD (scripts/build.sh) WILL FAIL ON THESE ZEROS with $RETRIES retries"
       echo "!! (the native theorem is unaffected; this predicts the kernel run, before it starts):"
       while IFS= read -r line; do echo "!!   $line"; done <<< "$fails"
       if [[ -n $k ]]; then
-        echo "!! FIX: run the kernel build with enough retries:   ./build.sh --retries $k"
+        echo "!! FIX: run the kernel build with enough retries:   scripts/build.sh --retries $k"
       fi
       if grep -q "move this endpoint" <<< "$fails"; then
         echo "!! FIX: no retries rescue the zeros marked \"move this endpoint\": regenerate those store rows."
@@ -282,7 +320,7 @@ fi
 # environment.
 stages=()
 if (( sized && $# == 0 && cores > LEAN_NUM_THREADS )); then
-  plan=$(python3 build_tools.py stages --cores "$cores" --avail-gb "$avail_gb" \
+  plan=$(python3 scripts/build_tools.py stages --cores "$cores" --avail-gb "$avail_gb" \
          --shared-gb "$SHARED_GB" --base-gb "$BASE_GB" --per-row-nu-gb "$PER_ROW_NU_GB" \
          --last "$LEAN_NUM_THREADS" || true)
   if [[ -n $plan ]]; then
@@ -302,12 +340,12 @@ fi
 # before the scan, so a batch finishing mid-scan is seen again next time); the final pass sweeps
 # everything since the start, so a failed or missed shrink is retried once. Shrinks run under
 # `nice`, single-threaded, so they take only the cycles the Lean workers leave, and quietly: their
-# per-batch lines would interleave with Lake's progress line (errors still print; `./proofs.sh
+# per-batch lines would interleave with Lake's progress line (errors still print; `scripts/proofs.sh
 # status` counts them afterwards).
 LIB=.lake/build/lib/lean/Zeta/Zeros/Certificates
 shrink_ready() {  # shrink_ready <marker>
   find "$LIB" -name 'Batch*.trace' -newer "$1" 2>/dev/null | sed -E "s|^$LIB/||; s|\.trace$||" |
-    xargs -P "$LEAN_NUM_THREADS" -I{} nice -n 19 ./proofs.sh "$PROOFS" {} >/dev/null
+    xargs -P "$LEAN_NUM_THREADS" -I{} nice -n 19 scripts/proofs.sh "$PROOFS" {} >/dev/null
 }
 
 # run_lake <workers> [targets…]: one `lake build` on that many workers, shrinking proof terms as
@@ -334,7 +372,7 @@ run_lake() {
   [[ $prev == "$start" ]] || rm -f "$prev"
   shrink_ready "$start" || failed=1
   rm -f "$start"
-  (( failed == 0 )) || echo "build.sh: some proof terms were not shrunk (see above); \`./proofs.sh status\`" >&2
+  (( failed == 0 )) || echo "build.sh: some proof terms were not shrunk (see above); \`scripts/proofs.sh status\`" >&2
   return $rc
 }
 

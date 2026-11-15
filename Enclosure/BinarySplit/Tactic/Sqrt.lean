@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Functions.Sqrt
@@ -18,10 +23,8 @@ namespace BSN
 /-! ### Metaprogram: compute the dyadic enclosure and emit the certificate -/
 
 open Lean Elab Term Meta in
-/-- Build the `IsNear` enclosure of `√(N/M)` (centre `(a+b)/(2Q)`, radius `(b−a)/(2Q)`, width
-`≤ 1/(2D)`). The elaborator picks `Q = dyadicDenom D = 2ᵏ`, `a = ⌊√(N·Q²/M)⌋` (via `Nat.sqrt`),
-`b = a+1`; the squaring side conditions are `reflBoolTrue`. Returns `(proof, a, b, Q)` for the
-complex interval-arithmetic layer. -/
+/-- `(proof, a, b, Q)` with `proof` the `IsNear` enclosure of `√(N/M)` of centre `(a+b)/(2Q)` and
+radius `(b−a)/(2Q)`, where `Q = dyadicDenom D`, `a = ⌊√(N·Q²/M)⌋` and `b = a + 1`. -/
 meta def mkSqrtEncl (N M D : ℕ) : MetaM (Expr × ℕ × ℕ × ℕ) := do
   let Q := dyadicDenom D
   let a := Nat.sqrt (N * Q ^ 2 / M)

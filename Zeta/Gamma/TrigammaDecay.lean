@@ -11,7 +11,7 @@ public import Mathlib.Analysis.Complex.Liouville
 public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 public import Mathlib.Analysis.SpecificLimits.Basic
 public import Mathlib.Analysis.Calculus.MeanValue
-public import Mathlib.Data.Complex.BigOperators
+public import Mathlib.Basic.Complex.BigOperators
 
 /-!
 # Decay of the trigamma function along the shift
@@ -57,7 +57,7 @@ theorem norm_digamma_le {z : ℂ} (hz : 0 < z.re) (h1 : 1 ≤ ‖z‖) :
       norm_num [bernoulli_two, Complex.norm_div]
     have hz2 : ‖z ^ (-(2 * (1 : ℕ) : ℤ))‖ ≤ 1 := by
       rw [norm_zpow]; exact zpow_le_one_of_nonpos₀ h1 (by norm_num)
-    exact mul_le_one₀ hb (norm_nonneg _) hz2
+    exact (mul_le_of_le_one_left (norm_nonneg _) hb).trans hz2
   -- remainder `R^ψ_3`
   have hrem : ‖digammaRemainderIoi z (2 * 1 + 1)‖ ≤ 1 := by
     have hb := norm_digammaRemainderIoi_le' z hz (2 * 1 + 1) (by norm_num)
@@ -66,7 +66,7 @@ theorem norm_digamma_le {z : ℂ} (hz : 0 < z.re) (h1 : 1 ≤ ‖z‖) :
       rw [show (2 * 1 + 1 : ℕ) = 3 from rfl, show (3 - 1 : ℕ) = 2 from rfl,
         show (3 ! : ℝ) = 6 from by norm_num, div_le_one (by positivity)]
       nlinarith [Real.pi_gt_three]
-    exact hb.trans (mul_le_one₀ hcoef (zpow_nonneg (norm_nonneg _) _) hzp)
+    exact hb.trans ((mul_le_of_le_one_left (zpow_nonneg (norm_nonneg _) _) hcoef).trans hzp)
   -- assemble via the triangle inequality (shapes inferred from the goal)
   rw [digamma_eq_log_sub z hz 1]
   refine (norm_sub_le _ _).trans ?_

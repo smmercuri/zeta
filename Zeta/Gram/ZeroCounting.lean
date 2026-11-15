@@ -43,8 +43,7 @@ against the Lehman bound on `∫ S`.
 
 open Real Set Filter Zeta.Certificates Complex MeasureTheory
 
-/-- Past `7`, where `θ` is strictly increasing to `∞`, the equation `θ(t) = n·π` has a unique
-solution. -/
+/-- On `[7, ∞)`, the equation `θ(t) = n·π` has a unique solution. -/
 theorem existsUnique_gramPoint (n : ℕ) :
     ∃! x ∈ Ici (7 : ℝ), riemannSiegelTheta x = n * π := by
   have hi := isPreconnected_Ici.intermediate_value_Ici (a := 7) (by simp)
@@ -57,7 +56,7 @@ theorem existsUnique_gramPoint (n : ℕ) :
   have := strictMonoOn_riemannSiegelTheta_gramDomain hy hx
   grind
 
-/-- **The `n`-th gram point**: the unique `t ≥ 7` with `θ(t) = n·π`. -/
+/-- The `n`-th gram point: the unique `t ≥ 7` with `θ(t) = n·π`. -/
 noncomputable def gramPoint (n : ℕ) : ℝ := (existsUnique_gramPoint n).choose
 
 /-- The defining property of the `n`-th gram point. -/
@@ -79,8 +78,8 @@ theorem strictMono_gramPoint : StrictMono gramPoint := fun m n hmn ↦ by
       (Set.mem_Ici.mpr (gramPoint_seven_le n)), gramPoint_theta_eq, gramPoint_theta_eq]
   exact mul_lt_mul_of_pos_right (by exact_mod_cast hmn) pi_pos
 
-/-- Past `7` — where `θ` is strictly monotone — the `n`-th gram point lies weakly left of `t`
-exactly when `θ(t)` has reached `n·π`. -/
+/-- Past `7`, the `n`-th gram point lies weakly left of `t` exactly when `θ(t)` has reached
+`n·π`. -/
 theorem gramPoint_le_iff {n : ℕ} {t : ℝ} (ht : 7 ≤ t) :
     gramPoint n ≤ t ↔ (n : ℝ) * π ≤ riemannSiegelTheta t := by
   rw [← gramPoint_theta_eq n]
@@ -118,12 +117,12 @@ lemma riemannZeta.N_eq_sum (T : ℝ) :
   rw [riemannZeta.N, riemannZeta.zeroes_sum, tsum_fintype, ← Finset.sum_set_coe]
   exact Finset.sum_congr rfl fun _ _ ↦ one_mul _
 
-/-- `N` is integer-valued, being a finite sum of (integer) zero orders. -/
+/-- `N` is integer-valued. -/
 lemma riemannZeta.exists_intCast_N (T : ℝ) : ∃ m : ℤ, riemannZeta.N T = m :=
   ⟨∑ ρ ∈ (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T)).toFinset, riemannZeta.order ρ, by
     rw [riemannZeta.N_eq_sum]; push_cast; rfl⟩
 
-/-- Zeros of positive height have positive, hence nonnegative, order. -/
+/-- Zeros of positive height have nonnegative order. -/
 private lemma riemannZeta.order_nonneg_of_mem_toFinset {T : ℝ} {ρ : ℂ}
     (hρ : ρ ∈ (riemannZeta.zeroes_rect (.univ : Set ℝ) (.Ioo 0 T)).toFinset) :
     (0 : ℝ) ≤ (riemannZeta.order ρ : ℝ) := by
@@ -179,7 +178,7 @@ theorem riemannZeta.N_add_one_le_of_zero {τ t : ℝ} (hτ : 0 < τ)
   rw [riemannZeta.N_eq_sum, riemannZeta.N_eq_sum]
   linarith
 
-/-- **Turing's bound on the zero count at a gram point.** If each of the `k + 1` gram intervals
+/-- Turing's bound on the zero count at a gram point: if each of the `k + 1` gram intervals
 above `gramPoint n` contains a critical-line zero, and the run is high enough (`hg`) and wide
 enough (`h`) for the Lehman bound, then `N(gramPoint n) ≤ n + 1`. -/
 theorem riemannZeta.N_le_of_gramPoints (n k : ℕ) (hg : 168 * π < gramPoint n)
@@ -294,7 +293,7 @@ theorem GramPoint.certificate_gramPoint_lt_right {G : GramPoint} (h : G.Certific
   refine (gramPoint_lt_iff (not_lt.mp fun hcon ↦ ?_)).mpr hgt
   linarith [riemannSiegelTheta_nonpos_of_mem_Icc ⟨h.snd_nonneg, hcon.le⟩]
 
-/-- A certified gram block brackets a genuine zero of `ζ` on the critical line, located strictly
+/-- A certified gram block brackets a zero of `ζ` on the critical line, located strictly
 between the two gram points `gramPoint B.left.idx` and `gramPoint B.right.idx`. -/
 theorem GramBlock.certificate_exists_zero {B : GramBlock} (h : B.Certificate) :
     ∃ t ∈ Set.Ico (gramPoint B.left.idx) (gramPoint B.right.idx),
@@ -314,8 +313,8 @@ theorem CertifiedGramBlockSeq.head_left_le_gramPoint (C : CertifiedGramBlockSeq)
 end Zeta.Certificates
 
 /-- **The `CertifiedGramBlockSeq` version of `riemannZeta.N_le_of_gramPoints`**: a certified
-sequence of gram blocks bounds the zero count at its head gram point,
-`N(gramPoint S.minIdx) ≤ S.minIdx + 1`. No zero-freeness (ordinate) obligation is needed. -/
+sequence of gram blocks bounds the zero count at its head gram point, with no ordinate
+hypothesis. -/
 theorem riemannZeta.N_le_of_certifiedGramBlockSeq (S : CertifiedGramBlockSeq) :
     riemannZeta.N (gramPoint S.minIdx) ≤ S.minIdx + 1 := by
   have hLpos : 0 < S.blocks.length := List.length_pos_of_ne_nil S.non_empty

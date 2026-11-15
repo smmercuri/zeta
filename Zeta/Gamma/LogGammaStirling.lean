@@ -18,8 +18,8 @@ public import Mathlib.Analysis.SpecificLimits.Basic
 The Stirling approximant `S_M` of `log Γ`, the improper `log Γ` remainder `ρ_M` and its explicit
 arbitrary-order bound, together with the real-axis Stirling anchor.
 
-The real-axis material lives in the sibling namespace `Real.Stirling`: it is about
-`Real.log (Real.Gamma ·)`, not about the complex branch `Complex.logGamma`.
+The real-axis material lives in the sibling namespace `Real.Stirling`: it concerns
+`Real.log (Real.Gamma ·)`.
 
 ## Main definitions
 
@@ -36,8 +36,7 @@ The real-axis material lives in the sibling namespace `Real.Stirling`: it is abo
 - `Complex.Stirling.norm_logGammaRemainderIoi_le`:
   `‖ρ_M(w)‖ ≤ (2M+1)!/(2M(2π)^{2M}) · (Re w)^{-2M}`.
 - `Complex.Stirling.norm_logGammaRemainderIoi_le'`: the `‖w‖`-form variant
-  `‖ρ_M(w)‖ ≤ (2M+1)! 2^{2M+1}/(2M(2π)^{2M}) · ‖w‖^{-2M}`, which, unlike the above, decays along
-  a vertical line.
+  `‖ρ_M(w)‖ ≤ (2M+1)! 2^{2M+1}/(2M(2π)^{2M}) · ‖w‖^{-2M}`, which decays along a vertical line.
 - `Complex.Stirling.logGammaStirling_two`: the order-`2` approximant with its Bernoulli
   coefficients evaluated.
 - `Real.Stirling.tendsto_log_Gamma_sub_stirlingRef_atTop`: the real-axis Stirling anchor
@@ -51,7 +50,7 @@ open scoped Topology Nat Real
 
 namespace Complex.Stirling
 
-/-- **Stirling approximant of `log Γ`:**
+/-- The Stirling approximant of `log Γ`,
 `S_M(w) = (w - ½) Log w - w + ½ log(2π) + ∑_{k=1}^M B_{2k}/(2k(2k-1)) w^{1-2k}`, where `Log` is the
 principal complex logarithm. -/
 noncomputable def logGammaStirling (M : ℕ) (w : ℂ) : ℂ :=
@@ -59,7 +58,7 @@ noncomputable def logGammaStirling (M : ℕ) (w : ℂ) : ℂ :=
     + ∑ k ∈ Finset.Icc 1 M,
         (bernoulli (2 * k) : ℂ) / (2 * (k : ℂ) * (2 * (k : ℂ) - 1)) * w ^ (1 - 2 * (k : ℤ))
 
-/-- **`S_M` is a primitive of the digamma partial sum.** For `Re w > 0`,
+/-- `S_M` is a primitive of the digamma partial sum: for `Re w > 0`,
 `S_M'(w) = Log w - 1/(2w) - ∑_{k=1}^M B_{2k}/(2k) w^{-2k}`. -/
 theorem hasDerivAt_logGammaStirling {M : ℕ} {w : ℂ} (hw : 0 < w.re) :
     HasDerivAt (logGammaStirling M)
@@ -106,7 +105,7 @@ theorem hasDerivAt_logGammaStirling {M : ℕ} {w : ℂ} (hw : 0 < w.re) :
   rw [hscal, hsumeq]
   ring
 
-/-- **Improper `log Γ` remainder** `ρ_M(w) = ∫_0^∞ R^ψ_{2M+1}(w+τ) dτ`, the ray-integral of the
+/-- The improper `log Γ` remainder `ρ_M(w) = ∫_0^∞ R^ψ_{2M+1}(w+τ) dτ`, the ray-integral of the
 digamma remainder `digammaRemainderIoi`. -/
 noncomputable def logGammaRemainderIoi (M : ℕ) (w : ℂ) : ℂ :=
   ∫ τ in Set.Ioi (0 : ℝ), digammaRemainderIoi (w + (τ : ℂ)) (2 * M + 1)
@@ -150,7 +149,7 @@ noncomputable abbrev logGammaRemainderBound (M : ℕ) (w : ℂ) : ℝ :=
 noncomputable abbrev logGammaRemainderNormBound (M : ℕ) (w : ℂ) : ℝ :=
   ((2 * M + 1)! : ℝ) * 2 ^ (2 * M + 1) / (2 * M * (2 * π) ^ (2 * M)) * ‖w‖ ^ (-(2 * M : ℤ))
 
-/-- **The `log Γ` remainder bound against an arbitrary majorant of the ray** `τ ↦ w + τ`. The
+/-- The `log Γ` remainder bound against an arbitrary majorant of the ray `τ ↦ w + τ`. The
 shared core of `norm_logGammaRemainderIoi_le` (`κ = 1`, `σ = Re w`) and
 `norm_logGammaRemainderIoi_le'` (`κ = 2`, `σ = ‖w‖`). -/
 private theorem norm_logGammaRemainderIoi_le_of_div_le {M : ℕ} (hM : 1 ≤ M) {w : ℂ}
@@ -206,7 +205,7 @@ private theorem norm_logGammaRemainderIoi_le_of_div_le {M : ℕ} (hM : 1 ≤ M) 
           neg_div_neg_eq]
     _ = _ := by rw [hCdef, hp1, hp]; ring
 
-/-- **Explicit arbitrary-order `log Γ` remainder bound.** For every `M ≥ 1` and every `w` with
+/-- Explicit arbitrary-order `log Γ` remainder bound: for every `M ≥ 1` and every `w` with
 `Re w > 0`, `‖ρ_M(w)‖ ≤ (2M+1)!/(2M(2π)^{2M}) · (Re w)^{-2M}`. -/
 theorem norm_logGammaRemainderIoi_le {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0 < w.re) :
     ‖logGammaRemainderIoi M w‖ ≤ logGammaRemainderBound M w := by
@@ -218,8 +217,8 @@ theorem norm_logGammaRemainderIoi_le {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0 
     linarith
   · simp [logGammaRemainderBound]
 
-/-- **The `log Γ` remainder bound in `‖w‖` form**, which, unlike `norm_logGammaRemainderIoi_le`,
-decays along a vertical line. Its extra factor `2^{2M+1}` cannot be dropped: at `w = i s` already
+/-- The `log Γ` remainder bound in `‖w‖` form, which decays along a vertical line. Its extra
+factor `2^{2M+1}` cannot be dropped: at `w = i s` already
 `∫_0^∞ ‖w + τ‖^{-5} dτ = (2/3) s^{-4} > (1/4) s^{-4}`. -/
 theorem norm_logGammaRemainderIoi_le' {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0 < w.re) :
     ‖logGammaRemainderIoi M w‖ ≤ logGammaRemainderNormBound M w := by
@@ -241,7 +240,7 @@ theorem norm_logGammaRemainderIoi_le' {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0
     linarith
   linarith
 
-/-- **The order-`2` Stirling approximant**, with its Bernoulli coefficients `B₂ = 1/6` and
+/-- The order-`2` Stirling approximant, with its Bernoulli coefficients `B₂ = 1/6` and
 `B₄ = -1/30` evaluated. -/
 theorem logGammaStirling_two (w : ℂ) :
     logGammaStirling 2 w
@@ -265,9 +264,8 @@ end Complex.Stirling
 namespace Real.Stirling
 
 /-- The real Stirling reference `r(x) = (x - ½) log x - x + ½ log(2π)`, the order-`0` Stirling
-approximant of `log Γ` on the positive real axis. It is the `Real.log`-valued counterpart of
-`Complex.Stirling.logGammaStirling 0`, kept separate to avoid threading the
-`Complex.log`/`Real.log` bridge through the real arguments below. -/
+approximant of `log Γ` on the positive real axis: the `Real.log`-valued counterpart of
+`Complex.Stirling.logGammaStirling 0`, used by the real arguments below. -/
 noncomputable def stirlingRef (x : ℝ) : ℝ :=
   (x - 1 / 2) * Real.log x - x + 1 / 2 * Real.log (2 * π)
 
@@ -318,7 +316,7 @@ private theorem tendsto_stirlingAnchorBound :
       (Tendsto.const_mul_atTop' (by norm_num) tendsto_natCast_atTop_atTop)
   simpa [stirlingAnchorBound] using hlog.add hinv
 
-/-- **Integer Stirling anchor.** For natural `n`, `log Γ(n) - r(n) → 0`. -/
+/-- Integer Stirling anchor: for natural `n`, `log Γ(n) - r(n) → 0`. -/
 private theorem tendsto_log_Gamma_sub_stirlingRef_nat :
     Tendsto (fun n : ℕ ↦ Real.log (Real.Gamma (n : ℝ)) - stirlingRef (n : ℝ)) atTop (𝓝 0) := by
   have hlim : Tendsto (fun n : ℕ ↦ Real.log (Stirling.stirlingSeq n) - Real.log π / 2)
@@ -346,7 +344,7 @@ private theorem tendsto_log_Gamma_sub_stirlingRef_nat :
     Real.log_mul (by norm_num : (2 : ℝ) ≠ 0) Real.pi_ne_zero]
   ring
 
-/-- **Fractional-part control.** For `x ≥ 2` with `n := ⌊x⌋`, the anchor `φ = log Γ - r` satisfies
+/-- Fractional-part control: for `x ≥ 2` with `n := ⌊x⌋`, the anchor `φ = log Γ - r` satisfies
 `|φ(x)| ≤ |φ(n)| + δ(n)`. -/
 private theorem abs_log_Gamma_sub_stirlingRef_le {x : ℝ} (hx : 2 ≤ x) :
     |Real.log (Real.Gamma x) - stirlingRef x|
@@ -421,7 +419,7 @@ private theorem abs_log_Gamma_sub_stirlingRef_le {x : ℝ} (hx : 2 ≤ x) :
         (by positivity : (0 : ℝ) ≤ 1 / (2 * (n : ℝ)))]
   · rw [heq]; simpa using hbnd_nonneg
 
-/-- **Real-axis Stirling anchor.** As `x → +∞`, `log Γ(x) - r(x) → 0`, where `r = stirlingRef`.
+/-- Real-axis Stirling anchor: as `x → +∞`, `log Γ(x) - r(x) → 0`, where `r = stirlingRef`.
 This is what pins the additive constant `½ log(2π)` of the Stirling expansion of `log Γ`. -/
 theorem tendsto_log_Gamma_sub_stirlingRef_atTop :
     Tendsto (fun x : ℝ ↦ Real.log (Real.Gamma x) - stirlingRef x) atTop (𝓝 0) := by

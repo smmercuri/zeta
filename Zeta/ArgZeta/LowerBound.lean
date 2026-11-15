@@ -50,7 +50,7 @@ private lemma riemannXiZeros_im_ne_of_forall_riemannZeta_ne {t : ℝ}
     simp only [Complex.sub_re, Complex.one_re, Complex.conj_re]
     linarith
 
-/-- **The `ξ`-to-`ζ` log-modulus split along the line `σ + it`.** The archimedean part is
+/-- The `ξ`-to-`ζ` log-modulus split along the line `σ + it`. The archimedean part is
 `logNormGammaArchimedean t σ = log‖½ (σ+it)((σ+it)-1) Γ_ℝ(σ+it)‖`. -/
 private lemma log_norm_riemannXi_eq {t σ : ℝ} (htne : t ≠ 0) (hσ : 0 < σ)
     (hζ : riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) :
@@ -83,8 +83,8 @@ private lemma intervalIntegral_zero_shift_eq_Ioo (f : ℝ → ℝ) {s d b : ℝ}
   rw [zero_add, show d + s = b from by rw [← hb]; ring] at h
   exact h.symm
 
-/-- **Parametric core of Lehman's lower bound on `I(t)`, parametric in the pairing constant
-`c ≥ 2`.** Given explicit constants for the shift (`hκ`), the archimedean strip difference
+/-- Parametric core of Lehman's lower bound on `I(t)`, parametric in the pairing constant
+`c ≥ 2`. Given explicit constants for the shift (`hκ`), the archimedean strip difference
 (`hCa`), the explicit formula (`hCψ`) and the tail (`hCt`), the additive constant of
 `-I(t) ≤ a₂ + ((c-1)/2)d² log t` is `a₂ = c·d² Cψ + d² κ + 2 Ct + Ca`. -/
 theorem le_logNormZetaIntegral_of_le {d κ Ca Cψ Ct : ℝ} (hd : 1 / 2 < d)
@@ -213,7 +213,7 @@ theorem le_logNormZetaIntegral_of {d κ Ca Cψ Ct : ℝ} (hd : 1 / 2 < d)
   intro t ht hzero
   linarith [le_logNormZetaIntegral_of_le hd hκ hCa hCψ hCt (c := 5 / 2) (by norm_num) t ht hzero]
 
-/-- **Lehman's lower bound on `I(t)`** (`thm:ll_main`, `lem:lb_I_lower`). For strip depth
+/-- Lehman's lower bound on `I(t)` (`thm:ll_main`, `lem:lb_I_lower`). For strip depth
 `1/2 < d ≤ 2` there is a `t`-independent constant `a₂` with `-I(t) ≤ a₂ + (3/4)d² log t` at every
 `t ≥ 168π` that is not an ordinate of a zero of `ζ` on the ray `{σ + it : σ ≥ 1/2}`. -/
 theorem le_logNormZetaIntegral {d : ℝ} (hd : 1 / 2 < d) (hd' : d ≤ 2) :

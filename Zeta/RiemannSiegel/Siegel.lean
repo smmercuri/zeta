@@ -14,8 +14,8 @@ public import Zeta.Zeros.HardyZ
 
 `riemann_siegel_zero.tex`, `sec:rsz_siegel`. Siegel's identity
 `ζ(s) = -I(s,½) - e^{-2iθ(t)} conj (I(s,½))` on the critical line is the one input of the
-Riemann–Siegel tower that does not come from the contour apparatus of
-`Zeta/RiemannSiegel/Shift.lean` and `Zeta/RiemannSiegel/Deform.lean`. This file proves it, in
+Riemann–Siegel formula outside the contour apparatus of `Zeta/RiemannSiegel/Shift.lean` and
+`Zeta/RiemannSiegel/Deform.lean`. This file proves it, in
 three steps.
 
 On `Re s > 1` the Mellin form of `Zeta/RiemannSiegel/Ray.lean` expresses `ζ(s) + I(s,½)` through
@@ -46,7 +46,7 @@ open scoped Real Topology
 
 namespace Zeta.RiemannSiegel
 
-/-- **The far-contour limit** `K(s) = lim_ν I(s, ν+½) = ζ(s) + I(s,½)`, for `Re s > 1`. -/
+/-- The far-contour limit `K(s) = lim_ν I(s, ν+½) = ζ(s) + I(s,½)`, for `Re s > 1`. -/
 theorem tendsto_contourIntegral_atTop_nhds_riemannZeta_add_contourIntegral_half {s : ℂ}
     (hs : 1 < s.re) :
     Tendsto (fun ν : ℕ ↦ contourIntegral s ((ν : ℝ) + 1 / 2)) atTop
@@ -66,7 +66,7 @@ theorem tendsto_contourIntegral_atTop_nhds_riemannZeta_add_contourIntegral_half 
   rw [Function.comp_apply, hcast ν, sum_cpow_neg_eq_contourIntegral_sub_contourIntegral s ν]
   ring
 
-/-- **The mirror contour integral is entire** (`riemann_siegel_zero.tex`, `lem:rsz_entire`). -/
+/-- The mirror contour integral is entire (`riemann_siegel_zero.tex`, `lem:rsz_entire`). -/
 theorem differentiable_mirrorContourIntegral_one_sub {a : ℝ} (ha0 : 0 < a) (ha : a ≤ 1 / 2) :
     Differentiable ℂ fun s ↦ mirrorContourIntegral (1 - s) a := fun s ↦ by
   rw [show (fun s : ℂ ↦ mirrorContourIntegral (1 - s) a)
@@ -76,7 +76,7 @@ theorem differentiable_mirrorContourIntegral_one_sub {a : ℝ} (ha0 : 0 < a) (ha
     ((differentiable_contourIntegral_of_le_half ha0 ha _).fun_comp' _
       ((differentiableAt_const 1).sub differentiableAt_fun_id))
 
-/-- **Siegel's identity on `Re s > 1`** (`riemann_siegel_zero.tex`, `prop:rsz_general_half`):
+/-- Siegel's identity on `Re s > 1` (`riemann_siegel_zero.tex`, `prop:rsz_general_half`):
 `ζ(s) + I(s,½) + χ(s) Ĩ(1-s,½) = 0`. -/
 theorem riemannZeta_add_contourIntegral_add_chi_mul_mirror_eq_zero_of_one_lt {s : ℂ}
     (hs : 1 < s.re) (hodd : ∀ n : ℕ, s ≠ 2 * n + 1) :
@@ -94,7 +94,7 @@ private theorem isClosed_range_two_mul_natCast_add_one :
       (Complex.isometry_ofReal.isClosedEmbedding.isClosedMap.comp
         Nat.isClosedEmbedding_coe_real.isClosedMap)).isClosed_range
 
-/-- **Siegel's identity** (`riemann_siegel_zero.tex`, `thm:rsz_general`):
+/-- Siegel's identity (`riemann_siegel_zero.tex`, `thm:rsz_general`):
 `ζ(s) + I(s,½) + χ(s) Ĩ(1-s,½) = 0` for every `s ∉ {1, 3, 5, …}`. -/
 theorem riemannZeta_add_contourIntegral_add_chi_mul_mirror_eq_zero {s : ℂ}
     (hodd : ∀ n : ℕ, s ≠ 2 * n + 1) :
@@ -128,7 +128,7 @@ theorem riemannZeta_add_contourIntegral_add_chi_mul_mirror_eq_zero {s : ℂ}
   exact (hdiff.analyticOnNhd isClosed_range_two_mul_natCast_add_one.isOpen_compl)
     |>.eqOn_zero_of_preconnected_of_eventuallyEq_zero hconn hz₀ hev ((hmem s).2 hodd)
 
-/-- **Siegel's identity on the critical line** (`riemann_siegel_zero.tex`, `thm:rsz_siegel`):
+/-- Siegel's identity on the critical line (`riemann_siegel_zero.tex`, `thm:rsz_siegel`):
 for `t > 0` and `s = ½+it`, `ζ(s) = -I(s,½) - e^{-2iθ(t)} conj (I(s,½))`. -/
 theorem riemannZeta_eq_neg_contourIntegral_sub {t : ℝ} (ht : 0 < t) :
     riemannZeta (1 / 2 + t * I)

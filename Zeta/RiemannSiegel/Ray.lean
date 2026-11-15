@@ -25,13 +25,13 @@ The ray is forced. It must lie in the lower half-plane for the geometric series 
 `e^{-iπ/4}` is the unique direction for which the exponential rate is positive *uniformly along*
 `L(a)`, because `Re (e^{iπ/4} x) = a/√2` is *constant* on `L(a)`
 (`Zeta.RiemannSiegel.re_exp_pi_div_four_mul_I_mul_line`). That constancy is what makes the double
-integral absolutely convergent, hence Fubini applicable. No contour in `x` is ever moved.
+integral absolutely convergent, hence Fubini applicable. The contour in `x` stays fixed.
 
 Two of the three terms are evaluated by one workhorse, `rayIntegral_exp_neg_two_pi_mul_I_mul`: the
 ray integral of `u ↦ e^{-2πiuz}` is `(2π)^{s-1} e^{iπ(s-1)/2} Γ(1-s) z^{s-1}`, the last power taken
 in the slanted branch `Zeta.RiemannSiegel.slantCpow`. Taking `z = n` gives the Dirichlet series of
 `ζ`, and taking `z` on `L(½)` gives, after Fubini, the contour integral. The third, Gaussian, term
-is instead a constant multiple of the mirror Hankel ray integral of
+is a constant multiple of the mirror Hankel ray integral of
 `Zeta/RiemannSiegel/Mirror.lean`.
 
 ## Main results
@@ -60,36 +60,36 @@ namespace Zeta.RiemannSiegel
 
 /-! ### The Mellin transform along the diagonal ray -/
 
-/-- The **diagonal ray integrand** `ρ ↦ (ρω)^{-s} F(ρω)` with `ω = e^{-iπ/4}`, the power being the
-principal branch — legitimate, since `arg (ρω) = -π/4`. -/
+/-- The diagonal ray integrand `ρ ↦ (ρω)^{-s} F(ρω)` with `ω = e^{-iπ/4}`, the power being the
+principal branch (`arg (ρω) = -π/4`). -/
 noncomputable def rayIntegrand (f : ℂ → ℂ) (s : ℂ) (ρ : ℝ) : ℂ :=
   ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))) ^ (-s) * f ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I)))
 
-/-- The **Mellin transform along the diagonal ray**, `𝓡F(s) = ω ∫_0^∞ (ρω)^{-s} F(ρω) dρ` with
+/-- The Mellin transform along the diagonal ray, `𝓡F(s) = ω ∫_0^∞ (ρω)^{-s} F(ρω) dρ` with
 `ω = e^{-iπ/4}`. The `ω` in front is the velocity of the ray. -/
 noncomputable def rayIntegral (f : ℂ → ℂ) (s : ℂ) : ℂ :=
   exp (-((π / 4 : ℝ) * I)) * ∫ ρ in Ioi (0 : ℝ), rayIntegrand f s ρ
 
-/-- **The ray is the mirror of the outgoing Hankel ray**, `ρω = conj (e^{iπ/4} ρ)`. -/
+/-- The ray is the mirror of the outgoing Hankel ray, `ρω = conj (e^{iπ/4} ρ)`. -/
 theorem conj_exp_pi_div_four_mul_I_mul_ofReal (ρ : ℝ) :
     starRingEnd ℂ (exp ((π / 4 : ℝ) * I) * (ρ : ℂ)) = (ρ : ℂ) * exp (-((π / 4 : ℝ) * I)) := by
   rw [map_mul, Complex.conj_ofReal, ← Complex.exp_conj, map_mul, Complex.conj_ofReal,
     Complex.conj_I, mul_neg, mul_comm]
 
-/-- **The abscissa of a point of the ray.** -/
+/-- The abscissa of a point of the ray. -/
 theorem re_ofReal_mul_exp_neg_pi_div_four_mul_I (ρ : ℝ) :
     ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))).re = ρ / Real.sqrt 2 := by
   rw [← conj_exp_pi_div_four_mul_I_mul_ofReal, Complex.conj_re,
     re_exp_pi_div_four_mul_I_mul_ofReal]
 
-/-- **The ordinate of a point of the ray.** -/
+/-- The ordinate of a point of the ray. -/
 theorem im_ofReal_mul_exp_neg_pi_div_four_mul_I (ρ : ℝ) :
     ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))).im = -(ρ / Real.sqrt 2) := by
   rw [mul_comm, Complex.exp_neg_pi_div_four_mul_I_mul_im, Complex.ofReal_im, Complex.ofReal_re,
     Real.sqrt_div_self']
   ring
 
-/-- **The ray misses the integers**, away from the origin. -/
+/-- The ray misses the integers, away from the origin. -/
 theorem ofReal_mul_exp_neg_pi_div_four_mul_I_ne_intCast {ρ : ℝ} (hρ : 0 < ρ) (n : ℤ) :
     (ρ : ℂ) * exp (-((π / 4 : ℝ) * I)) ≠ (n : ℂ) := by
   have h2 : (0 : ℝ) < Real.sqrt 2 := Real.sqrt_pos.2 two_pos
@@ -99,14 +99,14 @@ theorem ofReal_mul_exp_neg_pi_div_four_mul_I_ne_intCast {ρ : ℝ} (hρ : 0 < ρ
   have : 0 < ρ / Real.sqrt 2 := div_pos hρ h2
   linarith
 
-/-- **The ray lies in the slit plane**, away from the origin. -/
+/-- The ray lies in the slit plane, away from the origin. -/
 theorem ofReal_mul_exp_neg_pi_div_four_mul_I_mem_slitPlane {ρ : ℝ} (hρ : 0 < ρ) :
     (ρ : ℂ) * exp (-((π / 4 : ℝ) * I)) ∈ slitPlane :=
   mem_slitPlane_iff.2 (Or.inl (by
     rw [re_ofReal_mul_exp_neg_pi_div_four_mul_I]
     exact div_pos hρ (Real.sqrt_pos.2 two_pos)))
 
-/-- **The ray integrand in polar form**: the ray contributes the constant phase `e^{iπs/4}`. -/
+/-- The ray integrand in polar form: the ray contributes the constant phase `e^{iπs/4}`. -/
 theorem rayIntegrand_eq (f : ℂ → ℂ) (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     rayIntegrand f s ρ
       = (ρ : ℂ) ^ (-s) * exp ((π / 4 : ℝ) * I * s) * f ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))) := by
@@ -118,7 +118,7 @@ theorem rayIntegrand_eq (f : ℂ → ℂ) (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
       show ((-(π / 4) : ℝ) : ℂ) * I * (-s) = ((π / 4 : ℝ) : ℂ) * I * s by push_cast; ring]
   rw [rayIntegrand, hcpow]
 
-/-- **The modulus of the ray integrand.** -/
+/-- The modulus of the ray integrand. -/
 theorem norm_rayIntegrand (f : ℂ → ℂ) (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     ‖rayIntegrand f s ρ‖
       = ρ ^ (-s.re) * Real.exp (-(π / 4 * s.im)) *
@@ -128,7 +128,7 @@ theorem norm_rayIntegrand (f : ℂ → ℂ) (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) 
     show (((π / 4 : ℝ) : ℂ) * I * s).re = -(π / 4 * s.im) by
       simp [Complex.mul_re, Complex.mul_im]]
 
-/-- **The ray integral only sees the values on the ray.** -/
+/-- The ray integral depends only on the values on the ray. -/
 theorem rayIntegral_congr {f g : ℂ → ℂ} {s : ℂ}
     (h : ∀ ρ : ℝ, 0 < ρ → f ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I)))
       = g ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I)))) :
@@ -138,7 +138,7 @@ theorem rayIntegral_congr {f g : ℂ → ℂ} {s : ℂ}
   exact setIntegral_congr_fun measurableSet_Ioi fun ρ hρ ↦ by
     rw [rayIntegrand, rayIntegrand, h ρ hρ]
 
-/-- **The ray integral is additive**, given absolute convergence of both summands. -/
+/-- The ray integral is additive, given absolute convergence of both summands. -/
 theorem rayIntegral_add {f g : ℂ → ℂ} {s : ℂ} (hf : IntegrableOn (rayIntegrand f s) (Ioi 0))
     (hg : IntegrableOn (rayIntegrand g s) (Ioi 0)) :
     rayIntegral (fun u ↦ f u + g u) s = rayIntegral f s + rayIntegral g s := by
@@ -149,7 +149,7 @@ theorem rayIntegral_add {f g : ℂ → ℂ} {s : ℂ} (hf : IntegrableOn (rayInt
 
 /-! ### The Mellin transform of an exponential -/
 
-/-- **The ray integrand of an exponential**, with the rate `2π e^{iπ/4} z` split off. -/
+/-- The ray integrand of an exponential, with the rate `2π e^{iπ/4} z` split off. -/
 private theorem rayIntegrand_exp_eq (s z : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     rayIntegrand (fun u ↦ exp (-(2 * π * I * u * z))) s ρ
       = exp ((π / 4 : ℝ) * I * s) *
@@ -162,7 +162,7 @@ private theorem rayIntegrand_exp_eq (s z : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
         Complex.I_mul_exp_neg_pi_div_four_mul_I]
   ring
 
-/-- **The modulus of the ray integrand of an exponential.** -/
+/-- The modulus of the ray integrand of an exponential. -/
 private theorem norm_rayIntegrand_exp (s z : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     ‖rayIntegrand (fun u ↦ exp (-(2 * π * I * u * z))) s ρ‖
       = Real.exp (-(π / 4 * s.im)) *
@@ -176,13 +176,13 @@ private theorem norm_rayIntegrand_exp (s z : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
       rw [Complex.neg_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im, mul_zero,
         sub_zero, Complex.re_ofReal_mul]]
 
-/-- **The rate attached to the exponential has positive real part.** -/
+/-- The rate attached to the exponential has positive real part. -/
 private theorem re_ofReal_two_pi_mul_pos {z : ℂ} (hz : 0 < (exp ((π / 4 : ℝ) * I) * z).re) :
     0 < (((2 * π : ℝ) : ℂ) * (exp ((π / 4 : ℝ) * I) * z)).re := by
   rw [Complex.re_ofReal_mul]
   exact mul_pos (by positivity) hz
 
-/-- **Absolute convergence of the ray integral of an exponential.** -/
+/-- Absolute convergence of the ray integral of an exponential. -/
 theorem integrableOn_rayIntegrand_exp_neg_two_pi_mul_I_mul {s z : ℂ} (hs : s.re < 1)
     (hz : 0 < (exp ((π / 4 : ℝ) * I) * z).re) :
     IntegrableOn (rayIntegrand (fun u ↦ exp (-(2 * π * I * u * z))) s) (Ioi 0) := by
@@ -192,8 +192,8 @@ theorem integrableOn_rayIntegrand_exp_neg_two_pi_mul_I_mul {s z : ℂ} (hs : s.r
     (exp ((π / 4 : ℝ) * I * s))) (fun ρ hρ ↦ ?_) measurableSet_Ioi
   rw [rayIntegrand_exp_eq s z hρ, show (1 : ℂ) - s - 1 = -s by ring]
 
-/-- **The Mellin transform of an exponential along the ray**: the power on the right is taken in
-the slanted branch `Zeta.RiemannSiegel.slantCpow`, not the principal one. -/
+/-- The Mellin transform of an exponential along the ray: the power on the right is taken in
+the slanted branch `Zeta.RiemannSiegel.slantCpow`. -/
 theorem rayIntegral_exp_neg_two_pi_mul_I_mul {s z : ℂ} (hs : s.re < 1)
     (hz : 0 < (exp ((π / 4 : ℝ) * I) * z).re) :
     rayIntegral (fun u ↦ exp (-(2 * π * I * u * z))) s
@@ -221,7 +221,7 @@ theorem rayIntegral_exp_neg_two_pi_mul_I_mul {s z : ℂ} (hs : s.re < 1)
 
 /-! ### The geometric term -/
 
-/-- **The geometric factor factors through the kernel's denominator** along the ray. -/
+/-- The geometric factor factors through the kernel's denominator along the ray. -/
 private theorem one_sub_exp_two_pi_mul_I_mul_eq (u : ℂ) :
     1 - exp (2 * π * I * u) = -(exp (π * I * u) * (2 * I * sin (π * u))) := by
   rw [show (2 : ℂ) * I * sin ((π : ℂ) * u) = exp ((π : ℂ) * u * I) - exp (-((π : ℂ) * u * I)) from
@@ -230,7 +230,7 @@ private theorem one_sub_exp_two_pi_mul_I_mul_eq (u : ℂ) :
     show (π : ℂ) * I * u + -((π : ℂ) * u * I) = 0 by ring, Complex.exp_zero]
   ring
 
-/-- **A lower bound for `1 - e^{2πiu}` along the ray.** -/
+/-- A lower bound for `1 - e^{2πiu}` along the ray. -/
 private theorem le_norm_one_sub_exp_ray {ρ : ℝ} (hρ : 0 < ρ) :
     Real.sqrt 2 * π * ρ * Real.exp (π * ρ / Real.sqrt 2)
       ≤ ‖1 - exp (2 * π * I * ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))))‖ := by
@@ -255,7 +255,7 @@ private theorem le_norm_one_sub_exp_ray {ρ : ℝ} (hρ : 0 < ρ) :
   have := mul_le_mul_of_nonneg_left hsin (by norm_num : (0 : ℝ) ≤ 2)
   nlinarith [Real.exp_pos (π * ρ / Real.sqrt 2)]
 
-/-- **The ray integrand of the geometric factor is `O(ρ^{-Re s - 1} e^{-πρ/√2})`.** -/
+/-- The ray integrand of the geometric factor is `O(ρ^{-Re s - 1} e^{-πρ/√2})`. -/
 private theorem norm_rayIntegrand_inv_one_sub_exp_le (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     ‖rayIntegrand (fun u ↦ (1 - exp (2 * π * I * u))⁻¹) s ρ‖
       ≤ Real.exp (-(π / 4 * s.im)) / (Real.sqrt 2 * π) *
@@ -275,7 +275,7 @@ private theorem norm_rayIntegrand_inv_one_sub_exp_le (s : ℂ) {ρ : ℝ} (hρ :
           Real.exp_neg (π * ρ / Real.sqrt 2), div_eq_mul_inv, div_eq_mul_inv]
         ring
 
-/-- **Absolute convergence of the ray integral of the geometric factor**, for `Re s < 0`. -/
+/-- Absolute convergence of the ray integral of the geometric factor, for `Re s < 0`. -/
 theorem integrableOn_rayIntegrand_inv_one_sub_exp {s : ℂ} (hs : s.re < 0) :
     IntegrableOn (rayIntegrand (fun u ↦ (1 - exp (2 * π * I * u))⁻¹) s) (Ioi 0) := by
   have h2 : (0 : ℝ) < Real.sqrt 2 := Real.sqrt_pos.2 two_pos
@@ -294,7 +294,7 @@ theorem integrableOn_rayIntegrand_inv_one_sub_exp {s : ℂ} (hs : s.re < 0) :
   filter_upwards [ae_restrict_mem measurableSet_Ioi] with ρ hρ using
     norm_rayIntegrand_inv_one_sub_exp_le s hρ
 
-/-- **The geometric expansion of the ray integrand.** -/
+/-- The geometric expansion of the ray integrand. -/
 private theorem tsum_rayIntegrand_exp (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     ∑' n : ℕ, rayIntegrand (fun u ↦ exp (-(2 * π * I * u * ((n : ℂ) + 1)))) s ρ
       = -rayIntegrand (fun u ↦ (1 - exp (2 * π * I * u))⁻¹) s ρ := by
@@ -324,7 +324,7 @@ private theorem tsum_rayIntegrand_exp (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
       field_simp; ring, inv_neg, mul_inv, inv_inv]
   ring
 
-/-- **The geometric term** (`riemann_siegel_zero.tex`, `lem:rsz_ray_zeta`): for `Re s < 0`,
+/-- The geometric term (`riemann_siegel_zero.tex`, `lem:rsz_ray_zeta`): for `Re s < 0`,
 `𝓡(u ↦ 1/(1 - e^{2πiu}))(s) = -(2π)^{s-1} e^{iπ(s-1)/2} Γ(1-s) ζ(1-s)`. -/
 theorem rayIntegral_inv_one_sub_exp {s : ℂ} (hs : s.re < 0) :
     rayIntegral (fun u ↦ (1 - exp (2 * π * I * u))⁻¹) s
@@ -405,8 +405,8 @@ theorem rayIntegral_inv_one_sub_exp {s : ℂ} (hs : s.re < 0) :
 
 /-! ### The Gaussian term -/
 
-/-- **The ray integrand of the Gaussian factor is a constant multiple of the mirror Hankel ray
-integrand.** -/
+/-- The ray integrand of the Gaussian factor is a constant multiple of the mirror Hankel ray
+integrand. -/
 private theorem rayIntegrand_mirrorKernel_eq (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) :
     rayIntegrand (fun u ↦ exp (-(π * I * u ^ 2)) / (exp (π * I * u) - exp (-(π * I * u)))) s ρ
       = exp ((π / 4 : ℝ) * I * s) / (2 * I) * mirrorHankelIntegrand s ρ := by
@@ -425,7 +425,7 @@ private theorem rayIntegrand_mirrorKernel_eq (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ)
   rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv]
   ring
 
-/-- **Absolute convergence of the ray integral of the Gaussian factor**, for `Re s < 0`. -/
+/-- Absolute convergence of the ray integral of the Gaussian factor, for `Re s < 0`. -/
 theorem integrableOn_rayIntegrand_mirrorKernel {s : ℂ} (hs : s.re < 0) :
     IntegrableOn (rayIntegrand
       (fun u ↦ exp (-(π * I * u ^ 2)) / (exp (π * I * u) - exp (-(π * I * u)))) s) (Ioi 0) :=
@@ -433,7 +433,7 @@ theorem integrableOn_rayIntegrand_mirrorKernel {s : ℂ} (hs : s.re < 0) :
     (exp ((π / 4 : ℝ) * I * s) / (2 * I)))
     (fun _ hρ ↦ (rayIntegrand_mirrorKernel_eq s hρ).symm) measurableSet_Ioi
 
-/-- **The Gaussian term** (`riemann_siegel_zero.tex`, `lem:rsz_ray_hankel`):
+/-- The Gaussian term (`riemann_siegel_zero.tex`, `lem:rsz_ray_hankel`):
 `𝓡(u ↦ e^{-iπu²}/(e^{iπu} - e^{-iπu}))(s) = e^{iπ(s-1)/4} Φ̃(s) / (2i)`. -/
 theorem rayIntegral_mirrorKernel (s : ℂ) :
     rayIntegral (fun u ↦ exp (-(π * I * u ^ 2)) / (exp (π * I * u) - exp (-(π * I * u)))) s
@@ -452,13 +452,13 @@ theorem rayIntegral_mirrorKernel (s : ℂ) :
 
 /-! ### The contour term -/
 
-/-- The **double integrand** of the contour term,
-`(ρ, w) ↦ (ρω)^{-s} e^{-2πiρω L(½)(w)} G(L(½)(w))`. It is a `def` rather than an inline lambda so
-that the Fubini hypothesis `Integrable (Function.uncurry ·)` has a head symbol to unify against. -/
+/-- The double integrand of the contour term,
+`(ρ, w) ↦ (ρω)^{-s} e^{-2πiρω L(½)(w)} G(L(½)(w))`. It is a `def` so that the Fubini hypothesis
+`Integrable (Function.uncurry ·)` has a head symbol to unify against. -/
 private noncomputable def contourRayIntegrand (s : ℂ) (ρ w : ℝ) : ℂ :=
   rayIntegrand (fun u ↦ exp (-(2 * π * I * u * line (1 / 2) w))) s ρ * kernel (line (1 / 2) w)
 
-/-- **The double integrand is dominated by a product of a function of `ρ` and one of `w`.** -/
+/-- The double integrand is dominated by a product of a function of `ρ` and one of `w`. -/
 private theorem norm_contourRayIntegrand_le (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) (w : ℝ) :
     ‖contourRayIntegrand s ρ w‖
       ≤ Real.exp (-(π / 4 * s.im)) * (ρ ^ (-s.re) * Real.exp (-(π / Real.sqrt 2) * ρ)) *
@@ -476,7 +476,7 @@ private theorem norm_contourRayIntegrand_le (s : ℂ) {ρ : ℝ} (hρ : 0 < ρ) 
     (mul_nonneg (Real.exp_pos _).le
       (mul_nonneg (Real.rpow_nonneg hρ.le _) (Real.exp_pos _).le))
 
-/-- **The double integrand is continuous** on the open half-plane `{ρ > 0} × ℝ`. -/
+/-- The double integrand is continuous on the open half-plane `{ρ > 0} × ℝ`. -/
 private theorem continuousOn_uncurry_contourRayIntegrand (s : ℂ) :
     ContinuousOn (Function.uncurry (contourRayIntegrand s))
       (Ioi (0 : ℝ) ×ˢ (univ : Set ℝ)) := by
@@ -497,7 +497,7 @@ private theorem continuousOn_uncurry_contourRayIntegrand (s : ℂ) :
     (hker.comp continuous_snd).continuousOn
   exact ofReal_mul_exp_neg_pi_div_four_mul_I_mem_slitPlane hz.1
 
-/-- **The contour term** (`riemann_siegel_zero.tex`, `lem:rsz_ray_contour`): for `Re s < 0`,
+/-- The contour term (`riemann_siegel_zero.tex`, `lem:rsz_ray_contour`): for `Re s < 0`,
 `𝓡(N)(s) = (2π)^{s-1} e^{iπ(s-1)/2} Γ(1-s) I(1-s, ½)`. -/
 theorem rayIntegral_mordellIntegral {s : ℂ} (hs : s.re < 0) :
     rayIntegral (fun u ↦ mordellIntegral u (1 / 2)) s
@@ -559,7 +559,7 @@ theorem rayIntegral_mordellIntegral {s : ℂ} (hs : s.re < 0) :
 
 /-! ### The Mellin form of Siegel's identity -/
 
-/-- **The Mordell integral splits along the ray** into a geometric part and a Gaussian part. -/
+/-- The Mordell integral splits along the ray into a geometric part and a Gaussian part. -/
 private theorem mordellIntegral_ray_eq {ρ : ℝ} (hρ : 0 < ρ) :
     mordellIntegral ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I))) (1 / 2)
       = (1 - exp (2 * π * I * ((ρ : ℂ) * exp (-((π / 4 : ℝ) * I)))))⁻¹
@@ -584,7 +584,7 @@ private theorem mordellIntegral_ray_eq {ρ : ℝ} (hρ : 0 < ρ) :
   field_simp
   linear_combination -hinv
 
-/-- **The Mellin form of Siegel's identity** (`riemann_siegel_zero.tex`, `thm:rsz_mellin`): for
+/-- The Mellin form of Siegel's identity (`riemann_siegel_zero.tex`, `thm:rsz_mellin`): for
 `Re s > 1`, `ζ(s) + I(s, ½) = (2π)^s e^{-iπ(2-s)/4} Φ̃(1-s) / (2 Γ(s))`. -/
 theorem riemannZeta_add_contourIntegral_half_eq {s : ℂ} (hs : 1 < s.re) :
     riemannZeta s + contourIntegral s (1 / 2)

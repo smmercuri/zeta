@@ -15,19 +15,18 @@ Siegel's identity rests on one auxiliary function of a *complex* parameter `u`: 
 
 `N(u, a) = ∫_{L(a)} e^{-2πiux} G(x) dx`
 
-of the Riemann–Siegel kernel `Zeta.RiemannSiegel.kernel` against an exponential rather than
-against a power, taken along the slanted contour `Zeta.RiemannSiegel.line`
-(`riemann_siegel_zero.tex`, `sec:rsz_mordell`). This is the integral studied by Kronecker and
-Mordell, at the parameter Riemann needed.
+of the Riemann–Siegel kernel `Zeta.RiemannSiegel.kernel` against an exponential, taken along
+the slanted contour `Zeta.RiemannSiegel.line` (`riemann_siegel_zero.tex`, `sec:rsz_mordell`).
+This is the integral studied by Kronecker and Mordell, at the parameter Riemann needed.
 
 Unlike the contour integral `I(s, a)` of `Zeta/RiemannSiegel/Integral.lean` it can be evaluated in
-closed form by elementary means, because the exponential — unlike the power — interacts with *both*
-structural symmetries of `G`: the quasi-periodicity `G(x + 1) = e^{2πix} G(x)`, and the simple pole
+closed form by elementary means, because the exponential interacts with *both* structural
+symmetries of `G`: the quasi-periodicity `G(x + 1) = e^{2πix} G(x)`, and the simple pole
 at every integer. Each symmetry yields one of the two difference equations below.
 
-The pole shift reuses the rectangle apparatus of `Zeta/RiemannSiegel/Shift.lean` unchanged, that
-apparatus taking the integrand as a parameter; comparing `L(½)` with `L(3/2)` rather than with
-`L(-½)` keeps the crossed pole at `n = 1 > 0`, inside its existing hypotheses.
+The pole shift applies the rectangle apparatus of `Zeta/RiemannSiegel/Shift.lean`, which takes
+the integrand as a parameter. It compares `L(½)` with `L(3/2)`, so the crossed pole is at
+`n = 1 > 0`, within that apparatus's hypotheses.
 
 ## Main results
 
@@ -50,41 +49,41 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **Mordell integrand** `x ↦ e^{-2πiux} G(x)`, the Riemann–Siegel kernel against an
-exponential in place of a power. -/
+/-- The Mordell integrand `x ↦ e^{-2πiux} G(x)`, the Riemann–Siegel kernel against an
+exponential. -/
 noncomputable def mordellIntegrand (u x : ℂ) : ℂ :=
   exp (-(2 * π * I * u * x)) * kernel x
 
-/-- **Riemann's Mordell integral** `N(u, a) = ∫_{L(a)} e^{-2πiux} G(x) dx`, taken along the slanted
+/-- Riemann's Mordell integral `N(u, a) = ∫_{L(a)} e^{-2πiux} G(x) dx`, taken along the slanted
 contour `Zeta.RiemannSiegel.line`. -/
 noncomputable def mordellIntegral (u : ℂ) (a : ℝ) : ℂ :=
   slantIntegral (mordellIntegrand u) a
 
-/-- The **Mordell integrand in rotated coordinates**, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)` for
+/-- The Mordell integrand in rotated coordinates, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)` for
 `f(x) = e^{-2πiux} G(x)`. -/
 noncomputable def rotatedMordellIntegrand (u : ℂ) : ℂ → ℂ := rotatedFun (mordellIntegrand u)
 
-/-- **The rotated Mordell integrand, evaluated at a rotated point.** -/
+/-- The rotated Mordell integrand, evaluated at a rotated point. -/
 theorem rotatedMordellIntegrand_exp_mul (u x : ℂ) :
     rotatedMordellIntegrand u (exp ((π / 4 : ℝ) * I) * x)
       = exp (-((π / 4 : ℝ) * I)) * mordellIntegrand u x :=
   rotatedFun_exp_mul _ _
 
-/-- **The Mordell integrand is holomorphic off the integers.** -/
+/-- The Mordell integrand is holomorphic off the integers. -/
 theorem differentiableAt_mordellIntegrand (u : ℂ) {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) :
     DifferentiableAt ℂ (mordellIntegrand u) x := by
   unfold mordellIntegrand
   exact (by fun_prop : DifferentiableAt ℂ (fun x : ℂ ↦ exp (-(2 * π * I * u * x))) x).mul
     (differentiableAt_kernel hx)
 
-/-- **The rotated Mordell integrand is holomorphic off the rotated integers.** -/
+/-- The rotated Mordell integrand is holomorphic off the rotated integers. -/
 theorem differentiableAt_rotatedMordellIntegrand (u : ℂ) {z : ℂ}
     (hz : ∀ n : ℤ, z ≠ exp ((π / 4 : ℝ) * I) * n) :
     DifferentiableAt ℂ (rotatedMordellIntegrand u) z :=
   differentiableAt_rotatedFun (differentiableAt_mordellIntegrand u fun n hcon ↦ hz n (by
     rw [← hcon, ← mul_assoc, exp_pi_div_four_mul_I_mul_exp_neg, one_mul]))
 
-/-- **Every integer is a simple pole of the Mordell integrand**, with residue
+/-- Every integer is a simple pole of the Mordell integrand, with residue
 `e^{-2πiun}/(2πi)`. -/
 theorem tendsto_sub_mul_mordellIntegrand (u : ℂ) (n : ℤ) :
     Tendsto (fun x ↦ (x - n) * mordellIntegrand u x) (𝓝[≠] (n : ℂ))
@@ -95,7 +94,7 @@ theorem tendsto_sub_mul_mordellIntegrand (u : ℂ) (n : ℤ) :
       (n : ℂ)).mono_left nhdsWithin_le_nhds).mul (tendsto_sub_mul_kernel n))
   rw [mordellIntegrand]; ring
 
-/-- **Every rotated integer is a simple pole of the rotated Mordell integrand**, with residue
+/-- Every rotated integer is a simple pole of the rotated Mordell integrand, with residue
 `e^{-2πiun}/(2πi)`. -/
 theorem tendsto_sub_mul_rotatedMordellIntegrand (u : ℂ) (n : ℤ) :
     Tendsto (fun z ↦ (z - exp ((π / 4 : ℝ) * I) * n) * rotatedMordellIntegrand u z)
@@ -104,7 +103,7 @@ theorem tendsto_sub_mul_rotatedMordellIntegrand (u : ℂ) (n : ℤ) :
 
 /-! ### The Gaussian bound on the horizontal sides -/
 
-/-- **A Gaussian bound for the Mordell integrand** away from the real axis. -/
+/-- A Gaussian bound for the Mordell integrand away from the real axis. -/
 theorem norm_mordellIntegrand_le (u : ℂ) {x : ℂ} (hx : Real.sqrt 2 / 2 ≤ |x.im|) :
     ‖mordellIntegrand u x‖ ≤ Real.exp (2 * π * ‖u‖ * ‖x‖ - 2 * π * x.re * x.im) := by
   -- the denominator is at least `1` in modulus, since `sinh` grows off the real axis
@@ -125,7 +124,7 @@ theorem norm_mordellIntegrand_le (u : ℂ) {x : ℂ} (hx : Real.sqrt 2 / 2 ≤ |
   exact mul_le_mul hexp (div_le_self (Real.exp_pos _).le (by linarith)) (by positivity)
     (Real.exp_pos _).le
 
-/-- **A Gaussian bound for the rotated Mordell integrand** on a horizontal segment far from the
+/-- A Gaussian bound for the rotated Mordell integrand on a horizontal segment far from the
 real axis. -/
 private theorem norm_rotatedMordellIntegrand_le (u : ℂ) {ξ y : ℝ} (hξ : 0 ≤ ξ) (h2 : 1 ≤ |y - ξ|) :
     ‖rotatedMordellIntegrand u ((ξ : ℂ) + (y : ℂ) * I)‖
@@ -154,7 +153,7 @@ private theorem norm_rotatedMordellIntegrand_le (u : ℂ) {ξ y : ℝ} (hξ : 0 
     have := mul_le_mul_of_nonneg_left hnx2 (by positivity : (0 : ℝ) ≤ 2 * π * ‖u‖)
     linarith
 
-/-- **The horizontal sides of the truncated rectangle vanish** as the truncation recedes, for the
+/-- The horizontal sides of the truncated rectangle vanish as the truncation recedes, for the
 rotated Mordell integrand. -/
 theorem tendsto_HIntegral_rotatedMordellIntegrand (u : ℂ) {β α : ℝ} (hβ : 0 < β) (hβα : β ≤ α)
     {y : ℝ → ℝ} (hy : Tendsto (fun H ↦ |y H|) atTop atTop) :
@@ -172,7 +171,7 @@ theorem tendsto_HIntegral_rotatedMordellIntegrand (u : ℂ) {β α : ℝ} (hβ :
 
 /-! ### Convergence -/
 
-/-- **The exponent of the Mordell integrand along the contour is a quadratic** in the contour
+/-- The exponent of the Mordell integrand along the contour is a quadratic in the contour
 parameter, with leading coefficient the real number `-2π`. -/
 private theorem neg_mul_line_add_mul_line_sq (u : ℂ) (a w : ℝ) :
     -(2 * π * I * u * line a w) + π * I * line a w ^ 2
@@ -183,7 +182,7 @@ private theorem neg_mul_line_add_mul_line_sq (u : ℂ) (a w : ℝ) :
   -- cofactor of `I² + 1` in the difference of the two sides
   linear_combination ((π : ℂ) * (w : ℂ) ^ 2 * (I + 2)) * Complex.I_sq
 
-/-- **The Mordell integrand along the contour**, as a single Gaussian over the kernel's
+/-- The Mordell integrand along the contour, as a single Gaussian over the kernel's
 denominator. -/
 theorem mordellIntegrand_line (u : ℂ) (a w : ℝ) :
     mordellIntegrand u (line a w)
@@ -192,7 +191,7 @@ theorem mordellIntegrand_line (u : ℂ) (a w : ℝ) :
   rw [mordellIntegrand, kernel_eq_div_two_mul_I_mul_sin, ← mul_div_assoc, ← Complex.exp_add,
     neg_mul_line_add_mul_line_sq u a w]
 
-/-- **Absolute convergence of the Mordell integral** along any half-integer contour, of either
+/-- Absolute convergence of the Mordell integral along any half-integer contour, of either
 sign. -/
 theorem integrable_mordellIntegrand {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (u : ℂ) :
     Integrable fun w : ℝ ↦ mordellIntegrand u (line a w) := by
@@ -217,7 +216,7 @@ theorem integrable_mordellIntegrand {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (u 
 
 /-! ### The first difference equation: the Gaussian shift -/
 
-/-- **The increment of the Mordell integrand in `u` is a Gaussian centred at `u + ½`**: the
+/-- The increment of the Mordell integrand in `u` is a Gaussian centred at `u + ½`: the
 exponential cancels the pole of the kernel exactly. -/
 theorem mordellIntegrand_sub_mordellIntegrand_add_one (u : ℂ) {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) :
     mordellIntegrand u x - mordellIntegrand (u + 1) x
@@ -244,8 +243,8 @@ theorem mordellIntegrand_sub_mordellIntegrand_add_one (u : ℂ) {x : ℂ} (hx : 
   congr 1
   ring
 
-/-- **The first difference equation for the Mordell integral: the Gaussian shift.** The difference
-does not depend on the abscissa `a` of the contour (`lem:rsz_mordell_gauss`). -/
+/-- The first difference equation for the Mordell integral: the Gaussian shift. The difference
+is independent of the abscissa `a` of the contour (`lem:rsz_mordell_gauss`). -/
 theorem mordellIntegral_sub_mordellIntegral_add_one {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (u : ℂ) :
     mordellIntegral u a - mordellIntegral (u + 1) a
       = exp ((π / 4 : ℝ) * I) * exp (-(π * I * (u + 1 / 2) ^ 2)) := by
@@ -265,7 +264,7 @@ theorem mordellIntegral_sub_mordellIntegral_add_one {a : ℝ} {n : ℤ} (ha : a 
 
 /-! ### The second difference equation: the pole shift -/
 
-/-- **Quasi-periodicity of the Mordell integrand**, inherited from that of the kernel. -/
+/-- Quasi-periodicity of the Mordell integrand, inherited from that of the kernel. -/
 theorem mordellIntegrand_add_one (u x : ℂ) :
     mordellIntegrand u (x + 1) = exp (-(2 * π * I * u)) * mordellIntegrand (u - 1) x := by
   rw [mordellIntegrand, mordellIntegrand, kernel_add_one,
@@ -277,14 +276,14 @@ theorem mordellIntegrand_add_one (u x : ℂ) :
     show -(2 * (π : ℂ) * I * u * (x + 1)) + 2 * π * I * x
       = -(2 * (π : ℂ) * I * u) + -(2 * π * I * (u - 1) * x) by ring]
 
-/-- **Translating the contour by one**, the Mordell integral of parameter `u`. -/
+/-- Translating the contour by one, the Mordell integral of parameter `u`. -/
 theorem mordellIntegral_add_one (u : ℂ) (a : ℝ) :
     mordellIntegral u (a + 1) = exp (-(2 * π * I * u)) * mordellIntegral (u - 1) a := by
   simp only [mordellIntegral, slantIntegral, line_add_one, mordellIntegrand_add_one]
   rw [MeasureTheory.integral_const_mul]
   ring
 
-/-- **The second difference equation for the Mordell integral: the pole shift**
+/-- The second difference equation for the Mordell integral: the pole shift
 (`lem:rsz_mordell_pole`). -/
 theorem mordellIntegral_sub_exp_mul_mordellIntegral_add_one (u : ℂ) :
     mordellIntegral u (1 / 2) - exp (2 * π * I * u) * mordellIntegral (u + 1) (1 / 2) = 1 := by
@@ -334,7 +333,7 @@ theorem mordellIntegral_sub_exp_mul_mordellIntegral_add_one (u : ℂ) :
 
 /-! ### The closed form -/
 
-/-- **Closed form of the Mordell integral** (`thm:rsz_mordell`): for `u` off the integers,
+/-- Closed form of the Mordell integral (`thm:rsz_mordell`): for `u` off the integers,
 `N(u) = (e^{-iπu²} - e^{-iπu}) / (e^{iπu} - e^{-iπu})`. -/
 theorem mordellIntegral_eq {u : ℂ} (hu : ∀ n : ℤ, u ≠ n) :
     mordellIntegral u (1 / 2)

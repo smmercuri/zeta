@@ -14,6 +14,7 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 public import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 public import Mathlib.Analysis.Normed.Group.Tannery
 public import Mathlib.Analysis.PSeries
+public import Mathlib.Analysis.PSeriesComplex
 public import Mathlib.Analysis.Real.Pi.Bounds
 public import Mathlib.Analysis.SumIntegralComparisons
 
@@ -51,8 +52,8 @@ noncomputable def logNormZetaIntegral (t : ℝ) : ℝ :=
 
 /-! ## The shared `p`-series / sum-integral toolkit
 
-The shifted `p`-series `∑_n (n + m)^{-a}` and its comparison with `∫ x^{-a}`, the single source
-for those moves across the chapter. -/
+The shifted `p`-series `∑_n (n + m)^{-a}` and its comparison with `∫ x^{-a}`, used throughout the
+chapter. -/
 
 /-- The shifted real `p`-series `∑_n ((n+2)^{-p})` is summable for `1 < p`; the `|·|`-free form of
 mathlib's `Real.summable_one_div_nat_add_rpow`. -/
@@ -488,7 +489,7 @@ theorem abs_log_norm_riemannZeta_le_tsum_one_div {σ t : ℝ} (hσ : 1 < σ) :
   abs_le.mpr ⟨neg_tsum_one_div_le_log_norm_riemannZeta hσ,
     log_norm_riemannZeta_le_tsum_one_div hσ⟩
 
-/-- **Endgame for a tail witness.** Given a nonnegative integrable majorant `g` on `(a, ∞)` with
+/-- Given a nonnegative integrable majorant `g` on `(a, ∞)` with
 `∫_a^∞ g ≤ C` and `-g ≤ log‖ζ(σ+it)‖` pointwise, both `∫_a^∞ log‖ζ‖` and, for any upper limit `b`,
 `∫_a^b log‖ζ‖` are `≥ -C`. -/
 theorem neg_le_logNormZetaIntegral_of_majorant {a C b t : ℝ} {g : ℝ → ℝ}

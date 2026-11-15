@@ -13,12 +13,12 @@ public import Zeta.RiemannSiegel.Deform
 
 Siegel's identity pairs the Riemann–Siegel contour integral `I(s, a)` of
 `Zeta/RiemannSiegel/Integral.lean` with its reflection across the real axis,
-`Ĩ(s, a) = conj (I(conj s, a))` (`riemann_siegel_zero.tex`, `def:rsz_mirror`). Taking the mirror by
-conjugation rather than by a second contour is what keeps it free of a second branch of the power:
-`Ĩ` needs no contour and no integral of its own, and inherits everything already proved about `I`.
+`Ĩ(s, a) = conj (I(conj s, a))` (`riemann_siegel_zero.tex`, `def:rsz_mirror`). Defined by
+conjugation, `Ĩ` uses the branch of the power already fixed for `I` and inherits everything
+already proved about `I`.
 
-The functional-equation factor `χ` that completes Siegel's identity is *not* Riemann–Siegel
-mathematics and lives in `Zeta/Analysis/SpecialFunctions/GammaFactor.lean`.
+The functional-equation factor `χ` that completes Siegel's identity lives in
+`Zeta/Analysis/SpecialFunctions/GammaFactor.lean`.
 
 ## Main results
 
@@ -26,7 +26,7 @@ mathematics and lives in `Zeta/Analysis/SpecialFunctions/GammaFactor.lean`.
   mirrors of `Zeta.RiemannSiegel.contourIntegral` and `Zeta.RiemannSiegel.hankelIntegral`;
 * `Zeta.RiemannSiegel.mirrorContourIntegral_one_sub_eq`:
   `Ĩ(1-s, ½) = -e^{-iπ(2-s)/4} cos(πs/2) Φ̃(1-s)` for `Re s > 1`;
-* `Zeta.RiemannSiegel.mirrorHankelIntegral_eq_integral`: `Φ̃` as an honest integral,
+* `Zeta.RiemannSiegel.mirrorHankelIntegral_eq_integral`: `Φ̃` as an integral,
   `Φ̃(s) = ∫_0^∞ ρ^{-s} e^{-πρ²} / sin (πρ e^{-iπ/4}) dρ`.
 -/
 @[expose] public section
@@ -38,20 +38,20 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **mirror Riemann–Siegel contour integral** `Ĩ(s, a) = conj (I(conj s, a))`. -/
+/-- The mirror Riemann–Siegel contour integral `Ĩ(s, a) = conj (I(conj s, a))`. -/
 noncomputable def mirrorContourIntegral (s : ℂ) (a : ℝ) : ℂ :=
   starRingEnd ℂ (contourIntegral (starRingEnd ℂ s) a)
 
-/-- The **mirror Hankel ray integrand** `ρ ↦ ρ^{-s} e^{-πρ²} / sin (πρ e^{-iπ/4})`, the pointwise
+/-- The mirror Hankel ray integrand `ρ ↦ ρ^{-s} e^{-πρ²} / sin (πρ e^{-iπ/4})`, the pointwise
 conjugate of `Zeta.RiemannSiegel.hankelIntegrand`. -/
 noncomputable def mirrorHankelIntegrand (s : ℂ) (ρ : ℝ) : ℂ :=
   (ρ : ℂ) ^ (-s) * exp (-(π * (ρ : ℂ) ^ 2)) / sin (π * ρ * exp (-((π / 4 : ℝ) * I)))
 
-/-- The **mirror Hankel ray integral** `Φ̃(s) = conj (Φ(conj s))`. -/
+/-- The mirror Hankel ray integral `Φ̃(s) = conj (Φ(conj s))`. -/
 noncomputable def mirrorHankelIntegral (s : ℂ) : ℂ :=
   starRingEnd ℂ (hankelIntegral (starRingEnd ℂ s))
 
-/-- **The mirror Hankel ray integrand is the conjugate of the Hankel ray integrand.** -/
+/-- The mirror Hankel ray integrand is the conjugate of the Hankel ray integrand. -/
 theorem mirrorHankelIntegrand_eq_conj (s : ℂ) {ρ : ℝ} (hρ : 0 ≤ ρ) :
     mirrorHankelIntegrand s ρ = starRingEnd ℂ (hankelIntegrand (starRingEnd ℂ s) ρ) := by
   have hcpow : ((ρ : ℂ)) ^ (-s) = starRingEnd ℂ ((ρ : ℂ) ^ (-(starRingEnd ℂ s))) := by
@@ -66,7 +66,7 @@ theorem mirrorHankelIntegrand_eq_conj (s : ℂ) {ρ : ℝ} (hρ : 0 ≤ ρ) :
       ← Complex.exp_conj, map_mul, Complex.conj_ofReal, Complex.conj_I, mul_neg]
   rw [mirrorHankelIntegrand, hankelIntegrand, map_div₀, map_mul, ← hcpow, ← hexp, ← hsin]
 
-/-- **Absolute convergence of the mirror Hankel ray integral** `Φ̃(s)`, for `Re s < 0`. -/
+/-- Absolute convergence of the mirror Hankel ray integral `Φ̃(s)`, for `Re s < 0`. -/
 theorem integrableOn_mirrorHankelIntegrand {s : ℂ} (hs : s.re < 0) :
     IntegrableOn (mirrorHankelIntegrand s) (Set.Ioi (0 : ℝ)) := by
   have h := integrableOn_hankelIntegrand (s := starRingEnd ℂ s) (by simpa using hs)
@@ -79,7 +79,7 @@ theorem integrableOn_mirrorHankelIntegrand {s : ℂ} (hs : s.re < 0) :
   · filter_upwards [ae_restrict_mem measurableSet_Ioi] with ρ hρ using
       (heq ρ hρ ▸ (Complex.norm_conj _)).le
 
-/-- **The mirror Hankel ray integral is an honest integral**,
+/-- The mirror Hankel ray integral as an integral,
 `Φ̃(s) = ∫_0^∞ ρ^{-s} e^{-πρ²} / sin (πρ e^{-iπ/4}) dρ`
 (`riemann_siegel_zero.tex`, `def:rsz_phi_mirror`). -/
 theorem mirrorHankelIntegral_eq_integral (s : ℂ) :
@@ -88,7 +88,7 @@ theorem mirrorHankelIntegral_eq_integral (s : ℂ) :
   exact setIntegral_congr_fun measurableSet_Ioi fun ρ hρ ↦
     (mirrorHankelIntegrand_eq_conj s (le_of_lt hρ)).symm
 
-/-- **The mirror contour integral in Hankel form**:
+/-- The mirror contour integral in Hankel form:
 `Ĩ(1-s, ½) = -e^{-iπ(2-s)/4} cos (πs/2) Φ̃(1-s)` for `Re s > 1`
 (`riemann_siegel_zero.tex`, `lem:rsz_mirror`). -/
 theorem mirrorContourIntegral_one_sub_eq {s : ℂ} (hs : 1 < s.re) :

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Zeta.Zeros.Certificates.Basic
@@ -9,26 +14,14 @@ public meta import Zeta.Certificate.Named
 # Build the Euler–Maclaurin zero certificates directly from the data file
 
 `build_certs lo hi` reads rows `[lo, hi)` of the zero store and emits a whole
-`CertifiedZeroIntervals` as one `Expr` — the intervals, their `ZIntervalEM.Certificate`s and
-the disjointness chain — with no generated named declarations in between. A batch module is
-then a single line, and the bracket numbers live only in the data file.
+`CertifiedZeroIntervals` as one `Expr` (the intervals, their `ZIntervalEM.Certificate`s and the
+disjointness chain), so a batch module is a single line and the bracket numbers live only in the
+data file. `build_batch` closes a `BatchSpec` the same way.
 
-The heavy fields (`is_sign_change`, `fst_error`, `snd_error`) are delegated to the `Enclosure`
-cores in `Zeta.Certificate.Named`; everything else is a reflection proof over ℕ literals
-(`dec_le_dec`, `dec_nonneg`, `pos_of_ble`), so the kernel only ever checks `Nat.ble`/`blt`.
-
-The bundle is assembled through `CertifiedZeroIntervals.ofCertifiedEM`, the method-aware smart
-constructor in `Certificates/Basic.lean`: it takes the `⟨interval, certificate⟩` pairs plus the
-chain and derives `fst_nonneg`/`has_zero` itself, so this module never has to build the
-existence proof. Batch-to-batch seams are `Basic.lean`'s `separated_of_le` against the
-generator-emitted boundary abbrevs, and the assembled length comes from `join_length`; none of
-that lives here any more.
-
-Endpoints are imported exactly as the store writes them (`parseDec`). The search places each
-boundary at the fewest decimal places that separate its two zeros (3, more only for a close pair;
-`IMPORT_DP` in `python/src/config.py`), so the store already carries the precision Lean needs and
-there is no import precision to keep in step with Python. `build_certs` re-verifies the sign
-change and the error margin at whatever endpoints it builds.
+The heavy fields (`is_sign_change`, `fst_error`, `snd_error`) are delegated to the cores in
+`Zeta.Certificate.Named`; everything else is a reflection proof over ℕ literals. The bundle is
+assembled through `CertifiedZeroIntervals.ofCertifiedEM` (`Certificates/Basic.lean`), which also
+holds the batch-to-batch seams. Endpoints are imported exactly as the store writes them.
 -/
 @[expose] public section
 
@@ -55,11 +48,9 @@ meta def parseDec (s : String) : Nat × Nat :=
   | [i]    => (i.toNat!, 0)
   | _      => (0, 0)
 
-/-- Rows `[lo, hi)` of the zero store in directory `store`, one line each. The store is split into
-files (to stay under GitHub's file-size limit) that need not line up with the batches, so the
-files are located through `manifest.json`, which lists them in order with their row counts; only
-the files overlapping `[lo, hi)` are read. A file whose line count disagrees with the manifest, or
-a range running past the store's end, is an error. -/
+/-- Rows `[lo, hi)` of the zero store in directory `store`, one line each, read from the files
+that `manifest.json` lists as overlapping the range. A file whose line count disagrees with the
+manifest, or a range running past the store's end, is an error. -/
 meta def storeLines (store : System.FilePath) (lo hi : Nat) : IO (Array String) := do
   let manifest ← IO.ofExcept <| Json.parse (← IO.FS.readFile (store / "manifest.json"))
   let files ← IO.ofExcept <| manifest.getObjValAs? (Array Json) "files"
@@ -78,10 +69,8 @@ meta def storeLines (store : System.FilePath) (lo hi : Nat) : IO (Array String) 
     throw <| .userError s!"{store}: store has {start} rows; batch wants [{lo}, {hi})"
   return lines
 
-/-- Parse store lines into `Row`s. Each data row is
-`idx, left, right, lco, rco, lb, rb` (7 columns); the leading index is dropped. A data
-row is any line whose first character is a digit, so free-form header lines and the
-`----` rule are skipped; any line that isn't exactly 7 columns is rejected. -/
+/-- Parse store lines into `Row`s. A data row is a line starting with a digit, of exactly the 7
+columns `idx, left, right, lco, rco, lb, rb`; the leading index is dropped. -/
 meta def parseRows (lines : Array String) : Array Row := Id.run do
   let mut rows : Array Row := #[]
   for line in lines do
@@ -99,9 +88,8 @@ meta def parseRows (lines : Array String) : Array Row := Id.run do
 
 private meta def realTy : Expr := mkConst ``Real
 
-/-- The decimal endpoint `m·10⁻ᵈᵖ` carried directly as `sfrac false m (10^dp)` (a raw ℕ ratio),
-NOT as `OfScientific.ofScientific`: this keeps the kernel from ever reducing the decimal through
-`Rat.ofScientific`/`Rat.mul`/… (which drag `HMul` over ℕ/ℤ into the check). -/
+/-- The decimal endpoint `m·10⁻ᵈᵖ` as `sfrac false m (10^dp)`, not `OfScientific.ofScientific`,
+so the kernel never reduces it through `Rat.ofScientific`. -/
 meta def ofSciReal (m dp : Nat) : MetaM Expr := do
   return mkApp3 (mkConst ``Enclosure.sfrac) (mkConst ``Bool.false) (mkNatLit m) (mkNatLit (10 ^ dp))
 
@@ -110,58 +98,48 @@ meta def sfracEq (m dp : Nat) : Expr :=
   mkApp2 (mkConst ``Eq.refl [Level.one]) realTy
     (mkApp3 (mkConst ``Enclosure.sfrac) (mkConst ``Bool.false) (mkNatLit m) (mkNatLit (10 ^ dp)))
 
-/-- The bundle's element type. Named so the metaprogram can cite it as a single constant:
-`NonemptyInterval` takes an `[LE ℝ]` instance argument, and reconstructing that as an `Expr`
-yields `[LE ℝ] → Type` rather than a `Type` unless the instance is synthesised explicitly. -/
+/-- The bundle's element type, named so the metaprogram can cite it without synthesising the
+`LE ℝ` instance argument of `NonemptyInterval`. -/
 abbrev NEInterval := NonemptyInterval ℝ
 
-/-- One bracket as a `NEInterval`, with every argument explicit. The metaprogram applies this
-rather than `NonemptyInterval.mk`, so it never has to produce the `LE ℝ` instance itself. -/
+/-- One bracket as a `NEInterval`, with every argument explicit (no `LE ℝ` instance to build). -/
 def mkNEI (a b : ℝ) (h : a ≤ b) : NEInterval := ⟨(a, b), h⟩
 
 /-- One bracket plus its Euler–Maclaurin parameters, again fully explicit; see `mkNEI`. -/
 def mkZI (a b : ℝ) (h : a ≤ b) (fc sc fb sb : ℕ) : ZIntervalEM :=
   ⟨mkNEI a b h, fc, sc, fb, sb⟩
 
-/-- The `fst_le_snd` reflection proof for one row's endpoints. -/
-meta def buildLeSnd (r : Row) : MetaM Expr := do
-  let leftE ← ofSciReal r.lm r.ldp
-  let rightE ← ofSciReal r.rm r.rdp
+/-- `dec_le_dec` proof that `ofSci(am,adp) ≤ ofSci(bm,bdp)`. -/
+meta def decLeDec (am adp bm bdp : Nat) : MetaM Expr := do
+  let aE ← ofSciReal am adp
+  let bE ← ofSciReal bm bdp
   return mkAppN (mkConst ``Enclosure.dec_le_dec)
-    #[leftE, rightE, mkNatLit r.lm, mkNatLit (10 ^ r.ldp), mkNatLit r.rm, mkNatLit (10 ^ r.rdp),
-      sfracEq r.lm r.ldp, sfracEq r.rm r.rdp, BSN.reflBoolTrue, BSN.reflBoolTrue, BSN.reflBoolTrue]
+    #[aE, bE, mkNatLit am, mkNatLit (10 ^ adp), mkNatLit bm, mkNatLit (10 ^ bdp),
+      sfracEq am adp, sfracEq bm bdp, BSN.reflBoolTrue, BSN.reflBoolTrue, BSN.reflBoolTrue]
 
-/-- The bare `NonemptyInterval ℝ` for one row: the endpoint pair plus `fst_le_snd`. This is what
-the bundle actually stores — `ZIntervalEM`'s cutoff/Bernoulli parameters exist only to state the
-certificate. -/
+/-- The bare `NonemptyInterval ℝ` for one row: the endpoint pair plus `fst_le_snd`. -/
 meta def buildNonemptyInterval (r : Row) : MetaM Expr := do
   return mkAppN (mkConst ``mkNEI)
-    #[← ofSciReal r.lm r.ldp, ← ofSciReal r.rm r.rdp, ← buildLeSnd r]
+    #[← ofSciReal r.lm r.ldp, ← ofSciReal r.rm r.rdp, ← decLeDec r.lm r.ldp r.rm r.rdp]
 
 /-- Build the `ZIntervalEM` term for one row: the `NonemptyInterval` it extends, then the four
 Euler–Maclaurin parameters in field order (`fstCutoff`, `sndCutoff`, `fstBernoulli`,
 `sndBernoulli`). -/
 meta def buildInterval (r : Row) : MetaM Expr := do
   return mkAppN (mkConst ``mkZI)
-    #[← ofSciReal r.lm r.ldp, ← ofSciReal r.rm r.rdp, ← buildLeSnd r,
+    #[← ofSciReal r.lm r.ldp, ← ofSciReal r.rm r.rdp, ← decLeDec r.lm r.ldp r.rm r.rdp,
       mkNatLit r.lco, mkNatLit r.rco, mkNatLit r.lb, mkNatLit r.rb]
 
-/-- Working precision a single row's bracket needs: `base / width`, floored, where
-`base = 1e5·max(1,t/30)` is the flat value that certifies at width ~1; wider brackets need less
-precision, narrower ones more.
-Width is `(rm·10^ldp − lm·10^rdp)/10^(ldp+rdp)`, so `D = base·10^(ldp+rdp)/wnum`. (#146)
-The floor is `10000·t30²` (quadratic, not linear): the precision needed to keep `|Z|`'s magnitude
-enclosure off zero grows faster than linearly in height, so a linear floor under-provisions wide
-high-t brackets (they straddle zero); `t30²` gives ~1e4 at low t (unchanged) but ~2e7 at t≈1400. -/
-meta def drow0 (r : Row) : Nat :=
-  let t30 := max 1 (r.lm / (30 * 10 ^ r.ldp))
-  let wnum := max 1 (r.rm * 10 ^ r.ldp - r.lm * 10 ^ r.rdp)
-  max (10000 * t30 * t30) (100000 * t30 * 10 ^ (r.ldp + r.rdp) / wnum)
+/-- Working precision the bracket `[lm·10⁻ˡᵈᵖ, rm·10⁻ʳᵈᵖ]` needs: `1e5·max(1, t/30) / width`, at
+least `10000·max(1, t/30)²` (quadratic, since the precision needed to keep `|Z|`'s enclosure off
+zero grows faster than linearly in height). -/
+meta def rowPrecision (lm ldp rm rdp : Nat) : Nat :=
+  let t30 := max 1 (lm / (30 * 10 ^ ldp))
+  let wnum := max 1 (rm * 10 ^ ldp - lm * 10 ^ rdp)
+  max (10000 * t30 * t30) (100000 * t30 * 10 ^ (ldp + rdp) / wnum)
 
-/-- Build the `Certificate` proof term for one row at working precision `D` (chosen once per
-chunk by `buildBundle`, so every row shares the `D`-keyed enclosure caches): the mechanical
-reflection fields, plus the three heavy fields (`is_sign_change`, `fst_error`, `snd_error`)
-delegated to the hardy cores. -/
+/-- The `Certificate` proof term for one row at working precision `D`: reflection proofs for the
+mechanical fields, the hardy cores for `is_sign_change`, `fst_error` and `snd_error`. -/
 meta def buildCert (r : Row) (D : Nat) : MetaM Expr := do
   let I ← buildInterval r
   let leftE ← ofSciReal r.lm r.ldp
@@ -185,21 +163,49 @@ meta def buildCert (r : Row) (D : Nat) : MetaM Expr := do
     #[I, leftNonneg, posPf r.lb, posPf r.lco, posPf r.rb, posPf r.rco,
       signChange, leftErr, rightErr]
 
+/-- How many times `buildCertifiedEM` multiplies a failing row's working precision by
+`precisionStepEM` before giving up, unless `build.sh --retries k` asks for more (`retriesEM`). -/
+meta def precisionRetriesEM : Nat := 3
+
+/-- The retries for this build: `ZETA_RS_RETRIES` (set by `build.sh --retries k`), else
+`precisionRetriesEM`. Lake never caches a failed batch, so the value need not be in any trace. -/
+meta def retriesEM : IO Nat :=
+  return ((← IO.getEnv "ZETA_RS_RETRIES").bind String.toNat?).getD precisionRetriesEM
+
+/-- The factor a failing row's working precision is raised by on each retry. -/
+meta def precisionStepEM : Nat := 100
+
+/-- `attempt D`, retried at `step · D`, `step² · D`, … up to `retries` more times while it throws;
+the last failure is reported. -/
+meta def withPrecisionRetries (label : String) (step D retries : Nat)
+    (attempt : Nat → MetaM Expr) : MetaM Expr := do
+  try attempt D
+  catch err =>
+    let mut err := err
+    let mut D := D
+    for _ in [0:retries] do
+      D := D * step
+      try return ← BSN.withPhase s!"{label}: raise precision to {D}" (attempt D)
+      catch e => err := e
+    throw err
+
+/-- One row's `Certificate` proof, retrying the row alone at `precisionStepEM · D` up to `retries`
+times if it does not build at `D`; the last failure is reported. -/
+meta def buildCertifiedEM (r : Row) (D : Nat) (retries : Nat) : MetaM Expr :=
+  withPrecisionRetries "EM" precisionStepEM D retries (buildCert r)
+
 /-- The element type of the list `ofCertifiedEM` consumes, named so the metaprogram can cite it
-as a constant rather than rebuilding the `PSigma` binder. -/
+as a constant. -/
 abbrev CertPair := Σ' I : ZIntervalEM, I.Certificate
 
-/-- The bundle's disjointness relation. Definitionally the lambda `ofCertifiedEM` asks for; named
-so the chain proof can be built by constant application. Touching brackets are allowed (`≤`, not
-`<`): a shared endpoint has a certified nonzero `Z`, so the bracketed zeros stay distinct. -/
+/-- The bundle's disjointness relation, named so the chain proof can be built by constant
+application. Touching brackets are allowed: a shared endpoint has a certified nonzero `Z`. -/
 def chainRel (I J : NonemptyInterval ℝ) : Prop := I.snd ≤ J.fst
 
 private meta def certPairE : Expr := mkConst ``CertPair
 
-/-- `⟨I, cert⟩ : CertPair`, built with the dependent second component `β := ZIntervalEM.Certificate`
-supplied explicitly. `mkAppM` cannot be used here: it would infer the *constant* family
-`fun _ ↦ I.Certificate` from the type of `cert`, which is not the `Σ' I, I.Certificate` the bundle
-is indexed by. -/
+/-- `⟨I, cert⟩ : CertPair`, with the family `β := ZIntervalEM.Certificate` explicit (`mkAppM`
+would infer the constant family `fun _ ↦ I.Certificate`). -/
 meta def mkCertPair (I cert : Expr) : Expr :=
   mkAppN (Expr.const ``PSigma.mk [Level.succ Level.zero, Level.zero])
     #[mkConst ``ZIntervalEM, mkConst ``ZIntervalEM.Certificate, I, cert]
@@ -207,82 +213,59 @@ meta def mkCertPair (I cert : Expr) : Expr :=
 private meta def chainRelE : Expr := mkConst ``chainRel
 private meta def neiE : Expr := mkConst ``NEInterval
 
-/-- `[⟨intervalᵢ, certᵢ⟩, …] : List CertPair` for rows `i…` as a literal cons `Expr`. This is the
-list `ofCertifiedEM` takes; the certificates ride along inside it, so there is no separate
-`∀ I ∈ …, I.Certificate` field to build. -/
-meta partial def buildPairsFrom (rows : Array Row) (i : Nat) (D : Nat) : MetaM Expr := do
-  if h : i < rows.size then
-    let pair := mkCertPair (← buildInterval rows[i]) (← buildCert rows[i] D)
-    return mkApp3 (Expr.const ``List.cons [Level.zero]) certPairE pair
-      (← buildPairsFrom rows (i + 1) D)
+/-- The literal list `[elem xs[i], …, elem xs[xs.size - 1]] : List ty`, its elements built left to
+right. -/
+meta partial def buildListFrom {α : Type} (ty : Expr) (xs : Array α) (elem : α → MetaM Expr)
+    (i : Nat) : MetaM Expr := do
+  if h : i < xs.size then
+    let x ← elem xs[i]
+    return mkApp3 (Expr.const ``List.cons [Level.zero]) ty x (← buildListFrom ty xs elem (i + 1))
   else
-    return mkApp (Expr.const ``List.nil [Level.zero]) certPairE
+    return mkApp (Expr.const ``List.nil [Level.zero]) ty
 
-/-- `[intervalᵢ.toNonemptyInterval, …]` for rows `i…`: the list the chain proof is stated about.
-Definitionally the `l.map (·.1.toNonemptyInterval)` in `ofCertifiedEM`'s hypothesis, since
-`List.map` on a literal cons unfolds. -/
-meta partial def buildNeIntervalsFrom (rows : Array Row) (i : Nat) : MetaM Expr := do
-  let nei := neiE
-  if h : i < rows.size then
-    return mkApp3 (Expr.const ``List.cons [Level.zero]) nei
-      (← buildNonemptyInterval rows[i]) (← buildNeIntervalsFrom rows (i + 1))
-  else
-    return mkApp (Expr.const ``List.nil [Level.zero]) nei
+/-- Proof of `[nei rows[0], …].IsChain chainRel`, built right to left, with `lePf a b` the
+`dec_le_dec` proof between adjacent rows `a`, `b`. -/
+meta def buildChain {α : Type} (rows : Array α) (nei : α → MetaM Expr)
+    (lePf : α → α → MetaM Expr) : MetaM Expr := do
+  let neiT := neiE
+  let neis ← rows.mapM nei
+  let n := neis.size
+  if n == 0 then return mkAppN (Expr.const ``List.IsChain.nil [Level.zero]) #[neiT, chainRelE]
+  let mut tl := mkApp (Expr.const ``List.nil [Level.zero]) neiT
+  let mut pf := mkAppN (Expr.const ``List.IsChain.singleton [Level.zero])
+    #[neiT, chainRelE, neis[n - 1]!]
+  for j in [0:n - 1] do
+    let i := n - 2 - j
+    if h : i + 1 < rows.size then
+      let le ← lePf rows[i] rows[i + 1]
+      pf := mkAppN (Expr.const ``List.IsChain.cons_cons [Level.zero])
+        #[neiT, chainRelE, neis[i]!, neis[i + 1]!, tl, le, pf]
+      tl := mkApp3 (Expr.const ``List.cons [Level.zero]) neiT neis[i + 1]! tl
+  return pf
 
-/-- `dec_le_dec` proof that `ofSci(am,adp) ≤ ofSci(bm,bdp)`. -/
-meta def decLeDec (am adp bm bdp : Nat) : MetaM Expr := do
-  let aE ← ofSciReal am adp
-  let bE ← ofSciReal bm bdp
-  return mkAppN (mkConst ``Enclosure.dec_le_dec)
-    #[aE, bE, mkNatLit am, mkNatLit (10 ^ adp), mkNatLit bm, mkNatLit (10 ^ bdp),
-      sfracEq am adp, sfracEq bm bdp, BSN.reflBoolTrue, BSN.reflBoolTrue, BSN.reflBoolTrue]
-
-/-- Proof of `[intervalᵢ.toNonemptyInterval, …].IsChain chainRel` via nested
-`List.IsChain.cons_cons`, one `dec_le_dec` per adjacent pair. -/
-meta partial def buildDisjFrom (rows : Array Row) (i : Nat) : MetaM Expr := do
-  let nei := neiE
-  if _ : i + 1 < rows.size then
-    let lePf ← decLeDec rows[i].rm rows[i].rdp rows[i+1].lm rows[i+1].ldp
-    return mkAppN (Expr.const ``List.IsChain.cons_cons [Level.zero])
-      #[nei, chainRelE, ← buildNonemptyInterval rows[i], ← buildNonemptyInterval rows[i+1],
-        ← buildNeIntervalsFrom rows (i + 2), lePf, ← buildDisjFrom rows (i + 1)]
-  else if _ : i < rows.size then
-    return mkAppN (Expr.const ``List.IsChain.singleton [Level.zero])
-      #[nei, chainRelE, ← buildNonemptyInterval rows[i]]
-  else
-    return mkAppN (Expr.const ``List.IsChain.nil [Level.zero]) #[nei, chainRelE]
-
-/-- Build the whole `CertifiedZeroIntervals` bundle (intervals + certs + disj) from the rows.
-Working precision is ONE value per chunk: the max over its rows of `drow0`. Every row then gets at
-least the precision its own bracket width needs (so all margins pass), while a single `D` keeps the
-`D`-keyed enclosure caches (`piVal`/`log`/`√`/`trigReduce`) shared across the chunk — cache
-sharing dominates the per-row precision saving, and this is the LOWEST `D` that preserves that
-sharing. (#146) -/
-meta def buildBundle (rows : Array Row) : MetaM Expr := do
-  let chunkD := rows.foldl (fun acc r => max acc (drow0 r)) 1
-  return mkAppN (mkConst ``CertifiedZeroIntervals.ofCertifiedEM)
-    #[← buildPairsFrom rows 0 chunkD, ← buildDisjFrom rows 0]
+/-- The whole `CertifiedZeroIntervals` bundle for the rows, at one working precision per chunk
+(the max of `rowPrecision`) so its rows hit the same `D`-keyed enclosure caches. -/
+meta def buildBundle (rows : Array Row) (retries : Nat := precisionRetriesEM) : MetaM Expr := do
+  let chunkD := rows.foldl (fun acc r ↦ max acc (rowPrecision r.lm r.ldp r.rm r.rdp)) 1
+  let pairs ← buildListFrom certPairE rows (fun r ↦ do
+    return mkCertPair (← buildInterval r) (← buildCertifiedEM r chunkD retries)) 0
+  let disj ← buildChain rows buildNonemptyInterval fun a b ↦ decLeDec a.rm a.rdp b.lm b.ldp
+  return mkAppN (mkConst ``CertifiedZeroIntervals.ofCertifiedEM) #[pairs, disj]
 
 /-- The Euler–Maclaurin zero store `gen_zero_certificates.py` reads from, its rows in the same
 `idx, fst, snd, fstCutoff, sndCutoff, fstBernoulli, sndBernoulli` layout `parseRows` expects. -/
 meta def storeDir : System.FilePath := "python/out/euler_maclaurin/zeros"
 
 open Elab Tactic in
-/-- `build_certs lo hi` closes a `CertifiedZeroIntervals` goal by building the bundle directly
-from rows `[lo, hi)` of the data file — no named declarations, no `fin_cases`. -/
+/-- `build_certs lo hi` closes a `CertifiedZeroIntervals` goal with the bundle built from rows
+`[lo, hi)` of the data file. -/
 elab "build_certs " lo:num hi:num : tactic => do
-  let e ← buildBundle (parseRows (← storeLines storeDir lo.getNat hi.getNat))
+  let e ← buildBundle (parseRows (← storeLines storeDir lo.getNat hi.getNat)) (← retriesEM)
   liftMetaFinishingTactic (·.assign e)
 
-/-- Close a `BatchSpec n an ad bn bd` goal with the bundle `bundle`: `Exists.intro` on the
-bundle, and the three conjuncts — count, first endpoint, last endpoint — each by `Eq.refl` of
-the goal's own right-hand side. The kernel checks them by reducing the bundle (a `List.length`
-and two list projections), so the batch module needs no per-batch lemmas at all: the statement
-carries what the assembler consumes, and this term is its whole proof.
-
-The statement is written by the generator from the same rows, parsed the same way; if the
-two disagree the kernel rejects the `Eq.refl`, so a rounding drift between Python and Lean cannot
-pass silently. -/
+/-- Close a `BatchSpec n an ad bn bd` goal with `bundle`, the count and both endpoints each by
+`Eq.refl`, which the kernel checks by reducing the bundle (so a drift between the generator's
+statement and the rows cannot pass silently). -/
 meta def closeBatchSpec (bundle : Expr) (goal : MVarId) : MetaM Unit := do
   let ty ← whnfR (← instantiateMVars (← goal.getType))
   let some (α, p) := ty.app2? ``Exists
@@ -303,9 +286,9 @@ meta def closeBatchSpec (bundle : Expr) (goal : MVarId) : MetaM Unit := do
 
 open Elab Tactic in
 /-- `build_batch lo hi` closes a `BatchSpec` goal from rows `[lo, hi)` of the Euler–Maclaurin
-store: the bundle by `buildBundle`, the statement's three facts by `closeBatchSpec`. -/
+store. A failing row's working precision is raised up to `retriesEM` times. -/
 elab "build_batch " lo:num hi:num : tactic => do
-  let e ← buildBundle (parseRows (← storeLines storeDir lo.getNat hi.getNat))
+  let e ← buildBundle (parseRows (← storeLines storeDir lo.getNat hi.getNat)) (← retriesEM)
   liftMetaFinishingTactic (closeBatchSpec e)
 
 end Zeta.Certificates

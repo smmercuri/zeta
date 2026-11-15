@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Complex.ExponentialBounds
 public import Mathlib.Analysis.Real.Pi.Bounds
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 public import Zeta.Analysis.Complex.SinExp
@@ -18,8 +19,8 @@ The Riemann–Siegel kernel `Zeta.RiemannSiegel.kernel` is integrated along the 
 `L(a)(w) = (a + w) + i w` through a point `a` of the real axis (`riemann_siegel.tex`,
 `sec:rs_contour`). Two features of that contour drive everything downstream.
 
-*Rotation.* Multiplying by `e^{iπ/4}` turns `L(a)` into the **vertical** line `Re z = a/√2`. That
-is what lets the contour-shift argument use honest axis-parallel rectangles, and what puts the
+*Rotation.* Multiplying by `e^{iπ/4}` turns `L(a)` into the vertical line `Re z = a/√2`. That
+is what lets the contour-shift argument use axis-parallel rectangles, and what puts the
 contour in a half-plane on which Mathlib's principal branch of `x ↦ x^{-s}` may be used after
 rotation.
 
@@ -27,11 +28,10 @@ rotation.
 bounded below by `√2` all along `L(a)`, uniformly in `w`: near the real axis because `a + w` stays
 within `¼` of a half-integer, and away from it because `sinh` grows.
 
-The uniform bound `√2` is all the order-zero theory uses, but the sharp first-order estimates need
-the growth itself: away from the real axis the denominator is not merely bounded but exponentially
-large, and that is the difference between an outer tail that is negligible and one that is not
-(`riemann_siegel.tex`, `lem:rs_sin_lower_sharp`). That bound needs no hypothesis on `a`; unlike the
-uniform one it is vacuous, rather than false, at `w = 0`.
+The uniform bound `√2` is all the order-zero theory uses. The sharp first-order estimates use the
+growth itself: away from the real axis the denominator is exponentially large, which makes the
+outer tail negligible (`riemann_siegel.tex`, `lem:rs_sin_lower_sharp`). That bound holds for every
+`a`, and is trivial at `w = 0`.
 
 ## Main results
 
@@ -66,7 +66,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **slanted Riemann–Siegel contour** `L(a)(w) = (a + w) + i w`: the line of slope one
+/-- The slanted Riemann–Siegel contour `L(a)(w) = (a + w) + i w`: the line of slope one
 through `a`, traversed in the direction `1 + i`. -/
 noncomputable def line (a w : ℝ) : ℂ := (a + w : ℝ) + (w : ℝ) * I
 
@@ -76,12 +76,12 @@ theorem line_re (a w : ℝ) : (line a w).re = a + w := by simp [line]
 @[simp]
 theorem line_im (a w : ℝ) : (line a w).im = w := by simp [line]
 
-/-- **The slanted contour misses the origin** as soon as it does not pass through it. -/
+/-- The slanted contour misses the origin when `a ≠ 0`. -/
 theorem line_ne_zero {a : ℝ} (ha : a ≠ 0) (w : ℝ) : line a w ≠ 0 := by
   simp only [ne_eq, Complex.ext_iff, line_re, line_im, Complex.zero_re, Complex.zero_im, not_and]
   exact fun h hw ↦ ha (by rw [hw] at h; linarith)
 
-/-- **Translating the slanted contour by one** shifts its parameter by one. -/
+/-- Translating the slanted contour by one shifts its parameter by one. -/
 theorem line_add_one (a w : ℝ) : line (a + 1) w = line a w + 1 := by
   rw [line, line]; push_cast; ring
 
@@ -89,7 +89,7 @@ theorem line_add_one (a w : ℝ) : line (a + 1) w = line a w + 1 := by
 theorem continuous_line (a : ℝ) : Continuous (line a) := by
   unfold line; fun_prop
 
-/-- **Rotating the slanted contour to a vertical line.** -/
+/-- Rotating the slanted contour by `e^{iπ/4}` gives a vertical line. -/
 theorem exp_pi_div_four_mul_I_mul_line (a w : ℝ) :
     exp ((π / 4 : ℝ) * I) * line a w
       = (Real.sqrt 2 / 2 : ℝ) * ((a : ℂ) + ((a : ℂ) + 2 * w) * I) := by
@@ -98,7 +98,7 @@ theorem exp_pi_div_four_mul_I_mul_line (a w : ℝ) :
   push_cast
   linear_combination (Real.sqrt 2 : ℂ) * (w : ℂ) * (1 / 2) * Complex.I_sq
 
-/-- **The contour through the origin is the diagonal ray**, `L(0)(w) = √2 w e^{iπ/4}`. -/
+/-- The contour through the origin is the diagonal ray, `L(0)(w) = √2 w e^{iπ/4}`. -/
 theorem line_zero (w : ℝ) : line 0 w = ((Real.sqrt 2 * w : ℝ) : ℂ) * exp ((π / 4 : ℝ) * I) := by
   refine mul_left_cancel₀ (exp_ne_zero (((π / 4 : ℝ) : ℂ) * I)) ?_
   rw [exp_pi_div_four_mul_I_mul_line, ← mul_assoc,
@@ -106,7 +106,7 @@ theorem line_zero (w : ℝ) : line 0 w = ((Real.sqrt 2 * w : ℝ) : ℂ) * exp (
     Complex.exp_pi_div_four_mul_I_mul_self]
   push_cast; ring
 
-/-- **The rotated contour is vertical**, its abscissa independent of `w`. -/
+/-- The rotated contour is vertical, its abscissa independent of `w`. -/
 theorem re_exp_pi_div_four_mul_I_mul_line (a w : ℝ) :
     (exp ((π / 4 : ℝ) * I) * line a w).re = a / Real.sqrt 2 := by
   rw [exp_pi_div_four_mul_I_mul_line, Complex.re_ofReal_mul,
@@ -114,7 +114,7 @@ theorem re_exp_pi_div_four_mul_I_mul_line (a w : ℝ) :
     eq_div_iff (by positivity : Real.sqrt 2 ≠ 0)]
   linear_combination (a / 2) * Real.mul_self_sqrt (by norm_num : (0 : ℝ) ≤ 2)
 
-/-- **The abscissa of a rotated real point.** -/
+/-- The abscissa of a rotated real point. -/
 theorem re_exp_pi_div_four_mul_I_mul_ofReal (r : ℝ) :
     (exp ((π / 4 : ℝ) * I) * (r : ℂ)).re = r / Real.sqrt 2 := by
   simpa [line] using re_exp_pi_div_four_mul_I_mul_line r 0
@@ -124,18 +124,18 @@ theorem norm_line_sq (a w : ℝ) : ‖line a w‖ ^ 2 = (a ^ 2 + (a + 2 * w) ^ 2
   rw [Complex.sq_norm, Complex.normSq_apply, line_re, line_im]
   ring
 
-/-- **The slanted contour stays at distance at least `a/√2` from the origin.** -/
+/-- The slanted contour stays at distance at least `a/√2` from the origin. -/
 theorem norm_line_ge (a w : ℝ) : a / Real.sqrt 2 ≤ ‖line a w‖ :=
   le_of_sq_le_sq (by
     rw [div_pow, Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 2), norm_line_sq]
     nlinarith [sq_nonneg (a + 2 * w)]) (norm_nonneg _)
 
-/-- **The slanted contour stays at distance at most `a + 2|w|` from the origin.** -/
+/-- The slanted contour stays at distance at most `a + 2|w|` from the origin. -/
 theorem norm_line_le {a : ℝ} (ha0 : 0 ≤ a) (w : ℝ) : ‖line a w‖ ≤ a + 2 * |w| := by
   nlinarith [norm_line_sq a w, norm_nonneg (line a w), sq_abs w, le_abs_self w, abs_nonneg w,
     mul_nonneg ha0 (abs_nonneg w)]
 
-/-- **The logarithm of the modulus grows at most linearly along the slanted contour.** -/
+/-- The logarithm of the modulus grows at most linearly along the slanted contour. -/
 theorem abs_log_norm_line_le {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
     |Real.log ‖line a w‖| ≤ |Real.log (a / Real.sqrt 2)| + a + 2 * |w| := by
   have hup : Real.log ‖line a w‖ ≤ a + 2 * |w| :=
@@ -146,7 +146,7 @@ theorem abs_log_norm_line_le {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
   exact abs_le.2 ⟨by linarith [abs_nonneg w, neg_abs_le (Real.log (a / Real.sqrt 2))],
     by linarith [abs_nonneg (Real.log (a / Real.sqrt 2))]⟩
 
-/-- **The distance from a real point to the slanted contour grows at most linearly**: the point
+/-- The distance from a real point to the slanted contour grows at most linearly: the point
 `L(a)(w)` lies within `√2 |w|` of the base point `a` of the contour. -/
 theorem norm_line_sub_ofReal_le (a w p : ℝ) :
     ‖line a w - (p : ℂ)‖ ≤ |a - p| + Real.sqrt 2 * |w| := by
@@ -156,7 +156,7 @@ theorem norm_line_sub_ofReal_le (a w p : ℝ) :
   rw [Complex.norm_real, norm_mul, Complex.norm_real, norm_one_add_I, Real.norm_eq_abs,
     Real.norm_eq_abs, mul_comm]
 
-/-- **The square of the distance from a real point to the slanted contour**, with the square
+/-- The square of the distance from a real point to the slanted contour, with the square
 completed. -/
 theorem norm_line_sub_ofReal_sq (a w p : ℝ) :
     ‖line a w - (p : ℂ)‖ ^ 2 = 2 * (w + (a - p) / 2) ^ 2 + (a - p) ^ 2 / 2 := by
@@ -164,7 +164,7 @@ theorem norm_line_sub_ofReal_sq (a w p : ℝ) :
     Complex.ofReal_re, Complex.ofReal_im]
   ring
 
-/-- **The distance from a real point to the slanted contour, in terms of the centred parameter**
+/-- The distance from a real point to the slanted contour, in terms of the centred parameter
 `w + (a − p)/2`. -/
 theorem norm_line_sub_ofReal_le' (a w p : ℝ) :
     ‖line a w - (p : ℂ)‖ ≤ Real.sqrt 2 * (|w + (a - p) / 2| + |a - p| / 2) := by
@@ -173,23 +173,22 @@ theorem norm_line_sub_ofReal_le' (a w p : ℝ) :
   nlinarith [sq_abs (w + (a - p) / 2), sq_abs (a - p), abs_nonneg (w + (a - p) / 2),
     abs_nonneg (a - p)]
 
-/-- **The slanted contour stays at distance at least `|a − p|/√2` from a real point `p`.** -/
+/-- The slanted contour stays at distance at least `|a − p|/√2` from a real point `p`. -/
 theorem norm_line_sub_ofReal_ge (a w p : ℝ) :
     Real.sqrt 2 / 2 * |a - p| ≤ ‖line a w - (p : ℂ)‖ := by
   refine le_of_sq_le_sq ?_ (norm_nonneg _)
   rw [norm_line_sub_ofReal_sq, mul_pow, div_pow, Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 2)]
   nlinarith [sq_abs (a - p), sq_nonneg (w + (a - p) / 2)]
 
-/-- **Exponential lower bound for the kernel denominator** (`riemann_siegel.tex`,
-`lem:rs_sin_lower_sharp`): along *any* line of slope one the denominator dominates `sinh (π|w|)`.
-No hypothesis on `a` is needed — unlike `Zeta.RiemannSiegel.norm_sin_pi_mul_line_ge`, this bound is
-vacuous rather than false at `w = 0`. -/
+/-- Exponential lower bound for the kernel denominator (`riemann_siegel.tex`,
+`lem:rs_sin_lower_sharp`): along every line of slope one the denominator dominates
+`sinh (π|w|)`. -/
 theorem sinh_le_norm_sin_pi_mul_line (a w : ℝ) :
     Real.sinh (π * |w|) ≤ ‖sin (π * line a w)‖ := by
   simpa [Complex.mul_im, abs_mul, abs_of_pos Real.pi_pos] using
     Complex.sinh_abs_im_le_norm_sin ((π : ℂ) * line a w)
 
-/-- **The real sine at the abscissa is a lower bound for the kernel denominator.** -/
+/-- The real sine at the abscissa is a lower bound for the kernel denominator. -/
 theorem abs_sin_le_norm_sin_pi_mul_line (a w : ℝ) :
     |Real.sin (π * (a + w))| ≤ ‖sin (π * line a w)‖ := by
   refine le_of_sq_le_sq ?_ (norm_nonneg _)
@@ -197,7 +196,7 @@ theorem abs_sin_le_norm_sin_pi_mul_line (a w : ℝ) :
     show ((π : ℂ) * line a w).re = π * (a + w) by simp [Complex.mul_re]]
   linarith [sq_nonneg (Real.sinh ((π : ℂ) * line a w).im)]
 
-/-- **Uniform lower bound for the kernel denominator along a half-integer contour**, equivalently
+/-- Uniform lower bound for the kernel denominator along a half-integer contour, equivalently
 `|e^{iπx} − e^{−iπx}| ≥ √2` along `L(a)`. -/
 theorem norm_sin_pi_mul_line_ge {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (w : ℝ) :
     Real.sqrt 2 / 2 ≤ ‖sin (π * line a w)‖ := by
@@ -220,13 +219,13 @@ theorem norm_sin_pi_mul_line_ge {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (w : �
   rw [hsin, abs_mul, abs_zpow, abs_neg, abs_one, one_zpow, one_mul]
   exact hcos.trans (le_abs_self _)
 
-/-- **The kernel denominator does not vanish along a half-integer contour.** -/
+/-- The kernel denominator is nonzero along a half-integer contour. -/
 theorem sin_pi_mul_line_ne_zero {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (w : ℝ) :
     sin (π * line a w) ≠ 0 :=
   norm_pos_iff.1 <| lt_of_lt_of_le (by positivity) (norm_sin_pi_mul_line_ge ha w)
 
-/-- **Lower bound for the kernel denominator along a contour crossing the real axis inside
-`[0, ½]`.** -/
+/-- Lower bound for the kernel denominator along a contour crossing the real axis inside
+`[0, ½]`. -/
 theorem norm_sin_pi_mul_line_ge_min {a : ℝ} (ha0 : 0 ≤ a) (ha : a ≤ 1 / 2) (w : ℝ) :
     min (1 / 2) ‖line a w‖ ≤ ‖sin (π * line a w)‖ := by
   have hpi3 := Real.pi_gt_three
@@ -265,14 +264,14 @@ theorem le_exp_of_le_pow {n : ℕ} {c x : ℝ} (hc : c ≤ 2.718 ^ n) (hx : (n :
     (by linarith [Real.exp_one_gt_d9] : (2.718 : ℝ) ≤ Real.exp 1) n).trans_eq
       (Real.exp_one_pow n)).trans (Real.exp_le_exp.2 hx))
 
-/-- **The Gaussian factor at a threshold**: a constant `c ≤ 2.718ⁿ` is swallowed by `e^{-x}` as
+/-- The Gaussian factor at a threshold: a constant `c ≤ 2.718ⁿ` is swallowed by `e^{-x}` as
 soon as `n ≤ x`. -/
 theorem exp_neg_mul_le_one {n : ℕ} {c x : ℝ} (hc : c ≤ 2.718 ^ n) (hx : (n : ℝ) ≤ x) :
     Real.exp (-x) * c ≤ 1 := by
   rw [Real.exp_neg, inv_mul_le_iff₀ (Real.exp_pos _)]
   linarith [le_exp_of_le_pow hc hx]
 
-/-- **The kernel denominator is exponentially large away from the real axis**
+/-- The kernel denominator is exponentially large away from the real axis
 (`riemann_siegel.tex`, `lem:rs_sin_lower_sharp`). -/
 theorem mul_exp_le_norm_sin_pi_mul_line (a : ℝ) {w : ℝ} (hw : 1 ≤ |w|) :
     99 / 200 * Real.exp (π * |w|) ≤ ‖sin (π * line a w)‖ := by

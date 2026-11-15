@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Mathlib.Algebra.BigOperators.Intervals
@@ -12,14 +17,14 @@ public import Mathlib.Tactic.GCongr
 public import Mathlib.Tactic.Abel
 public import Mathlib.Tactic.Bound
 public import Mathlib.Tactic.Module
+public import Enclosure.Core
 
 /-!
 # Taylor remainder bounds for `exp` and `sin`
 
-Pure ℝ geometric-tail bounds on the Taylor partial sums, independent of the
-binary-split machinery, plus the small series helpers shared by the even/odd
-function modules (a factorial split and a term-pairing identity). Used by the
-ℕ `exp`/`sin`/`cos`/`arctan` pipelines.
+Real geometric-tail bounds on the Taylor partial sums of `exp`, `sin` and `cos`, independent of
+the binary-split machinery, plus small helpers for the function modules: a factorial split, a
+term-pairing identity, and rounding a value onto the dyadic grid `1/Q` as a `Real.IsNear`.
 -/
 @[expose] public section
 
@@ -77,9 +82,8 @@ theorem exp_sub_sum_le (x : ℝ) (N : ℕ) (hx : 0 ≤ x) (hxN : x < N + 1) :
 
 
 open Finset in
-/-- Shared geometric tail bound behind `sin_sub_sum_le`/`cos_sub_sum_le`. For a summable series
-`f` whose `N`-shifted terms satisfy `‖f (j+N)‖ = x^(E+2j)/(E+2j)!`, the tail past `N` is bounded by
-the leading term times the geometric factor `(1 - (x/(E+1))²)⁻¹`, given `0 ≤ x < E+1`. -/
+/-- Geometric tail bound for a summable series `f` with `‖f (j+N)‖ = x^(E+2j)/(E+2j)!`: for
+`0 ≤ x < E+1`, the tail past `N` is at most the leading term times `(1 - (x/(E+1))²)⁻¹`. -/
 theorem alt_series_tail_bound (x : ℝ) (E : ℕ) (f : ℕ → ℝ) (N : ℕ) (hx : 0 ≤ x)
     (hsummable : Summable f) (hxE : x < E + 1)
     (hnorm : ∀ j, ‖f (j + N)‖ = x ^ (E + 2 * j) / (E + 2 * j).factorial) :
@@ -150,10 +154,7 @@ theorem cos_sub_sum_le (x : ℝ) (N : ℕ) (hx : 0 ≤ x) (hxN : x < 2 * N + 1) 
   push_cast; ring
 
 open Finset in
-/-- Power-difference bound (range-reduction error propagation). If `0 ≤ a, b ≤ M`, then
-`|bⁿ − aⁿ| ≤ n · M^(n-1) · |b − a|`. Used to push a bound on `exp(x/2ᵏ)` through the `2ᵏ`
-squarings of `exp(x) = (exp(x/2ᵏ))^(2ᵏ)`: with `M = a + ε` (`b ≤ a + ε`), the error grows by at
-most `n·M^(n-1)`. -/
+/-- Power-difference bound: if `0 ≤ a, b ≤ M`, then `|bⁿ − aⁿ| ≤ n · M^(n-1) · |b − a|`. -/
 theorem abs_pow_sub_pow_le {a b M : ℝ} {n : ℕ} (ha : 0 ≤ a) (hb : 0 ≤ b)
     (haM : a ≤ M) (hbM : b ≤ M) :
     |b ^ n - a ^ n| ≤ n * M ^ (n - 1) * |b - a| := by
@@ -183,7 +184,7 @@ theorem geo_factor_le (x D : ℝ) (hD : 0 < D) (hx : 2 * x ^ 2 ≤ D ^ 2) :
         one_div_le_one_div_of_le (by norm_num) (by linarith)
     _ = 2 := by norm_num
 
-/-! ### Shared helpers for the even/odd series -/
+/-! ### Helpers for the even/odd series -/
 
 /-- Four consecutive factors of a factorial: `(m+4)! = m! · (m+1)(m+2)(m+3)(m+4)`. -/
 theorem factorial_add_four (m : ℕ) :
@@ -203,9 +204,27 @@ theorem sum_range_two_mul {α} [AddCommMonoid α] (f : ℕ → α) (M : ℕ) :
     rw [e, Finset.sum_range_succ, Finset.sum_range_succ, ih, Finset.sum_range_succ]
     abel
 
-/-- The rounding tail shared by the `sin`/`cos`/`arctan` dyadic bounds. From a `1/(2D)` bound of
-`F` against the two-fraction value `Ne/De − No/Do` and the integer rounding of that value onto the
-dyadic grid (`m·(De·Do) ≤ (Ne·Do − No·De)·Q < (m+1)·(De·Do)`, with `2D ≤ Q`), conclude
+/-- Rounding onto a dyadic grid: a `1/(2D)` bound of `F` against `Nn/Dn` and the rounding
+`c·Dn ≤ Nn·Q < (c+1)·Dn`, with `2D ≤ Q`, give `|F − c/Q| ≤ 1/D`. -/
+theorem grid_round (F Nn Dn c : ℝ) (Q D : ℕ)
+    (hF : |F - Nn / Dn| ≤ 1 / (2 * D))
+    (hr1 : c * Dn ≤ Nn * Q) (hr2 : Nn * Q < (c + 1) * Dn)
+    (hDn : 0 < Dn) (hDr : 0 < (D : ℝ)) (hQr : 0 < (Q : ℝ)) (hQ : 2 * D ≤ Q) :
+    |F - c / Q| ≤ 1 / D := by
+  have e1 : c / Q ≤ Nn / Dn := by rw [div_le_div_iff₀ hQr hDn]; exact hr1
+  have e2 : Nn / Dn < c / Q + 1 / Q := by
+    rw [← add_div, div_lt_div_iff₀ hDn hQr]; exact hr2
+  have hround : |Nn / Dn - c / Q| ≤ 1 / (2 * D) := by
+    rw [abs_of_nonneg (sub_nonneg.mpr e1)]
+    calc Nn / Dn - c / Q ≤ 1 / Q := by linarith [e2]
+      _ ≤ 1 / (2 * D) := by
+          rw [div_le_div_iff₀ hQr (mul_pos two_pos hDr), one_mul, one_mul]; exact_mod_cast hQ
+  calc |F - c / Q| ≤ |F - Nn / Dn| + |Nn / Dn - c / Q| := abs_sub_le _ _ _
+    _ ≤ 1 / (2 * D) + 1 / (2 * D) := add_le_add hF hround
+    _ = 1 / D := by rw [← add_div, one_add_one_eq_two, ← div_div, div_self two_ne_zero]
+
+/-- Rounding onto a dyadic grid: a `1/(2D)` bound of `F` against `Ne/De − No/Do` and the integer
+rounding `m·(De·Do) ≤ (Ne·Do − No·De)·Q < (m+1)·(De·Do)`, with `2D ≤ Q`, give
 `|F − m/Q| ≤ 1/D`. -/
 theorem sub_grid_round (F Ne De No Do : ℝ) (m : ℤ) (Q D : ℕ)
     (hFV : |F - (Ne / De - No / Do)| ≤ 1 / (2 * D))
@@ -214,21 +233,80 @@ theorem sub_grid_round (F Ne De No Do : ℝ) (m : ℤ) (Q D : ℕ)
     (hDe : 0 < De) (hDo : 0 < Do) (hDr : 0 < (D : ℝ)) (hQr : 0 < (Q : ℝ))
     (hQ : 2 * D ≤ Q) :
     |F - (m : ℝ) / Q| ≤ 1 / D := by
-  have hd : (0 : ℝ) < De * Do := mul_pos hDe hDo
   have hV : Ne / De - No / Do = (Ne * Do - No * De) / (De * Do) := by field_simp
-  have e1 : (m : ℝ) / Q ≤ (Ne * Do - No * De) / (De * Do) := by
-    rw [div_le_div_iff₀ hQr hd]; exact hr1
-  have e2 : (Ne * Do - No * De) / (De * Do) < (m : ℝ) / Q + 1 / Q := by
-    rw [← add_div, div_lt_div_iff₀ hd hQr]; exact hr2
-  have hround' : |(Ne / De - No / Do) - (m : ℝ) / Q| ≤ 1 / (2 * D) := by
-    rw [hV, abs_of_nonneg (sub_nonneg.mpr e1)]
-    calc (Ne * Do - No * De) / (De * Do) - (m : ℝ) / Q
-        ≤ 1 / Q := by linarith [e2]
-      _ ≤ 1 / (2 * D) := by
-          rw [div_le_div_iff₀ hQr (mul_pos two_pos hDr), one_mul, one_mul]; exact_mod_cast hQ
-  calc |F - (m : ℝ) / Q|
-      ≤ |F - (Ne / De - No / Do)| + |(Ne / De - No / Do) - (m : ℝ) / Q| := abs_sub_le _ _ _
-    _ ≤ 1 / (2 * D) + 1 / (2 * D) := add_le_add hFV hround'
-    _ = 1 / D := by rw [← add_div, one_add_one_eq_two, ← div_div, div_self two_ne_zero]
+  rw [hV] at hFV
+  exact grid_round F _ _ _ Q D hFV hr1 hr2 (mul_pos hDe hDo) hDr hQr hQ
+
+open Enclosure in
+/-- An enclosure from a `1/(2D)` bound of `F` against `Ne/De − No/Do` and the `ℕ` rounding
+conditions placing the signed centre `±cn/Q` at the floor of `Ne/De − No/Do` on the `1/Q` grid. -/
+theorem isNear_of_sub_two_frac (F : ℝ) (neg : Bool) (cn Q D Ne De No Do : ℕ)
+    (hDe : 0 < De) (hDo : 0 < Do) (hD : Nat.ble 1 D) (hQ : (Nat.mul 2 D).ble Q)
+    (hr1 : (((numPos neg cn).mul (De.mul Do)).add ((No.mul De).mul Q)).ble
+      (((Ne.mul Do).mul Q).add ((numNeg neg cn).mul (De.mul Do))) = true)
+    (hr2 : (((Ne.mul Do).mul Q).add ((numNeg neg cn).mul (De.mul Do))).blt
+      ((((numPos neg cn).succ).mul (De.mul Do)).add ((No.mul De).mul Q)) = true)
+    (hF : |F - ((Ne : ℝ) / De - (No : ℝ) / Do)| ≤ 1 / (2 * D)) :
+    Real.IsNear F neg cn Q 1 D := by
+  set mp := numPos neg cn with hmp_def
+  set mn := numNeg neg cn with hmn_def
+  set m : ℤ := (mp : ℤ) - (mn : ℤ) with hm
+  rw [Real.IsNear, Nat.cast_one]
+  have hvform : sfrac neg cn Q = (m : ℝ) / Q := by
+    rw [sfrac_eq_parts neg cn Q, ← hmp_def, ← hmn_def, hm]
+    push_cast
+    ring
+  rw [hvform]
+  simp only [Nat.blt_eq, Nat.ble_eq, Nat.add_eq, Nat.mul_eq] at hQ hr1 hr2
+  have hr1z : m * ((De : ℤ) * Do) ≤ ((Ne : ℤ) * Do - (No : ℤ) * De) * Q := by
+    have h : (mp : ℤ) * ((De : ℤ) * Do) + (No : ℤ) * De * Q
+        ≤ (Ne : ℤ) * Do * Q + (mn : ℤ) * ((De : ℤ) * Do) := by exact_mod_cast hr1
+    rw [hm]; linarith
+  have hr2z : ((Ne : ℤ) * Do - (No : ℤ) * De) * Q < (m + 1) * ((De : ℤ) * Do) := by
+    have h : (Ne : ℤ) * Do * Q + (mn : ℤ) * ((De : ℤ) * Do)
+        < (mp + 1) * ((De : ℤ) * Do) + (No : ℤ) * De * Q := by exact_mod_cast hr2
+    rw [hm]; linarith
+  have hQ0 : 0 < Q := by have := pos_of_ble hD; lia
+  exact sub_grid_round F Ne De No Do m Q D hF (by exact_mod_cast hr1z) (by exact_mod_cast hr2z)
+    (by exact_mod_cast hDe) (by exact_mod_cast hDo) (pos_real_of_ble hD) (by exact_mod_cast hQ0) hQ
+
+/-! ### Sign-specialised rounding conditions
+
+`numPos`/`numNeg` evaluated at a fixed sign, turning the conditions of
+`isNear_of_sub_two_frac` into plain `ℕ` comparisons. -/
+
+open Enclosure in
+/-- The lower rounding condition at sign `false`. -/
+theorem roundLo_false {cn X Y Z : ℕ} (h : ((cn.mul X).add Y).ble Z = true) :
+    (((numPos false cn).mul X).add Y).ble (Z.add ((numNeg false cn).mul X)) = true := by
+  simp only [numPos, numNeg, ite_eq_right Bool.false_ne_true, Nat.ble_eq, Nat.add_eq,
+      Nat.mul_eq, Nat.zero_mul, Nat.add_zero] at h ⊢
+  lia
+
+open Enclosure in
+/-- The upper rounding condition at sign `false`. -/
+theorem roundHi_false {cn X Y Z : ℕ} (h : Z.blt (((cn.succ).mul X).add Y) = true) :
+    (Z.add ((numNeg false cn).mul X)).blt ((((numPos false cn).succ).mul X).add Y) = true := by
+  simp only [numPos, numNeg, ite_eq_right Bool.false_ne_true, Nat.blt_eq, Nat.add_eq,
+      Nat.mul_eq, Nat.zero_mul, Nat.add_zero] at h ⊢
+  lia
+
+open Enclosure in
+/-- The lower rounding condition at sign `true`. -/
+theorem roundLo_true {cn X Y Z : ℕ} (h : Y.ble (Z.add (cn.mul X)) = true) :
+    (((numPos true cn).mul X).add Y).ble (Z.add ((numNeg true cn).mul X)) = true := by
+  have hp : numPos true cn = 0 := rfl
+  have hn : numNeg true cn = cn := rfl
+  simp only [hp, hn, Nat.ble_eq, Nat.add_eq, Nat.mul_eq, Nat.zero_mul, Nat.zero_add] at h ⊢
+  lia
+
+open Enclosure in
+/-- The upper rounding condition at sign `true`. -/
+theorem roundHi_true {cn X Y Z : ℕ} (h : (Z.add (cn.mul X)).blt (X.add Y) = true) :
+    (Z.add ((numNeg true cn).mul X)).blt ((((numPos true cn).succ).mul X).add Y) = true := by
+  have hp : numPos true cn = 0 := rfl
+  have hn : numNeg true cn = cn := rfl
+  simp only [hp, hn, Nat.blt_eq, Nat.add_eq, Nat.mul_eq, Nat.one_mul] at h ⊢
+  lia
 
 end BSN

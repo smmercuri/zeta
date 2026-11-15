@@ -1,7 +1,18 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.Fix
-public import Native.Trig
+public import Native.Eval.Const
+public import Native.Const
+public import Enclosure.BinarySplit.Functions.Cos
+public import Enclosure.BinarySplit.Functions.Sin
+public import Enclosure.BinarySplit.Reduce.Sin
+public import Enclosure.Defs
+public import Enclosure.BinarySplit.Defs
 public import Enclosure.BinarySplit.Taylor
 
 /-!
@@ -141,8 +152,7 @@ theorem tighten_encloses {Q : ℕ} (hQ : 0 < Q) {a : Fx} {x : ℝ} (ha : a.Enclo
 
 /-! ### Multiplication and division -/
 
-/-- The rounded product's error, with the centres themselves in the radius: the bound `mul` and
-`mulExact` both reduce to. -/
+/-- The rounded product's error, with the centres themselves in the radius. -/
 theorem abs_mul_sub_floor_le {Q : ℕ} (hQ : 0 < Q) {a b : Fx} {x y : ℝ} (ha : a.Encloses Q x)
     (hb : b.Encloses Q y) :
     |x * y - ((a.c * b.c / (Q : ℤ) : ℤ) : ℝ) / Q|
@@ -301,9 +311,9 @@ theorem toEncl_encloses {Q : ℕ} {a : Fx} {x : ℝ} (ha : a.Encloses Q x) :
   simp only [Encl.Encloses, Real.IsNear, toEncl]
   have hval : sfrac (decide (a.c < 0)) a.c.natAbs Q = (a.c : ℝ) / Q := by
     by_cases hc : a.c < 0
-    · simp only [hc, decide_true, sfrac, if_true, Nat.cast_natAbs, Int.cast_abs]
+    · simp only [hc, decide_true, sfrac, ite_true, Nat.cast_natAbs, Int.cast_abs]
       rw [abs_of_neg (by exact_mod_cast hc)]; ring
-    · simp only [hc, decide_false, sfrac, Bool.false_eq_true, if_false, Nat.cast_natAbs,
+    · simp only [hc, decide_false, sfrac, Bool.false_eq_true, ite_false, Nat.cast_natAbs,
         Int.cast_abs]
       rw [abs_of_nonneg (by exact_mod_cast not_lt.mp hc)]; ring
   rw [hval]; exact ha.1
@@ -330,7 +340,7 @@ theorem invPos_encloses {Q : ℕ} {X Y : Fx} {x : ℝ} (hX : X.Encloses Q x)
     (h : invPos Q X = some Y) : Y.Encloses Q x⁻¹ := by
   unfold invPos at h
   by_cases hc : (Nat.ble 1 Q && decide ((X.r : ℤ) < X.c)) = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     cases h
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hc
     obtain ⟨hQ1, hrc⟩ := hc
@@ -383,7 +393,7 @@ theorem invPos_encloses {Q : ℕ} {X Y : Fx} {x : ℝ} (hX : X.Encloses Q x)
                   mul_le_mul_of_nonneg_left hxlo (by positivity)
               _ = Q * Q := by field_simp
         _ ≤ _ := by rw [div_le_iff₀ hloR0]; exact hceilR
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem inv_encloses {Q : ℕ} {X Y : Fx} {x : ℝ} (hX : X.Encloses Q x)
@@ -399,7 +409,7 @@ theorem sqrt_encloses {Q : ℕ} {X Y : Fx} {x : ℝ} (hX : X.Encloses Q x)
     (h : sqrt Q X = some Y) : Y.Encloses Q (Real.sqrt x) := by
   unfold sqrt at h
   by_cases hQ1 : Nat.ble 1 Q = true
-  · rw [if_pos hQ1] at h
+  · rw [ite_eq_left hQ1] at h
     cases h
     have hQ : 0 < Q := Nat.le_of_ble_eq_true hQ1
     have hQR : (0 : ℝ) < Q := by exact_mod_cast hQ
@@ -446,7 +456,7 @@ theorem sqrt_encloses {Q : ℕ} {X Y : Fx} {x : ℝ} (hX : X.Encloses Q x)
         rw [Real.sqrt_le_left (by positivity)]
         push_cast at hsqR ⊢
         linarith
-  · rw [if_neg hQ1] at h
+  · rw [ite_eq_right hQ1] at h
     cases h
 
 /-! ### Taylor polynomials -/
@@ -509,26 +519,19 @@ theorem abs_lt_of_sq_bound {x B m : ℝ} (hm : 0 < m) (hx : |x| ≤ B) (hB : 2 *
   have h0 := abs_nonneg x
   nlinarith [sq_nonneg (|x| - m), sq_nonneg B]
 
-/-- The factor `0 ≤ (1 − (y/m)²)⁻¹ ≤ 2` when `2y² ≤ m²`. -/
-theorem inv_one_sub_bounds {y m : ℝ} (hm : 0 < m) (hym : 2 * y ^ 2 ≤ m ^ 2) :
-    0 ≤ (1 - (y / m) ^ 2)⁻¹ ∧ (1 - (y / m) ^ 2)⁻¹ ≤ 2 := by
-  have hsq : (y / m) ^ 2 ≤ 1 / 2 := by
-    rw [div_pow, div_le_iff₀ (by positivity)]
-    linarith
-  refine ⟨inv_nonneg.mpr (by linarith), ?_⟩
-  rw [inv_le_comm₀ (by linarith) (by norm_num)]
-  linarith
-
 /-- `y^m/m!·(1 − (y/(m+1))²)⁻¹ ≤ 2B^m/m!` for `0 ≤ y ≤ B`, `2B² ≤ (m+1)²`. -/
 theorem taylor_rem_le {y B : ℝ} (m : ℕ) (hy : 0 ≤ y) (hyB : y ≤ B)
     (hB : 2 * B ^ 2 ≤ ((m : ℝ) + 1) ^ 2) :
     y ^ m / m.factorial * (1 - (y / ((m : ℝ) + 1)) ^ 2)⁻¹ ≤ 2 * B ^ m / m.factorial := by
   have hm : (0 : ℝ) < m + 1 := by positivity
-  obtain ⟨h0, h2⟩ := inv_one_sub_bounds (y := y) hm (by nlinarith [mul_self_le_mul_self hy hyB])
+  have hym : 2 * y ^ 2 ≤ ((m : ℝ) + 1) ^ 2 := by nlinarith [mul_self_le_mul_self hy hyB]
+  have h0 : 0 ≤ (1 - (y / ((m : ℝ) + 1)) ^ 2)⁻¹ :=
+    inv_nonneg.mpr (by rw [div_pow, sub_nonneg, div_le_one (by positivity)]; nlinarith)
   have hf : (0 : ℝ) < m.factorial := by positivity
   calc y ^ m / m.factorial * (1 - (y / ((m : ℝ) + 1)) ^ 2)⁻¹
       ≤ B ^ m / m.factorial * 2 :=
-        mul_le_mul (div_le_div_of_nonneg_right (pow_le_pow_left₀ hy hyB _) hf.le) h2 h0
+        mul_le_mul (div_le_div_of_nonneg_right (pow_le_pow_left₀ hy hyB _) hf.le)
+          (geo_factor_le y _ hm hym) h0
           (div_nonneg (pow_nonneg (hy.trans hyB) _) hf.le)
     _ = 2 * B ^ m / m.factorial := by ring
 
@@ -624,20 +627,20 @@ theorem cosTaylor_encloses {Q D N : ℕ} {X C : Fx} {x : ℝ} (hX : X.Encloses Q
     (h : cosTaylor Q D N X = some C) : C.Encloses Q (Real.cos x) := by
   unfold cosTaylor at h
   by_cases hc : taylorOk Q D N X = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     cases h
     obtain ⟨hQ, hD, hB0, hBD, hB⟩ := taylorOk_spec hc
     have hs := (cosSeries_encloses hQ (mul_encloses hQ hX hX) N).2
     exact tighten_encloses hQ (encloses_of_poly hs (cos_taylor_bound N (abs_le_absBound hX) hB)
       (remainder_spec hQ hD hB0 hBD))
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem sinTaylor_encloses {Q D N : ℕ} {X S : Fx} {x : ℝ} (hX : X.Encloses Q x)
     (h : sinTaylor Q D N X = some S) : S.Encloses Q (Real.sin x) := by
   unfold sinTaylor at h
   by_cases hc : taylorOk Q D N X = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     cases h
     obtain ⟨hQ, hD, hB0, hBD, hB⟩ := taylorOk_spec hc
     have hB' : 2 * ((X.absBound : ℝ) / Q) ^ 2 ≤ (2 * N + 2) ^ 2 := by
@@ -646,7 +649,7 @@ theorem sinTaylor_encloses {Q D N : ℕ} {X S : Fx} {x : ℝ} (hX : X.Encloses Q
     have hs := (sinSeries_encloses hQ hX (mul_encloses hQ hX hX) N).2
     exact tighten_encloses hQ (encloses_of_poly hs (sin_taylor_bound N (abs_le_absBound hX) hB')
       (remainder_spec hQ hD hB0 hBD))
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem taylorPair_encloses {Q D N : ℕ} {X : Fx} {x : ℝ} {cs : Fx × Fx} (hX : X.Encloses Q x)
@@ -778,11 +781,11 @@ theorem trigAt_spec {Q : ℕ} {tbl : Array (Option (Fx × Fx))} (hT : TableValid
   · have hjR : (j : ℝ) < 0 := by exact_mod_cast hj
     rw [abs_of_neg hjR, neg_div, Real.cos_neg] at eC
     rw [abs_of_neg hjR, neg_div, Real.sin_neg] at eS
-    simp only [hj, if_true]
+    simp only [hj, ite_true]
     exact ⟨eC, by simpa using neg_encloses eS⟩
   · have hjR : (0 : ℝ) ≤ j := by exact_mod_cast not_lt.mp hj
     rw [abs_of_nonneg hjR] at eC eS
-    simp only [hj, if_false]
+    simp only [hj, ite_false]
     exact ⟨eC, eS⟩
 
 theorem nearTable_encloses {Q : ℕ} (hQ : 0 < Q) {tbl : Array (Option (Fx × Fx))}

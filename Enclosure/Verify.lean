@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.Core
@@ -16,8 +21,8 @@ namespace Enclosure
 
 /-! ### The generic bound verifier -/
 
-/-- Generic bound verifier: from an enclosure of `X` and the goal's own `q`, `eps`, conclude
-`|X − q| ≤ eps`, since the enclosure interval sits inside `[q − eps, q + eps]` (`hlo`/`hhi`). -/
+/-- Generic bound verifier: `|X − q| ≤ eps` when an enclosure of `X` lies inside
+`[q − eps, q + eps]` (`hlo`/`hhi`). -/
 theorem isNear_verify_le (X q eps : ℝ) (cneg qneg : Bool) (cn cd rn rd qn qd en ed : ℕ)
     (hcert : Real.IsNear X cneg cn cd rn rd)
     (hq : q = sfrac qneg qn qd) (heps : eps = sfrac false en ed)
@@ -64,13 +69,10 @@ theorem isNear_verify_le (X q eps : ℝ) (cneg qneg : Bool) (cn cd rn rd qn qd e
   rw [heps, abs_le]
   exact ⟨by linarith [hcert.1, hloR], by linarith [hcert.2, hhiR]⟩
 
-/-- Fast verifier for the common case where the goal's `q` equals the enclosure centre *as a
-rational* (`qn/qd = cn/cd`, same sign, as on every `approx%`+`bound` path). Then
-`|X − q| = |X − centre| ≤ rn/rd`, so the bound collapses to the centre check `qn·cd = cn·qd`
-(one big multiply) plus `rn·ed ≤ en·rd`, avoiding `isNear_verify_le`'s four-denominator triple
-products (the kernel bottleneck at high precision, where `cd`, `qd`, `ed`, `rd` are all
-precision-sized). The goal's `q` may be a gcd-reduced literal (`ℚ` normalises), so this compares
-by cross-multiplication rather than requiring `qn = cn`, `qd = cd` syntactically. -/
+/-- Fast verifier when the goal's `q` equals the enclosure centre as a rational (same sign,
+`qn·cd = cn·qd`): only that and `rn·ed ≤ en·rd` are checked, avoiding `isNear_verify_le`'s
+four-denominator products. The centre is compared by cross-multiplication because `q` may be a
+gcd-reduced literal. -/
 theorem isNear_verify_le_center (X q eps : ℝ) (neg : Bool) (cn cd rn rd qn qd en ed : ℕ)
     (hcert : Real.IsNear X neg cn cd rn rd)
     (hq : q = sfrac neg qn qd) (heps : eps = sfrac false en ed)

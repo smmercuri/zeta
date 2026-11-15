@@ -2,7 +2,8 @@ name: Lean Action CI
 
 on:
   push:
-    branches-ignore: [kernel-fastpath]
+    # Height branches from 1e6 up are too large for a runner; build them locally.
+    branches-ignore: [kernel-fastpath, '*e[6-9]*']
   pull_request:
   workflow_dispatch:
 
@@ -14,7 +15,7 @@ jobs:
       - name: Free runner disk (the build cache save needs the headroom)
         run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
       - uses: actions/checkout@v5
-      - name: Check that Zeta.lean imports every module (./mk_all.sh)
-        run: ./mk_all.sh --check
+      - name: Check that Zeta.lean imports every module (scripts/mk_all.sh)
+        run: scripts/mk_all.sh --check
       - uses: leanprover/lean-action@v1
       

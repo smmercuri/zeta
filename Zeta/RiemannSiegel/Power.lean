@@ -16,19 +16,18 @@ public import Zeta.RiemannSiegel.Line
 The Riemann–Siegel integrand carries a factor `x ^ (-s)` which must be interpreted through the
 branch of the logarithm that is real on `(0, ∞)` and continuous on the plane cut along the *upward*
 imaginary ray `i[0, ∞)` (`riemann_siegel.tex`, `def:rs_power`). Mathlib's principal branch cuts
-along the negative real axis instead, which the slanted contour `Zeta.RiemannSiegel.line` crosses,
-so it cannot be used directly.
+along the negative real axis, which the slanted contour `Zeta.RiemannSiegel.line` crosses.
 
-No bespoke branch theory is needed, however. Rotating by `e^{iπ/4}` carries the contour into the
-open right half-plane (`Zeta.RiemannSiegel.re_exp_pi_div_four_mul_I_mul_line`), where the principal
-branch is unproblematic, so the required branch is defined by rotating, taking mathlib's `cpow`, and
-rotating back:
+Rotating by `e^{iπ/4}` carries the contour into the open right half-plane
+(`Zeta.RiemannSiegel.re_exp_pi_div_four_mul_I_mul_line`), where the principal branch is
+continuous, so the required branch is defined by rotating, taking mathlib's `cpow`, and rotating
+back:
 `x ^ s = e^{-iπs/4} (e^{iπ/4} x) ^ s`.
 
-Holomorphy is therefore stated under membership of `Complex.slitPlane`, the hypothesis the
-underlying `Complex.cpow` actually needs, rather than under `0 < Re (e^{iπ/4} x)`: the strict
-inequality holds on `L(a)` for `a > 0` but degenerates to an equality on the contour `L(0)` through
-the origin, along which the branch is nevertheless holomorphic away from `0`.
+Holomorphy is stated under membership of `Complex.slitPlane`, the hypothesis of the underlying
+`Complex.cpow`. The inequality `0 < Re (e^{iπ/4} x)` holds on `L(a)` for `a > 0` but becomes an
+equality on the contour `L(0)` through the origin, along which the branch is holomorphic away
+from `0`.
 
 ## Main results
 
@@ -60,27 +59,26 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **argument rotated through `π/4`**, `slantArg x = arg (e^{iπ/4} x) - π/4`. On the rotated
-right half-plane `Re (e^{iπ/4} x) > 0` — which contains the whole contour
-`Zeta.RiemannSiegel.line a` for `a > 0` — it is the branch of the argument that is continuous on
+/-- The argument rotated through `π/4`, `slantArg x = arg (e^{iπ/4} x) - π/4`. On the rotated
+right half-plane `Re (e^{iπ/4} x) > 0` (which contains the whole contour
+`Zeta.RiemannSiegel.line a` for `a > 0`) it is the branch of the argument that is continuous on
 the plane cut along the upward imaginary ray `i[0, ∞)`. -/
 noncomputable def slantArg (x : ℂ) : ℝ := (exp ((π / 4 : ℝ) * I) * x).arg - π / 4
 
-/-- The **branch of the logarithm** cut along the upward imaginary ray,
+/-- The branch of the logarithm cut along the upward imaginary ray,
 `Log x = log ‖x‖ + i arg_Ω x` with `arg_Ω = Zeta.RiemannSiegel.slantArg`. It is the branch that is
 real on `(0, ∞)` and continuous on `ℂ \ i[0, ∞)`. -/
 noncomputable def slantLog (x : ℂ) : ℂ := (Real.log ‖x‖ : ℂ) + (slantArg x : ℂ) * I
 
-/-- The **branch of `x ↦ x ^ s`** cut along the upward imaginary ray, `x ^ s = e^{-iπs/4}
+/-- The branch of `x ↦ x ^ s` cut along the upward imaginary ray, `x ^ s = e^{-iπs/4}
 (e^{iπ/4} x) ^ s` with Mathlib's principal `Complex.cpow` on the right. It agrees with the principal
 branch on `(0, ∞)`, and on the rotated right half-plane it is the branch determined by
 `Zeta.RiemannSiegel.slantArg`. -/
 noncomputable def slantCpow (x s : ℂ) : ℂ :=
   exp (-((π / 4 : ℝ) * I * s)) * (exp ((π / 4 : ℝ) * I) * x) ^ s
 
-/-- **The slanted power is the exponential of the slanted logarithm**, `x ^ s = e^{s Log x}`. No
-hypothesis beyond `x ≠ 0` is needed: the branch cut of the rotated variable is invisible to both
-sides. -/
+/-- The slanted power is the exponential of the slanted logarithm, `x ^ s = e^{s Log x}`, for
+every `x ≠ 0`: the branch cut of the rotated variable is invisible to both sides. -/
 theorem slantCpow_eq_exp_mul_slantLog {x : ℂ} (hx : x ≠ 0) (s : ℂ) :
     slantCpow x s = exp (s * slantLog x) := by
   rw [slantCpow, Complex.cpow_def_of_ne_zero (mul_ne_zero (exp_ne_zero _) hx), ← exp_add,
@@ -89,14 +87,14 @@ theorem slantCpow_eq_exp_mul_slantLog {x : ℂ} (hx : x ≠ 0) (s : ℂ) :
   push_cast
   ring
 
-/-- **On the right half-plane the slanted logarithm is mathlib's principal one.** -/
+/-- On the right half-plane the slanted logarithm is mathlib's principal one. -/
 theorem slantLog_eq_log {x : ℂ} (hx : 0 < x.re) : slantLog x = Complex.log x := by
   have hpi := Real.pi_pos
   obtain ⟨h₁, h₂⟩ := abs_lt.1 (Complex.abs_arg_lt_pi_div_two_iff.2 (Or.inl hx))
   rw [slantLog, slantArg, Complex.arg_exp_ofReal_mul_I_mul (fun h ↦ by simp [h] at hx)
     ⟨by linarith, by linarith⟩, add_sub_cancel_right, Complex.log]
 
-/-- **The slanted power in polar form**: if the rotation carries `x` to `ρ e^{iφ}` with `ρ > 0` and
+/-- The slanted power in polar form: if the rotation carries `x` to `ρ e^{iφ}` with `ρ > 0` and
 `φ ∈ (-π, π]`, then `x ^ u = ρ^u e^{i(φ - π/4)u}`. -/
 theorem slantCpow_of_exp_pi_div_four_mul_I_mul_eq {x : ℂ} {ρ φ : ℝ} (hρ : 0 < ρ) (hφ₁ : -π < φ)
     (hφ₂ : φ ≤ π) (hx : exp ((π / 4 : ℝ) * I) * x = (ρ : ℂ) * exp ((φ : ℝ) * I)) (u : ℂ) :
@@ -107,13 +105,13 @@ theorem slantCpow_of_exp_pi_div_four_mul_I_mul_eq {x : ℂ} {ρ φ : ℝ} (hρ :
   push_cast
   ring
 
-/-- **On the positive reals the slanted branch agrees with Mathlib's principal one.** -/
+/-- On the positive reals the slanted branch agrees with Mathlib's principal one. -/
 theorem slantCpow_ofReal {r : ℝ} (hr : 0 < r) (s : ℂ) : slantCpow (r : ℂ) s = (r : ℂ) ^ s := by
   have hpi := Real.pi_pos
   rw [slantCpow_of_exp_pi_div_four_mul_I_mul_eq hr (φ := π / 4) (by linarith) (by linarith)
     (mul_comm _ _) s, sub_self, Complex.ofReal_zero, zero_mul, zero_mul, exp_zero, mul_one]
 
-/-- **The slanted branch on the outgoing Hankel ray** `ρ e^{iπ/4}`, where `arg_Ω` is `π/4`. -/
+/-- The slanted branch on the outgoing Hankel ray `ρ e^{iπ/4}`, where `arg_Ω` is `π/4`. -/
 theorem slantCpow_ofReal_mul_exp_pi_div_four_mul_I {ρ : ℝ} (hρ : 0 < ρ) (u : ℂ) :
     slantCpow ((ρ : ℂ) * exp ((π / 4 : ℝ) * I)) u = (ρ : ℂ) ^ u * exp ((π / 4 : ℝ) * I * u) := by
   have hpi := Real.pi_pos
@@ -124,7 +122,7 @@ theorem slantCpow_ofReal_mul_exp_pi_div_four_mul_I {ρ : ℝ} (hρ : 0 < ρ) (u 
   rw [slantCpow_of_exp_pi_div_four_mul_I_mul_eq hρ (by linarith) (by linarith) hrot u,
     show π / 2 - π / 4 = π / 4 by ring]
 
-/-- **The slanted branch on the incoming Hankel ray** `ρ e^{-3iπ/4}`, where `arg_Ω` is `-3π/4`. -/
+/-- The slanted branch on the incoming Hankel ray `ρ e^{-3iπ/4}`, where `arg_Ω` is `-3π/4`. -/
 theorem slantCpow_neg_ofReal_mul_exp_pi_div_four_mul_I {ρ : ℝ} (hρ : 0 < ρ) (u : ℂ) :
     slantCpow (-((ρ : ℂ) * exp ((π / 4 : ℝ) * I))) u
       = (ρ : ℂ) ^ u * exp ((-(3 * π / 4) : ℝ) * I * u) := by
@@ -137,13 +135,13 @@ theorem slantCpow_neg_ofReal_mul_exp_pi_div_four_mul_I {ρ : ℝ} (hρ : 0 < ρ)
   rw [slantCpow_of_exp_pi_div_four_mul_I_mul_eq hρ (by linarith) (by linarith) hrot u,
     show -(π / 2) - π / 4 = -(3 * π / 4) by ring]
 
-/-- **The slanted branch is holomorphic off the rotated branch cut.** -/
+/-- The slanted branch is holomorphic off the rotated branch cut. -/
 theorem differentiableAt_slantCpow (s : ℂ) {x : ℂ} (hx : exp ((π / 4 : ℝ) * I) * x ∈ slitPlane) :
     DifferentiableAt ℂ (fun y ↦ slantCpow y s) x :=
   (((by fun_prop : DifferentiableAt ℂ (fun y : ℂ ↦ exp ((π / 4 : ℝ) * I) * y) x).cpow
     (by fun_prop) hx).const_mul _)
 
-/-- **The modulus of the slanted power**: `‖x ^ s‖ = ‖x‖ ^ Re s / exp (slantArg x * Im s)`. -/
+/-- The modulus of the slanted power: `‖x ^ s‖ = ‖x‖ ^ Re s / exp (slantArg x * Im s)`. -/
 theorem norm_slantCpow {x : ℂ} (hx : x ≠ 0) (s : ℂ) :
     ‖slantCpow x s‖ = ‖x‖ ^ s.re / Real.exp (slantArg x * s.im) := by
   have hre : (-(((π / 4 : ℝ) : ℂ) * I * s)).re = π / 4 * s.im := by
@@ -154,7 +152,7 @@ theorem norm_slantCpow {x : ℂ} (hx : x ≠ 0) (s : ℂ) :
     Real.exp_sub]
   field_simp
 
-/-- **The argument along the slanted contour.** -/
+/-- The argument along the slanted contour. -/
 theorem slantArg_line {a : ℝ} (ha : 0 < a) (w : ℝ) :
     slantArg (line a w) = Real.arctan ((a + 2 * w) / a) - π / 4 := by
   have hre : (exp ((π / 4 : ℝ) * I) * line a w).re = Real.sqrt 2 / 2 * a := by
@@ -164,21 +162,21 @@ theorem slantArg_line {a : ℝ} (ha : 0 < a) (w : ℝ) :
   rw [slantArg, Complex.arg_eq_arctan (by rw [hre]; positivity), hre, him,
     mul_div_mul_left _ _ (by positivity : Real.sqrt 2 / 2 ≠ 0)]
 
-/-- **The slanted contour stays clear of the branch cut**: its argument never reaches `±3π/4`. -/
+/-- The slanted contour stays clear of the branch cut: its argument lies in `(-3π/4, 3π/4)`. -/
 theorem abs_slantArg_line_lt {a : ℝ} (ha : 0 < a) (w : ℝ) : |slantArg (line a w)| < 3 * π / 4 := by
   rw [slantArg_line ha, abs_lt]
   exact ⟨by linarith [Real.neg_pi_div_two_lt_arctan ((a + 2 * w) / a)],
     by linarith [Real.arctan_lt_pi_div_two ((a + 2 * w) / a), Real.pi_pos]⟩
 
-/-- **The exponential factor contributed by the argument of the power is bounded along the
-contour.** -/
+/-- The exponential factor contributed by the argument of the power is bounded along the
+contour. -/
 theorem slantArg_line_mul_im_le (s : ℂ) {a : ℝ} (ha : 0 < a) (w : ℝ) :
     slantArg (line a w) * s.im ≤ 3 * π * |s.im| / 4 := by
   refine (le_abs_self _).trans ?_
   rw [abs_mul]
   nlinarith [(abs_slantArg_line_lt ha w).le, abs_nonneg s.im, abs_nonneg (slantArg (line a w))]
 
-/-- **The slanted logarithm is continuous along the contour.** -/
+/-- The slanted logarithm is continuous along the contour. -/
 theorem continuous_slantLog_line {a : ℝ} (ha0 : 0 < a) :
     Continuous fun w : ℝ ↦ slantLog (line a w) := by
   have hlog : Continuous fun w : ℝ ↦ Real.log ‖line a w‖ :=
@@ -187,7 +185,7 @@ theorem continuous_slantLog_line {a : ℝ} (ha0 : 0 < a) :
   simp only [slantLog, slantArg_line ha0]
   fun_prop
 
-/-- **The slanted logarithm grows at most linearly along the contour.** -/
+/-- The slanted logarithm grows at most linearly along the contour. -/
 theorem norm_slantLog_line_le {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
     ‖slantLog (line a w)‖ ≤ |Real.log (a / Real.sqrt 2)| + a + 3 * π / 4 + 2 * |w| := by
   refine (norm_add_le _ _).trans ?_

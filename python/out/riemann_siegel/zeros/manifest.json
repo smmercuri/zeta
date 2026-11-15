@@ -2,6 +2,7 @@
   "rows": 10104,
   "rows_per_file": 250000,
   "height": "10011.107",
+  "end": 10011.107,
   "cols": [
     "idx",
     "left",
@@ -10,9 +11,11 @@
   "params": {
     "method": "riemann_siegel",
     "prec": 200,
-    "max_depth": 0,
+    "bisection_depth": 0,
     "epsilon": 0.125,
-    "widen": true
+    "widen": true,
+    "window_retries": 100,
+    "halving_depth": 10
   },
   "files": [
     {

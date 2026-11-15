@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure
@@ -7,7 +12,7 @@ public import Mathlib.Analysis.Real.Sqrt
 # Certified `IsNear` enclosure for `√(N/M)` by squaring (everything as `ℕ`)
 
 A dyadic enclosure `[a/Q, b/Q]` of `√(N/M)` is certified by squaring: `a²·M ≤ N·Q²` and
-`N·Q² ≤ b²·M` are pure-`ℕ` comparisons, turned into an `IsNear` via monotonicity of `√`.
+`N·Q² ≤ b²·M` are pure-`ℕ` comparisons.
 -/
 @[expose] public section
 
@@ -15,9 +20,8 @@ A dyadic enclosure `[a/Q, b/Q]` of `√(N/M)` is certified by squaring: `a²·M 
 namespace BSN
 open Enclosure
 
-/-- Certified `IsNear` enclosure for `√(N/M)`, all data carried as `ℕ`. From the squaring
-conditions `a²·M ≤ N·Q²` and `N·Q² ≤ b²·M`, conclude `√(N/M) ∈ [a/Q, b/Q]`: centre `(a+b)/(2Q)`,
-radius `(b−a)/(2Q)`. -/
+/-- `IsNear` enclosure of `√(N/M)` from the squaring conditions `a²·M ≤ N·Q²` and `N·Q² ≤ b²·M`:
+centre `(a+b)/(2Q)`, radius `(b−a)/(2Q)`. -/
 theorem sqrt_enclosure (N M a b Q : ℕ)
     (hM : Nat.ble 1 M) (hQ : Nat.ble 1 Q) (hab : Nat.ble a b)
     (hlo : ((a.pow 2).mul M).ble (N.mul (Q.pow 2)))

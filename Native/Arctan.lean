@@ -1,7 +1,18 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.Arctan
-public import Native.Trig
+public import Native.Eval.Const
+public import Native.Const
+public import Enclosure.BinarySplit.Functions.Cos
+public import Enclosure.BinarySplit.Functions.Sin
+public import Enclosure.BinarySplit.Reduce.Sin
+public import Enclosure.Defs
+public import Enclosure.BinarySplit.Defs
 public import Enclosure.BinarySplit.Functions.Arctan
 
 /-!

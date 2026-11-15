@@ -21,8 +21,8 @@ The error splits into two *independent* contributions at `w_t = ¼ + it/2`, and 
 bounded, since the order-`2` Stirling polynomial itself contributes at orders `t^{-1}` and
 `t^{-3}`:
 
-* the elementary part `Im S_2(w_t) - (t/2) log π - ϑ(t)`, whose expansion begins `1/(48t)` —
-  note that `Re w_t = ¼` also contributes at order `t^{-1}` (for instance
+* the elementary part `Im S_2(w_t) - (t/2) log π - ϑ(t)`, whose expansion begins `1/(48t)`;
+  `Re w_t = ¼` also contributes at order `t^{-1}` (for instance
   `Im 1/(12 w_t) = -(t/2)/(12‖w_t‖²)` is *not* `-1/(6t)`), so every such contribution is
   collected before any estimate is made;
 * the remainder `Im ρ_2(w_t)`, controlled by the `‖·‖`-form
@@ -53,8 +53,8 @@ open scoped Nat Real
 
 namespace Zeta.RiemannSiegel
 
--- A `def` rather than an `abbrev` deliberately: the estimates below drive `simp only`, `norm_num`
--- and `positivity` at goals mentioning `w_t`, and they stay legible only while `w_t` is an atom.
+-- A `def`, so that `w_t` stays an atom for the `simp only`, `norm_num` and `positivity` calls
+-- below.
 /-- The **Stirling argument** `w_t = ¼ + i t/2` of the Riemann–Siegel theta function. -/
 private noncomputable def thetaArg (t : ℝ) : ℂ := 1 / 4 + Complex.I * (t / 2)
 
@@ -163,7 +163,7 @@ private theorem abs_im_inv_thetaArg_cube_le {t : ℝ} (ht : 0 < t) :
 The remainder half is `abs_riemannSiegelTheta_sub_approximant_two_le`, in `Zeta/Zeros/HardyZ.lean`.
 -/
 
-/-- **The elementary half** of the theta estimate (`riemann_siegel_first.tex`,
+/-- The elementary half of the theta estimate (`riemann_siegel_first.tex`,
 `lem:rsf_theta_sharp`, step (i)): the four centred errors of the order-`2` Stirling polynomial,
 around the exact leading value `1/(16t) + 1/(8t) - 1/(6t) = 1/(48t)`. -/
 private theorem abs_im_logGammaStirling_two_sub_leading_sub_inv_le {t : ℝ} (ht : 0 < t) :
@@ -210,7 +210,7 @@ private theorem abs_im_logGammaStirling_two_sub_leading_sub_inv_le {t : ℝ} (ht
 
 /-! ### The theta estimate, sharp and in its two thresholded forms -/
 
-/-- **Leading term of the Stirling phase error** (`riemann_siegel_first.tex`,
+/-- Leading term of the Stirling phase error (`riemann_siegel_first.tex`,
 `lem:rsf_theta_sharp`): the deviation of the Riemann–Siegel theta function from the leading
 Stirling phase `ϑ = leadingTheta` has leading term `1/(48t)`. -/
 theorem abs_riemannSiegelTheta_sub_leading_sub_inv_le {t : ℝ} (ht : 0 < t) :
@@ -228,7 +228,7 @@ theorem abs_riemannSiegelTheta_sub_leading_sub_inv_le {t : ℝ} (ht : 0 < t) :
       abs_riemannSiegelTheta_sub_approximant_two_le ht
   linarith [hrem, abs_im_logGammaStirling_two_sub_leading_sub_inv_le ht]
 
-/-- **Leading Stirling form of `θ` at the sharp first-order threshold** `t ≥ 32π`, in the form
+/-- Leading Stirling form of `θ` at the sharp first-order threshold `t ≥ 32π`, in the form
 `1.01/(48t)`. -/
 theorem abs_riemannSiegelTheta_sub_leading_le' {t : ℝ} (ht : 32 * π ≤ t) :
     |riemannSiegelTheta t - leadingTheta t| ≤ 101 / (4800 * t) := by
@@ -249,7 +249,7 @@ theorem abs_riemannSiegelTheta_sub_leading_le' {t : ℝ} (ht : 32 * π ≤ t) :
   rw [abs_le] at hsharp ⊢
   constructor <;> linarith [hsharp.1, hsharp.2, (by positivity : (0 : ℝ) < 1 / (48 * t))]
 
-/-- **Leading Stirling form of `θ`** (`riemann_siegel_first.tex`, `lem:rsf_theta`): the
+/-- Leading Stirling form of `θ` (`riemann_siegel_first.tex`, `lem:rsf_theta`): the
 Riemann–Siegel theta function agrees with the leading Stirling phase `ϑ = leadingTheta` to within
 `1/(40t)`. -/
 theorem abs_riemannSiegelTheta_sub_leading_le {t : ℝ} (ht : 10 ^ 3 ≤ t) :

@@ -31,7 +31,7 @@ open Complex Set
 
 variable {a b : ℝ}
 
-/-- **Conjugation negates the argument variation** of a continuous nowhere-zero `φ`. -/
+/-- Conjugation negates the argument variation of a continuous nowhere-zero `φ`. -/
 theorem argVariation_conj (hab : a ≤ b) {φ : ℝ → ℂ}
     (hφ : ContinuousOn φ (Set.Icc a b)) (h0 : ∀ u ∈ Set.Icc a b, φ u ≠ 0) :
     argVariation a b (fun u => starRingEnd ℂ (φ u)) = - argVariation a b φ := by
@@ -73,7 +73,7 @@ private theorem riemannXi_ofReal_im_eq_zero (σ : ℝ) : (riemannXi (σ : ℂ)).
   rw [Complex.conj_im] at this
   linarith
 
-/-- **`ξ > 0` on the real segment `[-1, 2]`**, where it is also real. -/
+/-- `ξ > 0` on the real segment `[-1, 2]`, where it is also real. -/
 theorem riemannXi_pos_of_mem_Icc {σ : ℝ} (hσ : σ ∈ Icc (-1 : ℝ) 2) :
     0 < (riemannXi (σ : ℂ)).re ∧ (riemannXi (σ : ℂ)).im = 0 := by
   refine ⟨?_, riemannXi_ofReal_im_eq_zero σ⟩
@@ -117,7 +117,7 @@ private theorem riemannXi_lineSeg_ne_zero_of_im_eq_T {T : ℝ} (hT : T ≠ 0)
   have him : (lineSeg z₀ z₁ u).im = T := by rw [lineSeg_im, h0, h1]; ring
   exact riemannXi_ne_zero_of_zeta_ne_zero_of_im_ne_zero (by rw [him]; exact hT) (hT' _ him)
 
-/-- **Splitting a `lineSeg` edge at an interior parameter** `t ∈ [0, 1]`: the argument variation
+/-- Splitting a `lineSeg` edge at an interior parameter `t ∈ [0, 1]`: the argument variation
 over the segment is the sum of the variations over its two halves. -/
 private theorem argVariation_lineSeg_split {f : ℂ → ℂ} (z₀ z₁ : ℂ) {t : ℝ} (ht0 : 0 ≤ t)
     (ht1 : t ≤ 1) (hcont : ContinuousOn (fun u => f (lineSeg z₀ z₁ u)) (Set.Icc 0 1))
@@ -155,7 +155,7 @@ private theorem argVariation_lineSeg_split {f : ℂ → ℂ} (z₀ z₁ : ℂ) {
       (by show t + (1 - t) * 0 = t; ring) (by show t + (1 - t) * 1 = 1; ring) hcont2 hne2).symm
   rw [argVariation_trans ht0 ht1 hcont hne, h1, h2]
 
-/-- **Reversing a `lineSeg` edge negates its argument variation.** -/
+/-- Reversing a `lineSeg` edge negates its argument variation. -/
 private theorem argVariation_lineSeg_swap {f : ℂ → ℂ} (z₀ z₁ : ℂ)
     (hcont : ContinuousOn (fun u => f (lineSeg z₀ z₁ u)) (Set.Icc 0 1))
     (hne : ∀ u ∈ Set.Icc (0 : ℝ) 1, f (lineSeg z₀ z₁ u) ≠ 0) :
@@ -172,8 +172,8 @@ private theorem riemannXi_reflect (s : ℂ) :
     riemannXi (1 - starRingEnd ℂ s) = starRingEnd ℂ (riemannXi s) := by
   rw [riemannXi_one_sub, riemannXi_conj]
 
-/-- **The reflection `ρ(s) = 1 - conj s` negates the argument variation of `ξ` along a `lineSeg`
-edge**, carrying `z₀ → z₁` to `(1 - conj z₀) → (1 - conj z₁)`. -/
+/-- The reflection `ρ(s) = 1 - conj s` negates the argument variation of `ξ` along a `lineSeg`
+edge, carrying `z₀ → z₁` to `(1 - conj z₀) → (1 - conj z₁)`. -/
 private theorem argVariation_lineSeg_reflect {z₀ z₁ : ℂ}
     (hcont : ContinuousOn (fun u => riemannXi (lineSeg z₀ z₁ u)) (Set.Icc 0 1))
     (hne : ∀ u ∈ Set.Icc (0 : ℝ) 1, riemannXi (lineSeg z₀ z₁ u) ≠ 0) :
@@ -214,9 +214,8 @@ private theorem argVariation_riemannXi_real_eq_zero {z₀ z₁ : ℂ}
 
 /-! ### The halving identity -/
 
-/-- **Halving the contour.** For `T > 0` not the ordinate of a zero of `ζ`, the boundary argument
-variation of `ξ` around the rectangle with corners `-1` and `2 + iT` is twice the variation along
-`L_T : 2 → 2 + iT → ½ + iT`: `Δ_{∂R} arg ξ = 2 Δ_{L_T} arg ξ`. -/
+/-- **Halving the contour**: the boundary argument variation of `ξ` around the rectangle with
+corners `-1` and `2 + iT` is twice its variation along `L_T : 2 → 2 + iT → ½ + iT`. -/
 theorem argVariation_riemannXi_rectangle_eq_two_mul {T : ℝ} (hT : 0 < T)
     (hT' : ∀ s : ℂ, s.im = T → riemannZeta s ≠ 0) :
     rectangleArgVariation riemannXi (-1) (2 + I * (T : ℂ))

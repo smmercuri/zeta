@@ -2,6 +2,7 @@
   "rows": 52,
   "rows_per_file": 250000,
   "height": "149.500",
+  "end": 149.5,
   "cols": [
     "idx",
     "left",

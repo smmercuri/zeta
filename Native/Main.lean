@@ -13,7 +13,7 @@ public import Native.CountCertificates
 
 `Zeta.riemannHypothesisUpTo_10011` again, from `Native.certifiedZeroCount`: the same
 statement and the same generic argument, with the Riemann–Siegel batches checked by compiled
-evaluation (`native_decide`) instead of the kernel. `#print axioms` therefore lists, besides
+evaluation (`native_decide`). `#print axioms` therefore lists, besides
 `propext`, `Classical.choice` and `Quot.sound`, one `native_decide` axiom per native batch: the
 result trusts the Lean compiler and runtime as well as the kernel.
 -/
@@ -24,7 +24,7 @@ namespace Native
 
 open Zeta.Certificates
 
-/-- **The Riemann Hypothesis holds up to height 10011**, with the Riemann–Siegel zero
+/-- The Riemann Hypothesis holds up to height 10011, with the Riemann–Siegel zero
 certificates checked natively: every zero of `riemannZeta` with `|im| < 10011`, other than
 the trivial zeros and `s = 1`, has real part `1/2`. -/
 theorem riemannHypothesisUpTo_10011 : RiemannHypothesisUpTo 10011 :=

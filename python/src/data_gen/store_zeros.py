@@ -4,7 +4,7 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-from config import OUT_DIR, DIGITS, IMPORT_DP, ROWS_PER_FILE
+from config import OUT_DIR, IMPORT_DP, IMPORT_DP_MAX, NO_WIDEN_DP, ROWS_PER_FILE
 from approximants import build_approx, method_subparsers
 from util import ZApproximant, ZInterval
 from search import ZeroSearch
@@ -25,7 +25,7 @@ def trim(field: str) -> str:
     return f"{i}.{f.rstrip('0').ljust(IMPORT_DP, '0')}"
 
 
-def write_rows(rows: list[tuple[int, ZInterval]], out: str, digits: int = DIGITS):
+def write_rows(rows: list[tuple[int, ZInterval]], out: str, digits: int):
     out = Path(out).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w") as f:
@@ -34,7 +34,12 @@ def write_rows(rows: list[tuple[int, ZInterval]], out: str, digits: int = DIGITS
 
 
 def write_store(
-    out: Path, lines: Iterable[str], cols, params: dict, rows_per_file: int = ROWS_PER_FILE
+    out: Path,
+    lines: Iterable[str],
+    cols,
+    params: dict,
+    end: float,
+    rows_per_file: int = ROWS_PER_FILE,
 ) -> dict:
     """Write a zero store: `lines` (`idx, left, right, …`, ascending) split into files of
     `rows_per_file` rows as they arrive, plus the `manifest.json` indexing them. The files are
@@ -71,6 +76,7 @@ def write_store(
         "rows": sum(f["rows"] for f in files),
         "rows_per_file": rows_per_file,
         "height": files[-1]["height"] if files else None,
+        "end": end,
         "cols": list(cols),
         "params": params,
         "files": files,
@@ -103,9 +109,10 @@ def store_zeros(
     }
     return write_store(
         f"{OUT_DIR}/{approx.name}/zeros",
-        (f"{i}, {z.row(DIGITS)}" for i, z in enumerate(zeros, start=1)),
+        (f"{i}, {z.row(IMPORT_DP_MAX if widen else NO_WIDEN_DP)}" for i, z in enumerate(zeros, start=1)),
         ("idx",) + approx.row_cols,
         params,
+        end,
         rows_per_file,
     )
 
@@ -128,7 +135,7 @@ def zeros_flags():
         type=int,
         metavar="N",
         help="number of worker processes for the search; -1 (the default) uses every core. "
-        "Pass a small number on a shared login node",
+        "Pass a smaller number to leave cores free",
         default=-1,
     )
     s.add_argument(

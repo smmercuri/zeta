@@ -1,10 +1,14 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 /-!
 # `Native.Eval.Probe`: is the compiled code loaded?
 
-A plain loop for `Native.PluginCheck` to time: compiled, an iteration takes a few nanoseconds;
-in the interpreter, over a hundred.
+A plain loop that `Native.PluginCheck` times to tell compiled execution from interpreted.
 -/
 @[expose] public section
 

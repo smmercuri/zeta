@@ -98,9 +98,8 @@ structure GramBlock.Certificate (G : GramBlock) where
   left_certificate : G.left.Certificate
   /-- The right gram point is certified. -/
   right_certificate : G.right.Certificate
-  /-- Every interval carried by the block brackets a `ζ`-zero. As in `CertifiedZeroIntervals`,
-  the block records the *fact* rather than the certificate that established it, so a block may
-  carry intervals certified by either approximation method. -/
+  /-- Every interval carried by the block brackets a `ζ`-zero. The block records the fact rather
+  than a certificate, so either approximation method may have certified it. -/
   has_zero : ∀ z ∈ G.zeros, ∃ t ∈ Set.Ioo z.fst z.snd, riemannZeta (1 / 2 + Complex.I * t) = 0
   /-- Some zero interval lies between the two gram brackets. -/
   contains_zero : ∃ z ∈ G.zeros, z.fst ∈ Icc G.left.snd G.right.fst ∧

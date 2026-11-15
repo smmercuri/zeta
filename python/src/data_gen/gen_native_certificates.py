@@ -2,7 +2,7 @@
 """Generate the native zero certificates: the batches checked by compiled evaluation.
 
 The same plan as `gen_zero_certificates.py` (same stores, same chunks, same exported
-`BatchSpec n an ad bn bd` per batch), rendered for the `Native` library instead of the kernel:
+`BatchSpec n an ad bn bd` per batch), rendered for the `Native` library:
 
     Native/Certificates/<Method>/Shard<kkkk>.lean
         # `NATIVE_BATCHES_PER_MODULE` batches each, every one a theorem
@@ -21,15 +21,14 @@ The same plan as `gen_zero_certificates.py` (same stores, same chunks, same expo
     Native/CountCertificates.lean
         # `Native.certifiedZeroCount`, as `Zeta/Zeros/CountCertificates.lean` but on the above
 
-A module costs a `Mathlib` import (~3.5 s) however few batches it holds, while a batch costs
-~0.1–0.4 s; so batches are packed several to a module (a shard, as in `comparator/shard.sh`:
-batches checked together to share a fixed cost), and shards still build in parallel.
+A module carries the fixed cost of its `Mathlib` import however few batches it holds, so batches
+are packed several to a module (a shard, as in `comparator/shard.sh`: batches checked together to
+share a fixed cost), and shards still build in parallel.
 
-The fold is a tree for the same reason. One prefix theorem per batch in a single assembler is
-`O(1)` per step but serial and, at 10⁵ batches, a 400k-line module elaborated after everything
-else. Folding each group of modules in its own module instead builds the groups in parallel, and
-levels are added until the assembler has at most `NATIVE_MODULES_PER_GROUP` steps; every seam is
-still one `Nat.ble` closed by `rfl`.
+The fold is a tree for the same reason. A single assembler with one prefix theorem per batch is
+serial, and its size grows with the batch count. Folding each group of modules in its own module
+builds the groups in parallel, and levels are added until the assembler has at most
+`NATIVE_MODULES_PER_GROUP` steps; every seam is still one `Nat.ble` closed by `rfl`.
 
 A shard or group module this generator wrote earlier that this run does not rewrite (the store
 shrank) is stale, and handled as `gen_zero_certificates.py` handles its own: listed, and nothing
@@ -163,8 +162,10 @@ def group_theorem(g: GroupRef) -> str:
 
 def gen_group(g: GroupRef, refs: list, modules: list[str], src: str) -> str:
     """A group module: the fold of `refs` (at level 1 the batches of `modules`, above it the
-    groups), exported as `group`."""
-    imports = "\n".join(f"public import {m}" for m in modules)
+    groups), exported as `group`. Only level 1 imports its children publicly, to bound the closure
+    of everything above it: see `gen_group` in `gen_zero_certificates.py`."""
+    imp = "public import" if g.level == 1 else "import"
+    imports = "\n".join(f"{imp} {m}" for m in modules)
     kind, name = ("batches", theorem_name) if g.level == 1 else ("groups", group_theorem)
     note = (f"Native level-{g.level} group {g.k}: the {kind}\n{refs[0].qual}–{refs[-1].qual}\n"
             "folded into one `BatchSpec` by the same `BatchSpec.append` fold as\n"
@@ -195,7 +196,7 @@ end
 
 
 def gen_native_assembler(groups: list[GroupRef], src: str) -> str:
-    imports = "\n".join(f"public import {g.module}" for g in groups)
+    imports = "\n".join(f"import {g.module}" for g in groups)
     note = ("Assembles the native batches (and the kernel-checked ones of methods with no native\n"
             "check) into one `BatchSpec`, by the same `BatchSpec.append` fold as\n"
             "`Zeta/Zeros/Certificates.lean`, over the groups' statements (each group folds its\n"
@@ -237,8 +238,11 @@ def main() -> None:
     ap.add_argument("--prune", action="store_true",
                     help="delete shard and group modules generated earlier that this run does "
                          "not rewrite")
+    ap.add_argument("--ignore-style", action="store_true",
+                    help="allow lines past the 100-column limit (long `--no-widen` endpoints)")
     args = ap.parse_args()
     native_root = args.native_root
+    style = args.ignore_style
     stores = args.stores or default_stores()
     plan = plan_batches(stores)
 
@@ -299,20 +303,22 @@ def main() -> None:
 
     for path, subdir, k, chunk in shards:
         srcs_k = ", ".join(dict.fromkeys(str(i[3]) for i in chunk))
-        write_module(path, gen_shard(subdir, k, [(i[0], i[1]) for i in chunk], chunk[-1][2], srcs_k))
+        text = gen_shard(subdir, k, [(i[0], i[1]) for i in chunk], chunk[-1][2], srcs_k)
+        write_module(path, text, style)
 
     for level in levels:
         for g, children in level:
             imports = modules[g] if g.level == 1 else [c.module for c in children]
-            write_module(module_path(cert_dir, g.qual), gen_group(g, children, imports, srcs))
+            write_module(module_path(cert_dir, g.qual), gen_group(g, children, imports, srcs),
+                         style)
     groups = [g for g, _ in levels[-1]]
-    write_module(native_root / "Certificates.lean", gen_native_assembler(groups, srcs))
+    write_module(native_root / "Certificates.lean", gen_native_assembler(groups, srcs), style)
 
     last_ref = refs[-1]
     unfolds = "".join(", " + u for u in last_ref.dialect.seam_unfold)
     zsrc = "\n".join(f"  {rel(str(s))}" for s in stores)
     write_module(native_root / "CountCertificates.lean",
-                 gen_count_certificate(unfolds, zsrc, native=True))
+                 gen_count_certificate(unfolds, zsrc, native=True), style)
 
     n_native = len(native)
     print(f"wrote {n_native} native batches in {len(shards)} modules, "

@@ -58,8 +58,8 @@ private theorem add_ofReal_ne_zero_of_re_pos {s : ℂ} (hs : 0 < s.re) {x : ℝ}
   Complex.ne_zero_of_re_pos (by simp only [Complex.add_re, Complex.ofReal_re]; linarith)
 
 /-- The closed form `(-1)ʲ · j! · (s + x)^(-(j+1))` of the `j`-th derivative of the kernel
-`x ↦ (s + x)⁻¹` differentiates to the `(j+1)`-st instance of the same family. Only `s + x ≠ 0` is
-needed; no slit-plane hypothesis, the power being a genuine integer power. -/
+`x ↦ (s + x)⁻¹` differentiates to the `(j+1)`-st instance of the same family. The hypothesis is
+`s + x ≠ 0`, since the power is an integer power. -/
 private theorem hasDerivAt_inv_add_closed_form (s : ℂ) (j : ℕ) {x : ℝ} (hx : s + (x : ℂ) ≠ 0) :
     HasDerivAt (fun y : ℝ ↦ (-1 : ℂ) ^ j * (j ! : ℂ) * (s + (y : ℂ)) ^ (-(j + 1 : ℤ)))
       ((-1 : ℂ) ^ (j + 1) * ((j + 1)! : ℂ) * (s + (x : ℂ)) ^ (-(j + 1 + 1 : ℤ))) x := by
@@ -75,7 +75,7 @@ private theorem hasDerivAt_inv_add_closed_form (s : ℂ) (j : ℕ) {x : ℝ} (hx
     ring]
   exact hres
 
-/-- **Iterated derivatives of the kernel `x ↦ (s + x)⁻¹`.** For `s + x ≠ 0`,
+/-- Iterated derivatives of the kernel `x ↦ (s + x)⁻¹`: for `s + x ≠ 0`,
 `g_s⁽ʲ⁾(x) = (-1)ʲ · j! · (s + x)^(-(j+1))`. -/
 theorem iteratedDeriv_inv_add_ofReal (s : ℂ) (j : ℕ) {x : ℝ} (hx : s + (x : ℂ) ≠ 0) :
     iteratedDeriv j (fun y : ℝ ↦ (s + (y : ℂ))⁻¹) x
@@ -91,7 +91,7 @@ theorem iteratedDeriv_inv_add_ofReal (s : ℂ) (j : ℕ) {x : ℝ} (hx : s + (x 
     push_cast
     ring
 
-/-- **Derivative chain for the kernel `x ↦ (s + x)⁻¹`.** For `s + x ≠ 0`, the `j`-th iterated
+/-- Derivative chain for the kernel `x ↦ (s + x)⁻¹`: for `s + x ≠ 0`, the `j`-th iterated
 derivative of `g_s` is differentiable with derivative the `(j+1)`-st iterated derivative. -/
 theorem hasDerivAt_iteratedDeriv_inv_add_ofReal (s : ℂ) (j : ℕ) {x : ℝ} (hx : s + (x : ℂ) ≠ 0) :
     HasDerivAt (iteratedDeriv j (fun y : ℝ ↦ (s + (y : ℂ))⁻¹))
@@ -103,7 +103,7 @@ theorem hasDerivAt_iteratedDeriv_inv_add_ofReal (s : ℂ) (j : ℕ) {x : ℝ} (h
   rw [iteratedDeriv_inv_add_ofReal s (j + 1) hx]
   exact (hasDerivAt_inv_add_closed_form s j hx).congr_of_eventuallyEq heq
 
-/-- **Interval integrability of the kernel derivatives.** For `Re s > 0`, every `j`, and all reals
+/-- Interval integrability of the kernel derivatives: for `Re s > 0`, every `j`, and all reals
 `0 ≤ a`, `0 ≤ b`, the iterated derivative `g_s⁽ʲ⁾` is interval integrable on `[a, b]`. -/
 theorem intervalIntegrable_iteratedDeriv_inv_add_ofReal (s : ℂ) (hs : 0 < s.re) (j : ℕ)
     {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) :
@@ -111,7 +111,7 @@ theorem intervalIntegrable_iteratedDeriv_inv_add_ofReal (s : ℂ) (hs : 0 < s.re
   refine ContinuousOn.intervalIntegrable fun x hx ↦ (hasDerivAt_iteratedDeriv_inv_add_ofReal s j
     (add_ofReal_ne_zero_of_re_pos hs ((le_min ha hb).trans hx.1))).continuousAt.continuousWithinAt
 
-/-- **Digamma telescope.** For `Re s > 0` and `N : ℕ`,
+/-- Digamma telescope: for `Re s > 0` and `N : ℕ`,
 `∑_{n=0}^{N} (s + n)⁻¹ = ψ(s + N + 1) - ψ(s)`, where `ψ = Complex.digamma`. -/
 theorem sum_inv_add_eq_digamma_sub (s : ℂ) (hs : 0 < s.re) (N : ℕ) :
     ∑ n ∈ Finset.range (N + 1), (s + (n : ℂ))⁻¹
@@ -133,7 +133,7 @@ theorem sum_inv_add_eq_digamma_sub (s : ℂ) (hs : 0 < s.re) (N : ℕ) :
       Complex.digamma_apply_add_one (s + (N : ℂ) + 1) (ne_neg_natCast_of_re_pos hre)]
     ring
 
-/-- **Finite Euler–Maclaurin expansion of the digamma partial sum.** For `Re s > 0` and `M N : ℕ`,
+/-- Finite Euler–Maclaurin expansion of the digamma partial sum: for `Re s > 0` and `M N : ℕ`,
 with the kernel `g_s(x) = (s + x)⁻¹` and order `p = 2M+1`,
 `ψ(s + N + 1) - ψ(s) = [Log(s + N) - Log s] + (1/s + 1/(s + N))/2
   - ∑_{k=1}^{M} B_{2k}/(2k) · ((s + N)^{-2k} - s^{-2k}) + R_{2M+1}(g_s; 0, N)`,
@@ -216,7 +216,7 @@ theorem sum_inv_add_eq (s : ℂ) (hs : 0 < s.re) (M N : ℕ) :
   rw [← sum_inv_add_eq_digamma_sub s hs N, hLHS, key, hIeq, hEeq, hBeq]
   ring
 
-/-- **Antitonicity of the negative integer power `t ↦ t^(-(p+1))` on the positive reals.** For
+/-- Antitonicity of the negative integer power `t ↦ t^(-(p+1))` on the positive reals: for
 `0 < a ≤ b`, `b^(-(p+1)) ≤ a^(-(p+1))`. -/
 private theorem zpow_neg_add_one_le_of_le {p : ℕ} {a b : ℝ} (ha : 0 < a) (hab : a ≤ b) :
     b ^ (-(↑p + 1 : ℤ)) ≤ a ^ (-(↑p + 1 : ℤ)) := by
@@ -224,7 +224,7 @@ private theorem zpow_neg_add_one_le_of_le {p : ℕ} {a b : ℝ} (ha : 0 < a) (ha
     zpow_natCast]
   simpa using one_div_le_one_div_of_le (pow_pos ha _) (pow_le_pow_left₀ ha.le hab _)
 
-/-- **Integrability of the pure power kernel `‖s + x‖^(-(p+1))` on `(0, ∞)`,** for `Re s > 0` and
+/-- Integrability of the pure power kernel `‖s + x‖^(-(p+1))` on `(0, ∞)`, for `Re s > 0` and
 `p ≥ 1`. -/
 private theorem integrableOn_Ioi_norm_zpow_inv_add (s : ℂ) (hs : 0 < s.re) (p : ℕ) (hp : 1 ≤ p) :
     IntegrableOn (fun x : ℝ ↦ ‖s + (x : ℂ)‖ ^ (-(↑p + 1 : ℤ))) (Set.Ioi (0 : ℝ)) := by
@@ -254,9 +254,8 @@ private theorem integrableOn_Ioi_norm_zpow_inv_add (s : ℂ) (hs : 0 < s.re) (p 
       rw [Real.norm_of_nonneg (by positivity)]
       exact zpow_neg_add_one_le_of_le hx0 (by linarith [hsum x, hs.le])
 
-/-- **The integral `∫₀^∞ ‖s + x‖^(-(p+1)) dx ≤ κ · ‖s‖^(-p)`, the sharp `‖s‖`-decay,** for
-`Re s > 0` and `p ≥ 1`, with `κ = ∫₀^∞ (1 + w²)⁻¹ dw`. The decay is in `‖s‖`, not merely in
-`Re s`. -/
+/-- The integral `∫₀^∞ ‖s + x‖^(-(p+1)) dx ≤ κ · ‖s‖^(-p)`, the sharp `‖s‖`-decay, for
+`Re s > 0` and `p ≥ 1`, with `κ = ∫₀^∞ (1 + w²)⁻¹ dw`. -/
 private theorem integral_Ioi_norm_zpow_inv_add_le (s : ℂ) (hs : 0 < s.re) (p : ℕ) (hp : 1 ≤ p) :
     ∫ x in Set.Ioi (0 : ℝ), ‖s + (x : ℂ)‖ ^ (-(↑p + 1 : ℤ))
       ≤ (∫ w in Set.Ioi (0 : ℝ), (1 + w ^ 2)⁻¹) * ‖s‖ ^ (-(p : ℤ)) := by
@@ -312,7 +311,7 @@ private theorem integral_Ioi_norm_zpow_inv_add_le (s : ℂ) (hs : 0 < s.re) (p :
         rw [integral_const_mul]; ring
     _ = (∫ w in Set.Ioi (0 : ℝ), (1 + w ^ 2)⁻¹) * ‖s‖ ^ (-(p : ℤ)) := by rw [hpow, ← hr]; ring
 
-/-- **Absolute convergence of the digamma remainder integral.** For `Re s > 0` and `p ≥ 1`, the
+/-- Absolute convergence of the digamma remainder integral: for `Re s > 0` and `p ≥ 1`, the
 integrand `B̃_p(x) · g_s⁽ᵖ⁾(x)` of the order-`p` Euler–Maclaurin remainder is integrable on
 `(0, ∞)`. -/
 theorem integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_inv_add
@@ -335,7 +334,7 @@ theorem integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_inv_add
   dsimp only
   rw [iteratedDeriv_inv_add_ofReal s p (add_ofReal_ne_zero_of_re_pos hs hx0.le)]
 
-/-- **The improper digamma Euler–Maclaurin remainder**
+/-- The improper digamma Euler–Maclaurin remainder
 `R_p(g_s; 0, ∞) = (-1)^(p+1)/p! · ∫_{(0,∞)} B̃_p(x) · g_s⁽ᵖ⁾(x) dx`, the improper (`(0, ∞)`)
 analogue of `eulerMaclaurinRemainder` for the digamma kernel `g_s(x) = (s + x)⁻¹`. -/
 noncomputable def digammaRemainderIoi (s : ℂ) (p : ℕ) : ℂ :=
@@ -343,7 +342,7 @@ noncomputable def digammaRemainderIoi (s : ℂ) (p : ℕ) : ℂ :=
     * ∫ x in Set.Ioi (0 : ℝ), (bernoulliFun p (Int.fract x) : ℂ) *
         iteratedDeriv p (fun y : ℝ ↦ (s + (y : ℂ))⁻¹) x
 
-/-- **Shared norm bound for the digamma remainder.** For `Re s > 0`, `p ≥ 1`, and `CB` a bound on
+/-- Shared norm bound for the digamma remainder: for `Re s > 0`, `p ≥ 1`, and `CB` a bound on
 the periodized Bernoulli kernel norm, `‖R_p(g_s; 0, ∞)‖ ≤ CB · (π/2) · ‖s‖^(-p)`. -/
 private theorem norm_digammaRemainderIoi_le_of_bound {s : ℂ} (hs : 0 < s.re)
     {p : ℕ} (hp : 1 ≤ p) {CB : ℝ} (hCB : ∀ x : ℝ, ‖(bernoulliFun p (Int.fract x) : ℂ)‖ ≤ CB) :
@@ -383,7 +382,7 @@ private theorem norm_digammaRemainderIoi_le_of_bound {s : ℂ} (hs : 0 < s.re)
         mul_le_mul_of_nonneg_left hJ (by positivity)
     _ = CB * (π / 2) * ‖s‖ ^ (-(p : ℤ)) := by field_simp
 
-/-- **Explicit sup bound for the Bernoulli polynomials.** For `k ≥ 1` and `x ∈ [0, 1]`,
+/-- Explicit sup bound for the Bernoulli polynomials: for `k ≥ 1` and `x ∈ [0, 1]`,
 `|B_k(x)| ≤ 4 · k! / (2π)^k`. The explicit analogue of the existential bound
 `exists_norm_bernoulliFun_fract_le`. -/
 theorem abs_bernoulliFun_le {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Set.Icc (0 : ℝ) 1) :
@@ -425,10 +424,9 @@ theorem abs_bernoulliFun_le {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Set.I
   rw [le_div_iff₀ (by positivity : (0 : ℝ) < (2 * π) ^ k)]
   linarith [mul_le_mul_of_nonneg_right hπ12 hfac.le]
 
-/-- **Explicit (de-existentialised) digamma remainder bound.** For `Re s > 0` and `p ≥ 1`,
+/-- Explicit digamma remainder bound: for `Re s > 0` and `p ≥ 1`,
 `‖R_p(g_s; 0, ∞)‖ ≤ p! / (2π)^(p-1) · ‖s‖^(-p)`; the Euler–Maclaurin error bound for the complex
-Gamma function in logarithmic-derivative form. The decay is in `‖s‖`, so both the `Re s`- and the
-`Im s`-decay are retained. -/
+Gamma function in logarithmic-derivative form. -/
 theorem norm_digammaRemainderIoi_le' (s : ℂ) (hs : 0 < s.re) (p : ℕ) (hp : 1 ≤ p) :
     ‖digammaRemainderIoi s p‖ ≤ (p ! : ℝ) / (2 * π) ^ (p - 1) * ‖s‖ ^ (-(p : ℤ)) := by
   have hπ : 0 < π := Real.pi_pos

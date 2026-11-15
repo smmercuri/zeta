@@ -19,7 +19,7 @@ power `x^{-s}` vanishes to order `-Re s > 0`. This file identifies the resulting
 with `I(s, ½)`, which combined with `Zeta/RiemannSiegel/Hankel.lean` is the Hankel-ray
 representation of `I(s, ½)` (`riemann_siegel_zero.tex`, `lem:rsz_hankel`).
 
-The deformation is carried out in two steps, and needs no indented contour.
+The deformation is carried out in two steps.
 
 *No integer is crossed.* For `0 < b ≤ a ≤ ½` the closed slanted strip between `L(b)` and `L(a)`
 contains no integer, so the two contour integrals agree by the rotated-rectangle Cauchy argument of
@@ -28,9 +28,8 @@ contains no integer, so the two contour integrals agree by the rotated-rectangle
 *The crossing point may be sent to the origin.* Along `L(a)` the integrand is dominated, uniformly
 in `a ∈ (0, ½]`, by an integrable function of the contour parameter alone, so `a → 0` may be taken
 under the integral sign. The majorant must carry the singular factor `|w|^{-Re s - 1}`, integrable
-precisely because `Re s < 0`; producing it is what the lower bound
-`Zeta.RiemannSiegel.norm_sin_pi_mul_line_ge_min` — rather than the half-integer bound, which
-degenerates as `a → 0` — is for.
+precisely because `Re s < 0`; the lower bound `Zeta.RiemannSiegel.norm_sin_pi_mul_line_ge_min`,
+uniform as `a → 0`, produces it.
 
 ## Main results
 
@@ -52,8 +51,8 @@ namespace Zeta.RiemannSiegel
 
 /-! ### Moving between two contours that cross inside `(0, ½]` -/
 
-/-- **The Riemann–Siegel contour integral is independent of the crossing point inside
-`(0, ½]`.** -/
+/-- The Riemann–Siegel contour integral is independent of the crossing point inside
+`(0, ½]`. -/
 theorem contourIntegral_eq_contourIntegral_of_le_half (s : ℂ) {a b : ℝ} (hb0 : 0 < b)
     (hba : b ≤ a) (ha : a ≤ 1 / 2) : contourIntegral s a = contourIntegral s b := by
   have hs2 : (0 : ℝ) < Real.sqrt 2 := Real.sqrt_pos.2 two_pos
@@ -91,7 +90,7 @@ theorem contourIntegral_eq_contourIntegral_of_le_half (s : ℂ) {a b : ℝ} (hb0
 
 /-! ### A majorant uniform in the crossing point -/
 
-/-- **A majorant for the Riemann–Siegel integrand along `L(a)`, uniform over `0 < a ≤ ½`.** -/
+/-- A majorant for the Riemann–Siegel integrand along `L(a)`, uniform over `0 < a ≤ ½`. -/
 theorem norm_contourIntegrand_le_of_le_half {s : ℂ} (hs : s.re ≤ 0) {a : ℝ} (ha0 : 0 < a)
     (ha : a ≤ 1 / 2) {w : ℝ} (hw : w ≠ 0) :
     ‖contourIntegrand s a w‖
@@ -182,7 +181,7 @@ theorem norm_contourIntegrand_le_of_le_half {s : ℂ} (hs : s.re ≤ 0) {a : ℝ
 
 /-! ### The contour through the origin -/
 
-/-- **The Riemann–Siegel contour may be pushed onto the pole at the origin** for `Re s < 0`
+/-- The Riemann–Siegel contour may be pushed onto the pole at the origin for `Re s < 0`
 (`riemann_siegel_zero.tex`, `lem:rsz_deform`). -/
 theorem contourIntegral_zero_eq_contourIntegral_half {s : ℂ} (hs : s.re < 0) :
     contourIntegral s 0 = contourIntegral s (1 / 2) := by
@@ -233,7 +232,7 @@ theorem contourIntegral_zero_eq_contourIntegral_half {s : ℂ} (hs : s.re < 0) :
   filter_upwards with n using
     contourIntegral_eq_contourIntegral_of_le_half s (hα0 n) (hαle n) le_rfl
 
-/-- **The Hankel-ray representation of the Riemann–Siegel contour integral**
+/-- The Hankel-ray representation of the Riemann–Siegel contour integral
 (`riemann_siegel_zero.tex`, `lem:rsz_hankel`): for `Re s < 0`,
 `I(s, ½) = -e^{iπ(1+s)/4} sin (πs/2) Φ(s)`. -/
 theorem contourIntegral_half_eq_neg_exp_mul_sin_mul_hankelIntegral {s : ℂ} (hs : s.re < 0) :

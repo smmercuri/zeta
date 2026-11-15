@@ -6,6 +6,7 @@ Authors: Salvatore Mercuri
 module
 
 public import Zeta.EulerMaclaurin.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Polynomial
 public import Mathlib.Analysis.Calculus.ParametricIntegral
 public import Mathlib.Analysis.Analytic.Uniqueness
 public import Mathlib.Analysis.Complex.Convex
@@ -41,7 +42,7 @@ open scoped Nat
 
 namespace Complex
 
-/-- **Closed form of the improper `ζ`-summand remainder.** With `f_s y = (y : ℂ)^(-s)`,
+/-- Closed form of the improper `ζ`-summand remainder. With `f_s y = (y : ℂ)^(-s)`,
 `Complex.eulerMaclaurinRemainderIoi p f_s N = -(s)_p/p! · ∫_N^∞ B̃_p(x) · x^{-s-p} dx`. -/
 theorem eulerMaclaurinRemainderIoi_cpow_eq (s : ℂ) (p N : ℕ) :
     Complex.eulerMaclaurinRemainderIoi p (fun y : ℝ ↦ (y : ℂ) ^ (-s)) (N : ℝ)
@@ -67,7 +68,7 @@ theorem eulerMaclaurinRemainderIoi_cpow_eq (s : ℂ) (p N : ℕ) :
   linear_combination ((ascPochhammer ℂ p).eval s *
     ∫ x in Set.Ioi (N : ℝ), (bernoulliFun p (Int.fract x) : ℂ) * (x : ℂ) ^ (-s - (p : ℂ))) * h2
 
-/-- **Holomorphy of the order-`p` improper remainder integral.** For `1 ≤ N`, the map
+/-- Holomorphy of the order-`p` improper remainder integral. For `1 ≤ N`, the map
 `s ↦ Complex.eulerMaclaurinRemainderIoi p f_s N` (with `f_s y = (y:ℂ)^(-s)`) is holomorphic on
 the open half-plane `{Re s > 1 - p}`. -/
 theorem differentiableOn_eulerMaclaurinRemainderIoi_cpow (p N : ℕ) (hN : 1 ≤ N) :
@@ -143,7 +144,7 @@ theorem differentiableOn_eulerMaclaurinRemainderIoi_cpow (p N : ℕ) (hN : 1 ≤
           (by simpa using (hasDerivAt_id s).neg.sub_const (p : ℂ))))
   exact happ.2.differentiableAt.differentiableWithinAt
 
-/-- **Finite order-raising step for the `ζ`-summand remainder.** For `1 ≤ N ≤ R`, the
+/-- Finite order-raising step for the `ζ`-summand remainder. For `1 ≤ N ≤ R`, the
 order-`(2M+1)` remainder over `[N, R]` equals the order-`(2M+2)` one plus the Bernoulli
 boundary term of index `2M+2`. -/
 private theorem eulerMaclaurinRemainder_cpow_succ (s : ℂ) (M N R : ℕ) (hN : 1 ≤ N) (hNR : N ≤ R) :
@@ -180,7 +181,7 @@ private theorem eulerMaclaurinRemainder_cpow_succ (s : ℂ) (M N R : ℕ) (hN : 
     show 2 * M + 2 - 1 = 2 * M + 1 from by lia] at h2
   linear_combination h2 - h1
 
-/-- **Order-raising on the improper `ζ`-remainder: `2M+1 → 2M+2`.** For `1 ≤ N` and `Re s > -2M`
+/-- Order-raising on the improper `ζ`-remainder, `2M+1 → 2M+2`. For `1 ≤ N` and `Re s > -2M`
 (where the order-`(2M+1)` integral still converges),
 `R^∞_{2M+1}(f_s; N) = B_{2M+2}/(2M+2)! · (s)_{2M+1} · N^{-s-(2M+1)} + R^∞_{2M+2}(f_s; N)`,
 the first summand being the first omitted even Bernoulli term `t_{M+1}(s, N)`. -/
@@ -225,8 +226,8 @@ theorem eulerMaclaurinRemainderIoi_succ_eq (s : ℂ) (M N : ℕ) (hN : 1 ≤ N)
   filter_upwards [eventually_ge_atTop N] with R hR
   exact eulerMaclaurinRemainder_cpow_succ s M N R hN hR
 
-/-- **The order-`1` Euler–Maclaurin remainder of `ζ` at a positive real point has norm
-`≤ 1/2`.** -/
+/-- The order-`1` Euler–Maclaurin remainder of `ζ` at a positive real point has norm at most
+`1/2`. -/
 theorem norm_eulerMaclaurinRemainderIoi_one_ofReal_le {x : ℝ} (hx0 : 0 < x) :
     ‖Complex.eulerMaclaurinRemainderIoi 1 (fun y : ℝ ↦ (y : ℂ) ^ (-(x : ℂ))) 1‖ ≤ 1 / 2 := by
   have h := eulerMaclaurinRemainderIoi_cpow_eq (x : ℂ) 1 1
@@ -251,7 +252,7 @@ theorem norm_eulerMaclaurinRemainderIoi_one_ofReal_le {x : ℝ} (hx0 : 0 < x) :
 
 end Complex
 
-/-- **The analytic Euler–Maclaurin right-hand side for `ζ`**,
+/-- The analytic Euler–Maclaurin right-hand side for `ζ`,
 `E_M(s,N) = ∑_{n=1}^{N-1} n⁻ˢ + N^{1-s}/(s-1) + N⁻ˢ/2
               + ∑_{k=1}^{M} B_{2k}/(2k)! · (s)_{2k-1} · N^{-s-(2k-1)}
               + B_{2M+2}/(2M+2)! · (s)_{2M+1} · N^{-s-(2M+1)}
@@ -270,7 +271,7 @@ noncomputable def zetaEMExpansion (s : ℂ) (M N : ℕ) : ℂ :=
         * (N : ℂ) ^ (-s - ((2 * M + 1 : ℕ) : ℂ))
     + Complex.eulerMaclaurinRemainderIoi (2 * M + 2) (fun y : ℝ ↦ (y : ℂ) ^ (-s)) (N : ℝ)
 
-/-- **The Euler–Maclaurin approximant for `ζ`**, the computed main term of the order-`M`,
+/-- The Euler–Maclaurin approximant for `ζ`, the computed main term of the order-`M`,
 cutoff-`N` expansion:
 `A_M(s,N) = ∑_{n=1}^{N-1} n⁻ˢ + N^{1-s}/(s-1) + N⁻ˢ/2
               + ∑_{k=1}^{M} B_{2k}/(2k)! · (s)_{2k-1} · N^{-s-(2k-1)}`. -/
@@ -282,7 +283,7 @@ noncomputable abbrev zetaApproximant (s : ℂ) (M N : ℕ) : ℂ :=
           * (ascPochhammer ℂ (2 * k - 1)).eval s
           * (N : ℂ) ^ (-s - ((2 * k - 1 : ℕ) : ℂ)))
 
-/-- **The Euler–Maclaurin remainder for `ζ`**, the error term of the order-`M`, cutoff-`N`
+/-- The Euler–Maclaurin remainder for `ζ`, the error term of the order-`M`, cutoff-`N`
 expansion: `R_M(s,N) = t_{M+1}(s,N) + R^∞_{2M+2}(f_s; N)`, with `t_{M+1}` the leading uncomputed
 Bernoulli term. It is bounded by `norm_zetaRemainder_le`. -/
 noncomputable abbrev zetaRemainder (s : ℂ) (M N : ℕ) : ℂ :=
@@ -297,7 +298,7 @@ theorem zetaEMExpansion_eq_approximant_add_remainder (s : ℂ) (M N : ℕ) :
     zetaEMExpansion s M N = zetaApproximant s M N + zetaRemainder s M N := by
   rw [zetaEMExpansion, zetaApproximant, zetaRemainder]; ring
 
-/-- **Analyticity of the continued Euler–Maclaurin right-hand side.** For `1 ≤ N`, the map
+/-- Analyticity of the continued Euler–Maclaurin right-hand side. For `1 ≤ N`, the map
 `s ↦ zetaEMExpansion s M N` is analytic on the punctured strip `{Re s > -(2M+1)} \ {1}`. -/
 theorem analyticOnNhd_zetaEMExpansion (M N : ℕ) (hN : 1 ≤ N) :
     AnalyticOnNhd ℂ (fun s : ℂ ↦ zetaEMExpansion s M N)
@@ -337,7 +338,7 @@ theorem analyticOnNhd_zetaEMExpansion (M N : ℕ) (hN : 1 ≤ N) :
     push_cast
     linarith
 
-/-- **Euler–Maclaurin expansion of `ζ` on the punctured strip `Re s > -(2M+1)`.** For `1 ≤ N`,
+/-- Euler–Maclaurin expansion of `ζ` on the punctured strip `Re s > -(2M+1)`. For `1 ≤ N`,
 `Re s > -(2M+1)` and `s ≠ 1`, `ζ(s) = zetaEMExpansion s M N`, i.e.
 `ζ(s) = ∑_{n=1}^{N-1} n⁻ˢ + N^{1-s}/(s-1) + N⁻ˢ/2
           + ∑_{k=1}^{M} B_{2k}/(2k)! · (s)_{2k-1} · N^{-s-(2k-1)} + R_M(s, N)`. -/
@@ -404,14 +405,14 @@ theorem riemannZeta_eq (s : ℂ) (M N : ℕ) (hN : 1 ≤ N) (hs : -(2 * M + 1 : 
   exact hζ.eqOn_of_preconnected_of_eventuallyEq hE hUconn ⟨hmH _ (by simp), by simp⟩ hagree
     ⟨hs, hs1⟩
 
-/-- **The Euler–Maclaurin expansion of `ζ` as approximant plus remainder.** For `1 ≤ N`,
+/-- The Euler–Maclaurin expansion of `ζ` as approximant plus remainder. For `1 ≤ N`,
 `Re s > -(2M+1)` and `s ≠ 1`, `riemannZeta s = zetaApproximant s M N + zetaRemainder s M N`. -/
 theorem riemannZeta_eq_approximant_add_remainder (s : ℂ) (M N : ℕ) (hN : 1 ≤ N)
     (hs : -(2 * M + 1 : ℝ) < s.re) (hs1 : s ≠ 1) :
     riemannZeta s = zetaApproximant s M N + zetaRemainder s M N := by
   rw [riemannZeta_eq s M N hN hs hs1, zetaEMExpansion_eq_approximant_add_remainder]
 
-/-- **The first-order Euler–Maclaurin representation of `ζ`.** For `0 < Re s` and `s ≠ 1`,
+/-- The first-order Euler–Maclaurin representation of `ζ`. For `0 < Re s` and `s ≠ 1`,
 `ζ(s) = 1/(s-1) + 1/2 + R₁(s)`, with the order-`1` improper remainder
 `R₁(s) = Complex.eulerMaclaurinRemainderIoi 1 (y ↦ y^{-s}) 1`. -/
 theorem riemannZeta_eq_order_one {s : ℂ} (hs : 0 < s.re) (hs1 : s ≠ 1) :
@@ -424,7 +425,7 @@ theorem riemannZeta_eq_order_one {s : ℂ} (hs : 0 < s.re) (hs1 : s ≠ 1) :
     Finset.sum_empty, show Finset.Icc 1 0 = (∅ : Finset ℕ) from Finset.Icc_eq_empty (by lia)]
   linear_combination -h2
 
-/-- **`Re ζ(x) < 0` for real `x ∈ (0, 1)`.** -/
+/-- `Re ζ(x) < 0` for real `x ∈ (0, 1)`. -/
 theorem riemannZeta_ofReal_re_neg_of_mem_Ioo {x : ℝ} (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
     (riemannZeta (x : ℂ)).re < 0 := by
   obtain ⟨hx0, hx1⟩ := hx

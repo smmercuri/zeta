@@ -17,9 +17,9 @@ the second. This is the primitive the sharded, auto-generated zero certificates 
 over: each batch's per-interval certificates and internal ordering are reused
 verbatim, so the assembler only discharges the `O(#batches)` seam checks.
 
-The generated assembler does not iterate `append` directly — that nests one level per batch.
-It calls `CertifiedZeroIntervals.join`, which takes the batches as a *flat list* plus two side
-conditions: every batch is nonempty, and consecutive batches are `Separated`. Each seam is then
+The generated assembler calls `CertifiedZeroIntervals.join`, which takes the batches as a
+*flat list* plus two side conditions: every batch is nonempty, and consecutive batches are
+`Separated`. Each seam is then
 a standalone theorem built by `separated_of_le` (or `separated_of_lt`, for a gapped store) from
 the batch's exposed `getLast?`/`head?` lemmas and one numeric comparison.
 
@@ -51,14 +51,14 @@ accumulator's seam invariant forward, since only the newest batch's last interva
 
 namespace Zeta.Certificates
 
-/-- Two bundles are **separated** when the last interval of `C` ends at or before the first
-interval of `D` begins. The relation is `≤`, not `<`, so a tiling whose consecutive batches
-share an endpoint is admissible. Vacuous if either bundle is empty. -/
+/-- Two bundles are separated when the last interval of `C` ends at or before the first
+interval of `D` begins. The relation is `≤`, so consecutive batches of a tiling may share an
+endpoint. Vacuous if either bundle is empty. -/
 def Separated (C D : CertifiedZeroIntervals) : Prop :=
   ∀ I ∈ C.intervals.getLast?, ∀ J ∈ D.intervals.head?, I.snd ≤ J.fst
 
-/-- Build a seam from a bundle's exposed endpoint lemmas and one numeric comparison. This is
-what lets a generated seam be a single term rather than a tactic block. -/
+/-- Build a seam from a bundle's exposed endpoint lemmas and one numeric comparison, so a
+generated seam is a single term. -/
 theorem separated_of_le {C D : CertifiedZeroIntervals} {I J : NonemptyInterval ℝ}
     (hC : C.intervals.getLast? = some I) (hD : D.intervals.head? = some J)
     (h : I.snd ≤ J.fst) : Separated C D := by
@@ -68,7 +68,7 @@ theorem separated_of_le {C D : CertifiedZeroIntervals} {I J : NonemptyInterval �
   subst hI'; subst hJ'; exact h
 
 /-- `separated_of_le` specialised to a strict comparison, for a batch store whose consecutive
-intervals are separated by a genuine gap rather than sharing an endpoint. -/
+intervals are separated by a gap. -/
 theorem separated_of_lt {C D : CertifiedZeroIntervals} {I J : NonemptyInterval ℝ}
     (hC : C.intervals.getLast? = some I) (hD : D.intervals.head? = some J)
     (h : I.snd < J.fst) : Separated C D :=
@@ -93,14 +93,14 @@ theorem CertifiedZeroIntervals.height_le_of_getLast?_snd (C : CertifiedZeroInter
   obtain ⟨I, hI, hIb⟩ := Option.map_eq_some_iff.mp h
   exact C.height_le_of_getLast? hI (hIb ▸ hq)
 
-/-- **The statement a certificate batch exports.** A certified bundle with `n` intervals exists
+/-- The statement a certificate batch exports: a certified bundle with `n` intervals exists
 whose first interval starts at `an / ad` and whose last interval ends at `bn / bd` (the endpoints
 as `Enclosure.sfrac` ratios, exactly as the certificate engine builds them from the store).
 
-This is *all* that crosses a batch's module boundary. The bundle itself — intervals, certificates,
-disjointness chain, tens of megabytes of kernel-checked term — is the proof, and under the module
-system a theorem's proof stays in the batch's private olean: the assembler imports kilobytes per
-batch whatever the height. The assembler recovers the bundle through `BatchSpec.bundle`
+Only this statement crosses a batch's module boundary. The bundle itself (intervals, certificates,
+disjointness chain) is the proof, and under the module system a theorem's proof stays in the
+batch's private olean, so the size of each batch's import is independent of the height. The
+assembler recovers the bundle through `BatchSpec.bundle`
 (`Classical.choose`) and reads its count and boundaries off the three conjuncts. -/
 abbrev BatchSpec (n an ad bn bd : ℕ) : Prop :=
   ∃ C : CertifiedZeroIntervals, C.intervals.length = n ∧
@@ -149,12 +149,13 @@ def CertifiedZeroIntervals.append (C D : CertifiedZeroIntervals) (seam : Separat
 /-- Build a certified bundle from a list of Euler–Maclaurin *certified* intervals (each interval
 paired with its `Certificate`) plus the disjointness chain on the underlying intervals. This lets
 a generated batch be a plain list of `⟨intervalᵢ, certᵢ⟩` pairs, with `fst_nonneg` and `has_zero`
-derived once here instead of by a per-interval case split in every batch.
+derived once here for every batch.
 
 This and `ofCertifiedRS` are the only method-aware definitions in the bundle API: they discharge
 `has_zero` from their respective certificates, after which nothing downstream can tell which
 approximation produced the intervals. In particular `join` may concatenate bundles of different
-provenance — an Euler–Maclaurin batch at low heights with a Riemann–Siegel one above `32π`. -/
+provenance, such as an Euler–Maclaurin batch at low heights with a Riemann–Siegel one above
+`32π`. -/
 def CertifiedZeroIntervals.ofCertifiedEM
     (l : List (Σ' I : ZIntervalEM, I.Certificate))
     (hdisj : (l.map (fun x ↦ x.1.toNonemptyInterval)).IsChain (fun I J ↦ I.snd ≤ J.fst)) :
@@ -169,8 +170,8 @@ def CertifiedZeroIntervals.ofCertifiedEM
 
 /-- Build a certified bundle from a list of Riemann–Siegel certified intervals. The
 Riemann–Siegel counterpart of `ofCertifiedEM`; see that declaration for why these two are the
-only method-aware definitions here. A `ZIntervalRS` carries no per-endpoint data, so no
-projection out of a wrapper structure is needed. Each interval carries either certificate
+only method-aware definitions here. A `ZIntervalRS` is a plain interval, so the bundle's
+intervals are the list's first components. Each interval carries either certificate
 (`ZIntervalRS.Certified`), so one batch can mix the linear-free and full approximants. -/
 def CertifiedZeroIntervals.ofCertifiedRS
     (l : List (Σ' I : ZIntervalRS, I.Certified))
@@ -224,9 +225,8 @@ def CertifiedZeroIntervals.joinAux (acc : CertifiedZeroIntervals) :
         (fun D hD ↦ Separated.append_right (hne C (by simp)) (h.rel_head? hD))
         (List.isChain_cons.mp h).2
 
-/-- **Concatenate a whole list of certified bundles**, checking only that consecutive entries
-are `Separated`. This is the flat alternative to iterating `append`: the assembler names the
-batches once, in order, instead of building an `O(#batches)`-deep nest. -/
+/-- Concatenate a whole list of certified bundles, checking only that consecutive entries
+are `Separated`. The assembler names the batches once, in order, in a flat list. -/
 def CertifiedZeroIntervals.join : (l : List CertifiedZeroIntervals) →
     (∀ C ∈ l, C.intervals ≠ []) → l.IsChain Separated → CertifiedZeroIntervals
   | [], _, _ => empty
@@ -269,14 +269,13 @@ theorem CertifiedZeroIntervals.joinAux_getLast? (acc : CertifiedZeroIntervals)
   | nil => simp [join, empty]
   | cons C r => simp [join, joinAux_intervals]
 
-/-- A join's interval count is the sum of the batch sizes — no unfolding of the fold. -/
+/-- A join's interval count is the sum of the batch sizes. -/
 theorem CertifiedZeroIntervals.join_length (l : List CertifiedZeroIntervals)
     (hne : ∀ C ∈ l, C.intervals ≠ []) (h : l.IsChain Separated) :
     (join l hne h).intervals.length = (l.map (·.intervals.length)).sum := by
   simp [Function.comp_def]
 
-/-- The bundle's last interval is the last batch's last interval, read off in `O(1)` rather
-than by unfolding the whole fold. -/
+/-- The bundle's last interval is the last batch's last interval, read off in `O(1)`. -/
 @[simp] theorem CertifiedZeroIntervals.join_getLast? (l : List CertifiedZeroIntervals)
     (hne : ∀ C ∈ l, C.intervals ≠ []) (h : l.IsChain Separated) :
     (join l hne h).intervals.getLast? = l.getLast?.bind (·.intervals.getLast?) := by

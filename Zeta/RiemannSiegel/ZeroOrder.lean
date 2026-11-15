@@ -16,7 +16,7 @@ public import Zeta.Zeros.HardyZ
 /-!
 # The order-zero Riemann–Siegel formula
 
-Hardy's `Z(t)` is evaluated to within `O(T^{-1/4})` by the **main sum**
+Hardy's `Z(t)` is evaluated to within `O(T^{-1/4})` by the main sum
 `S(t, ν) = 2 ∑_{n ≤ ν} n^{-1/2} cos (θ(t) − t log n)` of `⌊√T⌋` terms, `T = t/2π`
 (`riemann_siegel_zero.tex`, `cha:rs_zero`). This is the asymptotic gain over the `Θ(t)` terms per
 point of the Euler–Maclaurin evaluation of `Zeta/Zeros/HardyZ.lean`.
@@ -26,8 +26,8 @@ sum is exact and unconditional: it is the contour-shift identity
 `Zeta.RiemannSiegel.sum_cpow_neg_eq_contourIntegral_sub_contourIntegral` read through the phase
 `e^{iθ(t)}`, and it is `mainSum_eq_two_re_exp_mul_contourIntegral_sub` below.
 
-Identifying the remaining `ν`-independent term `2 Re (e^{iθ(t)} I(s, ½))` as `−Z(t)` is **Siegel's
-identity** (`riemann_siegel_zero.tex`, `thm:rsz_siegel`), proved in
+Identifying the remaining `ν`-independent term `2 Re (e^{iθ(t)} I(s, ½))` as `−Z(t)` is Siegel's
+identity (`riemann_siegel_zero.tex`, `thm:rsz_siegel`), proved in
 `Zeta/RiemannSiegel/Siegel.lean`. The whole chain is therefore unconditional.
 
 ## Main definitions
@@ -48,7 +48,7 @@ identity** (`riemann_siegel_zero.tex`, `thm:rsz_siegel`), proved in
   `Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_le_threeHundredTwo`: the resulting bounds
   `|Z(t) − S(t, ⌊√T⌋)| ≤ 190 T^{-1/4} ≤ 302 t^{-1/4}` for `t ≥ 32π`;
 * `Zeta.RiemannSiegel.abs_mainSumOfPhase_sub_mainSumOfPhase_le`: the main sum is `4√ν`-Lipschitz
-  in its phase, so a phase error is amplified by `4√ν` rather than carried through unchanged.
+  in its phase, so a phase error is amplified by at most `4√ν`.
 -/
 @[expose] public section
 
@@ -59,12 +59,12 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **Riemann–Siegel main sum**
+/-- The Riemann–Siegel main sum
 `S(t, ν) = 2 ∑_{n = 1}^{ν} n^{-1/2} cos (θ(t) − t log n)`. -/
 noncomputable def mainSum (t : ℝ) (ν : ℕ) : ℝ :=
   2 * ∑ n ∈ Finset.Icc 1 ν, Real.cos (riemannSiegelTheta t - t * Real.log n) / Real.sqrt n
 
-/-- **The exact reduction of the main sum to the contour integral.** -/
+/-- The exact reduction of the main sum to the contour integral. -/
 theorem mainSum_eq_two_re_exp_mul_contourIntegral_sub (t : ℝ) (ν : ℕ) :
     mainSum t ν
       = 2 * (exp (I * riemannSiegelTheta t) *
@@ -82,9 +82,9 @@ theorem mainSum_eq_two_re_exp_mul_contourIntegral_sub (t : ℝ) (ν : ℕ) :
     Complex.sub_re]
   ring
 
-/-- **The order-zero Riemann–Siegel formula** (`riemann_siegel_zero.tex`, `thm:rsz_formula`). -/
+/-- The order-zero Riemann–Siegel formula (`riemann_siegel_zero.tex`, `thm:rsz_formula`). -/
 theorem hardyZ_eq_mainSum_sub {t : ℝ} (ht : 0 < t) (ν : ℕ) :
-    hardyZ t = mainSum t ν
+    Zeta.hardyZ t = mainSum t ν
       - 2 * (exp (I * riemannSiegelTheta t) *
           contourIntegral (1 / 2 + t * I) ((ν : ℝ) + 1 / 2)).re := by
   set θ : ℝ := riemannSiegelTheta t with hθ
@@ -93,8 +93,8 @@ theorem hardyZ_eq_mainSum_sub {t : ℝ} (ht : 0 < t) (ν : ℕ) :
       = (starRingEnd ℂ) (exp (I * (θ : ℂ)) * J) := by
     rw [map_mul, ← Complex.exp_conj, ← mul_assoc, ← exp_add, map_mul, Complex.conj_I,
       Complex.conj_ofReal, show I * (θ : ℂ) + -(2 * (θ : ℂ)) * I = -I * (θ : ℂ) by ring]
-  have hkey : hardyZ t = -(2 * (exp (I * (θ : ℂ)) * J).re) := by
-    rw [hardyZ, ← hθ, show (1 / 2 + I * (t : ℂ)) = 1 / 2 + (t : ℂ) * I by ring,
+  have hkey : Zeta.hardyZ t = -(2 * (exp (I * (θ : ℂ)) * J).re) := by
+    rw [Zeta.hardyZ, ← hθ, show (1 / 2 + I * (t : ℂ)) = 1 / 2 + (t : ℂ) * I by ring,
       riemannZeta_eq_neg_contourIntegral_sub ht, mul_sub, mul_neg, hphase,
       show -(exp (I * (θ : ℂ)) * J) - (starRingEnd ℂ) (exp (I * (θ : ℂ)) * J)
         = -(exp (I * (θ : ℂ)) * J + (starRingEnd ℂ) (exp (I * (θ : ℂ)) * J)) by ring,
@@ -103,18 +103,18 @@ theorem hardyZ_eq_mainSum_sub {t : ℝ} (ht : 0 < t) (ν : ℕ) :
   rw [mainSum_eq_two_re_exp_mul_contourIntegral_sub, hkey]
   ring
 
-/-- **The order-zero error is at most twice the modulus of the shifted contour integral.** -/
+/-- The order-zero error is at most twice the modulus of the shifted contour integral. -/
 theorem abs_hardyZ_sub_mainSum_le_two_mul_norm {t : ℝ} (ht : 0 < t) (ν : ℕ) :
-    |hardyZ t - mainSum t ν| ≤ 2 * ‖contourIntegral (1 / 2 + t * I) ((ν : ℝ) + 1 / 2)‖ := by
+    |Zeta.hardyZ t - mainSum t ν| ≤ 2 * ‖contourIntegral (1 / 2 + t * I) ((ν : ℝ) + 1 / 2)‖ := by
   rw [hardyZ_eq_mainSum_sub ht ν, sub_sub_cancel_left, abs_neg, abs_mul, abs_two]
   gcongr
   refine (Complex.abs_re_le_norm _).trans_eq ?_
   rw [norm_mul, mul_comm I ((riemannSiegelTheta t : ℝ) : ℂ), Complex.norm_exp_ofReal_mul_I, one_mul]
 
-/-- **The order-zero bound** (`riemann_siegel_zero.tex`, `cor:rsz_bound`), in terms of
+/-- The order-zero bound (`riemann_siegel_zero.tex`, `cor:rsz_bound`), in terms of
 `T = t/2π`. -/
 theorem abs_hardyZ_sub_mainSum_le_hundredNinety {t : ℝ} (ht : 32 * π ≤ t) :
-    |hardyZ t - mainSum t ⌊Real.sqrt (t / (2 * π))⌋₊|
+    |Zeta.hardyZ t - mainSum t ⌊Real.sqrt (t / (2 * π))⌋₊|
       ≤ 190 * (t / (2 * π)) ^ (-(1 / 4) : ℝ) := by
   have ht0 : 0 < t := lt_of_lt_of_le (by positivity) ht
   set ν : ℕ := ⌊Real.sqrt (t / (2 * π))⌋₊
@@ -125,9 +125,9 @@ theorem abs_hardyZ_sub_mainSum_le_hundredNinety {t : ℝ} (ht : 32 * π ≤ t) :
     · exact_mod_cast Nat.lt_floor_add_one (Real.sqrt (t / (2 * π)))
   linarith [abs_hardyZ_sub_mainSum_le_two_mul_norm ht0 ν]
 
-/-- **The order-zero bound in terms of `t`** rather than of `T = t/2π`. -/
+/-- The order-zero bound in terms of `t`. -/
 theorem abs_hardyZ_sub_mainSum_le_threeHundredTwo {t : ℝ} (ht : 32 * π ≤ t) :
-    |hardyZ t - mainSum t ⌊Real.sqrt (t / (2 * π))⌋₊| ≤ 302 * t ^ (-(1 / 4) : ℝ) := by
+    |Zeta.hardyZ t - mainSum t ⌊Real.sqrt (t / (2 * π))⌋₊| ≤ 302 * t ^ (-(1 / 4) : ℝ) := by
   have ht0 : 0 < t := lt_of_lt_of_le (by positivity) ht
   set ν : ℕ := ⌊Real.sqrt (t / (2 * π))⌋₊
   have hbound : ‖contourIntegral (1 / 2 + t * I) ((ν : ℝ) + 1 / 2)‖
@@ -147,7 +147,7 @@ phase is therefore made a parameter, and the resulting sum is Lipschitz in it.
 theorem mainSum_eq_mainSumOfPhase (t : ℝ) (ν : ℕ) :
     mainSum t ν = mainSumOfPhase (riemannSiegelTheta t) t ν := rfl
 
-/-- **The main sum is `4√ν`-Lipschitz in its phase.** -/
+/-- The main sum is `4√ν`-Lipschitz in its phase. -/
 theorem abs_mainSumOfPhase_sub_mainSumOfPhase_le (θ₁ θ₂ t : ℝ) (ν : ℕ) :
     |mainSumOfPhase θ₁ t ν - mainSumOfPhase θ₂ t ν| ≤ 4 * Real.sqrt ν * |θ₁ - θ₂| := by
   have hterm : ∀ n ∈ Finset.Icc 1 ν,

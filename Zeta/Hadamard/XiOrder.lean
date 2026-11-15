@@ -38,7 +38,7 @@ private lemma norm_sub_one_le_norm_of_half_le_re {z : ℂ} (hz : 1 / 2 ≤ z.re)
     Complex.sub_im, Complex.one_im, sub_zero]
   nlinarith [hz]
 
-/-- **Strip bound for `Γ` on `[1/4, 2]` (`lem:xo_gamma_strip_bounded`).** There is `C₀ > 0` with
+/-- Strip bound for `Γ` on `[1/4, 2]` (`lem:xo_gamma_strip_bounded`). There is `C₀ > 0` with
 `‖Γ(w)‖ ≤ C₀ (1 + ‖w‖^{3/2})` for every `w` with `1/4 ≤ Re w ≤ 2`. Stated for the whole strip,
 slightly stronger than the blueprint's `|w| ≥ 1`. -/
 theorem norm_Gamma_le_strip_quarter_two :
@@ -76,7 +76,7 @@ theorem norm_Gamma_le_strip_quarter_two :
       exact ⟨⟨hw1, hw2⟩, (abs_lt.mp (not_le.mp himw)).1.le, (abs_lt.mp (not_le.mp himw)).2.le⟩)
     nlinarith [le_max_right c₂ M₀]
 
-/-- **Half-plane upper bound for `Γ` (`lem:xo_gamma_halfplane`).** There is `Cγ > 0` with
+/-- Half-plane upper bound for `Γ` (`lem:xo_gamma_halfplane`). There is `Cγ > 0` with
 `‖Γ(z)‖ ≤ exp(Cγ (‖z‖ log‖z‖ + 1))` for every `z` with `1/4 ≤ Re z` and `‖z‖ ≥ 1`. -/
 theorem norm_Gamma_le_exp_halfplane :
     ∃ Cγ : ℝ, 0 < Cγ ∧ ∀ z : ℂ, (1 : ℝ) / 4 ≤ z.re → 1 ≤ ‖z‖ →
@@ -137,7 +137,7 @@ theorem norm_Gamma_le_exp_halfplane :
   nlinarith [le_max_right (5 / 2 : ℝ) (Real.log (2 * C₀)), hNL,
     mul_nonneg (by linarith : (0 : ℝ) ≤ N - 1) hL0, mul_nonneg (sub_nonneg.mpr hCγ1) hNL]
 
-/-- **Remainder bound for the `N = 2` Euler–Maclaurin truncation of `ζ` (`lem:xo_zeta_em2`).**
+/-- Remainder bound for the `N = 2` Euler–Maclaurin truncation of `ζ` (`lem:xo_zeta_em2`).
 For `Re s ≥ 1/2`, the integral remainder of `riemannZeta0 2` satisfies
 `‖s ∫₂^∞ (⌊x⌋ + 1/2 - x) x^{-(s+1)} dx‖ ≤ √2 ‖s‖`. -/
 theorem norm_riemannZeta_sub_head_le {s : ℂ} (hs : (1 : ℝ) / 2 ≤ s.re) :
@@ -159,7 +159,7 @@ theorem norm_riemannZeta_sub_head_le {s : ℂ} (hs : (1 : ℝ) / 2 ≤ s.re) :
   rw [norm_mul, mul_comm]
   exact mul_le_mul_of_nonneg_right (key.trans hb2) (norm_nonneg s)
 
-/-- **Polynomial bound for `ζ` (`lem:xo_zeta_poly`).** There is `Cζ > 0` with `‖ζ(s)‖ ≤ Cζ ‖s‖`
+/-- Polynomial bound for `ζ` (`lem:xo_zeta_poly`). There is `Cζ > 0` with `‖ζ(s)‖ ≤ Cζ ‖s‖`
 for every `s` with `Re s ≥ 1/2` and `‖s‖ ≥ 2`. -/
 theorem norm_riemannZeta_le_const_mul_of_half_le_re :
     ∃ Cζ : ℝ, 0 < Cζ ∧ ∀ s : ℂ, (1 : ℝ) / 2 ≤ s.re → 2 ≤ ‖s‖ → ‖riemannZeta s‖ ≤ Cζ * ‖s‖ := by
@@ -210,7 +210,7 @@ theorem norm_riemannZeta_le_const_mul_of_half_le_re :
       (norm_riemannZeta_sub_head_le hs)).trans ?_)
     linarith
 
-/-- **Order-one growth of `ξ` (`thm:xo_order` = `lem:lb_pf_order`).** There is `C > 0` with
+/-- Order-one growth of `ξ` (`thm:xo_order` = `lem:lb_pf_order`). There is `C > 0` with
 `‖ξ(s)‖ ≤ exp(C ‖s‖ log‖s‖)` for all `‖s‖ ≥ 2`; i.e. `ξ` has order `≤ 1`. -/
 theorem norm_riemannXi_le_exp :
     ∃ C : ℝ, 0 < C ∧ ∀ s : ℂ, 2 ≤ ‖s‖ →

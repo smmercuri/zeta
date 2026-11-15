@@ -10,7 +10,8 @@ Do not edit by hand: regenerate instead.
 
 Native RiemannSiegel shard 3: batches 51–51, zeta zeros #10001–#10104,
 checked by compiled evaluation (`native_decide` on `Native.checkTiling`).
-params: {"epsilon": 0.125, "max_depth": 0, "method": "riemann_siegel", "prec": 200, "widen": true}
+params: {"bisection_depth": 0, "epsilon": 0.125, "halving_depth": 10, "method": "riemann_siegel",
+  "prec": 200, "widen": true, "window_retries": 100}
 -/
 module
 

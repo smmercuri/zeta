@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri, Bhavik Mehta
+-/
 module
 
 public import Zeta.Certificate.Bernoulli
@@ -7,18 +12,12 @@ public import Zeta.Certificate.HardyZ
 public import Zeta.Certificate.Named
 
 /-!
-# Named rectangle enclosures
+# Named Riemann–Siegel enclosures
 
-Threads *named* values (`zetaApproximant …`, `(ascPochhammer ℂ m).eval s`, …) through the
-rectangle arithmetic:
-
-- a `CNamed` is a rectangle proof `Complex.IsNear z …` for an explicit `z`, with the components
-  recovered as `And` projections;
-- `cAddNamed`/`cSubNamed`/`cMulNamed` combine components and pass through
-  `Complex.IsNear.add/sub/mul`, naming the result `z + w`/`z - w`/`z * w`;
-- `cnamedOfEq` renames along a proven equality (a leaf or step identity).
-
-Interval arithmetic carries all values; the equalities only ever rename.
+The Riemann–Siegel counterpart of `Zeta.Certificate.Named`: the cutoff, the main-sum step builders
+(`mainSumStepNear`, `mainSumPairNear`), the named enclosures of `hardyZApproximantRS`,
+`hardyZApproximantRS₀` and their error bounds, and the tactics `hardy_sign_change_rs` and
+`hardy_error_ok_rs`.
 -/
 @[expose] public section
 
@@ -32,10 +31,8 @@ open Lean Meta
 
 /-! ### The Riemann-Siegel Hardy `Z` approximants -/
 
-/-- The Riemann–Siegel cutoff `N = ⌊√(t/2π)⌋₊` for the endpoint `t = tn/td`, in exact ℕ arithmetic
-against the same rational π bounds `floor_sqrt_eq_dec` proves with
-(`2π·10²⁰ ∈ (628318530717958647692, 628318530717958647694)`). `none` iff `t` lies within
-`~2k²·10⁻²⁰` of a `2πk²` boundary, too close to be decided at that precision. -/
+/-- The Riemann–Siegel cutoff `⌊√(t/2π)⌋₊` at `t = tn/td`, in exact ℕ arithmetic against the π
+bounds `floor_sqrt_eq_dec` uses; `none` when `t` is too close to a `2πk²` boundary to decide. -/
 meta def cutoffRS? (tn td : Nat) : Option Nat :=
   let k := Nat.sqrt (100000000000000000000 * tn / (628318530717958647694 * td))
   [k, k + 1].find? fun n ↦
@@ -52,19 +49,13 @@ meta def mkInvSignedNear (S : RNear) (D : ℕ) : MetaM RNear := do
   else
     mkInvImageNear S D
 
-/-- `(√n)⁻¹` to `1/D`, sealed as an aux lemma once per `(n, D)` so the kernel checks it once per
-module rather than once per endpoint. Memoized per process (`invSqrtNatCache`), guarded by
-`proofsInEnv`. -/
-meta def mkInvSqrtNatSealed (n D : ℕ) : MetaM RNear := do
-  if let some r := (← invSqrtNatCache.get)[(n, D)]? then
-    if ← proofsInEnv #[r.proof] then return r
-  let r ← cachedNear do mkInvImageNear (← mkSqrtNatNear n D) D
-  invSqrtNatCache.modify (·.insert (n, D) r)
-  return r
+/-- `(√n)⁻¹` to `1/D`, sealed as an aux lemma once per `(n, D)` and memoized in
+`invSqrtNatCache`. -/
+meta def mkInvSqrtNatSealed (n D : ℕ) : MetaM RNear :=
+  memoCachedNear invSqrtNatCache (n, D) do mkInvImageNear (← mkSqrtNatNear n D) D
 
-/-- Round an enclosure onto exactly `·/B`: the centre floored, the radius ceiled to absorb the drop,
-both denominators `B` (no `gcd` reduction, unlike `roundFieldsAt`), through `Real.IsNear.recentre`.
-Puts every input of `mainSumRS_step` on its shared denominator. -/
+/-- Round an enclosure onto exactly `·/B` (centre floored, radius ceiled, no `gcd` reduction
+unlike `roundFieldsAt`), through `Real.IsNear.recentre`. -/
 meta def recentreExactNear (r : RNear) (B : ℕ) : MetaM RNear := do
   if r.cd == B && r.rd == B then return r
   let cnF := (r.cn * B) / r.cd
@@ -73,12 +64,11 @@ meta def recentreExactNear (r : RNear) (B : ℕ) : MetaM RNear := do
   let den := r.rd * (r.cd * B)
   mkRecentreNear r cnF B ((num * B + den - 1) / den) B
 
-/-- The main sum's shared denominator `B` at working precision `D`: `2^-bits` with three bits of
-headroom over the trig-argument grid, so rounding onto it costs no measurable radius. -/
+/-- The main sum's shared denominator `B` at working precision `D`: a power of two with three bits
+of headroom over the trig-argument grid. -/
 meta def mainSumDenom (D : ℕ) : ℕ := 2 ^ ((2 * D).log2 + argRecentreGuard + 3)
 
-/-- `π` on its own grid `M = B·2²⁴` (its error is multiplied by `k ≲ 2²²` at height `10⁶`), sealed
-once per module. -/
+/-- `π` on its own grid `M = B·2²⁴` (its error is multiplied by `k`), sealed once per module. -/
 meta def mkPiNearMain (B : ℕ) : MetaM RNear := do
   let M := B * 2 ^ 24
   sealedConst "π main sum" M do
@@ -87,61 +77,8 @@ meta def mkPiNearMain (B : ℕ) : MetaM RNear := do
     let π₀ : RNear := { proof := pf, x := mkPiE, neg := false, cn := P, cd := Q, rn := 1, rd := E }
     recentreExactNear π₀ M
 
-/-- One main-sum step through `mainSumRS_step`: from the enclosure `S` of `mainSumRS θ t (b-1)`,
-the phase `θ`, the sealed `log b`/`(√b)⁻¹` and the `π` enclosure `πM`, all on the shared denominator
-`B` (`πM` on `M`), build the enclosure of `mainSumRS θ t b` on `B`.
-
-The meta side reduces the exact phase centre `φc = (td·θc − tn·Lc)/(td·B)` itself: `k =
-⌊|φc|/(π/2)⌋` at `πM`, the remainder floored onto `·/B` as `u/B`, and the in-range `cos`/`sin`
-certificate of `u/B` (`k mod 4` picks which, and the sign) at `1/DI = 2/B`, whose dyadic
-denominator is then `B` itself. The new centre is floored onto `·/B` and the radius rounded up onto
-it. Every numeral condition holds by construction, so the checks are `reflBoolTrue`. -/
-meta def mainSumStepNear (S θ logN invS πM : RNear) (tE htE : Expr) (tn td b B : ℕ) :
-    MetaM RNear := do
-  let sgn (neg : Bool) (n : ℕ) : Int := if neg then -(n : Int) else n
-  let (M, Pc, rπ, DI) := (πM.cd, πM.cn, πM.rn, B / 2)
-  -- the phase centre `(td·θc − tn·Lc)/(td·B)`, exact, as `±N/(td·B)`
-  let num : Int := sgn θ.neg θ.cn * (td : Int) - ((tn * logN.cn : ℕ) : Int)
-  let nφ := decide (num < 0)
-  let N := num.natAbs
-  let k := 2 * M * N / (td * B * Pc)
-  let u := (2 * M * N - k * Pc * td * B) / (2 * M * td)
-  let j := k % 4
-  let (pI, nI, cI, Q) ← if j % 2 == 0 then mkCosPos u B DI else mkSinPos u B DI
-  unless Q == B do throwError "mainSumStepNear: certificate denominator {Q} is not B = {B}"
-  let flip := j == 1 || j == 2
-  let nC := if flip then !nI else nI
-  let (εE, hε, hsign) := if flip
-    then (``quadSignNeg, ``abs_quadSignNeg, ``sfrac_not_eq_quadSignNeg_mul)
-    else (``quadSignPos, ``abs_quadSignPos, ``sfrac_eq_quadSignPos_mul)
-  let hquad := #[``cos_quad_nat0, ``cos_quad_nat1, ``cos_quad_nat2, ``cos_quad_nat3][j]!
-  let gE := mkConst (if j % 2 == 0 then ``Real.cos else ``Real.sin)
-  -- the new centre `(Sc·B + Ac·Cc)/B²`, floored onto `·/B`
-  let numX : Int := sgn S.neg S.cn * (B : Int) + (invS.cn : Int) * sgn nC cI
-  let cRi := Int.fdiv numX B
-  -- the radius, rounded up onto `·/B`
-  let radNum := (S.rn + invS.rn + 1) * B * td * (2 * M)
-    + invS.cn * (2 * M * (td * (θ.rn + 3) + tn * logN.rn) + k * rπ * (td * B))
-  let radDen := B * td * (2 * M)
-  let rR := (radNum + radDen - 1) / radDen
-  let proof := mkAppN (mkConst ``mainSumRS_step)
-    #[θ.x, tE, gE, mkConst εE, natLitShared (b - 1), natLitShared b, natLitShared tn,
-      natLitShared td, natLitShared k, natLitShared B, natLitShared DI, natLitShared M,
-      toExpr θ.neg, natLitShared θ.cn, natLitShared θ.rn, natLitShared logN.cn,
-      natLitShared logN.rn, natLitShared invS.cn, natLitShared invS.rn, toExpr S.neg,
-      natLitShared S.cn, natLitShared S.rn, toExpr nφ, natLitShared u, natLitShared Pc,
-      natLitShared rπ, toExpr nI, natLitShared cI, toExpr nC, toExpr (decide (cRi < 0)),
-      natLitShared cRi.natAbs, natLitShared rR,
-      mkConst hε, mkApp2 (mkConst hquad) (natLitShared k) reflBoolTrue,
-      mkApp3 (mkConst hsign) (toExpr nI) (natLitShared cI) (natLitShared B),
-      htE, reflBoolTrue, S.proof, θ.proof, logN.proof, invS.proof, πM.proof, pI,
-      reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
-  return { proof, x := mkApp3 (mkConst ``mainSumRS) θ.x tE (natLitShared b),
-           neg := decide (cRi < 0), cn := cRi.natAbs, cd := B, rn := rR, rd := B }
-
 /-- The per-term choices of a main-sum step: the phase reduction (`nφ`, `k`, `u`), the in-range
-certificate (`pI`, `nI`, `cI`) and the quadrant's sign lemmas. Shared by the single and paired
-steps. -/
+certificate (`pI`, `nI`, `cI`) and the quadrant's sign lemmas. -/
 meta structure MainSumTerm where
   nφ : Bool
   k : ℕ
@@ -156,9 +93,9 @@ meta structure MainSumTerm where
   hquad : Name
   gE : Expr
 
-/-- The per-term part of `mainSumStepNear` for the term with log enclosure `L`: reduce the phase
-centre `(td·θc − tn·Lc)/(td·B)` by `k·π/2` at `πM`, floor the remainder onto `·/B` as `u/B`, and
-build the in-range `cos`/`sin` certificate of `u/B` at `1/DI = 2/B`. -/
+/-- The per-term choices of a main-sum step for the log enclosure `L`: the phase centre reduced by
+`k·π/2` at `πM`, the remainder `u/B`, and the in-range `cos`/`sin` certificate of `u/B` at
+`1/DI = 2/B`. -/
 meta def mainSumTermNear (θ L πM : RNear) (tn td B : ℕ) : MetaM MainSumTerm := do
   let sgn (neg : Bool) (n : ℕ) : Int := if neg then -(n : Int) else n
   let (M, Pc, DI) := (πM.cd, πM.cn, B / 2)
@@ -176,6 +113,38 @@ meta def mainSumTermNear (θ L πM : RNear) (tn td B : ℕ) : MetaM MainSumTerm 
   return { nφ := decide (num < 0), k, u, pI, nI, cI, nC := if flip then !nI else nI, εE, hε, hsign,
            hquad := #[``cos_quad_nat0, ``cos_quad_nat1, ``cos_quad_nat2, ``cos_quad_nat3][j]!,
            gE := mkConst (if j % 2 == 0 then ``Real.cos else ``Real.sin) }
+
+/-- One main-sum step through `mainSumRS_step`: from the enclosure `S` of `mainSumRS θ t (b-1)`,
+the phase `θ`, the sealed `log b`/`(√b)⁻¹` and the `π` enclosure `πM`, all on the shared denominator
+`B` (`πM` on `M`), the enclosure of `mainSumRS θ t b` on `B`. Every numeral condition holds by
+construction, so the checks are `reflBoolTrue`. -/
+meta def mainSumStepNear (S θ logN invS πM : RNear) (tE htE : Expr) (tn td b B : ℕ) :
+    MetaM RNear := do
+  let sgn (neg : Bool) (n : ℕ) : Int := if neg then -(n : Int) else n
+  let (M, Pc, rπ, DI) := (πM.cd, πM.cn, πM.rn, B / 2)
+  let d ← mainSumTermNear θ logN πM tn td B
+  -- the new centre `(Sc·B + Ac·Cc)/B²`, floored onto `·/B`
+  let numX : Int := sgn S.neg S.cn * (B : Int) + (invS.cn : Int) * sgn d.nC d.cI
+  let cRi := Int.fdiv numX B
+  -- the radius, rounded up onto `·/B`
+  let radNum := (S.rn + invS.rn + 1) * B * td * (2 * M)
+    + invS.cn * (2 * M * (td * (θ.rn + 3) + tn * logN.rn) + d.k * rπ * (td * B))
+  let radDen := B * td * (2 * M)
+  let rR := (radNum + radDen - 1) / radDen
+  let proof := mkAppN (mkConst ``mainSumRS_step)
+    #[θ.x, tE, d.gE, mkConst d.εE, natLitShared (b - 1), natLitShared b, natLitShared tn,
+      natLitShared td, natLitShared d.k, natLitShared B, natLitShared DI, natLitShared M,
+      toExpr θ.neg, natLitShared θ.cn, natLitShared θ.rn, natLitShared logN.cn,
+      natLitShared logN.rn, natLitShared invS.cn, natLitShared invS.rn, toExpr S.neg,
+      natLitShared S.cn, natLitShared S.rn, toExpr d.nφ, natLitShared d.u, natLitShared Pc,
+      natLitShared rπ, toExpr d.nI, natLitShared d.cI, toExpr d.nC, toExpr (decide (cRi < 0)),
+      natLitShared cRi.natAbs, natLitShared rR,
+      mkConst d.hε, mkApp2 (mkConst d.hquad) (natLitShared d.k) reflBoolTrue,
+      mkApp3 (mkConst d.hsign) (toExpr d.nI) (natLitShared d.cI) (natLitShared B),
+      htE, reflBoolTrue, S.proof, θ.proof, logN.proof, invS.proof, πM.proof, d.pI,
+      reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
+  return { proof, x := mkApp3 (mkConst ``mainSumRS) θ.x tE (natLitShared b),
+           neg := decide (cRi < 0), cn := cRi.natAbs, cd := B, rn := rR, rd := B }
 
 /-- Two main-sum steps at once through `mainSumRS_step2`: from `S` enclosing `mainSumRS θ t (b₁-1)`,
 enclose `mainSumRS θ t (b₁+1)`, with one floored centre and one radius check for the pair. -/
@@ -197,29 +166,24 @@ meta def mainSumPairNear (S θ L₁ A₁ L₂ A₂ πM : RNear) (tE htE : Expr) 
   let rR := (radNum + radDen - 1) / radDen
   let lit := natLitShared
   let proof := mkAppN (mkConst ``mainSumRS_step2)
-    #[θ.x, tE, d₁.gE, d₂.gE, mkConst d₁.εE, mkConst d₂.εE, lit (b₁ - 1), lit b₁, lit (b₁ + 1),
-      lit tn, lit td, lit d₁.k, lit d₂.k, lit B, lit DI, lit M,
-      toExpr θ.neg, lit θ.cn, lit θ.rn, lit L₁.cn, lit L₁.rn, lit A₁.cn, lit A₁.rn,
-      lit L₂.cn, lit L₂.rn, lit A₂.cn, lit A₂.rn, toExpr S.neg, lit S.cn, lit S.rn,
-      toExpr d₁.nφ, lit d₁.u, toExpr d₂.nφ, lit d₂.u, lit Pc, lit rπ,
-      toExpr d₁.nI, lit d₁.cI, toExpr d₁.nC, toExpr d₂.nI, lit d₂.cI, toExpr d₂.nC,
-      toExpr (decide (cRi < 0)), lit cRi.natAbs, lit rR,
-      mkConst d₁.hε, mkApp2 (mkConst d₁.hquad) (lit d₁.k) reflBoolTrue,
-      mkApp3 (mkConst d₁.hsign) (toExpr d₁.nI) (lit d₁.cI) (lit B),
-      mkConst d₂.hε, mkApp2 (mkConst d₂.hquad) (lit d₂.k) reflBoolTrue,
-      mkApp3 (mkConst d₂.hsign) (toExpr d₂.nI) (lit d₂.cI) (lit B),
-      htE, reflBoolTrue, reflBoolTrue, S.proof, θ.proof, L₁.proof, A₁.proof, L₂.proof, A₂.proof,
-      πM.proof, d₁.pI, d₂.pI,
-      reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
+    #[lit td, lit B, lit DI, lit M, toExpr θ.neg, lit L₁.rn, lit L₂.rn, lit Pc, lit rπ,
+      toExpr d₁.nI, toExpr d₂.nI, πM.proof, reflBoolTrue, reflBoolTrue, d₁.gE, d₂.gE,
+      mkConst d₁.εE, mkConst d₂.εE, lit A₁.rn, lit A₂.rn, toExpr S.neg, toExpr d₁.nφ,
+      toExpr d₂.nφ, toExpr d₁.nC, toExpr d₂.nC, toExpr (decide (cRi < 0)), mkConst d₁.hε,
+      mkConst d₂.hε, lit (b₁ - 1), lit b₁, reflBoolTrue, lit (b₁ + 1), reflBoolTrue, lit L₁.cn,
+      lit A₁.cn, lit L₂.cn, lit A₂.cn, L₁.proof, A₁.proof, L₂.proof, A₂.proof, θ.x, tE, lit tn,
+      lit θ.cn, lit θ.rn, htE, θ.proof, lit d₂.k,
+      mkApp2 (mkConst d₂.hquad) (lit d₂.k) reflBoolTrue, lit d₁.k,
+      mkApp2 (mkConst d₁.hquad) (lit d₁.k) reflBoolTrue, lit S.rn, lit S.cn, lit d₁.u,
+      reflBoolTrue, lit d₂.u, reflBoolTrue, lit d₁.cI, lit d₂.cI, lit cRi.natAbs, reflBoolTrue,
+      lit rR, reflBoolTrue, mkApp3 (mkConst d₁.hsign) (toExpr d₁.nI) (lit d₁.cI) (lit B),
+      mkApp3 (mkConst d₂.hsign) (toExpr d₂.nI) (lit d₂.cI) (lit B), S.proof, d₁.pI, d₂.pI]
   return { proof, x := mkApp3 (mkConst ``mainSumRS) θ.x tE (lit (b₁ + 1)),
            neg := decide (cRi < 0), cn := cRi.natAbs, cd := B, rn := rR, rd := B }
 
 /-- The named `riemannSiegelThetaApproximant 2 0 t` at `t = tn/td`, through the real closed form
-`riemannSiegelThetaApproximant_two_zero_mk`: one real `log (1/16 + t²/4)`, one small
-`arctan (1/(2t))`, the sealed `log π` and an exact rational tail, instead of the complex Stirling
-evaluation. The two logs are multiplied by `t/4` and `t/2`, so they are taken at `8D`, which keeps
-the radius well below the complex route's. Needs `t ≥ 1` (so `td < 2tn` and the tail's sign is
-fixed), which every Riemann–Siegel endpoint (`t ≥ 32π`) satisfies. -/
+`riemannSiegelThetaApproximant_two_zero_mk`, with the logs taken at `8D` since they are multiplied
+by `t/4` and `t/2`. Needs `t ≥ 1`, which every Riemann–Siegel endpoint satisfies. -/
 meta def mkThetaNamedRS (tE htE : Expr) (tn td D : ℕ) : MetaM RNear := do
   unless td ≤ tn do throwError "mkThetaNamedRS: needs t ≥ 1, got {tn}/{td}"
   let S := td * td + 4 * tn * tn
@@ -259,14 +223,12 @@ meta def mkTNamedRS (tE htE : Expr) (tn td D : ℕ) : MetaM RNear := do
   let heT := mkAppN (mkConst ``t_div_two_pi_mk) #[tE, natLitShared tn, natLitShared td, htE]
   withPhase "RS: rename t/(2π)" (ofEqNearHe (← lemmaLhs heT) heT T)
 
-/-- Main-sum steps between seals of the running sum. Each step nests the previous sum's proof one
-level deeper, and the kernel checks that chain recursively against `maxRecDepth` (512 by default,
-exceeded at height 10⁷: `ν ≈ 1262`, 631 steps). Sealing the sum as an auxiliary lemma every
-`mainSumSealEvery` steps bounds the depth at any height. -/
+/-- Main-sum steps between seals of the running sum. Sealing bounds the nesting depth of the
+accumulated term, which the kernel checks against `maxRecDepth`. -/
 meta def mainSumSealEvery : ℕ := 128
 
-/-- Chooses extra precision for first-order term when needed: it involves four-fold division by
-`cos 2πp` which, when `p` is close to 1/4 or 3/4, can lead to bit cancellation. -/
+/-- Extra precision for the first-order term, which divides by `cos 2πp` four times and so loses
+bits when `p` is near `1/4` or `3/4`. -/
 meta def c1ExtraBits (tn td ν : ℕ) : ℕ :=
   let pi := 3.141592653589793
   let p  := Float.sqrt (tn.toFloat / (td.toFloat * 2 * pi)) - ν.toFloat
@@ -424,16 +386,14 @@ meta def mkHardyZNamedRS (tE htE : Expr) (tn td D : ℕ) (withC₁ : Bool := tru
       (← subNear S (← mulNear Cmul (← addNear C₀ (← mulNear C₁ (← mkInvImageNear sqrtT D)))))
 
 open Elab Term in
-/-- `hardyZNamedRS% tn td D` : an enclosure of the NAMED Hardy `Z` approximant body. -/
+/-- `hardyZNamedRS% tn td D` : an enclosure of the named `hardyZApproximantRS (tn/td)`. -/
 elab "hardyZNamedRS% "  tnn:num tdn:num Dn:num : term => do
   let tn := tnn.getNat; let td := tdn.getNat
   let tE := sfracExpr false tn td
   let htE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) tE
   return (← mkHardyZNamedRS tE htE tn td Dn.getNat).proof
 
-/-- Benchmark: the named Hardy `Z` value `Re(e^{iθ̃}·ζ̃)` at `t = 14.1`, `M = 3`, `N = 6` — the
-full Tier-3 target (definitionally `hardyZApproximantEM 3 6 14.1`). Reference:
-`≈ -0.0273608563`. -/
+/-- Benchmark: the named Riemann–Siegel Hardy `Z` value at `t = 150`. -/
 example := hardyZNamedRS% 1500 10 100000000
 
 /-! ### The named error bound and the certificate tactics -/
@@ -459,32 +419,24 @@ meta def mkErrStrongNamedRS (tE htE : Expr) (tn td D : ℕ) (withC₁ : Bool := 
     #[tE, natLitShared tn, natLitShared td, htE, reflBoolTrue, reflBoolTrue]
   ofEqNearHe (← lemmaLhs herr) herr err
 
-/-- The canonical cached enclosure of `hardyZApproximantEM M N t`: built once per `(M, N, t, D)`,
-stated at the canonical application so every obligation can rename it onto its goal by a refl
-transport. Memoized per process (`hardyZNamedCache`). -/
+/-- The cached enclosure of `hardyZApproximantRS t` (or `hardyZApproximantRS₀ t` when `!withC₁`),
+stated at the canonical application and memoized per `(t, D)` in `hardyZNamedCacheRS`
+(`hardyZNamedCacheRS₀`). -/
 meta def mkHardyZCachedRS (tE htE : Expr) (tn td D : ℕ) (withC₁ : Bool := true) :
-    MetaM RNear := do
-  let key := (tn, td, D)
-  let cache := if withC₁ then hardyZNamedCacheRS else hardyZNamedCacheRS₀
-  if let some (tE', r) := (← cache.get).get? key then
-    if tE' == tE && (← proofsInEnv #[r.proof]) then
-      return r
-  let r ← cachedNear do
+    MetaM RNear :=
+  memoCachedNearAt (if withC₁ then hardyZNamedCacheRS else hardyZNamedCacheRS₀) (tn, td, D) tE do
     let r ← mkHardyZNamedRS tE htE tn td D withC₁
     let xC := mkAppN (mkConst (if withC₁ then ``hardyZApproximantRS else ``hardyZApproximantRS₀))
       #[tE]
     ofEqNearAt xC (mkReflR r.x) r
-  cache.modify (·.insert key (tE, r))
-  return r
 
-/-- A resolved Hardy-`Z` site: the subject expression `x` the proof is about, the literal cutoffs
-`M`, `N`, and the endpoint `tE = sfrac false tn td` with its proof `htE` and numeric height `tn/td`.
-The goal-facing tactics obtain this by parsing the goal; `build_certs` fills it straight from the
-row, so the endpoint value is used as it stands rather than rebuilt into a term and reparsed. -/
+/-- A resolved Riemann–Siegel Hardy-`Z` site: the subject expression `x` and the endpoint
+`tE = sfrac false tn td` with its proof `htE`. Filled by parsing the goal (`resolveHardyZSiteRS`)
+or straight from a row (`build_certs`). -/
 structure HardyZSiteRS where
   /-- The subject expression the enclosure is transported onto. -/
   x : Expr
-  /-- Bernoulli-term count. -/
+  /-- Height numerator. -/
   tn : ℕ
   /-- Height denominator. -/
   td : ℕ
@@ -492,21 +444,18 @@ structure HardyZSiteRS where
   htE : Expr
   /-- The endpoint expression `sfrac false tn td`. -/
   tE : Expr
-  /-- Proof `x = hardyZApproximantRS tE`, transporting the cached enclosure onto the subject
-  through a cited equality rather than a `mkReflR` defeq: in the `build_certs` path `x` is a
-  `ZIntervalRS.fstVal`/`sndVal` wrapper, so this is `fstVal_mkZIRS`/`sndVal_mkZIRS`; in the
-  goal-facing path `x` is already `hardyZApproximantRS tE`, so it is a reflexivity. -/
+  /-- Proof `x = hardyZApproximantRS tE`: `fstVal_mkZIRS`/`sndVal_mkZIRS` in the `build_certs`
+  path, a reflexivity in the goal-facing path. -/
   he : Expr
 
-/-- The height-scaled default working precision for a site: enclosure noise grows ~linearly in `t`
-(the `t/2·log π` phase product), so `D` scales with the height to keep the margin uniform. -/
+/-- The default working precision for a site, scaled with the height since enclosure noise grows
+about linearly in `t`. -/
 meta def siteDRS (s : HardyZSiteRS) (D? : Option ℕ) : ℕ :=
   D?.getD (100000000 * max 1 (s.tn / (30 * s.td)))
 
 open Elab Tactic Term in
-/-- Parse a subject expression `x` (reducing to `hardyZApproximantEM M N t`) into its resolved
-`HardyZSite`; rejects a nonpositive `t`. The goal-facing tactics use this to recover the site the
-`build_certs` path already holds. -/
+/-- Parse a subject expression `x` (reducing to `hardyZApproximantRS t`) into its resolved
+`HardyZSiteRS`; rejects a nonpositive `t`. -/
 meta def resolveHardyZSiteRS (x : Expr) (who : String) : MetaM HardyZSiteRS := do
   let x' ← headTo x ``hardyZApproximantRS
   let args := x'.getAppArgs
@@ -521,12 +470,11 @@ meta def resolveHardyZSiteRS (x : Expr) (who : String) : MetaM HardyZSiteRS := d
 /-- The named enclosure of one site's Hardy-`Z` value, transported onto the site's subject `x`. -/
 meta def mkHardyZSiteNearRS (s : HardyZSiteRS) (D? : Option ℕ := none) (withC₁ : Bool := true) :
     MetaM RNear := do
-  let r ← withPhase s!"hardyZ enclosure t={s.tn}/{s.td}"
+  let r ← withPhase s!"Zeta.hardyZ enclosure t={s.tn}/{s.td}"
     (mkHardyZCachedRS s.tE s.htE s.tn s.td (siteDRS s D?) withC₁)
   ofEqNearAt s.x s.he r
 
-/-- Core of `hardy_sign_change` on two resolved sites: enclose both, extract their signs
-(`neg_val`/`pos_val`), and combine into `sa.x * sb.x < 0`. -/
+/-- Core of `hardy_sign_change_rs` on two resolved sites: a proof of `sa.x * sb.x < 0`. -/
 meta def hardySignChangeSitesRS (sa sb : HardyZSiteRS) (D? : Option ℕ := none)
     (withC₁ : Bool := true) : MetaM Expr := do
   let mkSide (s : HardyZSiteRS) : MetaM (RNear × Expr) := do
@@ -537,27 +485,17 @@ meta def hardySignChangeSitesRS (sa sb : HardyZSiteRS) (D? : Option ℕ := none)
     return (named, s.x)
   let (ra, aE) ← mkSide sa
   let (rb, bE) ← mkSide sb
-  let mkSignPf (x : Expr) (r : RNear) : Expr :=
-    mkAppN (mkConst (if r.neg then ``Real.IsNear.neg_val else ``Real.IsNear.pos_val))
-      #[x, natLitShared r.cn, natLitShared r.cd, natLitShared r.rn, natLitShared r.rd, r.proof,
-        reflBoolTrue, reflBoolTrue, reflBoolTrue]
-  if ra.neg && !rb.neg then
-    return mkAppN (mkConst ``mul_neg_of_neg_pos_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
-  else if !ra.neg && rb.neg then
-    return mkAppN (mkConst ``mul_neg_of_pos_neg_r) #[aE, bE, mkSignPf aE ra, mkSignPf bE rb]
-  else throwError "hardy_sign_change_rs: both endpoint values have the same sign"
+  mulNegOfSignsNear "hardy_sign_change_rs" ra aE rb bE
 
-/-- Goal-facing `hardy_sign_change` core: parse both product factors into sites, then delegate to
-`hardySignChangeSitesRS`. -/
+/-- Goal-facing `hardy_sign_change_rs` core: parse both product factors into sites, then delegate
+to `hardySignChangeSitesRS`. -/
 meta def hardySignChangeCoreRS (a b : Expr) (D? : Option ℕ := none) : MetaM Expr := do
   hardySignChangeSitesRS (← resolveHardyZSiteRS a "hardy_sign_change")
     (← resolveHardyZSiteRS b "hardy_sign_change") D?
 
 open Elab Tactic Term in
-/-- `hardy_sign_change_rs` closes `hardyZApproximantRS tl * hardyZApproximantRS tr < 0`:
-builds named enclosures of both factors, extracts the two signs (`neg_val`/`pos_val`), and
-combines them. `t` arguments in any recognised rational surface form; each factor may sit
-behind a reducible wrapper (e.g. `ZeroInterval.leftVal I` for a literal `I`). -/
+/-- `hardy_sign_change_rs` closes `hardyZApproximantRS tl * hardyZApproximantRS tr < 0`, with `t`
+in any recognised rational surface form; each factor may sit behind a reducible wrapper. -/
 elab "hardy_sign_change_rs" : tactic => do
   let ty ← (← getMainGoal).getType
   let_expr LT.lt _ _ lhs _ := ty
@@ -567,49 +505,24 @@ elab "hardy_sign_change_rs" : tactic => do
   let pf ← hardySignChangeCoreRS a b
   liftMetaFinishingTactic (·.assign pf)
 
-/-- Whether `‖x‖ > e` follows from the enclosures `hx`, `he` by `norm_gt_of_isNear`: the meta
-mirror of its `Nat.blt` condition. -/
-meta def normGtMarginOk (hx he : RNear) : Bool :=
-  let eUp := (if he.neg then 0 else he.cn) * (he.rd * (hx.cd * hx.rd))
-    + he.rn * (he.cd * (hx.cd * hx.rd)) + hx.rn * (he.cd * (he.rd * hx.cd))
-  let xLo := hx.cn * (he.cd * (he.rd * hx.rd))
-    + (if he.neg then he.cn else 0) * (he.rd * (hx.cd * hx.rd))
-  eUp < xLo
-
-/-- `norm_gt_of_isNear` at `x`, `e` with the enclosures `hx`, `he`. -/
-meta def mkNormGtOfIsNear (x e : Expr) (hx he : RNear) : Expr :=
-  mkAppN (mkConst ``norm_gt_of_isNear)
-    #[x, e, toExpr hx.neg, toExpr he.neg, natLitShared hx.cn, natLitShared hx.cd,
-      natLitShared hx.rn, natLitShared hx.rd, natLitShared he.cn, natLitShared he.cd,
-      natLitShared he.rn, natLitShared he.rd, hx.proof, he.proof, reflBoolTrue, reflBoolTrue,
-      reflBoolTrue, reflBoolTrue, reflBoolTrue]
-
 /-- The error bound (`hardyZErrorBoundRS`, or `…RS₀` when `!withC₁`) at a batch's lowest endpoint
 `sn/sd`, enclosed and sealed once per batch (memo `errBoundLoCacheRS`). Returns the endpoint
 expression `sfrac false sn sd` and the enclosure, named at the bound applied to it. -/
 meta def mkErrBoundLoRS (sn sd D : ℕ) (withC₁ : Bool) : MetaM (Expr × RNear) := do
   let sE := mkSfracR false sn sd
-  let key := (sn, sd, D, withC₁)
-  if let some r := (← errBoundLoCacheRS.get)[key]? then
-    if ← proofsInEnv #[r.proof] then return (sE, r)
-  let hsE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) sE
-  let r ← cachedNear (mkErrStrongNamedRS sE hsE sn sd D withC₁)
-  errBoundLoCacheRS.modify (·.insert key r)
+  let r ← memoCachedNear errBoundLoCacheRS (sn, sd, D, withC₁) do
+    let hsE := mkApp2 (Expr.const ``Eq.refl [1]) (mkConst ``Real) sE
+    mkErrStrongNamedRS sE hsE sn sd D withC₁
   return (sE, r)
 
-/-- Core of `hardy_error_ok` on a resolved site `s` and a bound `bnd` (the error bound at `s.tE`):
-build the named enclosures, meta-check the margin, and return a proof of `‖s.x‖ > bnd`.
-
-With `lo? = some (sn, sd)`, the batch's lowest endpoint (`sn/sd ≤ s.tn/s.td`), the error bound is
-first tried at `sn/sd` — one sealed enclosure per batch — and moved up to `s.tE` by antitonicity
-(`norm_gt_hardyZErrorBoundRS(₀)_of_le`). The bound decreases in `t`, so this only costs margin;
-where that margin is not enough (wide low-`t` batches) the endpoint's own bound is used instead. -/
+/-- Core of `hardy_error_ok_rs` on a resolved site `s` and a bound `bnd` (the error bound at
+`s.tE`): a proof of `‖s.x‖ > bnd`. With `lo? = some (sn, sd)`, the batch's lowest endpoint, the
+bound is first tried at `sn/sd` and moved up by antitonicity (`norm_gt_hardyZErrorBoundRS_of_le`),
+falling back to the endpoint's own bound when the margin is too small. -/
 meta def hardyErrOkSiteRS (s : HardyZSiteRS) (bnd : Expr) (D? : Option ℕ := none)
     (withC₁ : Bool := true) (lo? : Option (ℕ × ℕ) := none) : MetaM Expr := do
   let D := siteDRS s D?
-  let rZ ← withPhase s!"hardyZ enclosure t={s.tn}/{s.td}"
-    (mkHardyZCachedRS s.tE s.htE s.tn s.td D withC₁)
-  let hx ← ofEqNearAt s.x s.he rZ
+  let hx ← mkHardyZSiteNearRS s (some D) withC₁
   if let some (sn, sd) := lo? then
     if 1 ≤ sn && 1 ≤ sd && 1 ≤ s.td && sn * s.td ≤ s.tn * sd then
       let (sE, rLo) ← withPhase "errStrong enclosure (batch)" (mkErrBoundLoRS sn sd D withC₁)
@@ -632,14 +545,13 @@ meta def hardyErrOkSiteRS (s : HardyZSiteRS) (bnd : Expr) (D? : Option ℕ := no
       precision {D}"
   return mkNormGtOfIsNear s.x bnd hx he
 
-/-- Goal-facing `hardy_error_ok` core: parse the subject `x` into a site, then delegate to
-`hardyErrOkSite`. -/
+/-- Goal-facing `hardy_error_ok_rs` core: parse the subject `x` into a site, then delegate to
+`hardyErrOkSiteRS`. -/
 meta def hardyErrOkCoreRS (x bnd : Expr) (D? : Option ℕ := none) : MetaM Expr := do
   hardyErrOkSiteRS (← resolveHardyZSiteRS x "hardy_error_ok") bnd D?
 
 open Elab Tactic Term in
-/-- `hardy_error_ok` closes `‖hardyZApproximantRS t‖ > hardyZErrorBoundStrongRS t`: named
-enclosures of the value and the strengthened error bound, compared by `norm_gt_of_isNear`. -/
+/-- `hardy_error_ok_rs` closes `‖hardyZApproximantRS t‖ > hardyZErrorBoundRS t`. -/
 elab "hardy_error_ok_rs" : tactic => do
   let ty ← (← getMainGoal).getType
   let_expr GT.gt _ _ lhs rhs := ty
@@ -648,25 +560,5 @@ elab "hardy_error_ok_rs" : tactic => do
     | throwError "hardy_error_ok_rs: expected a norm on the left"
   let pf ← hardyErrOkCoreRS x rhs
   liftMetaFinishingTactic (·.assign pf)
-
-/-! ### The first-zero certificate
-
-The three Certificate obligations for the interval `[149.5, 150.49]`,
-each discharged by one tactic call. -/
-
-/-- The endpoint values change sign across `[149.5, 150.49]`. -/
-theorem first_zero_sign_change_rs :
-    hardyZApproximantRS 149.5 * hardyZApproximantRS 150.49 < 0 := by
-  hardy_sign_change_rs
-
-/-- The left endpoint value clears the strengthened error bound. -/
-theorem first_zero_left_error_rs :
-    ‖hardyZApproximantRS 149.5‖ > hardyZErrorBoundRS 149.5 := by
-  hardy_error_ok_rs
-
-/-- The right endpoint value clears the strengthened error bound. -/
-theorem first_zero_right_error_rs :
-    ‖hardyZApproximantRS 150.49‖ > hardyZErrorBoundRS 150.49 := by
-  hardy_error_ok_rs
 
 end BSN

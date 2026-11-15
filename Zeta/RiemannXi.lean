@@ -34,7 +34,7 @@ expression does not extend continuously through Lean's junk values at the poles 
 - `riemannXi_eq_zero_iff`: on the critical strip `0 < Re s < 1`, `ξ(s) = 0 ↔ ζ(s) = 0`.
 - `meromorphicOrderAt_riemannXi_eq_riemannZeta`: on the critical strip the meromorphic orders
   of `ξ` and `ζ` agree.
-- `Complex.Gammaℝ_conj`, `Complex.analyticAt_Gammaℝ`, `completedRiemannZeta₀_conj`: conjugation
+- `Complex.analyticAt_Gammaℝ`, `completedRiemannZeta₀_conj`: conjugation
   symmetry and analyticity of the underlying completed-zeta objects.
 -/
 @[expose] public section
@@ -43,17 +43,6 @@ expression does not extend continuously through Lean's junk values at the poles 
 open Complex
 
 namespace Complex
-
-/-- The argument of the positive real `π`, viewed as a complex number, is not `π`. -/
-private theorem arg_pi_ne_pi : (↑Real.pi : ℂ).arg ≠ Real.pi := by
-  rw [arg_ofReal_of_nonneg Real.pi_pos.le]; exact Real.pi_pos.ne
-
-/-- Conjugation symmetry of the real Gamma factor `Γ_ℝ(s) = π^{-s/2} Γ(s/2)`. -/
-theorem Gammaℝ_conj (s : ℂ) : Gammaℝ (starRingEnd ℂ s) = starRingEnd ℂ (Gammaℝ s) := by
-  rw [Gammaℝ_def, Gammaℝ_def, map_mul,
-    show -starRingEnd ℂ s / 2 = starRingEnd ℂ (-s / 2) by simp only [map_div₀, map_neg, map_ofNat],
-    show starRingEnd ℂ s / 2 = starRingEnd ℂ (s / 2) by simp only [map_div₀, map_ofNat],
-    cpow_conj _ _ arg_pi_ne_pi, Gamma_conj, conj_ofReal]
 
 /-- The real Gamma factor `Γ_ℝ(s) = π^{-s/2} Γ(s/2)` is analytic on the right half-plane
 `Re s > 0`. -/
@@ -67,8 +56,7 @@ theorem analyticAt_Gammaℝ {s : ℂ} (hs : 0 < s.re) : AnalyticAt ℂ Gammaℝ 
       ((Complex.differentiableAt_Gamma_of_re_pos hz2).comp z
         (differentiableAt_id.div_const 2))).differentiableWithinAt
 
-/-- The real Gamma factor `Γ_ℝ` is non-vanishing off the real axis (its zeros are the
-non-positive even integers). -/
+/-- The real Gamma factor `Γ_ℝ` is non-vanishing off the real axis. -/
 theorem Gammaℝ_ne_zero_of_im_ne_zero {s : ℂ} (h : s.im ≠ 0) : Gammaℝ s ≠ 0 := by
   rw [Ne, Gammaℝ_eq_zero_iff]
   rintro ⟨n, rfl⟩
@@ -145,8 +133,7 @@ theorem riemannXi_zero : riemannXi 0 = 1 / 2 := by simp [riemannXi]
 /-- The value of ξ at the pole `s = 1` of `Λ`. -/
 theorem riemannXi_one : riemannXi 1 = 1 / 2 := by simp [riemannXi]
 
-/-- Conjugation symmetry of the Riemann ξ function: `ξ(conj s) = conj (ξ s)`. In particular ξ is
-real on the line `Re s = 1/2` (where `conj s = 1 - s`). -/
+/-- Conjugation symmetry of the Riemann ξ function: `ξ(conj s) = conj (ξ s)`. -/
 theorem riemannXi_conj (s : ℂ) : riemannXi (starRingEnd ℂ s) = starRingEnd ℂ (riemannXi s) := by
   simp [riemannXi, completedRiemannZeta₀_conj, map_ofNat]
 
@@ -187,8 +174,7 @@ theorem riemannXi_eq_zero_iff {s : ℂ} (h0 : 0 < s.re) (h1 : s.re < 1) :
   rw [riemannXi_eq_prefactor_mul_riemannZeta h0 h1, mul_eq_zero,
     or_iff_right (prefactor_ne_zero h0 h1)]
 
-/-- **The order of ξ agrees with the order of ζ on the critical strip.** On `0 < Re s < 1` the
-two functions therefore have the same zeros with the same multiplicities. -/
+/-- **The order of ξ agrees with the order of ζ on the critical strip.** -/
 theorem meromorphicOrderAt_riemannXi_eq_riemannZeta {s : ℂ} (h0 : 0 < s.re) (h1 : s.re < 1) :
     meromorphicOrderAt riemannXi s = meromorphicOrderAt riemannZeta s := by
   have hU : IsOpen {z : ℂ | 0 < z.re ∧ z.re < 1} :=

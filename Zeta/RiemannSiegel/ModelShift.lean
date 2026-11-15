@@ -22,7 +22,7 @@ first-order chapter: moving the contour from `L(1/2)` out to `L(3/2)` crosses th
 the near one at the cost of a sign and a unit shift in `p`
 (`Zeta.RiemannSiegel.modelFun_add_one`).
 
-The rectangle apparatus is not redone here: it is the general
+The rectangle apparatus is the general
 `Zeta.RiemannSiegel.slantIntegral_sub_slantIntegral_of_pole` of `Shift.lean`, whose hypotheses are
 supplied by the Gaussian bound on the horizontal sides and by the residue at the pole. Both are
 easier than their order-zero analogues, because the model integrand carries no branch of a power:
@@ -48,25 +48,25 @@ namespace Zeta.RiemannSiegel
 /-- The **model integrand in rotated coordinates**, `F(z) = e^{-iπ/4} m_p(e^{-iπ/4} z)`. -/
 noncomputable def rotatedModelFun (p : ℂ) : ℂ → ℂ := rotatedFun (modelFun p)
 
-/-- **The rotated model integrand, evaluated at a rotated point.** -/
+/-- The rotated model integrand, evaluated at a rotated point. -/
 theorem rotatedModelFun_exp_mul (p x : ℂ) :
     rotatedModelFun p (exp ((π / 4 : ℝ) * I) * x) = exp (-((π / 4 : ℝ) * I)) * modelFun p x :=
   rotatedFun_exp_mul _ _
 
-/-- **The model integrand is holomorphic off the integers.** -/
+/-- The model integrand is holomorphic off the integers. -/
 theorem differentiableAt_modelFun (p : ℂ) {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) :
     DifferentiableAt ℂ (modelFun p) x := by
   rw [funext (modelFun_eq_mul_kernel p)]
   exact (by fun_prop : DifferentiableAt ℂ
     (fun x : ℂ ↦ exp (2 * π * I * (x - p) ^ 2 - π * I * x ^ 2)) x).mul (differentiableAt_kernel hx)
 
-/-- **The rotated model integrand is holomorphic off the rotated integers.** -/
+/-- The rotated model integrand is holomorphic off the rotated integers. -/
 theorem differentiableAt_rotatedModelFun (p : ℂ) {z : ℂ}
     (hz : ∀ k : ℤ, z ≠ exp ((π / 4 : ℝ) * I) * k) : DifferentiableAt ℂ (rotatedModelFun p) z :=
   differentiableAt_rotatedFun (differentiableAt_modelFun p fun k hcon ↦ hz k (by
     rw [← hcon, ← mul_assoc, exp_pi_div_four_mul_I_mul_exp_neg, one_mul]))
 
-/-- **Every integer is a simple pole of the model integrand**, with residue
+/-- Every integer is a simple pole of the model integrand, with residue
 `e^{2πi(n − p)² − iπn²}/(2πi)`. -/
 theorem tendsto_sub_mul_modelFun (p : ℂ) (n : ℤ) :
     Tendsto (fun x ↦ (x - n) * modelFun p x) (𝓝[≠] (n : ℂ))
@@ -80,14 +80,14 @@ theorem tendsto_sub_mul_modelFun (p : ℂ) (n : ℤ) :
   rw [modelFun_eq_mul_kernel]
   ring
 
-/-- **Every rotated integer is a simple pole of the rotated model integrand.** -/
+/-- Every rotated integer is a simple pole of the rotated model integrand. -/
 theorem tendsto_sub_mul_rotatedModelFun (p : ℂ) (n : ℤ) :
     Tendsto (fun z ↦ (z - exp ((π / 4 : ℝ) * I) * n) * rotatedModelFun p z)
       (𝓝[≠] (exp ((π / 4 : ℝ) * I) * (n : ℂ)))
       (𝓝 (exp (2 * π * I * ((n : ℂ) - p) ^ 2 - π * I * (n : ℂ) ^ 2) / (2 * π * I))) :=
   tendsto_sub_mul_rotatedFun (tendsto_sub_mul_modelFun p n)
 
-/-- **A Gaussian bound for the rotated model integrand** on a horizontal segment far from the
+/-- A Gaussian bound for the rotated model integrand on a horizontal segment far from the
 diagonal. -/
 private theorem norm_rotatedModelFun_le (p : ℂ) {ξ y : ℝ} (h : 1 ≤ |y - ξ|) :
     ‖rotatedModelFun p ((ξ : ℂ) + (y : ℂ) * I)‖
@@ -128,7 +128,7 @@ private theorem norm_rotatedModelFun_le (p : ℂ) {ξ y : ℝ} (h : 1 ≤ |y - �
   nlinarith [mul_le_mul_of_nonneg_left hA (by positivity : (0 : ℝ) ≤ 2 * Real.sqrt 2 * π),
     mul_le_mul_of_nonneg_left hB (by positivity : (0 : ℝ) ≤ 4 * π)]
 
-/-- **The horizontal sides of the truncated rectangle vanish** for the rotated model integrand. -/
+/-- The horizontal sides of the truncated rectangle vanish for the rotated model integrand. -/
 theorem tendsto_HIntegral_rotatedModelFun (p : ℂ) {β α : ℝ} (hβ : 0 ≤ β) (hβα : β ≤ α)
     {y : ℝ → ℝ} (hy : Tendsto (fun H ↦ |y H|) atTop atTop) :
     Tendsto (fun H ↦ HIntegral (rotatedModelFun p) β α (y H)) atTop (𝓝 0) := by
@@ -149,7 +149,7 @@ theorem tendsto_HIntegral_rotatedModelFun (p : ℂ) {β α : ℝ} (hβ : 0 ≤ �
   rw [abs_of_nonneg hξ0]
   nlinarith [mul_le_mul_of_nonneg_left hsq (by positivity : (0 : ℝ) ≤ 2 * π)]
 
-/-- **The unit shift for the model integral** (`riemann_siegel_first.tex`, `lem:rsf_unit_shift`):
+/-- The unit shift for the model integral (`riemann_siegel_first.tex`, `lem:rsf_unit_shift`):
 `M(p) + M(p + 1) = e^{2πip²}`. -/
 theorem modelIntegral_add_modelIntegral_add_one (p : ℂ) :
     modelIntegral p (1 / 2) + modelIntegral (p + 1) (1 / 2) = exp (2 * π * I * p ^ 2) := by

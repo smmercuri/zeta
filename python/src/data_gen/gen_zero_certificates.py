@@ -16,7 +16,7 @@ and emits, under `Zeta/Zeros/Certificates/`:
                                 #   the store rows. Past `BATCHES_PER_DIR` batches a method's
                                 #   modules are split into `<Method>/D<dddd>/`.
     Groups/Level<L>/Group<kkkk>.lean
-                                # one `module` per BATCHES_PER_GROUP consecutive batches (level 1)
+                                # one `module` per CHILDREN_PER_GROUP consecutive batches (level 1)
                                 #   or level-(L−1) groups: a fold of `BatchSpec.append` over
                                 #   their exported statements, one seam per step, exported as
                                 #   `group : BatchSpec …`.
@@ -26,16 +26,15 @@ and emits, under `Zeta/Zeros/Certificates/`:
 Numbers are zero-padded to the width of the largest at their level (at least 4), so names sort in
 order.
 
-Under the module system a theorem's proof is not exported, so a batch's certificate term (tens
-of megabytes, kernel-checked) stays in its `.olean.private` and only the statement — count,
-first endpoint, last endpoint — reaches the assembler. The endpoints are written here exactly as
-the store has them, as the tactics read them (`parseDec`); a mismatch is not a silent error, the
-kernel rejects the batch.
+Under the module system a theorem's proof is not exported, so a batch's kernel-checked
+certificate term stays in its `.olean.private` and only the statement (count, first endpoint,
+last endpoint) reaches the assembler. The endpoints are written here exactly as the store has
+them, as the tactics read them (`parseDec`); the kernel rejects a batch whose endpoints mismatch.
 
 The fold is a tree so that no module grows with the height. One prefix theorem per batch in a
-single assembler is `O(1)` per step but serial, and at 10⁶ (8,740 batches) a 44k-line module;
-folding each group in its own module instead builds the groups in parallel, and adding levels
-until at most BATCHES_PER_GROUP groups remain leaves the assembler at most that many steps.
+single assembler is `O(1)` per step but serial, and its module grows linearly with the batch
+count; folding each group in its own module builds the groups in parallel, and adding levels
+until at most CHILDREN_PER_GROUP groups remain leaves the assembler at most that many steps.
 
 A batch or group module this generator wrote earlier that this run does not rewrite (the store
 shrank, or the batch or group size changed) is stale: the generator lists such files and stops, before writing
@@ -56,7 +55,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 
-from config import (BATCH_BASE_GB, BATCH_ROW_NU_GB, BATCH_SIZE, BATCHES_PER_GROUP,
+from config import (BATCH_BASE_GB, BATCH_ROW_NU_GB, BATCH_SIZE, CHILDREN_PER_GROUP,
                     MAX_BATCH_SIZE, WORKER_GB)
 from data_gen.lean_dialect import LeanDialect, dialect_for
 
@@ -70,7 +69,7 @@ AUTHORS = "Salvatore Mercuri, Bhavik Mehta"
 
 def parse_dec(s: str) -> tuple[int, int]:
     """A store decimal as the `(numerator, denominator)` of `Enclosure.sfrac false num den`,
-    exactly as written — the mirror of `parseDec` in `BuildCerts.lean`."""
+    exactly as written: the mirror of `parseDec` in `BuildCerts.lean`."""
     i, _, f = s.strip().partition(".")
     return int(i + f), 10 ** len(f)
 
@@ -125,10 +124,10 @@ class BatchRef:
     bidx: int
     last_ord: str
     count: int
-    #: index of this chunk's first row within its store — the metaprogram reads `[start, stop)`
+    #: index of this chunk's first row within its store; the metaprogram reads `[start, stop)`
     row_start: int = 0
     #: first interval's left endpoint and last interval's right endpoint, as `Enclosure.sfrac`
-    #: numerator/denominator pairs at import precision — the batch statement's literals
+    #: numerator/denominator pairs at import precision: the batch statement's literals
     first: tuple[int, int] = (0, 1)
     last: tuple[int, int] = (0, 1)
     #: digits `bidx` is padded to: those of its store's last batch, at least 4
@@ -205,9 +204,9 @@ namespace Zeta.Certificates.{ref.qual}
 
 /-- The batch, as the statement the assembler consumes: a certified bundle of {len(ords)}
 {ends}
-(`t ≈ {rows[0][1][:12]} … {rows[-1][2][:12]}`). The bundle itself — built row-by-row from the
+(`t ≈ {rows[0][1][:12]} … {rows[-1][2][:12]}`). The proof is the bundle, built row-by-row from the
 store by `{dialect.metaprogram}`, with `is_sign_change`/`fst_error`/`snd_error` discharged by the
-kernel-checked `Enclosure` ball arithmetic — is the proof, and stays in this module's private
+kernel-checked `Enclosure` ball arithmetic. It stays in this module's private
 olean. -/
 {thm}
 
@@ -349,15 +348,23 @@ def fold_levels(level1: list[tuple[GroupRef, list]], per_group: int,
 
 
 def plan_groups(refs: list[BatchRef]) -> list[list[tuple[GroupRef, list]]]:
-    """The fold tree over the batches, `BATCHES_PER_GROUP` children to a group."""
-    chunks = [refs[i:i + BATCHES_PER_GROUP] for i in range(0, len(refs), BATCHES_PER_GROUP)]
-    return fold_levels(chunk_groups(1, chunks), BATCHES_PER_GROUP)
+    """The fold tree over the batches, `CHILDREN_PER_GROUP` children to a group."""
+    chunks = [refs[i:i + CHILDREN_PER_GROUP] for i in range(0, len(refs), CHILDREN_PER_GROUP)]
+    return fold_levels(chunk_groups(1, chunks), CHILDREN_PER_GROUP)
 
 
 def gen_group(g: GroupRef, refs: list, src: str) -> str:
     """A group module: the fold of `refs` (batches at level 1, groups above), exported as
-    `group`."""
-    imports = "\n".join(f"public import Zeta.Zeros.Certificates.{r.qual}" for r in refs)
+    `group`.
+
+    Only level 1 imports its children publicly. A public import puts everything below it in the
+    importer's closure, Lean memory-maps every olean in the closure, and Linux allows a process
+    `vm.max_map_count` maps (65,530 by default), so with public imports all the way up a large
+    enough tree fails to read an olean. A fold step uses a child's theorem only in a proof, which a plain
+    import allows, so the largest closure is a level-2 group's: `CHILDREN_PER_GROUP`² batches,
+    however many batches there are."""
+    imp = "public import" if g.level == 1 else "import"
+    imports = "\n".join(f"{imp} Zeta.Zeros.Certificates.{r.qual}" for r in refs)
     kind, name = ("batches", batch_theorem) if g.level == 1 else ("groups", group_theorem)
     note = (f"Level-{g.level} group {g.k}: the {kind}\n{refs[0].qual}–{refs[-1].qual}\n"
             "folded into one `BatchSpec` by `BatchSpec.append`, one seam per step; the next level,\n"
@@ -387,8 +394,9 @@ end
 
 
 def gen_assembler(groups: list[GroupRef], src: str) -> str:
-    """`groups`: the generated groups, in ascending order of height."""
-    imports = "\n".join(f"public import Zeta.Zeros.Certificates.{g.qual}" for g in groups)
+    """`groups`: the generated groups, in ascending order of height. Imported plainly, to keep them
+    out of the closure of everything that imports the assembler (see `gen_group`)."""
+    imports = "\n".join(f"import Zeta.Zeros.Certificates.{g.qual}" for g in groups)
     note = ("Assembles the top level's groups into one `BatchSpec` by folding `BatchSpec.append`\n"
             "over them, one prefix theorem per group; each group folds its own children the same\n"
             "way. Each batch and group module exports only its `BatchSpec`, so each fold step\n"
@@ -460,8 +468,8 @@ def plan_batches(stores: list[Path]) -> list[tuple[BatchRef, list[list[str]], di
 
     Ordered by height across stores, so the last entry is the bundle's last interval however
     many stores contributed. `gen_count_certificate` reads that entry, which is why the
-    chunking lives here rather than in `main`: the two generators must agree exactly on which
-    module holds which zero."""
+    chunking lives in this function: the two generators must agree exactly on which module
+    holds which zero."""
     loaded = [load_store(s) for s in stores]
     loaded.sort(key=lambda t: Decimal(t[2][0][1]))
     check_tiling(loaded)
@@ -482,10 +490,9 @@ def plan_batches(stores: list[Path]) -> list[tuple[BatchRef, list[list[str]], di
 def default_stores() -> list[Path]:
     """Every zero store under `python/out/`, found by its manifest.
 
-    The generators are method-agnostic — each store names its own dialect in `params.method` —
-    so the sensible default is *all* of them. Passing a subset is silently accepted and simply
-    omits those zeros from the bundle, which surfaces as a `count` mismatch several minutes into
-    a Lean build rather than as an error here."""
+    The generators are method-agnostic (each store names its own dialect in `params.method`),
+    so the default is *all* of them. A subset is accepted and omits the other stores' zeros
+    from the bundle, which surfaces later as a `count` mismatch in the Lean build."""
     out = Path(__file__).resolve().parents[2] / "out"
     return sorted(p.parent for p in out.glob("*/zeros/manifest.json"))
 
@@ -499,17 +506,20 @@ def module_path(root: Path, qual: str) -> Path:
 LINE_WIDTH = 100
 
 
-def write_module(path: Path, text: str) -> None:
+def write_module(path: Path, text: str, ignore_style: bool = False) -> None:
     """Write a generated file, refusing a `.lean` one with a line past `LINE_WIDTH` (exempting URL
     lines, as the linter does): a template that only overflows at large heights or indices then
-    stops here, naming the line, rather than as a lint warning partway through a Lean build."""
-    if path.suffix == ".lean":
+    stops here, naming the line.
+    `ignore_style` (each generator's `--ignore-style`) turns this off, for stores whose endpoints
+    are long by design (`--no-widen`); the lint warnings are then expected."""
+    if path.suffix == ".lean" and not ignore_style:
         long = [(i, line) for i, line in enumerate(text.splitlines(), 1)
                 if len(line) > LINE_WIDTH and "http" not in line]
         if long:
             shown = "\n".join(f"  {path}:{i} ({len(line)} cols): {line}" for i, line in long[:5])
             raise SystemExit(f"{path}: {len(long)} line(s) over {LINE_WIDTH} columns; fix the "
-                             f"generator template that emits them (nothing more written):\n{shown}")
+                             f"generator template that emits them, or pass --ignore-style for long "
+                             f"`--no-widen` endpoints (nothing more written):\n{shown}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
 
@@ -548,7 +558,7 @@ def usage(script: str) -> str:
         "  only to build a deliberately partial bundle.\n"
         "  stores are sorted by height; one Lean module per batch of zeros "
         f"({BATCH_SIZE or 'sized by height'}),\n  under a per-method subdirectory, and a tree of "
-        f"group modules, {BATCHES_PER_GROUP} children each."
+        f"group modules, {CHILDREN_PER_GROUP} children each."
     )
 
 
@@ -558,8 +568,11 @@ def main() -> None:
     ap.add_argument("stores", nargs="*", type=Path)
     ap.add_argument("--prune", action="store_true",
                     help="delete batch modules generated earlier that this run does not rewrite")
+    ap.add_argument("--ignore-style", action="store_true",
+                    help="allow lines past the 100-column limit (long `--no-widen` endpoints)")
     args = ap.parse_args()
     lean_root = args.lean_root
+    style = args.ignore_style
     stores = args.stores or default_stores()
     plan = plan_batches(stores)
 
@@ -583,13 +596,15 @@ def main() -> None:
                   args.prune, "gen_zero_certificates.py")
 
     for ref, chunk, params, store in plan:
-        write_module(module_path(cert_dir, ref.qual), gen_batch(ref, chunk, params, str(store)))
+        write_module(module_path(cert_dir, ref.qual), gen_batch(ref, chunk, params, str(store)),
+                     style)
 
     srcs = ", ".join(dict.fromkeys(str(p[3]) for p in plan))
     for level in levels:
         for g, chunk in level:
-            write_module(module_path(cert_dir, g.qual), gen_group(g, chunk, srcs))
-    write_module(lean_root / "Certificates.lean", gen_assembler([g for g, _ in levels[-1]], srcs))
+            write_module(module_path(cert_dir, g.qual), gen_group(g, chunk, srcs), style)
+    write_module(lean_root / "Certificates.lean", gen_assembler([g for g, _ in levels[-1]], srcs),
+                 style)
 
     print(f"wrote {len(refs)} batch modules, "
           f"{' + '.join(str(len(level)) for level in levels)} group modules "

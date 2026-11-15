@@ -54,8 +54,8 @@ the terms of `Δ` linear in `x - √T` cancel, leaving
   the exponent budget it buys, `e^{|Δ|}e^{-2π|y|²} ≤ e^{1/2}e^{-4π|y|²/3}`.
 
 `saddleLinear` and `exp_norm_saddleDiscrepancy_mul_exp_le` are what the sharp first-order estimate
-of `sec:rsf_sharp` runs on: it retains the `T^{-1/2}` term instead of bounding it away, and
-integrates the remainder against the narrowed Gaussian `e^{-4π|y|²/3}` that survives `e^{|Δ|}`.
+of `sec:rsf_sharp` runs on: it evaluates the `T^{-1/2}` term exactly, and integrates the
+remainder against the narrowed Gaussian `e^{-4π|y|²/3}` that survives `e^{|Δ|}`.
 -/
 @[expose] public section
 
@@ -395,7 +395,7 @@ theorem norm_saddleDiscrepancy_le {t : ℝ} (ht : 0 < t) {x : ℂ}
 
 /-- The **linear part of the saddle discrepancy**, `P₁(y) = -y/2 - 2πiy³/3`
 (`riemann_siegel_first.tex`, `lem:rsf_delta_split`). "Linear" refers to the order in
-`ζ = T^{-1/2}`, not to the degree in `y`: `P₁(y)/√T` is the `ζ`-linear part of `Δ`. -/
+`ζ = T^{-1/2}`: `P₁(y)/√T` is the `ζ`-linear part of `Δ`, and `P₁` is a cubic in `y`. -/
 noncomputable def saddleLinear (y : ℂ) : ℂ := -(y / 2) - 2 * π * I / 3 * y ^ 3
 
 /-- **The linear part of the saddle discrepancy is a cubic in `|y|`.** -/

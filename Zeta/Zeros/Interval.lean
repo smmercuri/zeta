@@ -6,7 +6,7 @@ Authors: Salvatore Mercuri
 module
 
 public import Zeta.Zeros.HardyZ
-public import Mathlib.Data.Real.Sign
+public import Mathlib.Basic.Real.Sign
 public import Mathlib.Order.Interval.Basic
 public import Zeta.RiemannSiegel.Defs
 
@@ -15,12 +15,12 @@ public import Zeta.RiemannSiegel.Defs
 
 A `ZIntervalEM` is a closed interval carrying the Euler–Maclaurin data used to estimate Hardy's
 `Z` at its endpoints; a `ZIntervalEM.Certificate` records that the two computed endpoint values
-have opposite signs and exceed their error bounds, which forces a genuine sign change of `Z`.
+have opposite signs and exceed their error bounds, which forces a sign change of `Z`.
 
 A `CertifiedZeroIntervals` bundles a separated list of plain intervals together with the *fact*
-that each brackets a `ζ`-zero, rather than the certificate that established it. That is the seam
-between the approximation method and the counting argument: everything below this structure —
-`height`, `zeros`, and the `N` bound — is method-agnostic, and each method supplies its own smart
+that each brackets a `ζ`-zero. That is the seam between the approximation method and the counting
+argument: everything below this structure (`height`, `zeros`, and the `N` bound) is
+method-agnostic, and each method supplies its own smart
 constructor discharging `has_zero` from its own certificates. `ZIntervalRS` needs no per-endpoint
 data at all, the Riemann–Siegel cutoff being determined by the height alone.
 
@@ -92,7 +92,7 @@ correction `C₁`; see `ZIntervalRS.Certificate₀`. -/
 noncomputable abbrev ZIntervalRS.sndVal₀ (I : ZIntervalRS) : ℝ :=
   hardyZApproximantRS₀ I.snd
 
-/-- A certificate that the interval `I` brackets a genuine zero of Hardy's `Z` function,
+/-- A certificate that the interval `I` brackets a zero of Hardy's `Z` function,
 using Euler-Maclaurin approximation of the `Z`-function. This certifies that the interval
 equivalently contains a zero of `ζ` on the critical line. -/
 structure ZIntervalEM.Certificate (I : ZIntervalEM) where
@@ -113,7 +113,7 @@ structure ZIntervalEM.Certificate (I : ZIntervalEM) where
   /-- The computed right value exceeds its error bound, so the true `Z` shares its sign. -/
   snd_error : ‖I.sndVal‖ > hardyZErrorBoundEM I.sndBernoulli I.sndCutoff I.snd
 
-/-- A certificate that the interval `I` brackets a genuine zero of Hardy's `Z` function,
+/-- A certificate that the interval `I` brackets a zero of Hardy's `Z` function,
 using Riemann-Siegel approximation of the `Z`-function. This certifies that the interval
 equivalently contains a zero of `ζ` on the critical line. -/
 structure ZIntervalRS.Certificate (I : ZIntervalRS) where
@@ -198,7 +198,7 @@ noncomputable def CertifiedZeroIntervals.height (C : CertifiedZeroIntervals) : �
 /-- Every interval of a certified list ends below its height. -/
 theorem CertifiedZeroIntervals.le_height (C : CertifiedZeroIntervals)
     {I : NonemptyInterval ℝ} (hI : I ∈ C.intervals) : I.snd ≤ C.height := by
-  rw [CertifiedZeroIntervals.height, dif_neg (List.ne_nil_of_mem hI)]
+  rw [CertifiedZeroIntervals.height, dite_eq_right (List.ne_nil_of_mem hI)]
   exact List.le_apply_maxOn_of_mem (f := fun I : NonemptyInterval ℝ ↦ I.snd) hI
 
 /-- The intervals of a `CertifiedZeroIntervals` are pairwise separated: every earlier interval
@@ -221,34 +221,34 @@ theorem Zeta.Certificates.mul_pos_of_abs_sub_lt {a b : ℝ} (h : |a - b| < |b|) 
   nlinarith [mul_self_lt_mul_self (abs_nonneg (a - b)) h, abs_mul_abs_self (a - b),
     abs_mul_abs_self b, sq_nonneg a]
 
-/-- **A certified zero interval contains a zero of `ζ`** on the critical line, strictly between
+/-- A certified zero interval contains a zero of `ζ` on the critical line, strictly between
 its endpoints. -/
 theorem riemannZeta.exists_zero_of_zIntervalEM_certificate (I : ZIntervalEM) (h : I.Certificate) :
     ∃ t ∈ Set.Ioo I.fst I.snd, riemannZeta (1 / 2 + Complex.I * t) = 0 := by
   have hlr : I.fst ≤ I.snd := I.fst_le_snd
   have hr0 : 0 ≤ I.snd := h.fst_nonneg.trans hlr
   -- The true `Z` matches the sign of its Euler–Maclaurin approximant at each endpoint.
-  have hL : |hardyZ I.fst - I.fstVal| < |I.fstVal| :=
+  have hL : |Zeta.hardyZ I.fst - I.fstVal| < |I.fstVal| :=
     (abs_hardyZRemainderEM_le h.fstBernoulli_pos h.fstCutoff_pos h.fst_nonneg).trans_lt
       (by simpa [Real.norm_eq_abs] using h.fst_error)
-  have hR : |hardyZ I.snd - I.sndVal| < |I.sndVal| :=
+  have hR : |Zeta.hardyZ I.snd - I.sndVal| < |I.sndVal| :=
     (abs_hardyZRemainderEM_le h.sndBernoulli_pos h.sndCutoff_pos hr0).trans_lt
       (by simpa [Real.norm_eq_abs] using h.snd_error)
-  have hsL : 0 < hardyZ I.fst * I.fstVal := mul_pos_of_abs_sub_lt hL
-  have hsR : 0 < hardyZ I.snd * I.sndVal := mul_pos_of_abs_sub_lt hR
+  have hsL : 0 < Zeta.hardyZ I.fst * I.fstVal := mul_pos_of_abs_sub_lt hL
+  have hsR : 0 < Zeta.hardyZ I.snd * I.sndVal := mul_pos_of_abs_sub_lt hR
   -- Hence the true `Z` changes sign across the interval.
-  have hprod : hardyZ I.fst * hardyZ I.snd < 0 := by
+  have hprod : Zeta.hardyZ I.fst * Zeta.hardyZ I.snd < 0 := by
     nlinarith [mul_pos hsL hsR, h.is_sign_change]
-  -- Continuity + the intermediate value theorem produce a genuine zero of `Z`.
-  have hcont : ContinuousOn hardyZ (Set.Icc I.fst I.snd) :=
+  -- Continuity + the intermediate value theorem produce a zero of `Z`.
+  have hcont : ContinuousOn Zeta.hardyZ (Set.Icc I.fst I.snd) :=
     continuousOn_hardyZ.mono fun x hx ↦ h.fst_nonneg.trans hx.1
-  obtain ⟨t₀, ht₀mem, ht₀⟩ : ∃ t₀ ∈ Set.Icc I.fst I.snd, hardyZ t₀ = 0 := by
+  obtain ⟨t₀, ht₀mem, ht₀⟩ : ∃ t₀ ∈ Set.Icc I.fst I.snd, Zeta.hardyZ t₀ = 0 := by
     rcases mul_neg_iff.mp hprod with ⟨hlp, hrn⟩ | ⟨hln, hrp⟩
     · exact intermediate_value_Icc' hlr hcont ⟨hrn.le, hlp.le⟩
     · exact intermediate_value_Icc hlr hcont ⟨hln.le, hrp.le⟩
   -- The endpoints have nonzero `Z`, so the zero is strictly interior.
-  have hlne : hardyZ I.fst ≠ 0 := left_ne_zero_of_mul hsL.ne'
-  have hrne : hardyZ I.snd ≠ 0 := left_ne_zero_of_mul hsR.ne'
+  have hlne : Zeta.hardyZ I.fst ≠ 0 := left_ne_zero_of_mul hsL.ne'
+  have hrne : Zeta.hardyZ I.snd ≠ 0 := left_ne_zero_of_mul hsR.ne'
   have ht₀Ioo : t₀ ∈ Set.Ioo I.fst I.snd :=
     ⟨lt_of_le_of_ne ht₀mem.1 fun heq ↦ hlne (by rw [heq]; exact ht₀),
      lt_of_le_of_ne ht₀mem.2 fun heq ↦ hrne (by rw [← heq]; exact ht₀)⟩
@@ -377,7 +377,7 @@ theorem CertifiedZeroIntervals.height_le_getLast (C : CertifiedZeroIntervals)
 
 The last interval is supplied through `getLast? = some I` with `I` **implicit**, mirroring
 `separated_of_le`: a caller can pass `rfl` and let unification whnf the bundle and read the
-boundary off it, so a batch built by a metaprogram — which names none of its intervals — needs
+boundary off it, so a batch built by a metaprogram (which names none of its intervals) needs
 to expose no `getLast?` lemma of its own. -/
 theorem CertifiedZeroIntervals.height_le_of_getLast? (C : CertifiedZeroIntervals)
     {I : NonemptyInterval ℝ} {q : ℝ} (h : C.intervals.getLast? = some I) (hq : I.snd ≤ q) :

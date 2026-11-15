@@ -23,7 +23,7 @@ the Riemann–Siegel theta function (`Zeta.Gram.Averaging`, `gram_averaging.tex`
 
 namespace Complex
 
-/-- **Trigamma recurrence.** For `Re s > 0`, `ψ'(s + 1) = ψ'(s) − s⁻²`. -/
+/-- The trigamma recurrence: for `Re s > 0`, `ψ'(s + 1) = ψ'(s) − s⁻²`. -/
 theorem deriv_digamma_add_one {s : ℂ} (hs : 0 < s.re) :
     deriv Complex.digamma (s + 1) = deriv Complex.digamma s - (s ^ 2)⁻¹ := by
   have hs1 : 0 < (s + 1).re := by simp only [Complex.add_re, Complex.one_re]; linarith
@@ -39,7 +39,7 @@ theorem deriv_digamma_add_one {s : ℂ} (hs : 0 < s.re) :
     (hasDerivAt_inv (Complex.ne_zero_of_re_pos hs))).congr_of_eventuallyEq heq]
   ring
 
-/-- **Sign of the quadratic term.** For `w` in the closed first quadrant (`0 ≤ Re w`, `0 ≤ Im w`),
+/-- For `w` in the closed first quadrant (`0 ≤ Re w`, `0 ≤ Im w`),
 `Im (w²)⁻¹ ≤ 0`. -/
 theorem im_inv_sq_nonpos {w : ℂ} (hre : 0 ≤ w.re) (him : 0 ≤ w.im) : ((w ^ 2)⁻¹).im ≤ 0 := by
   rw [Complex.inv_im, neg_div, neg_nonpos, sq, Complex.mul_im]

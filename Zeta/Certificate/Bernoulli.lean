@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Bernoulli.BernoulliValues
@@ -29,21 +34,8 @@ theorem bern_real_tangent_pos (m Tn p q : ℕ)
           ((Nat.pow 2 ((Nat.mul 2 m).add 2)).sub 1)))
         (q.mul (((Nat.mul 2 m).add 2).mul Tn)) = true) :
     (bernoulli (2 * m + 2) : ℝ) = sfrac false p q := by
-  have hme : Even m := Nat.even_iff.mpr (Nat.eq_of_beq_eq_true hm)
-  have hq : 0 < q := pos_of_ble hq
-  simp only [Nat.mul_eq, Nat.pow_eq, Nat.add_eq, Nat.sub_eq] at hcross
-  have h1 : (1 : ℕ) ≤ 2 ^ (2 * m + 2) := Nat.one_le_two_pow
-  have hcQ : ((p * (2 ^ (2 * m + 2) * (2 ^ (2 * m + 2) - 1)) : ℕ) : ℚ)
-      = ((q * ((2 * m + 2) * Tn) : ℕ) : ℚ) := by
-    exact_mod_cast Nat.eq_of_beq_eq_true hcross
-  push_cast [Nat.cast_sub h1] at hcQ
-  have hQ : bernoulli (2 * m + 2) = (p : ℚ) / (q : ℚ) := by
-    rw [bernoulli_eq_tangent_intDiv m, hT, hme.neg_one_pow, one_mul,
-      div_eq_div_iff (by exact_mod_cast intDenom_ne_zero m)
-        (by exact_mod_cast hq.ne')]
-    push_cast [Nat.cast_sub h1]
-    linear_combination -hcQ
-  rw [hQ]
+  rw [bernoulli_eq_neg_one_pow_mul_div m Tn p q hT (pos_of_ble hq) (Nat.eq_of_beq_eq_true hcross),
+    (Nat.even_iff.mpr (Nat.eq_of_beq_eq_true hm)).neg_one_pow, one_mul]
   exact sfrac_ratCast_natDiv p q
 
 /-- `B_{2m+2}` for odd `m` (where the value is negative) in real `sfrac` form; the mirror of
@@ -56,21 +48,8 @@ theorem bern_real_tangent_neg (m Tn p q : ℕ)
           ((Nat.pow 2 ((Nat.mul 2 m).add 2)).sub 1)))
         (q.mul (((Nat.mul 2 m).add 2).mul Tn)) = true) :
     (bernoulli (2 * m + 2) : ℝ) = sfrac true p q := by
-  have hmo : Odd m := Nat.odd_iff.mpr (Nat.eq_of_beq_eq_true hm)
-  have hq : 0 < q := pos_of_ble hq
-  simp only [Nat.mul_eq, Nat.pow_eq, Nat.add_eq, Nat.sub_eq] at hcross
-  have h1 : (1 : ℕ) ≤ 2 ^ (2 * m + 2) := Nat.one_le_two_pow
-  have hcQ : ((p * (2 ^ (2 * m + 2) * (2 ^ (2 * m + 2) - 1)) : ℕ) : ℚ)
-      = ((q * ((2 * m + 2) * Tn) : ℕ) : ℚ) := by
-    exact_mod_cast Nat.eq_of_beq_eq_true hcross
-  push_cast [Nat.cast_sub h1] at hcQ
-  have hQ : bernoulli (2 * m + 2) = -((p : ℚ) / (q : ℚ)) := by
-    rw [bernoulli_eq_tangent_intDiv m, hT, hmo.neg_one_pow, ← neg_div,
-      div_eq_div_iff (by exact_mod_cast intDenom_ne_zero m)
-        (by exact_mod_cast hq.ne')]
-    push_cast [Nat.cast_sub h1]
-    linear_combination hcQ
-  rw [hQ, sfrac_true_div]
+  rw [bernoulli_eq_neg_one_pow_mul_div m Tn p q hT (pos_of_ble hq) (Nat.eq_of_beq_eq_true hcross),
+    (Nat.odd_iff.mpr (Nat.eq_of_beq_eq_true hm)).neg_one_pow, sfrac_true_div]
   push_cast
   ring
 
@@ -88,10 +67,11 @@ elab "derive_bern_real " nStx:num : command => do
     for k in [1:N+1] do
       let m := k - 1
       -- `tangentNumber k = Tₖ`: read the value straight off the per-entry env lemma
-      -- `tangentNumberLit_k` that `emit_tangent_numbers` provides
+      -- `tangentNumberLit_k` that `fold_emit_tangent_numbers` provides
       let litName := `TangentNumbers ++ Name.mkSimple s!"tangentNumberLit_{k}"
       let some info := (← getEnv).find? litName
-        | throwError "derive_bern_real: no `{litName}` (does `emit_tangent_numbers` cover k = {k}?)"
+        | throwError
+          "derive_bern_real: no `{litName}` (does `fold_emit_tangent_numbers` cover k = {k}?)"
       let some (_, _, rhsT) := info.type.eq?
         | throwError "derive_bern_real: `{litName}` is not an equality"
       let some Tval ← getNatValue? rhsT

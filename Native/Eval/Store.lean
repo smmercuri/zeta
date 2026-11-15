@@ -1,12 +1,15 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 /-!
 # `Native.Eval.Store`: a batch's rows of the zero store
 
 The lines `[lo, hi)` of a store file, found through an index of line starts built by one compiled
-scan, so a batch decodes and splits only its own rows rather than the whole store file
-(250,000 rows, ~9 MB), and each file is read and indexed once per process rather than once per
-batch.
+scan, so a batch decodes only its own rows and each file is read and indexed once per process.
 Nothing here is trusted: a batch's statement fixes its count and ends, the rows are checked against
 their index column, and `checkTiling` re-certifies whatever brackets they give.
 -/

@@ -87,7 +87,7 @@ theorem summable_partial_fraction {s : ℂ} (hs : ∀ i, s ≠ riemannXiZeros i)
     _ ≤ ‖s‖ * ‖(ρ i)⁻¹‖ * (2 * ‖(ρ i)⁻¹‖) := by gcongr
     _ = 2 * ‖s‖ * ‖(ρ i)⁻¹‖ ^ 2 := by ring
 
-/-- **Logarithmic derivative of the canonical product.** Away from its zeros, the logarithmic
+/-- Away from its zeros, the logarithmic
 derivative of `P(s) = ∏ᵢ E₁(s/ρᵢ)` is the sum of the factor logarithmic derivatives. -/
 theorem logDeriv_riemannXiCanonicalProduct_eq {s : ℂ}
     (hs : ∀ i, s ≠ riemannXiZeros i) :
@@ -121,7 +121,7 @@ theorem riemannXi_ne_zero_of_forall_ne {s : ℂ} (hs : ∀ i, s ≠ riemannXiZer
     (riemannXiCanonicalProduct_ne_zero_of_forall_ne riemannXiZeros
       summable_inv_norm_sq_riemannXiZeros hs)
 
-/-- **Partial-fraction expansion of `ξ'/ξ`** (`lem:lb_pf_xi`). The constant `ξ'/ξ(0)` is the
+/-- The partial-fraction expansion of `ξ'/ξ` (`lem:lb_pf_xi`). The constant `ξ'/ξ(0)` is the
 Hadamard constant `B`. -/
 theorem logDeriv_riemannXi_eq {s : ℂ} (hs : ∀ i, s ≠ riemannXiZeros i) :
     logDeriv riemannXi s = logDeriv riemannXi 0
@@ -142,7 +142,7 @@ theorem logDeriv_riemannXi_eq {s : ℂ} (hs : ∀ i, s ≠ riemannXiZeros i) :
       fun_prop
     have hdP : DifferentiableAt ℂ (riemannXiCanonicalProduct riemannXiZeros) z :=
       differentiable_riemannXiCanonicalProduct _ summable_inv_norm_sq_riemannXiZeros z
-    rw [hξfun, logDeriv_mul z hpre hPne hdpre hdP,
+    rw [hξfun, logDeriv_fun_mul z hpre hPne hdpre hdP,
       logDeriv_riemannXiCanonicalProduct_eq hz]
     congr 1
     -- `logDeriv (½ exp(B·)) z = B`.
@@ -159,7 +159,7 @@ theorem logDeriv_riemannXi_eq {s : ℂ} (hs : ∀ i, s ≠ riemannXiZeros i) :
   rw [htsum0, add_zero] at hkey0
   rw [key s hs, hkey0]
 
-/-- **The Davenport explicit formula for `ζ'/ζ`** (`lem:lb_pf_zeta`), with `ψ = Complex.digamma`
+/-- The Davenport explicit formula for `ζ'/ζ` (`lem:lb_pf_zeta`), with `ψ = Complex.digamma`
 and `ξ'/ξ(0)` the constant of `logDeriv_riemannXi_eq`. -/
 theorem logDeriv_riemannZeta_eq {s : ℂ} (hre : 0 < s.re) (hs1 : s ≠ 1)
     (hs : ∀ i, s ≠ riemannXiZeros i) :
@@ -212,7 +212,7 @@ theorem logDeriv_riemannZeta_eq {s : ℂ} (hre : 0 < s.re) (hs1 : s ≠ 1)
   have hB' : logDeriv Gammaℝ s
       = -(1 / 2 : ℂ) * (Real.log π : ℂ) + 1 / 2 * Complex.digamma (s / 2) := by
     rw [show (Gammaℝ : ℂ → ℂ) = fun w ↦ (π : ℂ) ^ (-w / 2) * Complex.Gamma (w / 2) from rfl,
-      logDeriv_mul s hcpowne hΓne hdcpow hdΓfun, hlcpow, hlΓ]
+      logDeriv_fun_mul s hcpowne hΓne hdcpow hdΓfun, hlcpow, hlΓ]
   -- `logDeriv (½ w(w-1)) s = 1/s + 1/(s-1)`.
   have hA : logDeriv (fun w : ℂ ↦ 1 / 2 * (w * (w - 1))) s = 1 / s + 1 / (s - 1) := by
     have hda : HasDerivAt (fun w : ℂ ↦ 1 / 2 * (w * (w - 1))) (1 / 2 * (1 * (s - 1) + s * 1)) s :=
@@ -244,7 +244,8 @@ theorem logDeriv_riemannZeta_eq {s : ℂ} (hre : 0 < s.re) (hs1 : s ≠ 1)
   have hxi2 : logDeriv riemannXi s = 1 / s + 1 / (s - 1)
       + (-(1 / 2 : ℂ) * (Real.log π : ℂ) + 1 / 2 * Complex.digamma (s / 2))
       + logDeriv riemannZeta s := by
-    rw [hlogeq, logDeriv_mul s hf1ne hζne hdf1 hdζ, logDeriv_mul s hAne hΓℝ hdA' hdΓℝ, hA, hB']
+    rw [hlogeq, logDeriv_fun_mul s hf1ne hζne hdf1 hdζ,
+      logDeriv_fun_mul s hAne hΓℝ hdA' hdΓℝ, hA, hB']
   have heq := hxi2.symm.trans hxi1
   linear_combination heq
 

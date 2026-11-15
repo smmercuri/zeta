@@ -2,7 +2,7 @@ from sage.all import RealField, pi, log
 from mpmath import grampoint
 from collections.abc import Callable
 from abc import ABC, abstractmethod
-from config import PREC, DIGITS, GRAM_PREC, SIGN_MARGIN, IMPORT_DP, IMPORT_DP_MAX
+from config import PREC, GRAM_PREC, SIGN_MARGIN, IMPORT_DP, IMPORT_DP_MAX, NO_WIDEN_DP
 from itertools import chain
 import mpmath as mp
 import operator
@@ -214,7 +214,7 @@ class ZInterval:
     def data(self):
         return (self.lower, self.upper) + self.params()
 
-    def row(self, digits: int = DIGITS) -> str:
+    def row(self, digits: int) -> str:
         return ", ".join(
             (
                 f"{self.lower:.{digits}f}",
@@ -361,7 +361,7 @@ class ZInterval:
         )
 
     def __str__(self):
-        return self.row()
+        return self.row(NO_WIDEN_DP)
 
 
 def coe_int(value, name: str) -> int:

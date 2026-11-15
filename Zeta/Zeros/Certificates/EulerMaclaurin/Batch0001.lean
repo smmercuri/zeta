@@ -23,9 +23,9 @@ namespace Zeta.Certificates.EulerMaclaurin.Batch0001
 
 /-- The batch, as the statement the assembler consumes: a certified bundle of 52
 intervals exists, the first starting at `1000/1000` and the last ending at `149500/1000`
-(`t ≈ 1.000 … 149.500`). The bundle itself — built row-by-row from the
+(`t ≈ 1.000 … 149.500`). The proof is the bundle, built row-by-row from the
 store by `build_batch`, with `is_sign_change`/`fst_error`/`snd_error` discharged by the
-kernel-checked `Enclosure` ball arithmetic — is the proof, and stays in this module's private
+kernel-checked `Enclosure` ball arithmetic. It stays in this module's private
 olean. -/
 theorem batch : BatchSpec 52 1000 1000 149500 1000 := by build_batch 0 52
 

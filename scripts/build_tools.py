@@ -3,7 +3,7 @@
 
     build_tools.py load-max                the largest rows·ν of any batch the stores make
     build_tools.py constants FILE LOAD     the constants an earlier `--estimate` measured, or why not
-    build_tools.py estimate …              `./build.sh --estimate`: sample, measure, project
+    build_tools.py estimate …              `scripts/build.sh --estimate`: sample, measure, project
     build_tools.py disk …                  the proof-term disk check before a build
     build_tools.py stages …                the stage plan of a build (see `plan_stages`)
 
@@ -139,9 +139,17 @@ def cmd_stages(a):
 
 # --- disk ----------------------------------------------------------------------------------------
 
+ARCHIVE_RATIO = 3  # the assumed `zstd -3` compression ratio of a proof term (see `proofs.sh`)
+DISK_MARGIN = 0.9  # the share of the free disk `--proofs=auto` is willing to fill
+
+
 def cmd_disk(a):
     """Proof-term disk for the batches not yet built, against the free disk; a warning when they
-    would take more than `--warn` of it and the proof terms are kept."""
+    would take more than `--warn` of it and the proof terms are kept. With `--proofs auto`, prints
+    the mode to use instead: keep them if under `--warn` of the free disk, else archive, else
+    discard, and exits 2 if even discarding would not leave room."""
+    auto = a.proofs == "auto"
+    log = sys.stderr if auto else sys.stdout
     since = {d: built_after(m) for d, m in PREREQ.items()}
     need, largest, n = 0.0, 0.0, 0
     for src in glob.glob("Zeta/Zeros/Certificates/*/**/Batch*.lean", recursive=True):
@@ -153,19 +161,36 @@ def cmd_disk(a):
         size = rows * (a.row_kb * 1e3 + a.row_nu_kb * 1e3 * nu((an / ad + bn / bd) / 2))
         need, largest, n = need + size, max(largest, size), n + 1
     if not n:
+        if auto:
+            print("keep")
         return
     free = shutil.disk_usage(".").free
     gb = lambda x: f"{x / GB:,.1f} GB"
     print(f"build.sh: {n} certificate batches to build; their proof terms take ≈ {gb(need)} "
-          f"kept in full, {gb(free)} free on disk")
+          f"kept in full, {gb(free)} free on disk", file=log)
+    if auto:
+        peak = a.workers * largest  # one batch per worker in flight, before it is shrunk
+        if need <= a.warn * free:
+            mode = "keep"
+        elif shutil.which("zstd") and need / ARCHIVE_RATIO + peak <= DISK_MARGIN * free:
+            mode = "archive"
+        elif peak <= DISK_MARGIN * free:
+            mode = "discard"
+        else:
+            print(f"build.sh: not enough disk: even discarding proof terms needs ≈ {gb(peak)} at "
+                  f"peak, with {gb(free)} free", file=log)
+            sys.exit(2)
+        print(f"build.sh: --proofs=auto: using --proofs={mode}", file=log)
+        print(mode)
+        return
     if a.proofs == "keep" and need > a.warn * free:
         print("\n" + "!" * 78)
         print(f"!! WARNING: the proof terms would take ≈ {gb(need)} of {gb(free)} free disk"
               + ("" if need <= free else " -- MORE THAN IS FREE: the build will run out of disk"))
         print("!! `lake build` never reads a batch's proof term again once it is built, so")
-        print("!! consider   ./build.sh --proofs=discard   (≈ "
+        print("!! consider   scripts/build.sh --proofs=discard   (≈ "
               f"{gb(a.workers * largest)} at peak: one batch per worker in flight;")
-        print("!! `./proofs.sh restore` rebuilds any batch whose proof term you need back).")
+        print("!! `scripts/proofs.sh restore` rebuilds any batch whose proof term you need back).")
         print("!" * 78 + "\n")
 
 
@@ -397,7 +422,7 @@ def cmd_estimate(a):
           + (f" -> {workers} workers fit in {avail / GB:.1f} GB available at the top" if workers else ""))
     if d_fit:
         disk = sum(d_fit[0] * m["R"] + d_fit[1] * m["S"] for m in left)
-        print(f"  proof terms ≈ {disk / GB:,.1f} GB kept in full (./build.sh --proofs=discard keeps ≈ one "
+        print(f"  proof terms ≈ {disk / GB:,.1f} GB kept in full (scripts/build.sh --proofs=discard keeps ≈ one "
               "batch per worker)")
     keys = ("mod", "R", "S", "numax", "load", "time", "cpu", "cpu_alone", "copies", "rss", "private", "disk",
             "cpu_also", "copies_also")
@@ -406,7 +431,7 @@ def cmd_estimate(a):
                "base": base, "time": t_fit, "mem": m_fit, "disk": d_fit,
                "samples": [{k: m[k] for k in keys if k in m} for m in samples]},
               open(out, "w"), indent=1)
-    print(f"\nsaved to {out}; later `./build.sh{' --native' if mode == 'native' else ''}` runs size "
+    print(f"\nsaved to {out}; later `scripts/build.sh{' --native' if mode == 'native' else ''}` runs size "
           "workers (and the disk check) from it")
 
 
@@ -425,7 +450,7 @@ def main():
     e.add_argument("--out", required=True)
     e.set_defaults(run=cmd_estimate)
     d = sub.add_parser("disk")
-    d.add_argument("--proofs", choices=["keep", "discard", "archive"], required=True)
+    d.add_argument("--proofs", choices=["keep", "discard", "archive", "auto"], required=True)
     d.add_argument("--row-kb", type=float, required=True)
     d.add_argument("--row-nu-kb", type=float, required=True)
     d.add_argument("--warn", type=float, required=True)

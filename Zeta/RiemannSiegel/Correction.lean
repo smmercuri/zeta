@@ -20,14 +20,13 @@ The half shift `Zeta.RiemannSiegel.modelIntegral_add_half` and the unit shift
 iterating the half shift twice computes `M(p + 1)` from `M(p)` with coefficient `e^{4πip}`, whereas
 the unit shift computes it with coefficient `−1`. At each fixed `p` these are two linear equations
 in the two unknowns `M(p)` and `M(p + 1)`, so eliminating `M(p + 1)` determines `M(p)`
-**algebraically** — with no analytic continuation, no Liouville argument and no growth estimate
-(`riemann_siegel_first.tex`, `thm:rsf_model_closed` and `rem:rsf_why_algebraic`).
+algebraically (`riemann_siegel_first.tex`, `thm:rsf_model_closed` and `rem:rsf_why_algebraic`).
 
-The resulting closed form is stated in product form, never as a quotient: the coefficient
-`1 + e^{4πip}` vanishes exactly where `cos (2πp)` does, and there the right-hand side vanishes with
-it. For the same reason the **correction function** `Ψ` of `def:rsf_correction`, which carries the
-whole of the first-order correction to Hardy's function, is defined through `M` rather than through
-the classical quotient `cos (2π(p² − p − 1/16)) / cos (2πp)`.
+The resulting closed form is stated in product form: the coefficient `1 + e^{4πip}` vanishes
+exactly where `cos (2πp)` does, and there the right-hand side vanishes with it. For the same reason
+the correction function `Ψ` of `def:rsf_correction`, which carries the whole of the first-order
+correction to Hardy's function, is defined through `M`; it equals the classical quotient
+`cos (2π(p² − p − 1/16)) / cos (2πp)` wherever `cos (2πp) ≠ 0`.
 
 ## Main results
 
@@ -49,7 +48,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The closed form of the model integral** (`riemann_siegel_first.tex`,
+/-- The closed form of the model integral (`riemann_siegel_first.tex`,
 `thm:rsf_model_closed`): `2 cos(2πp) M(p) = e^{2πi(p² − p)} + √2 e^{5iπ/8} sin(πp)`. It is stated in
 product form because the factor `1 + e^{4πip}` eliminated in its proof vanishes exactly where
 `cos (2πp)` does. -/
@@ -116,7 +115,7 @@ theorem two_mul_cos_mul_modelIntegral (p : ℂ) :
     - (((Real.sqrt 2 : ℝ) : ℂ) * sin ((π : ℂ) * p) * E ^ 2) * h5
     - (((Real.sqrt 2 : ℝ) : ℂ) * exp ((π / 8 : ℝ) * I) * (E - E ^ 3) / 2) * Complex.I_sq
 
-/-- **The closed form of the correction function** (`riemann_siegel_first.tex`,
+/-- The closed form of the correction function (`riemann_siegel_first.tex`,
 `cor:rsf_correction_closed`): `cos(2πp) Ψ(p) = cos(2π(p² − p − 1/16))`, so that
 `Ψ(p) = cos(2π(p² − p − 1/16))/cos(2πp)` wherever the quotient is defined. -/
 theorem cos_mul_correction (p : ℝ) :
@@ -158,7 +157,7 @@ theorem cos_mul_correction (p : ℝ) :
     simp only [Complex.mul_I_re, Complex.ofReal_im, neg_zero, add_zero]
   rw [← hL, ← hR, key]
 
-/-- **The classical quotient form of `Ψ` is defined at every rational height.** For rational
+/-- The classical quotient form of `Ψ` is defined at every rational height: for rational
 `q > 0` the Riemann–Siegel fractional part `p = √(q/2π) − ⌊√(q/2π)⌋₊` never lands on `1/4` or
 `3/4`, so `cos(2πp) ≠ 0` and `cos_mul_correction` may be divided through. Indeed `cos(2πp) = 0`
 forces `p = (2k+1)/4`, hence `√(q/2π) = M/4` is rational and `π = 8q/M²`, contradicting
@@ -194,7 +193,7 @@ theorem cos_two_pi_fract_sqrt_ne_zero (q : ℚ) (hq : 0 < q) :
     linarith [h2]
   exact irrational_pi ⟨8 * q / (M : ℚ) ^ 2, hpiRat⟩
 
-/-- **The correction function is bounded by `e^{π/4}`** on the unit interval. -/
+/-- The correction function is bounded by `e^{π/4}` on the unit interval. -/
 theorem abs_correction_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     |correction p| ≤ Real.exp (π / 4) := by
   have hunit : ‖exp (-((π / 8 : ℝ) * I))‖ = 1 := by simp [Complex.norm_exp]
@@ -210,7 +209,7 @@ theorem abs_correction_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     _ ≤ Real.exp (π / 4) :=
         Real.exp_le_exp.2 (by nlinarith [Real.pi_pos, mul_nonneg h0 (sub_nonneg.2 h1)])
 
-/-- **The third derivative of the correction function in terms of the model integral**
+/-- The third derivative of the correction function in terms of the model integral
 (`riemann_siegel_first.tex`, `lem:rsf_moment_deriv`): `Ψ''' = 2 Re(e^{−iπ/8} M''')`. -/
 theorem iteratedDeriv_three_correction (p : ℝ) :
     iteratedDeriv 3 correction p
@@ -227,7 +226,7 @@ theorem iteratedDeriv_three_correction (p : ℝ) :
   rw [hcorr, (hM.const_mul (2 * exp (-((π / 8 : ℝ) * I)))).iteratedDeriv_re_of_complex 3 p,
     iteratedDeriv_const_mul_field, mul_assoc, h2]
 
-/-- **The linear Riemann–Siegel coefficient as a moment combination**
+/-- The linear Riemann–Siegel coefficient as a moment combination
 (`riemann_siegel_first.tex`, `lem:rsf_c1`):
 `C₁(p) = −Ψ'''(p)/(96π²) = 2 Re(e^{−iπ/8}(−N₁/2 − (2πi/3) N₃))`. -/
 theorem neg_iteratedDeriv_three_correction_div_eq (p : ℝ) :
@@ -266,7 +265,7 @@ private theorem differentiable_iteratedDeriv_modelCorrection (k : ℕ) :
   | zero => simpa using differentiable_modelCorrection
   | succ n ih => rw [iteratedDeriv_succ]; exact ih.deriv
 
-/-- **Every iterated derivative of `Ψ` is differentiable** — it is the real part along `ℝ` of the
+/-- Every iterated derivative of `Ψ` is differentiable: it is the real part along `ℝ` of the
 corresponding derivative of an entire function. -/
 theorem differentiable_iteratedDeriv_correction (k : ℕ) :
     Differentiable ℝ (iteratedDeriv k correction) := by
@@ -311,9 +310,8 @@ private theorem hasDerivAt_sin_two_pi (p : ℝ) :
 
 /-! ### The product-form identities
 
-`C·Ψ⁽ᵏ⁾ = …`, obtained by differentiating `cos_mul_correction` repeatedly. No division and no
-`C ≠ 0` hypothesis, so each is a plain product-rule step; the divided forms the certificate
-builder renames onto are one `eq_div_iff` away. -/
+`C·Ψ⁽ᵏ⁾ = …`, obtained by differentiating `cos_mul_correction` repeatedly. Each is a product-rule
+step and holds for every `p`; the divided forms follow by `eq_div_iff` where `C ≠ 0`. -/
 
 /-- `C·Ψ' = R₁ − C'·Ψ`. -/
 theorem cos_mul_iteratedDeriv_one (p : ℝ) :

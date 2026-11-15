@@ -11,11 +11,11 @@ project:
   license: "Apache-2.0"  # [required]
 
 sources:  # [required]
-  - title: "Certifying the Riemann Hypothesis up to bounded height (project blueprint)"
+  - title: "Certifying the Riemann hypothesis up to bounded height (project blueprint)"
     authors: [Salvatore Mercuri, Bhavik Mehta]
     id: "https://github.com/smmercuri/zeta"
     type: "original-proof"
-    location: "blueprint/src (blueprint branch)"
+    location: "blueprint/src"
     relationship: "formalizes"
     note: >
       Written within the project; the kernel-checked verification of RH up to height T, its
@@ -128,9 +128,9 @@ related_formalizations:
       Used through a pinned fork (https://github.com/smmercuri/PrimeNumberTheoremAnd): the zero
       counting function riemannZeta.N and its zero sets, the rectangle-integral and residue
       calculus behind the argument principle, the finiteness and order results for zeros of
-      zeta, and the Poisson-summation tools used for Riemann-Siegel. It has only an order-1
-      Euler-Maclaurin formula; the general order-p formula and its remainder bound are this
-      project's.
+      zeta, and the Poisson-summation tools used for Riemann-Siegel. As of November 2026 it has
+      only an order-1 Euler-Maclaurin formula; the general order-p formula and its remainder
+      bound are this project's.
   - id: "https://github.com/leanprover-community/mathlib4"
     relationship: "builds-on"
     note: "The Riemann zeta function and the rest of the library the project is built on."
@@ -145,7 +145,7 @@ status:
     (the N(T) formula, Lehman's bound, Turing's bound at Gram points)."
   sorry_count: 0
   sorry_in_definitions: 0
-  axioms: ["Quot.sound", "propext", "Classical.choice"]
+  axioms: ["Quot.sound", "propext", "Classical.choice"]  # the kernel theorems; the separate Native library also uses native_decide
   main_results:
   - declaration: "riemannZeta.N_eq"
     file: "Zeta/RiemannVonMangoldt/Main.lean"
@@ -168,8 +168,13 @@ status:
   - declaration: "Zeta.riemannHypothesisUpTo_10011"
     file: "Zeta/Main.lean"
     sorry_count: 0
-    axioms: ["Quot.sound", "propext", "Classical.choice"]  
-    comparator_config: "comparator/Main/config.json"      
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
+    comparator_config: "comparator/Main/config.json"
+    literature_dependencies: []
+  - declaration: "Zeta.simpleZerosUpTo_10011"
+    file: "Zeta/Main.lean"
+    sorry_count: 0
+    axioms: ["Quot.sound", "propext", "Classical.choice"]
     literature_dependencies: []
 
 automation:  # [required]
@@ -177,40 +182,74 @@ automation:  # [required]
     - method: "agent"  # [required]
       models: ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-opus-5-1", "claude-opus-5-5"]
       framework: "Claude Code"
-      tool_setup: "Claude Code with a custom harness using Lean REPL and lean-lsp MCP servers for 
-        targeted compilation, blueprint-driven node-by-node workflow, tex- and lean-reviewer 
+      tool_setup: "Claude Code with Lean REPL and the lean-lsp MCP tooling for
+        targeted compilation, a blueprint-driven node-by-node workflow, TeX and Lean reviewer
         subagents, and file-based persistent memory."
       cost:
-        wall_time: "two weeks"
-        spend_usd: ""
+        wall_time: "about 150 hours of agent activity, over 30 days from late June to August 2026"
+        spend_usd: "subscription-based usage"
         hardware: "API-only (subscription); development on laptop"
-      prompting_notes: "Analytic theory: the agent was provided with a human-specified high-level 
-        strategy for applying Turing's zero-counting method. Thereafter the agent recursively 
-        drafted leanblueprint .tex files and used these as source for autoformalization."
+      prompting_notes: "Analytic theory: the authors specified the high-level strategy (Turing's
+        zero-counting method); the agent drafted the blueprint from it and formalized it."
     - method: "agent"
       models: ["claude-opus-5-1", "claude-opus-5-5"]
       framework: "Claude Code"
-      tool_setup: "Claude Code in interactive sessions without a custom harness."
+      tool_setup: "Claude Code in interactive sessions."
       cost:
-        wall_time: "one month"
-        spend_usd: ""
+        wall_time: "about 40 hours, mostly in late September 2026"
+        spend_usd: "subscription-based usage"
         hardware: "API-only (subscription); development on laptop"
-      prompting_notes: "Optimisation passes: the agent audited the metaprogram and Python code 
-        and suggested optimisations. These were either implemented by hand or by the agent, 
-        and the agent measured and checked the results for improvements."
+      prompting_notes: "Riemann-Siegel certificates: Salvatore Mercuri hand-wrote the
+        Riemann-Siegel certification pipeline extending Bhavik Mehta's Euler-Maclaurin
+        development, and then ran agent-led audits of the certificate metaprogram to find
+        optimisations. These were implemented by hand or by the agent, and the agent measured each
+        change to check it was an improvement."
     - method: "copilot"
       models: ["claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-opus-5-1", "claude-opus-5-5"]
       framework: "Claude Code"
-      tool_setup: "Claude Code in interactive sessions without a custom harness."
+      tool_setup: "Claude Code in interactive sessions."
       cost:
         wall_time: "n/a: conversational review alongside hand-written code"
-        spend_usd: ""
+        spend_usd: "subscription-based usage"
         hardware: "API-only (subscription)"
       prompting_notes: "Python reference implementation: the Python implementation was mostly
         handwritten with the aid of a Claude agent to double-check code and test output. The 
         Lean file generators in `data_gen` were written entirely by an agent. Some optimisation 
         work was also implemented by an agent, particularly the store writer files in `data_gen`."
-  spend_usd: ""
+    - method: "agent"
+      models: ["claude-opus-4-8", "claude-fable-5"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code on a Linux server, with subagents for exploration and audits,
+        scheduled wake-ups for unattended runs, and file-based memory."
+      cost:
+        wall_time: "about 7 days of agent activity, spread across 24 June to 31 July 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); one Linux server"
+      prompting_notes: "Certified arithmetic and the certificate pipeline (Enclosure,
+        Enclosure/BinarySplit, Bernoulli, Zeta/Certificate, the zero-certificate generator):
+        Bhavik Mehta gave the design (kernel-checked ball arithmetic, binary-splitting bounds, a
+        certificate pipeline reading stored zero data) and the method for the Bernoulli numbers,
+        and hand-wrote the implementations, proofs and tactics for some of the special functions;
+        the agent wrote the rest of the functions on that model, and the generator. Both proposed
+        optimisations, which the agent prototyped and compared by interleaved benchmarks to
+        decide acceptance."
+    - method: "agent"
+      models: ["claude-opus-5", "claude-opus-5-5", "claude-fable-5-1"]
+      framework: "Claude Code"
+      tool_setup: "Claude Code sessions running builds in the background, with an interleaved
+        A/B benchmark (a GitHub Actions workflow and a dedicated build server), the Lean
+        profiler, scheduled wake-ups for long unattended runs, and subagents for idea
+        generation and prototypes."
+      cost:
+        wall_time: "about 4 days of agent activity, spread across August to November 2026"
+        spend_usd: "subscription-based usage"
+        hardware: "API-only (subscription); a shared 32-core server and GitHub-hosted runners"
+      prompting_notes: "Build performance of the certificates: Bhavik Mehta set the targets
+        (CPU time per zero, size of the stored proofs) and decided which changes landed. The
+        agents implemented candidates, prototyped lemmas with sorry before proving them,
+        compared each against a control by interleaved A/B runs, and confirmed every landed
+        change with a full build and #print axioms."
+  spend_usd: "subscription-based usage"
   notes: ""
 
 fidelity:
@@ -235,10 +274,13 @@ fidelity:
 review:
   status: "self-assessed"  # [required]
   reviewers: [Salvatore Mercuri, Bhavik Mehta]
-  notes: "Each blueprint node and Lean declaration was checked by reviewer subagents; the authors 
-    checked the final statements and their axioms, making edits as appropriate."
+  notes: "Each blueprint node and Lean declaration had an AI review pass; the authors checked
+    the final statements and their axioms, making edits as appropriate."
 
 acknowledgements: "Built on mathlib and PrimeNumberTheoremAnd. 
   Independent checking uses leanprover/comparator and lean4export, and the blueprint uses 
   leanblueprint. The reference Python implementation uses SageMath and mpmath, and is validated 
-  against the zero tables of the LMFDB. Formalization carried out with Claude Code (Anthropic)."
+  against the zero tables of the LMFDB. Formalization carried out with Claude Code (Anthropic).
+  The certificates at height 10^8 were built on the Cirrus NCR HPC Service at EPCC
+  (https://www.cirrus.ac.uk), funded by the University of Edinburgh, the Edinburgh and South East
+  Scotland City Region Deal, and UKRI."

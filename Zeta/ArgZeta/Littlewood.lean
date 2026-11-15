@@ -96,7 +96,7 @@ private theorem continuous_riemannZeta_vertical {x : ℝ} (hx : x ≠ 1) :
 private theorem ofReal_add_I_mul_ne_one {σ t : ℝ} (ht : t ≠ 0) :
     (σ : ℂ) + I * (t : ℂ) ≠ 1 := fun h ↦ ht (by simpa using congrArg Complex.im h)
 
-/-- **Finiteness of the zeros of `ζ` in a rectangle** (`lem:lb_finite_ordinates`). If the closed
+/-- The zeros of `ζ` in a rectangle are finite (`lem:lb_finite_ordinates`). If the closed
 rectangle `Rectangle z w` lies in the open upper half-plane (`0 < z.im` and `0 < w.im`), then the
 set of zeros of `riemannZeta` in it is finite. -/
 theorem finite_riemannZeta_zeros_rectangle {z w : ℂ} (hz : 0 < z.im) (hw : 0 < w.im) :
@@ -164,7 +164,7 @@ private theorem integrableOn_const_div_sub_closedBall (c ρ : ℂ) {r : ℝ} (hr
     (Filter.Eventually.of_forall fun s ↦ ?_)
   rw [norm_div, div_eq_mul_inv]
 
-/-- **Local integrability of `ζ'/ζ`.** For `x` in the open upper half-plane, `logDeriv ζ` is
+/-- For `x` in the open upper half-plane, `logDeriv ζ` is
 integrable on some closed disk around `x`. -/
 private theorem exists_integrableOn_logDeriv_riemannZeta_closedBall {x : ℂ} (hx : 0 < x.im) :
     ∃ r > 0, IntegrableOn (logDeriv riemannZeta) (closedBall x r) := by
@@ -193,7 +193,7 @@ private theorem exists_integrableOn_logDeriv_riemannZeta_closedBall {x : ℂ} (h
     obtain ⟨haz, hzne⟩ := hball (lt_of_le_of_lt (Metric.mem_closedBall.mp hz) (by linarith))
     exact (haz.deriv.div haz hzne).continuousAt.continuousWithinAt
 
-/-- **Integrability of `ζ'/ζ` on a rectangle** (`lem:lb_logDeriv_integrable`). If the closed
+/-- Integrability of `ζ'/ζ` on a rectangle (`lem:lb_logDeriv_integrable`). If the closed
 rectangle `Rectangle z w` lies in the open upper half-plane, then `logDeriv ζ = ζ'/ζ` is integrable
 on it, despite its poles at the zeros of `ζ`. -/
 theorem integrableOn_logDeriv_riemannZeta_rectangle {z w : ℂ} (hz : 0 < z.im) (hw : 0 < w.im) :
@@ -204,13 +204,13 @@ theorem integrableOn_logDeriv_riemannZeta_rectangle {z w : ℂ} (hz : 0 < z.im) 
     exists_integrableOn_logDeriv_riemannZeta_closedBall (im_pos_of_mem_rectangle hz hw hx)
   exact ⟨closedBall x r, nhdsWithin_le_nhds (closedBall_mem_nhds x hr), hint⟩
 
-/-- **Integrability of `Im(ζ'/ζ)` on a rectangle** in the open upper half-plane
+/-- Integrability of `Im(ζ'/ζ)` on a rectangle in the open upper half-plane
 (`lem:lb_logDeriv_integrable`). This is the form fed to Fubini in Littlewood's reduction. -/
 theorem integrableOn_im_logDeriv_riemannZeta_rectangle {z w : ℂ} (hz : 0 < z.im) (hw : 0 < w.im) :
     IntegrableOn (fun s : ℂ ↦ (logDeriv riemannZeta s).im) (Rectangle z w) :=
   (integrableOn_logDeriv_riemannZeta_rectangle hz hw).im
 
-/-- **Telescoping of `log|ζ|` along a vertical segment** (`lem:lb_logNorm_diff`). For
+/-- Telescoping of `log|ζ|` along a vertical segment (`lem:lb_logNorm_diff`). For
 `0 < t₁ ≤ t₂` such that the vertical segment `{σ+it : t ∈ [t₁,t₂]}` is zero-free,
 `log|ζ(σ+it₂)| - log|ζ(σ+it₁)| = -Im ∫_{t₁}^{t₂} (ζ'/ζ)(σ+it) dt`. -/
 theorem log_norm_riemannZeta_sub_eq_neg_im_integral {σ t₁ t₂ : ℝ} (h12 : t₁ ≤ t₂) (ht1 : 0 < t₁)
@@ -237,7 +237,7 @@ theorem log_norm_riemannZeta_sub_eq_neg_im_integral {σ t₁ t₂ : ℝ} (h12 : 
   rw [heq, intervalIntegral.integral_mul_const, mul_I_re] at h
   linarith
 
-/-- **Horizontal argument variation as an imaginary integral** (`lem:lb_horiz_argVar`). For
+/-- Horizontal argument variation as an imaginary integral (`lem:lb_horiz_argVar`). For
 `a ≤ X` and `t ≠ 0` such that the horizontal segment `{σ+it : σ ∈ [a,X]}` is zero-free, the
 argument variation of `ζ` along it equals `Im ∫_{a}^{X} (ζ'/ζ)(σ+it) dσ`. -/
 theorem argVariation_riemannZeta_horizontal_eq_im_integral {a X t : ℝ} (hX : a ≤ X) (ht : t ≠ 0)
@@ -260,7 +260,7 @@ theorem argVariation_riemannZeta_horizontal_eq_im_integral {a X t : ℝ} (hX : a
   rw [argVariation_eq_im_integral hX hφcont hne hderiv (hdcont.continuousOn.div hφcont hne)]
   simp only [logDeriv_apply]
 
-/-- **Vanishing of the vertical argument variation at `+∞`** (`lem:lb_argVar_vertical`). For fixed
+/-- Vanishing of the vertical argument variation at `+∞` (`lem:lb_argVar_vertical`). For fixed
 `t`, the argument variation of `ζ` along the vertical segment `X → X + it` tends to `0` as
 `X → +∞`. -/
 theorem tendsto_argVariation_riemannZeta_vertical_atTop {t : ℝ} (ht : 0 ≤ t) :
@@ -294,7 +294,7 @@ private theorem mem_Icc_affine {a b u : ℝ} (hab : a ≤ b) (hu : u ∈ Set.Icc
     a + u * (b - a) ∈ Set.Icc a b :=
   Set.uIcc_of_le hab ▸ add_mul_sub_mem_uIcc hu
 
-/-- **Reparametrisation of a `ζ`-`lineSeg`.** If `lineSeg P Q u = g (a + u * (b - a))` (`a ≤ b`),
+/-- If `lineSeg P Q u = g (a + u * (b - a))` (`a ≤ b`),
 the `lineSeg`-parametrised argument variation of `ζ` along it is the interval-parametrised
 variation of `ζ ∘ g` over `[a, b]`. -/
 private theorem argVariation_riemannZeta_lineSeg_comp {a b : ℝ} (hab : a ≤ b) {P Q : ℂ}
@@ -309,7 +309,7 @@ private theorem argVariation_riemannZeta_lineSeg_comp {a b : ℝ} (hab : a ≤ b
   exact argVariation_comp hab zero_le_one (by fun_prop) (fun u hu ↦ mem_Icc_affine hab hu)
     (by ring) (by ring) hcont hne
 
-/-- **Reversal of a `ζ`-`lineSeg`.** Swapping the endpoints of an affine segment negates the
+/-- Swapping the endpoints of an affine segment negates the
 argument variation of `ζ` along it. -/
 private theorem argVariation_riemannZeta_lineSeg_symm {z₀ z₁ : ℂ}
     (hcont : ContinuousOn (fun u : ℝ ↦ riemannZeta (lineSeg z₀ z₁ u)) (Set.Icc (0 : ℝ) 1))
@@ -322,7 +322,7 @@ private theorem argVariation_riemannZeta_lineSeg_symm {z₀ z₁ : ℂ}
   rw [hfun]
   exact argVariation_reverse zero_le_one hcont hne
 
-/-- **Reversed horizontal `ζ`-segment.** The `lineSeg`-parametrised argument variation of `ζ`
+/-- The `lineSeg`-parametrised argument variation of `ζ`
 along the reversed horizontal segment from `b + it` to `a + it` (`a ≤ b`, `t ≠ 0`, zero-free) is
 `-argVariation a b (fun σ ↦ ζ(σ + it))`. -/
 private theorem argVariation_riemannZeta_lineSeg_horizontal_rev {a b t : ℝ} (hab : a ≤ b)
@@ -346,8 +346,8 @@ private theorem argVariation_riemannZeta_lineSeg_horizontal_rev {a b t : ℝ} (h
     argVariation_riemannZeta_lineSeg_comp (g := fun σ : ℝ ↦ (σ : ℂ) + I * (t : ℂ)) hab heq
       hrowcont.continuousOn hne]
 
-/-- **`ζ`-argument variation along a `lineSeg` inside `Re s ≥ 2`**: the difference of the endpoint
-arguments. -/
+/-- The `ζ`-argument variation along a `lineSeg` inside `Re s ≥ 2` is the difference of the
+endpoint arguments. -/
 private theorem argVariation_riemannZeta_lineSeg_of_two_le_re {z₀ z₁ : ℂ}
     (h : ∀ u ∈ Set.Icc (0 : ℝ) 1, 2 ≤ (lineSeg z₀ z₁ u).re) :
     argVariation 0 1 (fun u ↦ riemannZeta (lineSeg z₀ z₁ u))
@@ -358,7 +358,7 @@ private theorem argVariation_riemannZeta_lineSeg_of_two_le_re {z₀ z₁ : ℂ}
   rw [argVariation_eq_arg_sub_arg zero_le_one hcont
     fun u hu ↦ riemannZeta_mem_slitPlane_of_two_le_re (h u hu), lineSeg_one, lineSeg_zero]
 
-/-- **Limit of the horizontal argument variation** (`lem:lb_horiz_argVar_limit`). For `t > 0` with
+/-- Limit of the horizontal argument variation (`lem:lb_horiz_argVar_limit`). For `t > 0` with
 the ray `{σ + it : σ ≥ 1/2}` zero-free, the horizontal argument variation of `ζ` from `1/2` to `X`
 tends to `-π S(t) = -π · argZeta t` as `X → ∞`. -/
 theorem tendsto_argVariation_riemannZeta_horizontal_atTop {t : ℝ} (ht : 0 < t)
@@ -500,7 +500,7 @@ private theorem integrable_logDeriv_riemannZeta_box {a b c d : ℝ} (hab : a ≤
   exact integrableOn_logDeriv_riemannZeta_rectangle (by simpa using hc)
     (by simpa using hc.trans_le hcd)
 
-/-- **Domination of the horizontal argument variation** (`lem:lb_horiz_argVar_bdd`). For every
+/-- Domination of the horizontal argument variation (`lem:lb_horiz_argVar_bdd`). For every
 `X ≥ 2` and every nonzero `t` whose ray `{σ + it : σ ≥ 1/2}` is zero-free, the horizontal argument
 variation of `ζ` is bounded by the `t`-dependent majorant
 `g(t) = 2·arcsin(π²/6 - 1) + ∫_{1/2}^{2} ‖(ζ'/ζ)(σ+it)‖ dσ`. The `t`-dependence is essential: a
@@ -535,7 +535,7 @@ theorem abs_argVariation_riemannZeta_horizontal_le {X t : ℝ} (hX : 2 ≤ X) (h
   rw [argVariation_trans (by norm_num) hX hrowcont.continuousOn (fun σ hσ ↦ hne σ hσ.1)]
   exact (abs_add_le _ _).trans (by linarith [hhead, htail])
 
-/-- **Integrability of the dominating function** (`lem:lb_horiz_argVar_bdd`). For `0 < t₁ ≤ t₂`
+/-- Integrability of the dominating function (`lem:lb_horiz_argVar_bdd`). For `0 < t₁ ≤ t₂`
 the majorant of `abs_argVariation_riemannZeta_horizontal_le` is integrable on `[t₁, t₂]`. -/
 theorem integrableOn_argVariation_riemannZeta_horizontal_bound {t₁ t₂ : ℝ} (ht1 : 0 < t₁)
     (h12 : t₁ ≤ t₂) :
@@ -548,7 +548,7 @@ theorem integrableOn_argVariation_riemannZeta_horizontal_bound {t₁ t₂ : ℝ}
     intervalIntegral.integral_of_le (by norm_num : (1 / 2 : ℝ) ≤ 2),
     MeasureTheory.integral_Icc_eq_integral_Ioc]
 
-/-- **The truncated row integral tends to `-π S(t)`.** For `t > 0` with a zero-free ray, the
+/-- For `t > 0` with a zero-free ray, the
 imaginary part of `∫_{1/2}^{X} (ζ'/ζ)(σ+it) dσ` tends to `-π · argZeta t` as `X → ∞`. -/
 private theorem tendsto_im_integral_logDeriv_row_atTop {t : ℝ} (ht : 0 < t)
     (hray : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + I * t) ≠ 0) :
@@ -558,7 +558,7 @@ private theorem tendsto_im_integral_logDeriv_row_atTop {t : ℝ} (ht : 0 < t)
   filter_upwards [eventually_ge_atTop (1 / 2 : ℝ)] with X hX
   exact argVariation_riemannZeta_horizontal_eq_im_integral hX ht.ne' fun σ hσ ↦ hray σ hσ.1
 
-/-- **The truncated row integral obeys the majorant** of
+/-- The truncated row integral obeys the majorant of
 `abs_argVariation_riemannZeta_horizontal_le`. -/
 private theorem abs_im_integral_logDeriv_row_le {X t : ℝ} (hX : 2 ≤ X) (ht : t ≠ 0)
     (hray : ∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + I * t) ≠ 0) :
@@ -604,7 +604,7 @@ private theorem intervalIntegral₂_eq_setIntegral₂ {a b c d : ℝ} (hab : a �
   exact setIntegral_congr_fun measurableSet_Icc fun x _ ↦ by
     rw [intervalIntegral.integral_of_le hcd, ← MeasureTheory.integral_Icc_eq_integral_Ioc]
 
-/-- **Littlewood's reduction, truncated form.** For `0 < t₁ ≤ t₂` and `1/2 ≤ X`, the truncated
+/-- Littlewood's reduction, truncated form. For `0 < t₁ ≤ t₂` and `1/2 ≤ X`, the truncated
 difference `∫_{1/2}^{X} (log|ζ(σ+it₂)| - log|ζ(σ+it₁)|) dσ` equals
 `-∫_{t₁}^{t₂} Im(∫_{1/2}^{X} (ζ'/ζ)(σ+it) dσ) dt`. -/
 private theorem integral_log_norm_riemannZeta_sub_eq {t₁ t₂ : ℝ} (ht1 : 0 < t₁) (h12 : t₁ ≤ t₂)
@@ -670,8 +670,7 @@ private theorem aestronglyMeasurable_im_integral_row {t₁ t₂ : ℝ} (ht1 : 0 
   ((integrable_integral_logDeriv_riemannZeta_row ht1 h12 hX).im).aestronglyMeasurable.mono_measure
     (Measure.restrict_mono (Set.uIoc_of_le h12 ▸ Set.Ioc_subset_Icc_self) le_rfl)
 
-/-- **Interval-integrability of `argZeta`** on `[t₁, t₂]` for `0 < t₁ ≤ t₂`. Unlike
-`pi_mul_integral_argZeta_eq_sub`, this needs no zero-freeness at the endpoints. -/
+/-- Interval-integrability of `argZeta` on `[t₁, t₂]` for any `0 < t₁ ≤ t₂`. -/
 theorem intervalIntegrable_argZeta {t₁ t₂ : ℝ} (ht1 : 0 < t₁) (h12 : t₁ ≤ t₂) :
     IntervalIntegrable argZeta volume t₁ t₂ := by
   have ht2 : 0 < t₂ := lt_of_lt_of_le ht1 h12
@@ -714,7 +713,7 @@ theorem intervalIntegrable_argZeta {t₁ t₂ : ℝ} (ht1 : 0 < t₁) (h12 : t�
   rw [intervalIntegrable_iff_integrableOn_Ioc_of_le h12, ← Set.uIoc_of_le h12]
   exact hfun ▸ (Integrable.mono' hbound_int hmeas hdom).const_mul (-(1 / Real.pi))
 
-/-- **The ordinates of zeros of `ζ` on the ray `σ ≥ 1/2` are locally finite.** For `0 < a ≤ b`,
+/-- The ordinates of zeros of `ζ` on the ray `σ ≥ 1/2` are locally finite. For `0 < a ≤ b`,
 only finitely many `t ∈ [a, b]` are the ordinate of a zero `σ + it` with `σ ≥ 1/2`; so the
 zero-free ordinates are dense. -/
 theorem finite_setOf_riemannZeta_zero_ray_Icc {a b : ℝ} (ha : 0 < a) (hab : a ≤ b) :
@@ -728,7 +727,7 @@ theorem finite_setOf_riemannZeta_zero_ray_Icc {a b : ℝ} (ha : 0 < a) (hab : a 
   exact ⟨(σ : ℂ) + I * (t : ℂ), ⟨ofReal_add_I_mul_mem_rectangle_two hab hσ
     (re_le_one_of_riemannZeta_eq_zero hz) htab, hz⟩, by simp⟩
 
-/-- **Littlewood's reduction** (`lem:lb_littlewood`). For `t₁ < t₂` with `0 < t₁`, neither an
+/-- Littlewood's reduction (`lem:lb_littlewood`). For `t₁ < t₂` with `0 < t₁`, neither an
 ordinate of a zero of `ζ` on the ray `σ ≥ 1/2`, `π ∫_{t₁}^{t₂} S(t) dt = I(t₂) - I(t₁)`, where
 `S = argZeta` and `I = logNormZetaIntegral`. -/
 theorem pi_mul_integral_argZeta_eq_sub {t₁ t₂ : ℝ} (h12 : t₁ < t₂) (ht1 : 0 < t₁)

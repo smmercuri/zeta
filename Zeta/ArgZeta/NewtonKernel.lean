@@ -61,8 +61,8 @@ private theorem lintegral_ofReal_inv_norm_sub_closedBall (ρ : ℂ) {r : ℝ} (h
 private theorem measurable_inv_norm_sub (ρ : ℂ) : Measurable (fun s : ℂ ↦ ‖s - ρ‖⁻¹) :=
   (continuous_norm.comp (continuous_id.sub continuous_const)).measurable.inv
 
-/-- **Planar Newtonian-kernel integrability** (`lem:lb_newton_kernel`). The kernel
-`s ↦ ‖s - ρ‖⁻¹` is integrable on a closed disk for two-dimensional Lebesgue measure. -/
+/-- The planar Newtonian kernel `s ↦ ‖s - ρ‖⁻¹` is integrable on a closed disk for
+two-dimensional Lebesgue measure. -/
 theorem integrableOn_inv_norm_sub_closedBall (ρ : ℂ) {r : ℝ} (hr : 0 ≤ r) :
     IntegrableOn (fun s : ℂ ↦ ‖s - ρ‖⁻¹) (closedBall ρ r) := by
   refine ⟨(measurable_inv_norm_sub ρ).aestronglyMeasurable, ?_⟩

@@ -16,7 +16,7 @@ public import Zeta.RiemannSiegel.ZeroOrder
 /-!
 # The first-order Riemann–Siegel formula
 
-The capstones of `riemann_siegel_first.tex`, `cha:rs_first`.
+The main theorems of `riemann_siegel_first.tex`, `cha:rs_first`.
 
 `sec:rsf_saddle`: the Riemann–Siegel contour integral `I(½ + it, ν + ½)` agrees, to within
 `22 T^{-3/4}` with `T = t/2π`, with the saddle factor `(-1)^ν T^{-1/4} e^{-i(ϑ(t) + π/8)}` times
@@ -24,9 +24,9 @@ the model integral `M(p)` at the fractional part `p = √T - ν`. The inner and 
 combines are in `Zeta/RiemannSiegel/Inner.lean` and `Zeta/RiemannSiegel/Outer.lean`; the
 arbitrary-order chapter `cha:rs_general` rests on that crude estimate and on both of them.
 
-`sec:rsf_sharp` sharpens the saddle estimate to `(61/20) T^{-5/4}` — a gain of `≍ 7 T^{1/2}` —
+`sec:rsf_sharp` sharpens the saddle estimate to `(61/20) T^{-5/4}` (a gain of `≍ 7 T^{1/2}`)
 and lowers its threshold from `T ≥ 10⁶` to `T ≥ 16`, at the cost of retaining the first-order
-coefficient `-M'''(p)T^{-1/2}/(96π²)` instead of bounding it away. Feeding it into the order-zero
+coefficient `-M'''(p)T^{-1/2}/(96π²)`. Feeding it into the order-zero
 formula of `Zeta/RiemannSiegel/ZeroOrder.lean` adds the explicit closed-form terms
 `(-1)^{ν-1} T^{-1/4} (Ψ(p) + C₁(p)/√T)` to the main sum and improves the error from
 `190 T^{-1/4}` to `(25/4) T^{-5/4}`, which at `T = 10⁶` takes the error from `6.0` to
@@ -35,7 +35,7 @@ incurred: the saddle-point error itself, and the swap of the true phase `θ` for
 phase `ϑ` carried by the saddle factor, bounded in `Zeta/RiemannSiegel/Theta.lean`.
 
 Siegel's identity (`thm:rsz_siegel`), which the order-zero formula rests on, is proved in
-`Zeta/RiemannSiegel/Siegel.lean`, so the whole tower is unconditional.
+`Zeta/RiemannSiegel/Siegel.lean`, so the formula is unconditional.
 
 ## Main results
 
@@ -49,16 +49,15 @@ Siegel's identity (`thm:rsz_siegel`), which the order-zero formula rests on, is 
 * `Zeta.RiemannSiegel.abs_hardyZ_sub_mainSum_sub_correction_le`
   (`riemann_siegel_first.tex`, `cor:rsf_formula_drop`): the same with `C₁(p)` dropped;
 * `Zeta.RiemannSiegel.abs_hardyZ_sub_mainSumOfPhase_sub_correction_sub_correctionLinear_le`: the
-  sharp formula in the form an implementation uses it — main sum at an approximate phase, cutoff
+  sharp formula in the form an implementation uses it: main sum at an approximate phase, cutoff
   `ν = ⌊√T⌋`, and the phase error `ε` carried explicitly as a further `4√ν ε`;
 * `Zeta.RiemannSiegel.abs_hardyZ_sub_mainSumOfPhase_sub_correction_sub_correctionLinear_le'`: the
   same at the order-`2` Stirling phase, where `ε` is discharged and the whole error is the closed
   form `25/4 T^{-5/4} + T^{-15/4}/32`.
 
-Retaining `C₁` is what makes the phase swap affordable at `t ≥ 32π`: the swap multiplies a
-*complex* modulus `‖M - M'''ζ/(96π²)‖`, not `|Ψ + C₁ζ|`, which is why
-`Zeta/RiemannSiegel/Linear.lean` bounds `M` and `M'''` and not only `Ψ` and `C₁`. The `+` sign on
-`C₁` is that of `C₁ = -Ψ'''/(96π²)`, not of the subtraction inside the model term.
+Retaining `C₁` is what makes the phase swap affordable at `t ≥ 32π`: the swap multiplies the
+*complex* modulus `‖M - M'''ζ/(96π²)‖`, which is why `Zeta/RiemannSiegel/Linear.lean` bounds `M`
+and `M'''` as well as `Ψ` and `C₁`. The `+` sign on `C₁` comes from `C₁ = -Ψ'''/(96π²)`.
 -/
 @[expose] public section
 
@@ -81,7 +80,7 @@ private theorem rpow_neg_quarter_div_self {T : ℝ} (hT : 0 < T) :
   rw [div_eq_mul_inv, ← Real.rpow_neg_one T, ← Real.rpow_add hT]
   norm_num
 
-/-- **First-order evaluation of the shifted Riemann–Siegel integral**
+/-- First-order evaluation of the shifted Riemann–Siegel integral
 (`riemann_siegel_first.tex`, `thm:rsf_saddle`). -/
 theorem norm_contourIntegral_sub_modelIntegral_le {t : ℝ} (ht : 10 ^ 6 ≤ t / (2 * π)) {ν : ℕ}
     (hν : (ν : ℝ) ≤ Real.sqrt (t / (2 * π)))
@@ -107,12 +106,12 @@ theorem norm_contourIntegral_sub_modelIntegral_le {t : ℝ} (ht : 10 ^ 6 ≤ t /
 
 /-! ### The error splitting -/
 
-/-- **The exact splitting of the first-order error** into the phase-swap term and the saddle-point
+/-- The exact splitting of the first-order error into the phase-swap term and the saddle-point
 term, for an arbitrary model term `Y`. It is instantiated at
-`Y = M(p) - M'''(p)T^{-1/2}/(96π²)` for `cor:rsf_formula_sharp`: nothing in the splitting
-depends on which model term is being approximated, only the two estimates fed into it do. -/
+`Y = M(p) - M'''(p)T^{-1/2}/(96π²)` for `cor:rsf_formula_sharp`; only the two estimates fed into
+it depend on the model term. -/
 private theorem hardyZ_sub_mainSum_add_two_mul_re_eq {t : ℝ} (ht : 0 < t) (ν : ℕ) (Y : ℂ) :
-    hardyZ t - mainSum t ν
+    Zeta.hardyZ t - mainSum t ν
         + 2 * (((((-1 : ℝ)) ^ ν * (t / (2 * π)) ^ (-(1 / 4) : ℝ) : ℝ) : ℂ)
             * (exp (-((π / 8 : ℝ) * I)) * Y)).re
       = -2 * (((((-1 : ℝ)) ^ ν * (t / (2 * π)) ^ (-(1 / 4) : ℝ) : ℝ) : ℂ)
@@ -150,7 +149,7 @@ private theorem norm_ofReal_neg_one_pow_mul_rpow {t : ℝ} (ht : 0 < t / (2 * π
       = (t / (2 * π)) ^ (-(1 / 4) : ℝ) := by
   simp [abs_of_pos (Real.rpow_pos_of_pos ht _)]
 
-/-- **The phase-swap error**: replacing `e^{iϑ}` by the true `e^{iθ}` in the saddle factor costs
+/-- The phase-swap error: replacing `e^{iϑ}` by the true `e^{iθ}` in the saddle factor costs
 at most `2T^{-1/4}φB`, where `φ` bounds the phase drift and `B` the model term `Y`. -/
 private theorem abs_two_mul_re_phase_swap_le {t : ℝ} (hT0 : 0 < t / (2 * π)) (ν : ℕ) {Y : ℂ}
     {φ B : ℝ} (hY : ‖Y‖ ≤ B)
@@ -173,13 +172,13 @@ private theorem abs_two_mul_re_exp_I_mul_le {t R : ℝ} {Z : ℂ} (h : ‖Z‖ �
   refine mul_le_mul_of_nonneg_left ((Complex.abs_re_le_norm _).trans ?_) (by norm_num)
   simpa [Complex.norm_exp] using h
 
-/-- **The first-order error assembly**: the phase swap and the saddle-point estimate are the only
+/-- The first-order error assembly: the phase swap and the saddle-point estimate are the only
 two contributions to the distance from `Z(t)` to the main sum corrected by the model term `Y`. -/
 private theorem abs_hardyZ_sub_mainSum_add_two_mul_re_le {t : ℝ} (hT0 : 0 < t / (2 * π)) (ν : ℕ)
     {Y : ℂ} {φ B R : ℝ} (hY : ‖Y‖ ≤ B)
     (hphase : ‖exp (I * ((riemannSiegelTheta t - leadingTheta t : ℝ) : ℂ)) - 1‖ ≤ φ)
     (hsaddle : ‖contourIntegral (1 / 2 + t * I) ((ν : ℝ) + 1 / 2) - saddleFactor t ν * Y‖ ≤ R) :
-    |hardyZ t - mainSum t ν
+    |Zeta.hardyZ t - mainSum t ν
         + 2 * (((((-1 : ℝ)) ^ ν * (t / (2 * π)) ^ (-(1 / 4) : ℝ) : ℝ) : ℂ)
             * (exp (-((π / 8 : ℝ) * I)) * Y)).re|
       ≤ 2 * ((t / (2 * π)) ^ (-(1 / 4) : ℝ) * (φ * B)) + 2 * R := by
@@ -192,7 +191,7 @@ private theorem abs_hardyZ_sub_mainSum_add_two_mul_re_le {t : ℝ} (hT0 : 0 < t 
 
 /-! ### The sharp saddle estimate -/
 
-/-- **Sharp first-order evaluation of the shifted Riemann–Siegel integral**
+/-- Sharp first-order evaluation of the shifted Riemann–Siegel integral
 (`riemann_siegel_first.tex`, `thm:rsf_saddle_sharp`). The retained term
 `-M'''(p)T^{-1/2}/(96π²)` is the classical `C₁(p)` of the Riemann–Siegel expansion. -/
 theorem norm_contourIntegral_sub_modelIntegral_sub_moment_le {t : ℝ} (ht : 16 ≤ t / (2 * π))
@@ -281,13 +280,13 @@ private theorem two_mul_re_exp_mul_modelIntegral_sub_moment_eq (p : ℝ) {S : �
     Complex.re_ofReal_mul, correction]
   field_simp
 
-/-- **The sharp first-order Riemann–Siegel formula** (`riemann_siegel_first.tex`,
+/-- The sharp first-order Riemann–Siegel formula (`riemann_siegel_first.tex`,
 `cor:rsf_formula_sharp`), retaining the classical coefficient `C₁(p)T^{-1/2}` alongside `Ψ(p)`. -/
 theorem abs_hardyZ_sub_mainSum_sub_correction_sub_correctionLinear_le {t : ℝ}
     (ht : 16 ≤ t / (2 * π)) {ν : ℕ}
     (hν : (ν : ℝ) ≤ Real.sqrt (t / (2 * π)))
     (hν' : Real.sqrt (t / (2 * π)) ≤ ν + 1) :
-    |hardyZ t - mainSum t ν
+    |Zeta.hardyZ t - mainSum t ν
         + (-1) ^ ν * (t / (2 * π)) ^ (-(1 / 4) : ℝ)
             * (correction (Real.sqrt (t / (2 * π)) - ν)
               + correctionLinear (Real.sqrt (t / (2 * π)) - ν) / Real.sqrt (t / (2 * π)))|
@@ -346,12 +345,12 @@ theorem abs_hardyZ_sub_mainSum_sub_correction_sub_correctionLinear_le {t : ℝ}
     linarith
   nlinarith [mul_le_mul_of_nonneg_right hcoef hR0]
 
-/-- **The sharp first-order formula with `C₁` dropped** (`riemann_siegel_first.tex`,
+/-- The sharp first-order formula with `C₁` dropped (`riemann_siegel_first.tex`,
 `cor:rsf_formula_drop`), the discarded `C₁(p)` reappearing as the leading `T^{-3/4}` error. -/
 theorem abs_hardyZ_sub_mainSum_sub_correction_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) {ν : ℕ}
     (hν : (ν : ℝ) ≤ Real.sqrt (t / (2 * π)))
     (hν' : Real.sqrt (t / (2 * π)) ≤ ν + 1) :
-    |hardyZ t - mainSum t ν
+    |Zeta.hardyZ t - mainSum t ν
         + (-1) ^ ν * (t / (2 * π)) ^ (-(1 / 4) : ℝ)
             * correction (Real.sqrt (t / (2 * π)) - ν)|
       ≤ 13 / 10 * (t / (2 * π)) ^ (-(3 / 4) : ℝ) + 25 / 4 * (t / (2 * π)) ^ (-(5 / 4) : ℝ) := by
@@ -374,11 +373,11 @@ theorem abs_hardyZ_sub_mainSum_sub_correction_le {t : ℝ} (ht : 16 ≤ t / (2 *
   rw [abs_le] at hsharp hdrop ⊢
   constructor <;> linarith
 
-/-- **The sharp first-order formula at an approximate phase**, with the cutoff `ν = ⌊√T⌋`
+/-- The sharp first-order formula at an approximate phase, with the cutoff `ν = ⌊√T⌋`
 and the phase error `ε` carried explicitly. -/
 theorem abs_hardyZ_sub_mainSumOfPhase_sub_correction_sub_correctionLinear_le {t : ℝ}
     (ht : 16 ≤ t / (2 * π)) {θ' ε : ℝ} (hθ : |riemannSiegelTheta t - θ'| ≤ ε) :
-    |hardyZ t - mainSumOfPhase θ' t ⌊Real.sqrt (t / (2 * π))⌋₊
+    |Zeta.hardyZ t - mainSumOfPhase θ' t ⌊Real.sqrt (t / (2 * π))⌋₊
         + (-1) ^ (⌊Real.sqrt (t / (2 * π))⌋₊ : ℕ) * (t / (2 * π)) ^ (-(1 / 4) : ℝ)
             * (correction (Real.sqrt (t / (2 * π)) - ⌊Real.sqrt (t / (2 * π))⌋₊)
               + correctionLinear (Real.sqrt (t / (2 * π)) - ⌊Real.sqrt (t / (2 * π))⌋₊)
@@ -396,12 +395,11 @@ theorem abs_hardyZ_sub_mainSumOfPhase_sub_correction_sub_correctionLinear_le {t 
   rw [abs_le] at hsharp hlip ⊢
   constructor <;> linarith
 
-/-- **The sharp first-order formula with the phase error discharged**: the main sum evaluated at
-the order-`2` Stirling approximant of `θ`, with no free parameter and no side condition beyond
-`t ≥ 32π`. -/
+/-- The sharp first-order formula with the phase error discharged: the main sum evaluated at
+the order-`2` Stirling approximant of `θ`, for every `t ≥ 32π`. -/
 theorem abs_hardyZ_sub_mainSumOfPhase_sub_correction_sub_correctionLinear_le' {t : ℝ}
     (ht : 16 ≤ t / (2 * π)) :
-    |hardyZ t
+    |Zeta.hardyZ t
         - mainSumOfPhase (riemannSiegelThetaApproximant 2 0 t) t ⌊Real.sqrt (t / (2 * π))⌋₊
         + (-1) ^ (⌊Real.sqrt (t / (2 * π))⌋₊ : ℕ) * (t / (2 * π)) ^ (-(1 / 4) : ℝ)
             * (correction (Real.sqrt (t / (2 * π)) - ⌊Real.sqrt (t / (2 * π))⌋₊)
@@ -449,10 +447,10 @@ open Zeta.RiemannSiegel
 consumes it: one approximant, one error bound, and the theorem that the second bounds the first's
 distance from `Z`. This mirrors `hardyZApproximantEM` / `hardyZErrorBoundEM` /
 `abs_hardyZRemainderEM_le` on the Euler–Maclaurin side, so both methods present the same interface
-to `Zeta.Certificates`. The `EM`/`RS` suffixes, rather than the namespace, carry the
-disambiguation: the two families are siblings and a certificate file uses both. -/
+to `Zeta.Certificates`. The `EM`/`RS` suffixes distinguish the two families, which are siblings
+used together in a certificate file. -/
 
-/-- **The rigorous first-order Riemann–Siegel error bound.** For every `t ≥ 32π`,
+/-- The rigorous first-order Riemann–Siegel error bound: for every `t ≥ 32π`,
 `|Z(t) − Z̃^{RS}(t)| ≤ hardyZErrorBoundRS t`. This is the Riemann–Siegel analogue of
 `abs_hardyZRemainderEM_le`, and the only fact about the approximant that certifying a sign change
 requires. -/
@@ -465,22 +463,17 @@ theorem abs_hardyZRemainderRS_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) :
 
 /-! ### The zeroth-order (linear-free) approximant
 
-`correctionLinear` is defined through `modelMoment`, and its closed form — obtained by
-differentiating `cos_mul_correction` three times — divides by `cos(2πp)` four times over, so an
-interval evaluation of it loses ~4 orders of cancellation wherever `p` approaches `1/4` or `3/4`.
-Since `|C₁| ≤ 13/10` uniformly, dropping the term and charging its size
-`T^{-1/4}·(13/10)/√T = (13/10)T^{-3/4}` to the error bound is far cheaper.
+`correctionLinear` is defined through `modelMoment`, and its closed form (obtained by
+differentiating `cos_mul_correction` three times) divides by `cos(2πp)` four times over, so an
+interval evaluation of it loses cancellation wherever `p` approaches `1/4` or `3/4`. Since
+`|C₁| ≤ 13/10` uniformly, the linear-free approximant drops the term and charges its size
+`T^{-1/4}·(13/10)/√T = (13/10)T^{-3/4}` to the error bound.
 
-This drops a rung on the Riemann–Siegel ladder: truncating after `C_k` gives error
-`O(T^{-(2k+3)/4})`, so the bound degrades from the first-order `O(T^{-5/4})` to the zeroth-order
+Truncating after `C_k` gives error `O(T^{-(2k+3)/4})`, so this bound is of zeroth order,
 `O(T^{-3/4})` (the main sum alone is `O(T^{-1/4})`, `abs_hardyZ_sub_mainSum_le_threeHundredTwo`).
-At the heights in use that costs a factor ~2 at the bottom of the Riemann–Siegel range
-(`t ≈ 150`: `0.119 → 0.239`) and ~4 at the top (`t ≈ 1420`: `0.0071 → 0.029`), where the bound is
-tiny anyway; the gap grows like `√T`, so `correctionLinear` would have to return well above 1420.
-The constant is also not the sharp zeroth-order one — this is the first-order remainder plus the
-discarded term's maximum, not a direct `k = 0` analysis. -/
+Its constant is the first-order remainder plus the discarded term's maximum. -/
 
-/-- **The rigorous error bound for the linear-free approximant.** For every `t ≥ 32π`,
+/-- The rigorous error bound for the linear-free approximant: for every `t ≥ 32π`,
 `|Z(t) − Z̃₀^{RS}(t)| ≤ hardyZErrorBoundRS₀ t`: the first-order bound plus `abs_correctionLinear_le`
 on the discarded term. -/
 theorem abs_hardyZRemainderRS₀_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) :

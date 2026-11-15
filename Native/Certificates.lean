@@ -18,7 +18,7 @@ the Lean compiler as well as the kernel.
 module
 
 public import Zeta.Zeros.Certificates.Fold
-public import Native.Certificates.Groups.Level1.Group0001
+import Native.Certificates.Groups.Level1.Group0001
 
 @[expose] public section
 

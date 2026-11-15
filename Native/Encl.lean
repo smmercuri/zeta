@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.Encl
@@ -114,20 +119,6 @@ theorem sqrt_encloses {e e' : Encl} {Q : ℕ} {x : ℝ} (hx : e.Encloses x)
     subst hneg
     cases h
     exact Real.IsNear.sqrt_image hx hcd hrd hQ hge hlo hhi
-  · cases h
-
-/-! ### Hull of two enclosures -/
-
-theorem hull_encloses {e₁ e₂ R : Encl} {Q : ℕ} {y y₁ y₂ : ℝ} (h₁ : e₁.Encloses y₁)
-    (h₂ : e₂.Encloses y₂) (hlo : y₁ ≤ y) (hhi : y ≤ y₂) (h : hull e₁ e₂ Q = some R) :
-    R.Encloses y := by
-  simp only [hull] at h
-  split at h
-  · rename_i hc
-    simp only [hullOk, Bool.and_eq_true, and_assoc] at hc
-    obtain ⟨hd1, he1, hd2, he2, hcdR, hrdR, hL, hH⟩ := hc
-    cases h
-    exact Real.IsNear.of_interval h₁ h₂ hlo hhi hd1 he1 hd2 he2 hcdR hrdR hL hH
   · cases h
 
 /-! ### Arithmetic recentred onto a grid

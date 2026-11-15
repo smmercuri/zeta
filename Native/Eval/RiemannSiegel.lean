@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Enclosure.Defs
@@ -9,8 +14,8 @@ public import Native.Eval.Fix
 /-!
 # `Native.Eval.RiemannSiegel`: the computable part
 
-The definitions `native_decide` evaluates, free of `Mathlib` so that they compile natively (the
-`NativeEval` library is built with `precompileModules`). Their soundness theorems are in
+The definitions `native_decide` evaluates. They depend on core Lean alone, so they compile natively
+(the `NativeEval` library is built with `precompileModules`). Their soundness theorems are in
 `Native.RiemannSiegel`.
 -/
 @[expose] public section
@@ -111,7 +116,7 @@ def thetaF (tn td W Q : Nat) (c : ThetaConsts) (H lp : Fx) : Option Fx :=
 def invSqrtNat (n Q : Nat) : Option Encl := ((Encl.const false n 1).sqrt Q).bind (·.inv Q)
 
 /-- Per-batch data for the main sum, on the fixed-point grid `1/Q`: `π/2`, and `log n` and
-`(√n)⁻¹` for `n ≤ N`, computed once for the whole batch rather than at every endpoint. -/
+`(√n)⁻¹` for `n ≤ N`, one table per batch. -/
 structure TermTable where
   Q : Nat
   H : Option Fx
@@ -200,7 +205,7 @@ def mainSumF (θ : Fx) (tn td : Nat) (tab : TermTable) (W ν : Nat) : Option Fx 
 def mainSum (θE : Encl) (tn td : Nat) (tab : TermTable) (W ν : Nat) : Option Encl :=
   (Fx.ofEncl tab.Q θE).bind fun θ => (mainSumF θ tn td tab W ν).map (Fx.toEncl tab.Q)
 
-/-- The leaves shared by `Ψ` and its derivatives, at an enclosure `P` of `p`: `2π`, `C = cos 2πp`,
+/-- The leaves common to `Ψ` and its derivatives, at an enclosure `P` of `p`: `2π`, `C = cos 2πp`,
 `S = sin 2πp`, `C⁻¹`, and `cos φ`, `sin φ` for `φ = 2π(p² − p − 1/16)`. -/
 structure CorrLeaves where
   tp : Encl
@@ -329,12 +334,6 @@ def approxParts (tab : TermTable) (tn td W Q ν : Nat) : Option ApproxParts :=
   (corrLeaves tab P Q).bind fun L =>
   some ⟨S₂, sqT, sgnq, P, L⟩
 
-/-- `hardyZApproximantRS₀ t` from its parts (`BSN.hardyZApproximantRS₀_eq`):
-`2·∑ − (−1)^ν·T^{−1/4}·Ψ(p)`. -/
-def approx₀Of (A : ApproxParts) (Q : Nat) : Option Encl :=
-  (correction A.L Q).bind fun ψ =>
-  (Encl.mulR A.sgnq ψ Q).bind fun b => Encl.subR A.S₂ b Q
-
 /-- `hardyZApproximantRS t` from its parts (`BSN.hardyZApproximantRS_eq`):
 `2·∑ − (−1)^ν·T^{−1/4}·(Ψ(p) + C₁(p)·(√T)⁻¹)`. -/
 def approx₁Of (A : ApproxParts) (Q : Nat) : Option Encl :=
@@ -354,10 +353,6 @@ def approxPartsAt (tab : TermTable) (tn td W : Nat) : Option (Nat × ApproxParts
   if endpointPos tn td then
     (cutoff tn td).bind fun ν => (approxParts tab tn td W (dyadic W) ν).map fun A => (ν, A)
   else none
-
-/-- `hardyZApproximantRS₀ t` at `t = tn/td`, to about `ν/W`. -/
-def approx₀ (tab : TermTable) (tn td W : Nat) : Option Encl :=
-  (approxPartsAt tab tn td W).bind fun (_, A) => approx₀Of A (dyadic W)
 
 /-- `hardyZApproximantRS t` at `t = tn/td`, to about `ν/W`. -/
 def approx₁ (tab : TermTable) (tn td W : Nat) : Option Encl :=
@@ -410,9 +405,8 @@ def errBound₁ (tn td W : Nat) : Option Encl := errBound₁With tn td (dyadic W
 
 /-! ### The linear-free approximant in fixed point -/
 
-/-- `Ψ(p) = (cos 2πp)⁻¹·cos 2π(p² − p − 1/16)` at `p` enclosed by `P`; `TP` encloses `2π`. Near
-`p = 1/4` or `3/4` both factors of the product are far from `1` (`(cos 2πp)⁻¹` large, `cos φ` near
-`0`), so it is taken by `Fx.mulExact`. -/
+/-- `Ψ(p) = (cos 2πp)⁻¹·cos 2π(p² − p − 1/16)` at `p` enclosed by `P`; `TP` encloses `2π`. The
+product uses `Fx.mulExact`, since near `p = 1/4` or `3/4` its factors are far from `1`. -/
 def corrF (tab : TermTable) (H TP P : Fx) : Option Fx :=
   (Fx.cosSinT tab.Q H tab.trig (Fx.mul tab.Q TP P)).bind fun CS =>
   (Fx.inv tab.Q CS.1).bind fun iC =>

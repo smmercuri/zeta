@@ -24,7 +24,7 @@ exponent `h` is affine (`hadamard_factorization.tex`).
 open Complex Filter Topology Set Metric
 
 
-/-- **The exponent of the Hadamard factorisation is affine (`lem:hf_h_linear`).** If `ξ = exp(h)·P`
+/-- The exponent of the Hadamard factorisation is affine (`lem:hf_h_linear`). If `ξ = exp(h)·P`
 with `h` entire and `P` the canonical product, there are `A B : ℂ` with `h s = A + B·s` for all
 `s`. -/
 theorem exists_affine_log_riemannXi_div_canonicalProduct {h : ℂ → ℂ}
@@ -37,7 +37,7 @@ theorem exists_affine_log_riemannXi_div_canonicalProduct {h : ℂ → ℂ}
   -- `h` is entire, hence analytic, hence so is `deriv h`.
   have hderivdiff : Differentiable ℂ (deriv h) := fun x ↦
     ((analyticOnNhd_univ_iff_differentiable.mpr hdiff).deriv x (mem_univ x)).differentiableAt
-  -- **Claim A**: `‖h z‖ ≤ C₀·R^{3/2}` for `‖z‖ ≤ R/2`.
+  -- Claim A: `‖h z‖ ≤ C₀·R^{3/2}` for `‖z‖ ≤ R/2`.
   set C₀ : ℝ := 2 * C + 3 * ‖h 0‖ + 2 with hC₀def
   have claimA : ∀ R : ℝ, 2 ≤ R → ∀ z : ℂ, ‖z‖ ≤ R / 2 → ‖h z‖ ≤ C₀ * R ^ (3 / 2 : ℝ) := by
     intro R hR z hz
@@ -74,7 +74,7 @@ theorem exists_affine_log_riemannXi_div_canonicalProduct {h : ℂ → ℂ}
     rw [hC₀def]
     nlinarith [hbc, norm_sub_norm_le (h z) (h 0), norm_nonneg (h 0),
       mul_nonneg (norm_nonneg (h 0)) (sub_nonneg.mpr hRpow1)]
-  -- **Claim B**: `iteratedDeriv 2 h c = 0` for all `c`, by Cauchy's estimate on `sphere c (R/4)`.
+  -- Claim B: `iteratedDeriv 2 h c = 0` for all `c`, by Cauchy's estimate on `sphere c (R/4)`.
   have claimB : ∀ c : ℂ, iteratedDeriv 2 h c = 0 := by
     intro c
     have htend : Tendsto (fun R : ℝ ↦ 32 * C₀ * R ^ (-(1 / 2) : ℝ)) atTop (𝓝 0) := by

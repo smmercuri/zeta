@@ -62,7 +62,7 @@ private theorem holomorphicOn_logDeriv {f : ℂ → ℂ} {U S : Set ℂ} (hf : A
     (hSU : S ⊆ U) (h0 : ∀ x ∈ S, f x ≠ 0) : HolomorphicOn (logDeriv f) S := fun x hx ↦
   (analyticAt_logDeriv (hf x (hSU hx)) (h0 x hx)).differentiableAt.differentiableWithinAt
 
-/-- **Residue of the logarithmic derivative.** For `f` analytic at `z₀` and not eventually zero,
+/-- For `f` analytic at `z₀` and not eventually zero,
 of order `n`, there is an analytic `g` with `g(z₀) ≠ 0` such that
 `logDeriv f z = n / (z - z₀) + logDeriv g z` on a punctured neighbourhood of `z₀`, with
 `logDeriv g` analytic at `z₀`: the logarithmic derivative has a simple pole of residue `n`. -/
@@ -90,10 +90,11 @@ theorem meromorphicOrderAt_eq_residue_logDeriv {f : ℂ → ℂ} {z₀ : ℂ}
       = logDeriv (fun w ↦ (w - z₀) ^ n * g w) z := by simp only [smul_eq_mul, logDeriv_apply]
   have hpow_log := logDeriv_fun_pow (f := fun w : ℂ ↦ w - z₀) (x := z) (by fun_prop) n
   simp only [Pi.div_apply]
-  rw [key, logDeriv_mul z hpow hgz (by fun_prop) hgan.differentiableAt, hpow_log, logDeriv_apply]
+  rw [key, logDeriv_fun_mul z hpow hgz (by fun_prop) hgan.differentiableAt, hpow_log,
+    logDeriv_apply]
   simp [div_eq_mul_inv]
 
-/-- **Zeros in a rectangle are finite.** For `f` analytic on a connected `U` and not identically
+/-- For `f` analytic on a connected `U` and not identically
 zero (witnessed by `z₀ ∈ U` with `f z₀ ≠ 0`), and `Rectangle z w ⊆ U`, the zero set
 `Rectangle z w ∩ {ρ | f ρ = 0}` is finite. -/
 theorem finite_rectangle_inter_setOf_eq_zero {f : ℂ → ℂ} {U : Set ℂ} {z w z₀ : ℂ}
@@ -129,9 +130,9 @@ theorem rectangle_mem_nhds_of_not_mem_rectangleBorder {z w ρ : ℂ}
   · exact fun h ↦ hρ (Or.inl (Or.inl (Or.inl (Complex.mem_reProdIm.mpr ⟨hreIcc, h.symm⟩))))
   · exact fun h ↦ hρ (Or.inl (Or.inr (Complex.mem_reProdIm.mpr ⟨hreIcc, h⟩)))
 
-/-- **Rectangle residue formula for the logarithmic derivative: the single-zero case.** For `f`
-analytic on a set containing the positively oriented `Rectangle z w`, non-vanishing on its
-boundary and with at most one zero inside,
+/-- The single-zero case of the rectangle residue formula for `logDeriv f`. For `f` analytic on
+a set containing the positively oriented `Rectangle z w`, non-vanishing on its boundary and
+with at most one zero inside,
 `RectangleIntegral (logDeriv f) z w = 2πi · ∑_{ρ ∈ Z} (meromorphicOrderAt f ρ).untopD 0`,
 `Z = Rectangle z w ∩ {ρ | f ρ = 0}`. The finiteness witness `hfin`, though implied by `hss`, is a
 hypothesis so that the conclusion is indexed by `hfin.toFinset` as in the general case. -/
@@ -193,8 +194,8 @@ private theorem ofReal_add_mul_I_re (x y : ℝ) : ((x : ℂ) + (y : ℂ) * I).re
 /-- The imaginary part of a rectangle corner `x + y·i`. -/
 private theorem ofReal_add_mul_I_im (x y : ℝ) : ((x : ℂ) + (y : ℂ) * I).im = y := by simp
 
-/-- Every boundary point of either half of a **vertical cut** at `re = a` — the left half
-`Rectangle z (a + w.im·i)` and the right half `Rectangle (a + z.im·i) w` — lies on the cut line
+/-- Every boundary point of either half of a vertical cut at `re = a` (the left half
+`Rectangle z (a + w.im·i)` and the right half `Rectangle (a + z.im·i) w`) lies on the cut line
 `re = a` or on the boundary of the full rectangle. -/
 private theorem rectangleBorder_vcut {z w : ℂ} {a : ℝ} (hza : z.re ≤ a) (haw : a ≤ w.re) :
     RectangleBorder z (↑a + ↑w.im * I) ⊆ {ρ : ℂ | ρ.re = a} ∪ RectangleBorder z w ∧
@@ -209,8 +210,8 @@ private theorem rectangleBorder_vcut {z w : ℂ} {a : ℝ} (hza : z.re ≤ a) (h
       Complex.mem_reProdIm, Set.mem_singleton_iff, Set.mem_ofPred_eq] at hρ ⊢ <;>
     tauto
 
-/-- Every boundary point of either half of a **horizontal cut** at `im = b` — the bottom half
-`Rectangle z (w.re + b·i)` and the top half `Rectangle (z.re + b·i) w` — lies on the cut line
+/-- Every boundary point of either half of a horizontal cut at `im = b` (the bottom half
+`Rectangle z (w.re + b·i)` and the top half `Rectangle (z.re + b·i) w`) lies on the cut line
 `im = b` or on the boundary of the full rectangle. -/
 private theorem rectangleBorder_hcut {z w : ℂ} {b : ℝ} (hzb : z.im ≤ b) (hbw : b ≤ w.im) :
     RectangleBorder z (↑w.re + ↑b * I) ⊆ {ρ : ℂ | ρ.im = b} ∪ RectangleBorder z w ∧
@@ -343,7 +344,7 @@ private theorem rectangleIntegral_logDeriv_eq_two_pi_I_sum_aux {f : ℂ → ℂ}
           ((rectangleBorder_subset_rectangle z w).trans hsub) hbd).continuousOn
             |>.rectangleBorder_integrable
       rcases ne_or_eq ρ₁.re ρ₂.re with hred | hreq
-      · -- VERTICAL CUT at `re = a`
+      · -- vertical cut at `re = a`
         obtain ⟨a, ha1, ha2, haS⟩ :=
           exists_mem_Ioo_not_mem_finset (S := hfin.toFinset.image Complex.re) hred
         have hza : z.re ≤ a := (lt_of_le_of_lt (le_min hz1 hz2) ha1).le
@@ -372,7 +373,7 @@ private theorem rectangleIntegral_logDeriv_eq_two_pi_I_sum_aux {f : ℂ → ℂ}
         exact rectangleIntegral_logDeriv_subdivide (c := Complex.re) hf hU hz₀U hz₀ ih hsub hbd
           hfin hcard hρ₁ hρ₂ ha1 ha2 hane hsubR₁R hsubR₂R hre1 him1 hre2 him2
           (rectangleBorder_vcut hza haw).1 (rectangleBorder_vcut hza haw).2 hmem₁ hmem₂ hsplit
-      · -- HORIZONTAL CUT at `im = b`
+      · -- horizontal cut at `im = b`
         obtain ⟨b, hb1, hb2, hbS⟩ := exists_mem_Ioo_not_mem_finset
           (S := hfin.toFinset.image Complex.im) (fun h ↦ hne (Complex.ext hreq h))
         have hzb : z.im ≤ b := (lt_of_le_of_lt (le_min hzi1 hzi2) hb1).le
@@ -402,7 +403,7 @@ private theorem rectangleIntegral_logDeriv_eq_two_pi_I_sum_aux {f : ℂ → ℂ}
           hfin hcard hρ₁ hρ₂ hb1 hb2 hbne hsubR₁R hsubR₂R hre1 him1 hre2 him2
           (rectangleBorder_hcut hzb hbw).1 (rectangleBorder_hcut hzb hbw).2 hmem₁ hmem₂ hsplit
 
-/-- **Rectangle residue sum for the logarithmic derivative.** For `f` analytic on a connected `U`
+/-- For `f` analytic on a connected `U`
 and not identically zero (witnessed by `z₀ ∈ U` with `f z₀ ≠ 0`), and a positively oriented
 `Rectangle z w ⊆ U` on whose boundary `f` does not vanish, the boundary integral of `logDeriv f`
 counts the zeros inside with multiplicity:
@@ -421,8 +422,8 @@ theorem rectangleIntegral_logDeriv_eq_two_pi_I_sum {f : ℂ → ℂ} {U : Set �
 
 /-! ### From the residue sum to the boundary argument variation -/
 
-/-- **Real part of the logarithmic-derivative integral**: the companion of
-`argVariation_eq_im_integral`, `Re ∫ φ'/φ = log ‖φ b‖ - log ‖φ a‖`. -/
+/-- The real part of the logarithmic-derivative integral, `Re ∫ φ'/φ = log ‖φ b‖ - log ‖φ a‖`
+(the companion of `argVariation_eq_im_integral`). -/
 theorem re_integral_div_eq_log_norm_sub {a b : ℝ} (hab : a ≤ b) {φ φ' : ℝ → ℂ}
     (hφ : ContinuousOn φ (Set.Icc a b)) (h0 : ∀ u ∈ Set.Icc a b, φ u ≠ 0)
     (hderiv : ∀ u ∈ Set.Ioo a b, HasDerivAt φ (φ' u) u)
@@ -437,7 +438,7 @@ theorem re_integral_div_eq_log_norm_sub {a b : ℝ} (hab : a ≤ b) {φ φ' : �
     rw [← hg.2 u hu, Complex.norm_exp, Real.log_exp]
   rw [hftc, Complex.sub_re, hre b (Set.right_mem_Icc.mpr hab), hre a (Set.left_mem_Icc.mpr hab)]
 
-/-- **Side integral.** For `f` analytic and nonvanishing along the affine segment `P → Q`, the
+/-- For `f` analytic and nonvanishing along the affine segment `P → Q`, the
 argument variation of `f` along it is the imaginary part of the edge integral
 `∫₀¹ logDeriv f (lineSeg P Q u) · (Q - P) du`, whose real part is `log ‖f Q‖ - log ‖f P‖`. -/
 theorem argVariation_lineSeg_eq_im_integral {f : ℂ → ℂ} {P Q : ℂ}
@@ -469,7 +470,7 @@ theorem argVariation_lineSeg_eq_im_integral {f : ℂ → ℂ} {P Q : ℂ}
   rw [heqint] at h
   rw [h, lineSeg_one, lineSeg_zero]
 
-/-- The counterclockwise **boundary argument variation** `Δ_{∂R} arg f` of `f` around the
+/-- The counterclockwise boundary argument variation `Δ_{∂R} arg f` of `f` around the
 rectangle with opposite corners `z, w`: the sum of the argument variations over the four oriented
 edges (bottom, right, top, left), each parametrised over `[0, 1]` by `lineSeg`. -/
 noncomputable def rectangleArgVariation (f : ℂ → ℂ) (z w : ℂ) : ℝ :=
@@ -538,7 +539,7 @@ private theorem lineSeg_mem_vertical {a c d : ℝ} {u : ℝ} (hu : u ∈ Set.Icc
   rw [Complex.mem_reProdIm, lineSeg_re, lineSeg_im]
   exact ⟨by simp, by simpa using add_mul_sub_mem_uIcc (a := c) (b := d) hu⟩
 
-/-- **The contour integral is `I` times the boundary argument variation.** For `f` analytic on a
+/-- For `f` analytic on a
 neighbourhood of `Rectangle z w` and nonvanishing on its border,
 `RectangleIntegral (logDeriv f) z w = I · Δ_{∂R} arg f`. -/
 theorem rectangleIntegral_logDeriv_eq_I_mul_rectangleArgVariation {f : ℂ → ℂ} {U : Set ℂ}
@@ -588,10 +589,10 @@ theorem rectangleIntegral_logDeriv_eq_I_mul_rectangleArgVariation {f : ℂ → �
     simp only [Complex.add_im]
   exact hsum.trans (Complex.ext (by rw [hre]; simp) (by rw [him]; simp))
 
-/-- **The argument principle on a rectangle.** For `f` analytic on a connected `U`, not
+/-- The argument principle on a rectangle. For `f` analytic on a connected `U`, not
 identically zero (witnessed by `z₀ ∈ U` with `f z₀ ≠ 0`), and a positively oriented
-`Rectangle z w ⊆ U` on whose boundary `f` does not vanish, the number of zeros inside — counted
-with multiplicity — is `(1/2π) · Δ_{∂R} arg f`. -/
+`Rectangle z w ⊆ U` on whose boundary `f` does not vanish, the number of zeros inside, counted
+with multiplicity, is `(1/2π) · Δ_{∂R} arg f`. -/
 theorem rectangle_zero_count_eq_argVariation {f : ℂ → ℂ} {U : Set ℂ} {z w z₀ : ℂ}
     (hf : AnalyticOnNhd ℂ f U) (hU : IsConnected U) (hz₀U : z₀ ∈ U) (hz₀ : f z₀ ≠ 0)
     (hsub : Rectangle z w ⊆ U) (hzw_re : z.re ≤ w.re) (hzw_im : z.im ≤ w.im)
@@ -614,8 +615,8 @@ theorem rectangle_zero_count_eq_argVariation {f : ℂ → ℂ} {U : Set ℂ} {z 
   rw [one_div, inv_mul_eq_div, eq_div_iff (by positivity : (2 * Real.pi) ≠ 0)]
   linear_combination h5
 
-/-- **The boundary argument variation of a non-vanishing analytic function vanishes.** For `f`
-analytic and nowhere zero on a neighbourhood `U` of `Rectangle z w`, `Δ_{∂R} arg f = 0`. -/
+/-- For `f` analytic and nowhere zero on a neighbourhood `U` of `Rectangle z w`,
+`Δ_{∂R} arg f = 0`. -/
 theorem rectangleArgVariation_eq_zero_of_analyticOnNhd {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
     (hf : AnalyticOnNhd ℂ f U) (hne : ∀ x ∈ U, f x ≠ 0) (hsub : Rectangle z w ⊆ U) :
     rectangleArgVariation f z w = 0 := by

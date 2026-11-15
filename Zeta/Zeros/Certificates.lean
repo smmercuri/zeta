@@ -18,7 +18,7 @@ are read off the final statement.
 module
 
 public import Zeta.Zeros.Certificates.Fold
-public import Zeta.Zeros.Certificates.Groups.Level1.Group0001
+import Zeta.Zeros.Certificates.Groups.Level1.Group0001
 
 @[expose] public section
 

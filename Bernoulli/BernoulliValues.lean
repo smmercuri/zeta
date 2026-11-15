@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Bernoulli.FoldExperiment
@@ -11,13 +16,10 @@ fraction built from a tangent number:
 `num_eq_of_eq_intDiv` turns this into the reduced numerator once a candidate `p / q` is supplied and
 validated by the integer identities `p·B = q·A` and `gcd = 1`.
 
-This module emits the shared data the downstream development reads by reference: the tangent numbers
-`T₀..T₉₉` (`tangentNumberLit_k`) and the reduced numerators `num(B₂)..num(B₁₉₈)` (`bernNumLit_m`),
-each a standalone environment lemma generated in `MetaM`, every side condition a `reflBoolTrue`.
-The reduced numerators feed the regular-prime sweeps in `Bernoulli.Kummer`.
-
-The full rational values `bernoulli n = p / q` and the `derive_bernoulli` generator live in
-`Bernoulli.BernoulliExact`.  No `native_decide`.
+This module emits, as environment lemmas generated in `MetaM` (every side condition a
+`reflBoolTrue`), the tangent numbers `T₁..T₉₉` (`tangentNumberLit_k`) and the reduced numerators
+`num(B₂)..num(B₁₉₈)` (`bernNumLit_m`, with absolute values `bernNumAbs_m` for `Bernoulli.Kummer`).
+The full rational values live in `Bernoulli.BernoulliExact`. No `native_decide`.
 -/
 @[expose] public section
 
@@ -67,6 +69,21 @@ theorem bernoulli_eq_tangent_intDiv (m : ℕ) :
 theorem intDenom_ne_zero (m : ℕ) : (2 ^ (2 * m + 2) * (2 ^ (2 * m + 2) - 1) : ℤ) ≠ 0 :=
   mul_ne_zero (by positivity) (sub_ne_zero.mpr (one_lt_pow₀ (by norm_num) (by omega)).ne')
 
+/-- `B_{2m+2} = (-1)^m · p/q` from the tangent number `T_{m+1}` and the cross-multiplication
+`p · 2^{2m+2}(2^{2m+2}-1) = q · (2m+2) T_{m+1}` in `ℕ`. -/
+theorem bernoulli_eq_neg_one_pow_mul_div (m Tn p q : ℕ) (hT : tangentNumber (m + 1) = Tn)
+    (hq : 0 < q)
+    (hcross : p * (2 ^ (2 * m + 2) * (2 ^ (2 * m + 2) - 1)) = q * ((2 * m + 2) * Tn)) :
+    bernoulli (2 * m + 2) = (-1) ^ m * ((p : ℚ) / q) := by
+  have h1 : (1 : ℕ) ≤ 2 ^ (2 * m + 2) := Nat.one_le_two_pow
+  have hcQ : ((p * (2 ^ (2 * m + 2) * (2 ^ (2 * m + 2) - 1)) : ℕ) : ℚ)
+      = ((q * ((2 * m + 2) * Tn) : ℕ) : ℚ) := by exact_mod_cast hcross
+  push_cast [Nat.cast_sub h1] at hcQ
+  rw [bernoulli_eq_tangent_intDiv m, hT, mul_div_assoc', div_eq_div_iff
+    (by exact_mod_cast intDenom_ne_zero m) (by exact_mod_cast hq.ne')]
+  push_cast [Nat.cast_sub h1]
+  linear_combination -(-1) ^ m * hcQ
+
 /-! ## Per-`m` certificate: the reduced numerator from a tangent number
 
 `bernoulli_num_of` gives the reduced numerator of `B_{2m+2}` from its tangent number `Tₙ` and a
@@ -88,9 +105,8 @@ theorem bernoulli_num_of (m : ℕ) (Tn : ℕ) (p q : ℤ)
   rw [bernoulli_eq_tangent_intDiv m, hTn]
   exact num_eq_of_eq_intDiv (intDenom_ne_zero m) hq' hcop' hcross'
 
-/-- `|num(B_{2m+2})| = n` from the reduced numerator `p` and `|p| = n` (checked once, as a
-`Nat.beq`). The regular-prime sweep tests divisibility on this `Nat` literal, so `natAbs` is reduced
-once per `m` here rather than per prime. -/
+/-- `|num(B_{2m+2})| = n` from the reduced numerator `p` and `|p| = n` (checked as a `Nat.beq`, so
+the regular-prime sweep reduces `natAbs` once per `m`, not per prime). -/
 theorem numAbs_of (m n : ℕ) (p : ℤ) (hnum : (bernoulli (2 * m + 2)).num = p)
     (hn : p.natAbs.beq n = true) : (bernoulli (2 * m + 2)).num.natAbs = n := by
   rw [hnum]; exact Nat.eq_of_beq_eq_true hn
@@ -98,11 +114,10 @@ theorem numAbs_of (m n : ℕ) (p : ℤ) (hnum : (bernoulli (2 * m + 2)).num = p)
 /-! ## The shared numerator lemmas
 
 `fold_emit_tangent_numbers` (from `Bernoulli.FoldExperiment`) puts
-`tangentNumberLit_k : tangentNumber k = Tₖ` in the environment.  `emit_bernoulli_numerators N` then
-emits, for `m = 0, …, N-1`, the reduced numerator `bernNumLit_m : (bernoulli (2m+2)).num = pₘ` —
-each read straight off `tangentNumberLit_{m+1}` (its value taken from the lemma's statement) plus
-one `bernoulli_num_of` with the validating identities as `reflBoolTrue`s.  The `bernNumLit_m` are
-what `Bernoulli.Kummer` reads.  No `native_decide`. -/
+`tangentNumberLit_k : tangentNumber k = Tₖ` in the environment. `emit_bernoulli_numerators N` then
+emits, for `m = 0, …, N-1`, `bernNumLit_m : (bernoulli (2m+2)).num = pₘ` (one `bernoulli_num_of`
+on `tangentNumberLit_{m+1}`) and `bernNumAbs_m : (bernoulli (2m+2)).num.natAbs = |pₘ|`, which
+`Bernoulli.Kummer` reads. -/
 open Lean Lean.Meta Lean.Elab Lean.Elab.Command in
 elab "emit_bernoulli_numerators " nStx:num : command => liftTermElabM do
   let N := nStx.getNat
@@ -125,7 +140,7 @@ elab "emit_bernoulli_numerators " nStx:num : command => liftTermElabM do
       (mkApp (.const ``Rat.num []) (mkApp (.const ``bernoulli []) (mkRawNatLit (2 * m + 2)))) pE
     let litNm := `TangentNumbers ++ Name.mkSimple s!"bernNumLit_{m}"
     addDecl (.thmDecl { name := litNm, levelParams := [], type := stmt, value := pf })
-    -- `bernNumAbs_m : num.natAbs = n` — the `Nat` literal the sweep reads (natAbs done once here)
+    -- `bernNumAbs_m : num.natAbs = n`, the `Nat` literal the sweep reads
     let n := (A / g).natAbs
     let absStmt := mkApp3 (.const ``Eq [Level.one]) (.const ``Nat [])
       (mkApp (.const ``Int.natAbs [])

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Functions.Log
@@ -19,19 +24,19 @@ certificate builders (`mkLogPos`, `mkLogFracPos`).
 namespace BSN
 open Enclosure
 
-/-- Artanh term count for `log((v+u)/(v−u))` at `1/D` (mirrors the private `logTermCount`). -/
+/-- The least `N` (from the seed) with `4·L ≤ vk`, carrying `L` and `vk` as running powers:
+recomputing `u^(2N+1)` per step would make the search quadratic in `N`. -/
 private meta partial def logTermCountAux (u v N L vk : ℕ) : ℕ :=
   if 4 * L ≤ vk then N
   else logTermCountAux u v (N + 1) (L * u ^ 2) (vk * v ^ 2)
 
-/-- Least `N` with `4·u^(2N+1)·2D ≤ v^(2N+1)`. The powers are threaded incrementally (like
-`expTermCount`), not recomputed per step; a from-scratch `u^(2N+1)` each iteration would make
-the search quadratic in `N`. -/
+/-- Least `N` with `4·u^(2N+1)·2D ≤ v^(2N+1)`: the artanh term count for `log((v+u)/(v−u))` at
+precision `1/D`. -/
 private meta def logTermCount (u v D : ℕ) : ℕ := logTermCountAux u v 0 (u * (2 * D)) v
 
 open Lean Elab Term Meta in
-/-- Core for `log((v+u)/(v−u))` at `1/D`: pick `Q = 2^k` and `N`, run the binary split over
-`[0, N-1)`, and floor-round `2·u·(Qd+T)/(v·Qd)` to the dyadic numerator. -/
+/-- `(p, Q, N, (T, Qd, P))` for `log((v+u)/(v−u))` at precision `1/D`: the binary-split values
+over `[0, N-1)` and the dyadic numerator `p = ⌊2u(Qd+T)·Q/(v·Qd)⌋` over `Q = dyadicDenom D`. -/
 meta def logCore (u v D : ℕ) : MetaM (ℕ × ℕ × ℕ × (ℕ × ℕ × ℕ)) := do
   let Q := dyadicDenom D
   let N := logTermCount u v D
@@ -40,9 +45,8 @@ meta def logCore (u v D : ℕ) : MetaM (ℕ × ℕ × ℕ × (ℕ × ℕ × ℕ)
   return (2 * (u * (Qd + T)) * Q / (v * Qd), Q, N, (T, Qd, P))
 
 open Lean Elab Term Meta in
-/-- Build the positive inner enclosure `Real.IsNear (log (↑S/↑Dd)) false p Q 1 D` (with
-`S = v+u`, `Dd = v−u` passed as literals) and return `(proof, p, Q)`: run `binarySplit` over
-`[0, N−1)` on the artanh series, then assign `log_dyadic_bound`. -/
+/-- `(proof, p, Q)` with `proof : Real.IsNear (log (↑S/↑Dd)) false p Q 1 D` for the literals
+`S = v+u`, `Dd = v−u`. -/
 meta def mkLogPos (u v D : ℕ) : MetaM (Expr × ℕ × ℕ) := do
   let Q := dyadicDenom D
   -- `max 1` keeps `N ≥ 1` (needed for `log_dyadic_bound`'s `hN`); only affects the `u = 0` case
@@ -64,11 +68,8 @@ meta def mkLogPos (u v D : ℕ) : MetaM (Expr × ℕ × ℕ) := do
   return (app, p, Q)
 
 open Lean Elab Term Meta in
-/-- Build the enclosure `Real.IsNear (log (↑a/↑b)) false p Q 1 D` for a rational `a/b ≥ 1`
-(`a ≥ b ≥ 1`) in the artanh convergence range, and return `(proof, p, Q)`. The artanh split
-runs on the gcd-reduced pair `u = (a−b)/g`, `v = (a+b)/g` (so canonical inputs stay small),
-and the raw `log((v+u)/(v−u))` certificate is recast to `log(a/b)` by the weighted
-`logfrac_isNear`. -/
+/-- `(proof, p, Q)` with `proof : Real.IsNear (log (↑a/↑b)) false p Q 1 D`, for `a ≥ b ≥ 1` in
+the artanh convergence range (an error otherwise). -/
 meta def mkLogFracPos (a b D : ℕ) : MetaM (Expr × ℕ × ℕ) := do
   let g := Nat.gcd (a - b) (a + b)
   let u := (a - b) / g

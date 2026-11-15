@@ -14,20 +14,18 @@ public import Zeta.RiemannSiegel.InnerSharp
 Companion to `Zeta/RiemannSiegel/InnerSharp.lean`: the region `|w| > W` of the contour, at the
 sharp splitting radius `W = Zeta.RiemannSiegel.sharpSplitRadius t = (√T - 1)/(2√2)`
 (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`). As in the crude estimate
-`Zeta.RiemannSiegel.norm_integral_outer_le` the saddle discrepancy `Δ` is no longer small there, so
-`e^Δ` and `1` are bounded separately; but the crude concessions are no longer affordable, because at
-the sharp radius `|w| = W` is `O(1)` rather than a growing power of `T`.
+`Zeta.RiemannSiegel.norm_integral_outer_le`, `e^Δ` and `1` are bounded separately there. At the
+sharp radius `|w| = W` is `O(1)`, so two of the crude bounds are replaced by sharp ones.
 
-Two of them have to be recovered exactly, and both cost a sharp input. The kernel's denominator is
-bounded below by `(99/200) e^{π|w|}` (`Zeta.RiemannSiegel.mul_exp_le_norm_sin_pi_mul_line`) instead
-of by the constant `√2/2`, which is what `Zeta.RiemannSiegel.norm_contourIntegrand_le'` records. And
-the phase is kept, rather than dominated by the half-exponent Gaussian `e^{-πw²}`: by
+The kernel's denominator is bounded below by `(99/200) e^{π|w|}`
+(`Zeta.RiemannSiegel.mul_exp_le_norm_sin_pi_mul_line`), as recorded in
+`Zeta.RiemannSiegel.norm_contourIntegrand_le'`. The phase enters the bound: by
 `Zeta.RiemannSiegel.phase_le'` the true tail decays like `e^{-23w²/4}` on the near side
-`w ≥ -a/2` of the contour, and only on the far side `w ≤ -a/2` — where the contour is already at
-distance `a/2 ≥ 7/4` from the origin — is the weaker `e^{-πw²}` of
-`Zeta.RiemannSiegel.phase_le_of_le_neg_half` used.
+`w ≥ -a/2` of the contour. On the far side `w ≤ -a/2`, where the contour is at distance
+`a/2 ≥ 7/4` from the origin, the weaker `e^{-πw²}` of `Zeta.RiemannSiegel.phase_le_of_le_neg_half`
+is used.
 
-The uniformity in `T` is again run in the radius rather than in `T`, through the antitonicity of
+The uniformity in `T` is run in the radius, through the antitonicity of
 `x ↦ x e^{-bx²}` past `bx² ≥ 1`: each of the three Gaussian tails reduces to a rational inequality
 at the threshold `T = 16`, where `W = 1.06066…` and `A = W - 1/4 = 0.81066…`.
 
@@ -49,7 +47,7 @@ namespace Zeta.RiemannSiegel
 /-- An explicit lower bound for `√2`. -/
 private theorem le_sqrt_two : (1.41421 : ℝ) ≤ Real.sqrt 2 := Real.le_sqrt_of_sq_le (by norm_num)
 
-/-- **The sharp phase estimate against the kernel's exponential decay**, on the near side
+/-- The sharp phase estimate against the kernel's exponential decay, on the near side
 `w ≥ -a/2` of the contour and outside the splitting radius (`riemann_siegel_first.tex`,
 `eq:rsf_outer_sharp_pointwise`, first line). -/
 private theorem phase_sub_pi_mul_abs_le {t a W w : ℝ} (ht : 0 ≤ t) (ha : 7 / 2 ≤ a)
@@ -96,7 +94,7 @@ private theorem phase_sub_pi_mul_abs_le {t a W w : ℝ} (ht : 0 ≤ t) (ha : 7 /
   rw [hkey] at hph
   nlinarith [mul_nonneg hr0.le hbracket]
 
-/-- **The pointwise majorant for the true integrand outside the unit interval**: the model
+/-- The pointwise majorant for the true integrand outside the unit interval: the model
 integrand against `e^Δ`, which is the Riemann–Siegel integrand along `L(ν + ½)` renormalised by the
 saddle factor (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`, the true tail). -/
 private theorem sqrt_two_mul_norm_modelIntegrand_mul_exp_saddleDiscrepancy_le {t : ℝ} (ht : 0 < t)
@@ -145,7 +143,7 @@ private theorem sqrt_two_mul_norm_modelIntegrand_mul_exp_saddleDiscrepancy_le {t
         mul_le_mul_of_nonneg_right hconst (Real.exp_nonneg _)
     _ = 19 / 10 * Real.exp (phase t a w - π * |w|) * (t / (2 * π)) ^ (-(1 / 4) : ℝ) := by ring
 
-/-- **The pointwise majorant for the model integrand**, its Gaussian numerator centred at
+/-- The pointwise majorant for the model integrand, its Gaussian numerator centred at
 `-(½ - p)/2` (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`, the model tail). -/
 private theorem sqrt_two_mul_norm_modelIntegrand_le {p : ℝ} (hκ : |1 / 2 - p| ≤ 1 / 2) (w : ℝ) :
     Real.sqrt 2 * ‖modelIntegrand (p : ℂ) (1 / 2) w‖
@@ -159,7 +157,7 @@ private theorem sqrt_two_mul_norm_modelIntegrand_le {p : ℝ} (hκ : |1 / 2 - p|
     _ ≤ 11 / 5 * Real.exp (-(4 * π) * (w + (1 / 2 - p) / 2) ^ 2) :=
         mul_le_mul_of_nonneg_right Real.exp_pi_div_four_le (Real.exp_nonneg _)
 
-/-- **A Gaussian tail against an inverse square**: `c₁e^{-bA²}/(bA) ≤ c₂/S²`, from the threshold
+/-- A Gaussian tail against an inverse square: `c₁e^{-bA²}/(bA) ≤ c₂/S²`, from the threshold
 bound `Ae^{-bA²} ≤ m` and the comparison `S² ≤ kA²`. -/
 private theorem mul_exp_div_le_div_sq {b A S k m c₁ c₂ : ℝ} (hA0 : 0 < A) (hS0 : 0 < S)
     (hc₁ : 0 ≤ c₁) (hk : 0 ≤ k) (hb : 0 < b) (hSsq : S ^ 2 ≤ k * A ^ 2)
@@ -171,7 +169,7 @@ private theorem mul_exp_div_le_div_sq {b A S k m c₁ c₂ : ℝ} (hA0 : 0 < A) 
     mul_le_mul_of_nonneg_left hkey (mul_nonneg (mul_nonneg hc₁ hk) hA0.le),
     mul_le_mul_of_nonneg_right hnum hA0.le]
 
-/-- **The near-side Gaussian tail is at most `T^{-1}/25`** (`riemann_siegel_first.tex`,
+/-- The near-side Gaussian tail is at most `T^{-1}/25` (`riemann_siegel_first.tex`,
 `lem:rsf_outer_sharp`, the first of the three numerical steps). -/
 private theorem outer_true_constant_le {S W : ℝ} (hW : 106 / 100 ≤ W)
     (hSW : S = 2 * Real.sqrt 2 * W + 1) :
@@ -193,7 +191,7 @@ private theorem outer_true_constant_le {S W : ℝ} (hW : 106 / 100 ≤ W)
   exact mul_exp_div_le_div_sq hW0 hS0 (by norm_num) (by norm_num) (by norm_num) hSsq hkey
     (by norm_num)
 
-/-- **The far-side Gaussian tail is at most `T^{-1}/200`** (`riemann_siegel_first.tex`,
+/-- The far-side Gaussian tail is at most `T^{-1}/200` (`riemann_siegel_first.tex`,
 `lem:rsf_outer_sharp`, the second of the three numerical steps). -/
 private theorem outer_far_constant_le {S a : ℝ} (ha : 7 / 2 ≤ a) (hS0 : 0 < S)
     (hSa : S ≤ a + 1 / 2) :
@@ -211,7 +209,7 @@ private theorem outer_far_constant_le {S a : ℝ} (ha : 7 / 2 ≤ a) (hS0 : 0 < 
   exact mul_exp_div_le_div_sq (by linarith) hS0 (by norm_num) (by norm_num) Real.pi_pos hSsq hkey
     (by linarith)
 
-/-- **The model Gaussian tail is at most `T^{-1}/200`** (`riemann_siegel_first.tex`,
+/-- The model Gaussian tail is at most `T^{-1}/200` (`riemann_siegel_first.tex`,
 `lem:rsf_outer_sharp`, the third of the three numerical steps). -/
 private theorem outer_model_constant_le {S A : ℝ} (hA : 81 / 100 ≤ A) (hS0 : 0 < S)
     (hSA : S ≤ 5 * A) :
@@ -229,7 +227,7 @@ private theorem outer_model_constant_le {S A : ℝ} (hA : 81 / 100 ≤ A) (hS0 :
   exact mul_exp_div_le_div_sq hA0 hS0 (by norm_num) (by norm_num) (by positivity) hSsq hkey
     (by linarith)
 
-/-- **The true tail of the outer region on the near side of the contour** `w ≥ -a/2`. -/
+/-- The true tail of the outer region on the near side of the contour `w ≥ -a/2`. -/
 private theorem integral_true_near_le {t p a W S : ℝ} (ht : 0 ≤ t)
     (hGint : Integrable fun w : ℝ ↦ modelIntegrand (p : ℂ) (1 / 2) w
       * exp (saddleDiscrepancy t (line a w)))
@@ -256,7 +254,7 @@ private theorem integral_true_near_le {t p a W S : ℝ} (ht : 0 ≤ t)
       (by norm_num : (0 : ℝ) < 23 / 4) (by linarith : (0 : ℝ) < W))
       (by norm_num)).trans (outer_true_constant_le hW hSW)
 
-/-- **The true tail of the outer region on the far side of the contour** `w ≤ -a/2`. -/
+/-- The true tail of the outer region on the far side of the contour `w ≤ -a/2`. -/
 private theorem integral_true_far_le {t p a W S : ℝ}
     (hGint : Integrable fun w : ℝ ↦ modelIntegrand (p : ℂ) (1 / 2) w
       * exp (saddleDiscrepancy t (line a w)))
@@ -288,7 +286,7 @@ private theorem integral_true_far_le {t p a W S : ℝ}
     exact (mul_le_mul_of_nonneg_left (integral_compl_Icc_exp_neg_mul_sq_le Real.pi_pos
       (by linarith : (0 : ℝ) < a / 2)) (by norm_num)).trans (outer_far_constant_le ha hS0 haS)
 
-/-- **The tail of the model integrand alone** over the outer region `|w| > W`. -/
+/-- The tail of the model integrand alone over the outer region `|w| > W`. -/
 private theorem integral_model_le {p W S : ℝ} (hHint : Integrable (modelIntegrand (p : ℂ) (1 / 2)))
     (hHpt : ∀ w : ℝ, Real.sqrt 2 * ‖modelIntegrand (p : ℂ) (1 / 2) w‖
       ≤ 11 / 5 * Real.exp (-(4 * π) * (w + (1 / 2 - p) / 2) ^ 2))
@@ -311,7 +309,7 @@ private theorem integral_model_le {p W S : ℝ} (hHint : Integrable (modelIntegr
     (by positivity : (0 : ℝ) < 4 * π) (by linarith : (0 : ℝ) < W - 1 / 4) (by linarith) hbA)
     (by norm_num)).trans (outer_model_constant_le hA hS0 hSA)
 
-/-- **The sharp outer saddle-point estimate** (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`):
+/-- The sharp outer saddle-point estimate (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`):
 the contribution to the model integral of the region `|w| > W = (√T - 1)/(2√2)` is at most
 `T^{-1}/20`. -/
 theorem norm_integral_outer_le' {t : ℝ} (ht : 16 ≤ t / (2 * π)) {ν : ℕ}

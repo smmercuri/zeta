@@ -7,7 +7,8 @@ module
 
 public import Zeta.Hadamard.XiOrder
 public import Mathlib.Analysis.Complex.ValueDistribution.LogCounting.Basic
-public import Mathlib.Analysis.SpecialFunctions.Integrability.LogMeromorphic
+public import Mathlib.Analysis.SpecialFunctions.Integrability.Log
+public import Mathlib.Analysis.SpecialFunctions.Integrability.PosLog
 public import Mathlib.Analysis.SpecificLimits.Normed
 public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 
@@ -39,7 +40,7 @@ open scoped ENNReal NNReal
 private theorem meromorphic_riemannXi : Meromorphic riemannXi :=
   fun z ↦ (analyticOnNhd_riemannXi z (mem_univ z)).meromorphicAt
 
-/-- **Jensen bound on the integrated counting function (`lem:zs_jensen`).** There is a constant
+/-- Jensen bound on the integrated counting function (`lem:zs_jensen`). There is a constant
 `C_N > 0` such that for all `R ≥ 2`, `N(R) = logCounting D R ≤ C_N R log R`. -/
 theorem logCounting_riemannXi_le :
     ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 2 ≤ R →
@@ -96,7 +97,7 @@ theorem divisor_riemannXi_apply_zero : MeromorphicOn.divisor riemannXi (⊤ : Se
     analyticOrderAt_eq_zero.mpr (Or.inr (by rw [riemannXi_zero]; norm_num))]
   rfl
 
-/-- **Zero-counting function (`def:zs_count`).** The number of zeros of `ξ` in `|z| ≤ R`, counted
+/-- Zero-counting function (`def:zs_count`): the number of zeros of `ξ` in `|z| ≤ R`, counted
 with multiplicity, as the finsum of the restricted divisor. -/
 noncomputable def riemannXiZeroCount (R : ℝ) : ℝ :=
   ∑ᶠ z, ((MeromorphicOn.divisor riemannXi (Metric.closedBall 0 R) z : ℤ) : ℝ)
@@ -108,7 +109,7 @@ theorem divisor_riemannXi_closedBall_eq (R : ℝ) {z : ℂ} (hz : z ∈ closedBa
   change _ = MeromorphicOn.divisor riemannXi univ z
   rw [MeromorphicOn.divisor_apply (fun w _ ↦ meromorphic_riemannXi w) (mem_univ z)]
 
-/-- **Bridge to the `ℝ≥0∞` counting tsum.** The `ℝ≥0∞`-valued sum of the multiplicities over the
+/-- The `ℝ≥0∞`-valued sum of the multiplicities over the
 closed ball equals `ENNReal.ofReal (n(R))`. -/
 theorem tsum_toNat_divisor_closedBall (R : ℝ) :
     ∑' z : closedBall (0 : ℂ) R, ((MeromorphicOn.divisor riemannXi ⊤ (z : ℂ)).toNat : ℝ≥0∞)
@@ -131,7 +132,7 @@ theorem tsum_toNat_divisor_closedBall (R : ℝ) :
       Function.locallyFinsuppWithin.apply_eq_zero_of_notMem _ hw]
     simp
 
-/-- **Pointwise counting bound (`lem:zs_count_bound`).** There is a constant `C_n > 0` with
+/-- Pointwise counting bound (`lem:zs_count_bound`). There is a constant `C_n > 0` with
 `n(R) ≤ C_n R log R` for all `R ≥ 2`. -/
 theorem riemannXiZeroCount_le :
     ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 2 ≤ R → riemannXiZeroCount R ≤ C * (R * Real.log R) := by
@@ -166,7 +167,7 @@ theorem riemannXiZeroCount_le :
         simp only [Function.locallyFinsuppWithin.logCounting, AddMonoidHom.coe_mk, ZeroHom.coe_mk]]
     rw [divisor_riemannXi_apply_zero, Int.cast_zero, zero_mul, add_zero, riemannXiZeroCount,
       mul_finsum]
-    refine finsum_le_finsum' ?_ ?_ ?_
+    refine finsum_le_finsum ?_ ?_ ?_
     · refine ((MeromorphicOn.divisor riemannXi (closedBall 0 R)).finiteSupport
         (isCompact_closedBall 0 R)).subset (fun z hz ↦ ?_)
       simp only [Function.mem_support, ne_eq, mul_eq_zero, not_or, Int.cast_eq_zero] at hz
@@ -218,7 +219,7 @@ private theorem exists_dyadic_shell {x : ℝ} (hx : 1 < x) :
     by rw [← zpow_natCast (2 : ℝ) (n.toNat + 1), Nat.cast_add, Nat.cast_one,
         Int.toNat_of_nonneg hn0]; exact hn2⟩
 
-/-- **Divisor-weighted summability (`lem:zs_summable_divisor`).** For every real `p > 1` the family
+/-- Divisor-weighted summability (`lem:zs_summable_divisor`). For every real `p > 1` the family
 `z ↦ (D z) ‖z‖^{-p}` is summable. -/
 theorem summable_riemannXiDivisor_norm_rpow {p : ℝ} (hp : 1 < p) :
     Summable (fun z : ℂ ↦ ((MeromorphicOn.divisor riemannXi ⊤ z : ℤ) : ℝ) * ‖z‖ ^ (-p)) := by
@@ -314,14 +315,15 @@ theorem summable_riemannXiDivisor_norm_rpow {p : ℝ} (hp : 1 < p) :
         exact (ENNReal.tsum_iUnion_le_tsum (fun w ↦ ENNReal.ofReal (g w)) A).trans
           (ENNReal.tsum_le_tsum hshell)
 
-/-- **Summability of the zeros of `ξ` (`thm:zs_main` = `lem:lb_pf_summable`).** For every `ε > 0`
+/-- Summability of the zeros of `ξ` (`thm:zs_main` = `lem:lb_pf_summable`). For every `ε > 0`
 the family `z ↦ (D z) ‖z‖^{-(1+ε)}` is summable; in particular `∑_ρ |ρ|^{-2} < ∞`. -/
 theorem summable_one_div_riemannZeta_zero_rpow {ε : ℝ} (hε : 0 < ε) :
     Summable (fun z : ℂ ↦ ((MeromorphicOn.divisor riemannXi ⊤ z : ℤ) : ℝ) * ‖z‖ ^ (-(1 + ε))) :=
   summable_riemannXiDivisor_norm_rpow (by linarith)
 
-/-- **Downstream product hypothesis (`lem:zs_product`).** For the multiplicity enumeration
-`ι := (z : supp D) × Fin (D z).toNat`, `ρ(z,j) := z`, the family `i ↦ ‖ρ(i)⁻¹‖²` is summable. -/
+/-- The summability hypothesis of the canonical product (`lem:zs_product`). For the multiplicity
+enumeration `ι := (z : supp D) × Fin (D z).toNat`, `ρ(z,j) := z`, the family `i ↦ ‖ρ(i)⁻¹‖²`
+is summable. -/
 theorem summable_inv_norm_sq_riemannXiZeros :
     Summable (fun i : (z : (MeromorphicOn.divisor riemannXi ⊤).support) ×
         Fin (MeromorphicOn.divisor riemannXi ⊤ (z : ℂ)).toNat ↦ ‖((i.1 : ℂ))⁻¹‖ ^ 2) := by

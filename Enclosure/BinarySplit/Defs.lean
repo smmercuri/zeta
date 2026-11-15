@@ -1,10 +1,15 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 /-!
 # Binary-splitting definitions that need no `Mathlib`
 
-`binarySplit` and the series coefficients the `*_dyadic_bound` lemmas are stated with, kept free of
-`Mathlib` so that compiled checkers (the `NativeCode` library) can use exactly the same functions
+`binarySplit` and the series coefficients the `*_dyadic_bound` lemmas are stated with. This file
+imports no `Mathlib`, so compiled checkers (the `NativeCode` library) use exactly the same functions
 the lemmas mention. Their specs live with the lemmas (`Enclosure.BinarySplit.Basic`,
 `Enclosure.BinarySplit.Functions.*`).
 -/

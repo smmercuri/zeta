@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Batch
@@ -10,20 +15,18 @@ public meta import Native.Eval.Store
 # `build_batch_rs +native`: a Riemann–Siegel batch checked by compiled evaluation
 
 `build_batch_rs +native lo hi` closes the same `BatchSpec` goal as `build_batch_rs lo hi`, from the
-same store rows `[lo, hi)` read and parsed by the same `parseRowsRS`, but by
-`batchSpec_of_tiling … (by native_decide)` instead of a kernel-checked certificate: the brackets
-run between consecutive boundaries (every left endpoint, then the last right one), and
-`Native.checkTiling` re-certifies each of them. The resulting theorem trusts the Lean compiler.
+same store rows `[lo, hi)` parsed by the same `parseRowsRS`, but by
+`batchSpec_of_tiling … (by native_decide)` on `Native.checkTiling` instead of a kernel-checked
+certificate. The resulting theorem trusts the Lean compiler.
 
-It lives on the `Native` side, so the kernel proof's import closure never contains the native
-checker.
+It lives on the `Native` side, outside the kernel proof's import closure.
 -/
 @[expose] public section
 
 open Lean Elab Tactic Meta
 
 -- this tactic is where the `Native` trust level uses `native_decide`, by design
-set_option linter.style.nativeDecide false
+set_option linter.style.native false
 
 namespace Native
 
@@ -54,8 +57,7 @@ where
       let (rm, rdp) := Zeta.Certificates.parseDec r
       go rest (k + 1) (rows.push { lm, ldp, rm, rdp })
 
-/-- The store file last read by this process, with its `lineStarts`: a module's batches mostly
-read the same file, so it is read and indexed once. -/
+/-- The store file last read by this process, with its `lineStarts`. -/
 meta initialize storeCache : IO.Ref (Option (System.FilePath × ByteArray × Array USize)) ←
   IO.mkRef none
 
@@ -68,9 +70,8 @@ meta def readStoreFile (path : System.FilePath) : IO (ByteArray × Array USize) 
   storeCache.set (some (path, b, starts))
   return (b, starts)
 
-/-- Rows `[lo, hi)` of the zero store in directory `store`, as `parseRowsRS` gives them. The files
-overlapping `[lo, hi)` are located through `manifest.json`, as in `storeLines`, and of each only
-those rows' bytes are decoded rather than the whole file split. -/
+/-- Rows `[lo, hi)` of the zero store in directory `store`, as `parseRowsRS` gives them, decoding
+only those rows' bytes of each file. -/
 meta def readRowsRS (store : System.FilePath) (lo hi : Nat) :
     IO (Except String (Array Zeta.Certificates.RowRS)) := do
   let manifest ← IO.ofExcept <| Json.parse (← IO.FS.readFile (store / "manifest.json"))
@@ -167,23 +168,27 @@ meta def diagnoseTiling (bs : Array (Nat × Nat)) (lo : Nat) (W W₁ n an ad bn 
 
 /-! ### Will the kernel-checked build pass this batch?
 
-The kernel metaprogram (`build_batch_rs`) certifies the same values, but with enclosures much
-wider than these: at the batch's working precision `D` (`batchPrecRS`), raised
-`precisionStepRS`-fold up to `precisionRetriesRS` times (or `build.sh --retries k`) when a row
-fails. Measured against its
-exact fields (all of 1e4, 31 batches across 1e6, the top of 1e7), its enclosure of `Z̃` is at most
-`0.79·kernelWidth`, and of the error bound at most `3.3/D`. A margin by which `|Z̃|` clears the
-error bound here, at least twice those widths, therefore clears in the kernel too. Each zero
-whose margin needs a raise is reported with how many; `build.sh` compares that against the
-kernel's retries and warns of the zeros they do not cover. This only reports; it proves nothing. -/
+The kernel metaprogram `build_batch_rs` certifies the same values with much wider enclosures, at
+the batch's precision `D` (`batchPrecRS`), raised `precisionStepRS`-fold up to `precisionRetriesRS`
+times when a row fails. `kernelWidth` and `kernelErrWidth` bound those widths (calibrated against
+the kernel's exact fields); a zero whose margin here does not clear twice them is reported with the
+raises of `D` it needs. This only reports; it proves nothing. -/
 
 /-- The marker of a line reporting a zero the kernel-checked build needs to retry (or cannot
 certify); `build.sh --native` collects every line carrying it. -/
 meta def kernelRiskMarker : String := "KERNEL PRECISION"
 
+/-- Whether this is an endpoint build (`build.sh --native --endpoint`, which sets
+`ZETA_NATIVE_ENDPOINT=1`): the native theorem is the result, so `kernelRisks` is skipped. -/
+meta def endpointBuild : IO Bool :=
+  return (← IO.getEnv "ZETA_NATIVE_ENDPOINT") == some "1"
+
+/-- The marker of a batch built without `kernelRisks`. Lake replays it with the batch, so a later
+precheck that reuses the batch knows it carries no report. -/
+meta def endpointMarker : String := "NO RETRY REPORT"
+
 /-- An upper bound on the kernel's enclosure width of `Z̃` at `t` with cutoff `ν`, precision `D`:
-`(6·√ν·t + 50/|cos 2πp|)/D` with `p = √(t/2π) − ν` (the main sum's errors grow with `√ν·t`; the
-zero-order correction divides by `cos 2πp`). -/
+`(6·√ν·t + 50/|cos 2πp|)/D` with `p = √(t/2π) − ν`. -/
 meta def kernelWidth (t : Float) (ν : Nat) (D : Float) : Float :=
   let pi := 3.141592653589793
   let p := Float.sqrt (t / (2 * pi)) - ν.toFloat
@@ -208,28 +213,27 @@ meta def retriesNeeded (t : Nat × Nat) (D : Nat) (m : Float) (limit : Nat) : Op
     let Dk := D.toFloat * (Zeta.Certificates.precisionStepRS.toFloat ^ k.toFloat)
     m > 2 * (kernelWidth tf ν Dk + kernelErrWidth Dk)
 
-/-- The most raises `kernelRisks` looks for: beyond `precisionStepRS^20` the margin is as good as
-none, and only moving the endpoint helps. -/
+/-- The most raises of `D` that `kernelRisks` looks for. -/
 meta def maxRaises : Nat := 20
 
 /-- The zeros of the batch with boundaries `bs` (store rows from `lo`) that the kernel-checked
-build will not certify at the batch's precision `D`: each with how many raises of `D` it needs
-(`needs k raise`), or why no number does (its full approximant refused, `c1ExtraBits` beyond 200
-bits, or no margin left: `move this endpoint`). Each row is judged by the certificate this check
-used for it: the linear-free one against the batch's error bound, or the full one against its
-own. -/
+build will not certify at precision `D`, each with the raises of `D` it needs or why none suffice.
+Each row is judged by the certificate this check used for it. -/
 meta def kernelRisks (bs : Array (Nat × Nat)) (lo D W W₁ : Nat) : Array String := Id.run do
   if bs.size < 2 then return #[]
   let tab := termTable ((cutoff bs.back!.1 bs.back!.2).getD 0) W
   let tab₁ := termTable 0 W₁
   let B := errBound bs[0]!.1 bs[0]!.2 W
+  -- Each boundary's linear-free value is computed once and serves both brackets that share it.
+  let z₀ := bs.map fun t => approx₀F tab t.1 t.2 W
+  let s₀ := z₀.map (certifiedSign · B)
   let mut out := #[]
   for i in [0:bs.size - 1] do
-    let (a, b) := (bs[i]!, bs[i + 1]!)
-    let linFree := signsDiffer (endpointSign₀ tab a.1 a.2 W B) (endpointSign₀ tab b.1 b.2 W B)
-    for t in [a, b] do
+    let linFree := signsDiffer s₀[i]! s₀[i + 1]!
+    for j in [i, i + 1] do
+      let t := bs[j]!
       let m := if linFree then
-          (approx₀F tab t.1 t.2 W).bind fun Z => B.map (margin Z)
+          z₀[j]!.bind fun Z => B.map (margin Z)
         else (approx₁ tab₁ t.1 t.2 W₁).bind fun Z => (errBound₁ t.1 t.2 W₁).map (margin Z)
       let some m := m | continue
       let at_ := s!"zero #{lo + i + 1} at t = {fmtRat t.1 t.2}"
@@ -261,9 +265,9 @@ meta def batchSpecArgs (goal : Expr) : MetaM (Option (Array Nat)) := do
   return some ns
 
 /-- `build_batch_rs +native lo hi` closes a `BatchSpec` goal from rows `[lo, hi)` of the
-Riemann–Siegel store by `native_decide` on `checkTiling`, and warns of rows the kernel-checked
-`build_batch_rs` will need to retry (`kernelRisks`), which `build.sh --native` checks against the
-kernel's retries. -/
+Riemann–Siegel store by `native_decide` on `checkTiling`, and reports the rows the kernel-checked
+`build_batch_rs` will need to retry (`kernelRisks`), unless this is an endpoint build
+(`endpointBuild`). -/
 elab "build_batch_rs " "+native " lo:num hi:num : tactic => do
   let rows ← match ← readRowsRS Zeta.Certificates.storeDirRS lo.getNat hi.getNat with
     | .ok rows => pure rows
@@ -274,7 +278,7 @@ elab "build_batch_rs " "+native " lo:num hi:num : tactic => do
   evalTactic (← `(tactic|
     refine batchSpec_of_tiling [$elems,*] $(quote nativePrec) $(quote nativeFallbackPrec)
       _ _ _ _ _ ?_))
-  -- a separate step, so that its failure is thrown here rather than logged
+  -- a separate step, so that its failure is thrown here and caught below
   try evalTactic (← `(tactic| native_decide))
   catch err =>
     let some #[n, an, ad, bn, bd] ← batchSpecArgs goal | throw err
@@ -282,6 +286,9 @@ elab "build_batch_rs " "+native " lo:num hi:num : tactic => do
     if report.isEmpty then throw err
     throwError m!"build_batch_rs +native: store rows [{lo.getNat}, {hi.getNat}) do not \
       certify this batch:\n  " ++ "\n  ".intercalate report.toList
+  if ← endpointBuild then
+    logInfo s!"{endpointMarker}: store rows [{lo.getNat}, {hi.getNat})"
+    return
   let risks := kernelRisks bs lo.getNat (Zeta.Certificates.batchPrecRS rows) nativePrec
     nativeFallbackPrec
   unless risks.isEmpty do

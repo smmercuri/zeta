@@ -15,7 +15,7 @@ public import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
 The Euler–Maclaurin/Stirling expansion of the digamma function, whose additive Stirling constant
 vanishes. Establishing that uses the product structure of `Γ` through Euler/Gauss's limit
-`GammaSeq s n → Γ s`; it is not a consequence of the digamma recurrence.
+`GammaSeq s n → Γ s`.
 
 ## Main results
 
@@ -58,7 +58,7 @@ theorem tendsto_inv_add_natCast_atTop {s : ℂ} :
   rw [tendsto_zero_iff_norm_tendsto_zero]
   simpa only [norm_inv, Pi.inv_def] using hnorm_top.inv_tendsto_atTop
 
-/-- **Term II of the vanishing Stirling constant.** For `Re s > 0`, `Log N - Log(s + N) → 0` as
+/-- Term II of the vanishing Stirling constant: for `Re s > 0`, `Log N - Log(s + N) → 0` as
 `N → ∞`. -/
 private theorem tendsto_log_natCast_sub_log_add_atTop {s : ℂ} (hs : 0 < s.re) :
     Tendsto (fun N : ℕ ↦ Complex.log (N : ℂ) - Complex.log (s + (N : ℂ))) atTop (𝓝 0) := by
@@ -167,7 +167,7 @@ private theorem integrableOn_abs_indicator_sub_exp_mul {a b : ℝ} (ha : 0 < a) 
   rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
   exact mul_le_mul_of_nonneg_right (abs_indicator_sub_exp_le n x) (by positivity)
 
-/-- **Dominated convergence for the `s`-free error.** As `n → ∞` the total error weight
+/-- Dominated convergence for the `s`-free error: as `n → ∞` the total error weight
 `∫₀^∞ |𝟙_{(0,n]}(x)·(1 - x/n)ⁿ - e^{-x}| (x^{a-1} + x^{b-1}) dx → 0`. -/
 private theorem tendsto_integral_abs_indicator_sub_exp_mul {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
     Tendsto (fun n : ℕ ↦ ∫ x in Set.Ioi (0 : ℝ),
@@ -207,7 +207,7 @@ private theorem tendsto_integral_abs_indicator_sub_exp_mul {a b : ℝ} (ha : 0 <
     (integrableOn_exp_mul_two_rpow ha hb) h_bound h_lim
   simpa [hFdef] using hmain
 
-/-- **`GammaSeq` as an improper integral.** For `0 < Re s` and `n ≠ 0`,
+/-- `GammaSeq` as an improper integral: for `0 < Re s` and `n ≠ 0`,
 `GammaSeq s n = ∫_{(0,∞)} 𝟙_{(0,n]}(x)·(1 - x/n)ⁿ · x^{s-1}`. -/
 private theorem GammaSeq_eq_setIntegral_indicator {s : ℂ} (hs : 0 < s.re) {n : ℕ} (hn : n ≠ 0) :
     Complex.GammaSeq s n = ∫ x in Set.Ioi (0 : ℝ),
@@ -242,7 +242,7 @@ private theorem integrableOn_Ioi_indicator_kernel_mul_cpow {s : ℂ} (hs : 0 < s
       Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg (indicator_kernel_nonneg n x)]
     exact mul_le_mul_of_nonneg_right (indicator_kernel_le_exp n x) (Real.rpow_nonneg hx0.le _)
 
-/-- **The `s`-free uniform bound.** For `a ≤ Re s ≤ b` and `n ≥ 1`, `‖Γ(s) - GammaSeq(s, n)‖` is
+/-- The `s`-free uniform bound: for `a ≤ Re s ≤ b` and `n ≥ 1`, `‖Γ(s) - GammaSeq(s, n)‖` is
 bounded by the `s`-free total error weight. -/
 private theorem norm_Gamma_sub_GammaSeq_le {a b : ℝ} (ha : 0 < a) (hab : a ≤ b)
     {s : ℂ} (hsa : a ≤ s.re) (hsb : s.re ≤ b) {n : ℕ} (hn : 1 ≤ n) :
@@ -277,7 +277,7 @@ private theorem norm_Gamma_sub_GammaSeq_le {a b : ℝ} (ha : 0 < a) (hab : a ≤
           Complex.norm_real, Real.norm_eq_abs, abs_sub_comm]
         exact mul_le_mul_of_nonneg_left (rpow_sub_one_le_add hx0 hsa hsb) (abs_nonneg _)
 
-/-- **Locally uniform Euler/Gauss limit.** On the open right half-plane `{Re s > 0}` the sequence
+/-- Locally uniform Euler/Gauss limit: on the open right half-plane `{Re s > 0}` the sequence
 `s ↦ Complex.GammaSeq s n` converges to `Γ` locally uniformly. -/
 theorem tendstoLocallyUniformlyOn_gammaSeq :
     TendstoLocallyUniformlyOn (fun (n : ℕ) (s : ℂ) ↦ Complex.GammaSeq s n) Complex.Gamma
@@ -307,7 +307,7 @@ theorem tendstoLocallyUniformlyOn_gammaSeq :
         norm_Gamma_sub_GammaSeq_le ha hab (isMinOn_iff.mp hxa s hsK) (isMaxOn_iff.mp hxb s hsK) hn1
     _ < ε := hn
 
-/-- **Gauss's digamma product limit.** For `Re s > 0`,
+/-- Gauss's digamma product limit: for `Re s > 0`,
 `ψ(s) = lim_n (Log n - ∑_{j=0}^{n} (s + j)⁻¹)`. -/
 theorem tendsto_log_sub_sum_inv_add {s : ℂ} (hs : 0 < s.re) :
     Tendsto (fun n : ℕ ↦ Complex.log (n : ℂ) - ∑ j ∈ Finset.range (n + 1), (s + (j : ℂ))⁻¹)
@@ -352,17 +352,21 @@ theorem tendsto_log_sub_sum_inv_add {s : ℂ} (hs : 0 < s.re) :
   -- Logarithmic derivative of the product: `∑ (s + j)⁻¹`.
   have hlogprod : logDeriv (fun w : ℂ ↦ ∏ j ∈ Finset.range (n + 1), (w + (j : ℂ))) s
       = ∑ j ∈ Finset.range (n + 1), (s + (j : ℂ))⁻¹ := by
-    rw [logDeriv_prod (fun j _ ↦ add_natCast_ne_zero_of_re_pos hs j)
+    rw [show (fun w : ℂ ↦ ∏ j ∈ Finset.range (n + 1), (w + (j : ℂ)))
+        = ∏ j ∈ Finset.range (n + 1), (fun w : ℂ ↦ w + (j : ℂ)) from by
+          funext w; rw [Finset.prod_apply],
+      logDeriv_prod (fun j _ ↦ add_natCast_ne_zero_of_re_pos hs j)
       (fun j _ ↦ (differentiable_id.add_const _).differentiableAt)]
     refine Finset.sum_congr rfl fun j _ ↦ ?_
     have hderiv1 : deriv (fun w : ℂ ↦ w + (j : ℂ)) s = 1 := by simp
     rw [logDeriv_apply, hderiv1, one_div]
   rw [show (fun w ↦ Complex.GammaSeq w n)
-      = fun w ↦ ((n : ℂ) ^ w * (n ! : ℂ)) / ∏ j ∈ Finset.range (n + 1), (w + (j : ℂ)) from by
-        funext w; rw [Complex.GammaSeq],
+      = (fun w : ℂ ↦ (n : ℂ) ^ w * (n ! : ℂ)) /
+          fun w : ℂ ↦ ∏ j ∈ Finset.range (n + 1), (w + (j : ℂ)) from by
+        funext w; rw [Pi.div_apply, Complex.GammaSeq],
     logDeriv_div s hAne hBne hdA hdB, logDeriv_mul_const s (n ! : ℂ) hfac_ne, hlogcpow, hlogprod]
 
-/-- **The additive Stirling constant vanishes.** For `Re s > 0`,
+/-- The additive Stirling constant vanishes: for `Re s > 0`,
 `ψ(s + N + 1) - Log(s + N) → 0` as `N → ∞`. -/
 theorem tendsto_digamma_sub_log_atTop {s : ℂ} (hs : 0 < s.re) :
     Tendsto (fun N : ℕ ↦ Complex.digamma (s + (N : ℂ) + 1) - Complex.log (s + (N : ℂ)))
@@ -386,7 +390,7 @@ theorem tendsto_digamma_sub_log_atTop {s : ℂ} (hs : 0 < s.re) :
   rw [add_zero] at this
   exact this.congr fun N ↦ by ring
 
-/-- **Euler–Maclaurin/Stirling expansion of the digamma function.** For every `s` with `Re s > 0`
+/-- Euler–Maclaurin/Stirling expansion of the digamma function: for every `s` with `Re s > 0`
 and every `M : ℕ`,
 `ψ(s) = Log s - 1/(2s) - ∑_{k=1}^{M} B_{2k}/(2k) · s^{-2k} - R_{2M+1}(g_s; 0, ∞)`,
 with `R_{2M+1}(g_s; 0, ∞) = digammaRemainderIoi s (2M+1)` bounded by
@@ -469,8 +473,8 @@ theorem digamma_eq_log_sub (s : ℂ) (hs : 0 < s.re) (M : ℕ) :
     rwa [hval] at hcomb
   exact tendsto_nhds_unique (tendsto_const_nhds.congr hconst) htend
 
-/-- **Explicit first-order digamma bound.** For `a > 0` and `Re s ≥ a`,
-`‖ψ(s) - Log s + (2s)⁻¹‖ ≤ (1/12 + 3/(2π²a)) · ‖s‖^(-2)`. The decay is in `‖s‖`, not in `Re s`. -/
+/-- Explicit first-order digamma bound: for `a > 0` and `Re s ≥ a`,
+`‖ψ(s) - Log s + (2s)⁻¹‖ ≤ (1/12 + 3/(2π²a)) · ‖s‖^(-2)`. -/
 theorem norm_digamma_sub_log_le' {a : ℝ} (ha : 0 < a) (s : ℂ) (has : a ≤ s.re) :
     ‖Complex.digamma s - Complex.log s + (2 * s)⁻¹‖
       ≤ (1 / 12 + 3 / (2 * π ^ 2 * a)) * ‖s‖ ^ (-(2 : ℤ)) := by

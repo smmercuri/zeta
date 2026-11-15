@@ -14,7 +14,7 @@ public import Zeta.Zeros.Certificates.Basic
 `BatchSpec n₁ a … b …` and `BatchSpec n₂ c … e …` and one cross-multiplied `Nat.ble` for the seam
 `b ≤ c`, it concludes `BatchSpec (n₁ + n₂) a … e …`. The generated assembler folds the batches
 through it one prefix theorem at a time, so each step is `O(1)` and states its count and boundary
-as literals: nothing ever unfolds the list of batches, and no side condition quantifies over it.
+as literals.
 
 This lives apart from `Basic` because every batch module imports `Basic` (through the certificate
 metaprogram), while only the assembler needs the fold.
@@ -23,7 +23,7 @@ metaprogram), while only the assembler needs the fold.
 
 namespace Zeta.Certificates
 
-/-- **Append two batch statements.** The seam is the exported boundary `bn/bd ≤ cn/cd`, as one
+/-- Append two batch statements. The seam is the exported boundary `bn/bd ≤ cn/cd`, as one
 cross-multiplied `Nat.ble` on the literals. -/
 theorem BatchSpec.append {n₁ an ad bn bd n₂ cn cd en ed : ℕ} (h₁ : BatchSpec n₁ an ad bn bd)
     (h₂ : BatchSpec n₂ cn cd en ed) (hbd : Nat.ble 1 bd = true) (hcd : Nat.ble 1 cd = true)

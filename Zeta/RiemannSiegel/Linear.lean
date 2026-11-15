@@ -13,22 +13,19 @@ public import Zeta.RiemannSiegel.Correction
 # The linear Riemann–Siegel coefficient, and the explicit bounds it needs
 
 The sharp first-order estimate of `riemann_siegel_first.tex`, `sec:rsf_sharp`, retains the next
-classical coefficient `C₁(p) = −Ψ'''(p)/(96π²)` instead of bounding it away. This file defines
-`C₁` through the moments `N₁` and `N₃`, which is the form in which it appears in the estimate and
-which needs no differentiability of `Ψ`, and collects the four explicit numerical bounds that the
-estimate consumes: on `M`, on `Ψ`, on `M'''` and on `Ψ'''`.
+classical coefficient `C₁(p) = −Ψ'''(p)/(96π²)`. This file defines `C₁` through the moments `N₁`
+and `N₃`, the form in which it appears in the estimate, and collects the four explicit numerical
+bounds that the estimate uses: on `M`, on `Ψ`, on `M'''` and on `Ψ'''`.
 
-The bounds on `M` and on `M'''` themselves, and not only those on `Ψ` and on `C₁`, are what the
-first-order formula needs: the phase swap there multiplies a *complex* modulus, and
-`|Ψ| ≤ 2|M|` runs the wrong way to supply it.
+The first-order formula uses the bounds on `M` and on `M'''` as well as those on `Ψ` and on `C₁`:
+the phase swap there multiplies a complex modulus, and `|Ψ| ≤ 2|M|` bounds it in the wrong
+direction.
 
-All four are restricted to `p ∈ [0, 1]`, which is not cosmetic: every majorant below carries a
-factor `e^{πc²}` with `c = 1/2 − p`, which is unbounded in `p`, and only `p = √T − ν ∈ [0, 1)`
-is ever used.
+All four are restricted to `p ∈ [0, 1]`: every majorant below carries a factor `e^{πc²}` with
+`c = 1/2 − p`, which is unbounded in `p`, and the estimate uses only `p = √T − ν ∈ [0, 1)`.
 
-The bound on `Ψ'''` is crude — the truth is `28.99` and this file proves `1220`. That is not slack
-that sharper majorants can recover: `Ψ'''` is small by oscillatory cancellation inside
-`∫ e^{2πiy²}`, which no bound passing through `‖∫ ·‖ ≤ ∫ ‖·‖` can see
+The proved bound `|Ψ'''| ≤ 1220` is far above the true value, about `28.99`. `Ψ'''` is small by
+oscillatory cancellation inside `∫ e^{2πiy²}`, which a bound through `‖∫ ·‖ ≤ ∫ ‖·‖` cannot detect
 (`riemann_siegel_first.tex`, `rem:rsf_psi3_refuted`).
 
 ## Main results
@@ -52,7 +49,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The model integral is bounded by `11/10`** on the unit interval. -/
+/-- The model integral is bounded by `11/10` on the unit interval. -/
 theorem norm_modelIntegral_le' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     ‖modelIntegral (p : ℂ) (1 / 2)‖ ≤ 11 / 10 := by
   refine (norm_modelIntegral_le p).trans ?_
@@ -60,7 +57,7 @@ theorem norm_modelIntegral_le' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     Real.exp_le_exp.2 (by nlinarith [Real.pi_pos, mul_nonneg h0 (sub_nonneg.2 h1)])
   linarith [Real.exp_pi_div_four_le]
 
-/-- **The correction function is bounded by `11/5`** on the unit interval. -/
+/-- The correction function is bounded by `11/5` on the unit interval. -/
 theorem abs_correction_le' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) : |correction p| ≤ 11 / 5 :=
   (abs_correction_le h0 h1).trans Real.exp_pi_div_four_le
 
@@ -129,7 +126,7 @@ private theorem norm_modelMoment_le_of_norm_pow_le (n : ℕ) (p C₀ C₁ C₂ C
         field_simp
         ring
 
-/-- **A Gaussian bound for the first moment `N₁`** on the unit interval. -/
+/-- A Gaussian bound for the first moment `N₁` on the unit interval. -/
 private theorem norm_modelMoment_one_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     ‖modelMoment 1 (p : ℂ) (1 / 2)‖
       ≤ Real.exp (π * (1 / 2 - p) ^ 2) * (Real.sqrt 2 * (1 / 8 + 1 / (4 * π))) := by
@@ -143,7 +140,7 @@ private theorem norm_modelMoment_one_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) 
   · field_simp
     ring
 
-/-- **A Gaussian bound for the third moment `N₃`** on the unit interval. -/
+/-- A Gaussian bound for the third moment `N₃` on the unit interval. -/
 private theorem norm_modelMoment_three_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     ‖modelMoment 3 (p : ℂ) (1 / 2)‖
       ≤ Real.exp (π * (1 / 2 - p) ^ 2) *
@@ -173,7 +170,7 @@ private theorem norm_modelMoment_three_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1
   · field_simp
     ring
 
-/-- **The third derivative of the model integral is bounded** on the unit interval
+/-- The third derivative of the model integral is bounded on the unit interval
 (`riemann_siegel_first.tex`, `lem:rsf_psi3`). -/
 theorem norm_iteratedDeriv_three_modelIntegral_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     ‖iteratedDeriv 3 (fun q : ℂ ↦ modelIntegral q (1 / 2)) (p : ℂ)‖
@@ -200,7 +197,7 @@ theorem norm_iteratedDeriv_three_modelIntegral_le {p : ℝ} (h0 : 0 ≤ p) (h1 :
         gcongr
     _ = Real.sqrt 2 * Real.exp (π / 4) * (20 * π + 10 * π ^ 2 + π ^ 3) := by ring
 
-/-- **The third derivative of the model integral is bounded by `610`** on the unit interval. -/
+/-- The third derivative of the model integral is bounded by `610` on the unit interval. -/
 theorem norm_iteratedDeriv_three_modelIntegral_le' {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     ‖iteratedDeriv 3 (fun q : ℂ ↦ modelIntegral q (1 / 2)) (p : ℂ)‖ ≤ 610 := by
   refine (norm_iteratedDeriv_three_modelIntegral_le h0 h1).trans ?_
@@ -213,7 +210,7 @@ theorem norm_iteratedDeriv_three_modelIntegral_le' {p : ℝ} (h0 : 0 ≤ p) (h1 
           (by positivity) (by norm_num)
     _ ≤ 610 := by norm_num
 
-/-- **The third derivative of the correction function is bounded by `1220`** on the unit interval
+/-- The third derivative of the correction function is bounded by `1220` on the unit interval
 (`riemann_siegel_first.tex`, `lem:rsf_psi3`). -/
 theorem abs_iteratedDeriv_three_correction_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     |iteratedDeriv 3 correction p| ≤ 1220 := by
@@ -232,12 +229,12 @@ theorem abs_iteratedDeriv_three_correction_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p �
         exact norm_iteratedDeriv_three_modelIntegral_le' h0 h1
     _ = 1220 := by norm_num
 
-/-- **The linear coefficient is the classical one**: `C₁(p) = −Ψ'''(p)/(96π²)`. -/
+/-- The linear coefficient is the classical one: `C₁(p) = −Ψ'''(p)/(96π²)`. -/
 theorem correctionLinear_eq (p : ℝ) :
     correctionLinear p = -iteratedDeriv 3 correction p / (96 * π ^ 2) :=
   (neg_iteratedDeriv_three_correction_div_eq p).symm
 
-/-- **The linear coefficient is bounded by `13/10`** on the unit interval. -/
+/-- The linear coefficient is bounded by `13/10` on the unit interval. -/
 theorem abs_correctionLinear_le {p : ℝ} (h0 : 0 ≤ p) (h1 : p ≤ 1) :
     |correctionLinear p| ≤ 13 / 10 := by
   have hpos : (0 : ℝ) < 96 * π ^ 2 := by positivity

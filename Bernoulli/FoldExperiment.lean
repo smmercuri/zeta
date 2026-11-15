@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Bernoulli.TangentVerify
@@ -5,24 +10,12 @@ public import Bernoulli.TangentVerify
 /-!
 # Tangent numbers via a computable fold
 
-An alternative to `emit_tangent_numbers` (in `Bernoulli.TangentVerify`).  Instead of laying the
-whole Knuth table down as `O(N²)` per-cell certificate lemmas, this computes the table with a
-single computable step function `dstep` (one fused double-pass per tangent number, over compressed
-rows), proves the entire list of tangent numbers in **one** kernel reduction, then reads off each
-`tangentNumberLit_k : tangentNumber k = Tₖ` by an `O(N)` peel-chain — one `cons` peel per entry,
-each `O(1)` off the previous tail.
-
-Correctness is complete: `foldLink` is a theorem (below), proved against the Knuth table `knuth`
-from `Bernoulli.TangentVerify`, so the emitted `tangentNumberLit_k` are axiom-clean
-(`[propext, Classical.choice, Quot.sound]`).
-
-`BernoulliValues` uses this (via `fold_emit_tangent_numbers 99`) in place of the certificate
-emitter `emit_tangent_numbers`; the whole Bernoulli/Kummer pipeline is green and axiom-clean.  Two
-speedups over the initial dense fold get it there: **compressed rows** (store only the nonzero
-coefficients — tangent polynomials vanish on alternating indices) and **single-pass fusion**
-(`combF`, two Knuth passes composed into one 3-term window).  At `N = 99` (what
-`derive_regular_below 200` needs) the fold emitter measured ~3–4× faster than the certificate
-emitter. -/
+The tangent-number emitter `Bernoulli.BernoulliValues` uses
+(`fold_emit_tangent_numbers 99`). A computable step function `dstep` (one fused double-pass per
+tangent number, over compressed rows) computes the Knuth table, one kernel reduction proves the
+whole list of tangent numbers, and an `O(N)` peel-chain reads off each
+`tangentNumberLit_k : tangentNumber k = Tₖ`. `foldLink` proves the fold correct against `knuth`,
+so the emitted lemmas are axiom-clean. -/
 @[expose] public section
 
 
@@ -32,17 +25,12 @@ namespace TangentNumbers
 
 /-! ### Compressed rows
 
-A Knuth-table row is a polynomial's coefficient list; the tangent polynomials are zero on
-alternating indices, so a dense row is ~half zeros.  We store only the nonzero coefficients.
-Each `rowStep` flips the parity of the support (`newₖ = (k-1)csₖ₋₁ + (k+1)csₖ₊₁` shifts by one),
-so a compressed row alternates between the two parities.  This halves both the list length
-(structural work) and the big-int multiplications (the real cost).
-
-A row advances by two parity flips at once (odd→even→odd), reading one tangent number in between,
-so a whole double-step becomes one `dstep`: no index counter, no `Nat.mod`, no parity dispatch, and
-`N` iterations instead of `2N`.  The two parity half-steps further compose into a single traversal
-(`combF` below).  Each is a raw `List.rec` sliding window carried as curried `Nat` args; all
-`Nat.*`, native fast path.  (`combP1`/`stepP1` remain only to seed the first row.) -/
+A Knuth-table row is a tangent polynomial's coefficient list, which vanishes on alternating
+indices, so only the nonzero coefficients are stored; each Knuth step flips the parity of the
+support. A `dstep` advances two parity flips at once in a single traversal (`combF`), reading one
+tangent number in between. Each pass is a raw `List.rec` sliding window over curried `Nat`
+arguments, spelled with `Nat.*` for the native fast path. `combP1`/`stepP1` only seed the first
+row. -/
 
 /-- Odd-support row → even-support row: `bᵢ = (2i-1)·aᵢ₋₁ + (2i+1)·aᵢ` (`a₋₁ = 0`, trailing
 `(2i-1)·aₘ`).  Window carried as `(index i, prev = aᵢ₋₁)`. -/
@@ -55,10 +43,8 @@ noncomputable def combP1 : List Nat → Nat → Nat → List Nat :=
 
 noncomputable def stepP1 (a : List Nat) : List Nat := combP1 a 0 0
 
-/-- The two half-steps compose into a single pass.  A parity-0 → parity-0 double-step is two Knuth
-passes; substituting one into the other gives a 3-term window with index-only coefficients:
-`cⱼ = 2(2j-1)(j-1)·aⱼ₋₁ + 8j²·aⱼ + 2(2j+1)(j+1)·aⱼ₊₁`.  So one traversal, 3 big multiplications per
-entry instead of two passes' 4 — the coefficients themselves are small-`Nat` (native fast path). -/
+/-- The left coefficient of the fused double-step (two Knuth passes as one 3-term window)
+`cⱼ = 2(2j-1)(j-1)·aⱼ₋₁ + 8j²·aⱼ + 2(2j+1)(j+1)·aⱼ₊₁`; `coM` and `coR` are the other two. -/
 def coL (j : Nat) : Nat := Nat.mul 2 (Nat.mul (Nat.sub (Nat.mul 2 j) 1) (Nat.sub j 1))
 def coM (j : Nat) : Nat := Nat.mul 8 (Nat.mul j j)
 def coR (j : Nat) : Nat := Nat.mul 2 (Nat.mul (Nat.add (Nat.mul 2 j) 1) (Nat.add j 1))
@@ -72,10 +58,8 @@ noncomputable def combF : List Nat → Nat → Nat → Nat → List Nat :=
       Nat.add (Nat.add (Nat.mul (coL j) p) (Nat.mul (coM j) q)) (Nat.mul (coR j) nx)
         :: ih (Nat.add j 1) q nx)
 
-/-- One fused double-step on `(parity-0 row r, accumulated tangents)`.  Peel the head `a₀` once via
-the raw recursor `List.rec` (ignoring the recursive result): it *is* the tangent number `cs₀`,
-prepended to the accumulator, and it seeds the single-pass `combF`.  Iteration starts from
-`stepP1 [1]`, the parity-0 row of index 1. -/
+/-- One fused double-step on `(parity-0 row, accumulated tangents)`: the head `a₀` of the row is the
+next tangent number, prepended to the accumulator, and seeds `combF`. -/
 noncomputable def dstep : List Nat × List Nat → List Nat × List Nat :=
   fun t => List.rec (motive := fun _ => List Nat × List Nat) ([], t.2)
     (fun a0 rest _ => (combF rest 0 0 a0, a0 :: t.2)) t.1
@@ -87,13 +71,11 @@ noncomputable def iterD (n : Nat) (s : List Nat × List Nat) : List Nat × List 
 /-- Reduces to `[T_N, T_{N-1}, …, T_1]` (reversed, from the prepend in `dstep`). -/
 noncomputable def tangentListN (N : Nat) : List Nat := (iterD N (stepP1 [1], [])).2
 
-/-! ### Correctness ("piece 1")
+/-! ### Correctness
 
-`foldLink` — the fold computes the tangent numbers — proved against the Knuth table `knuth` from
-`Bernoulli.TangentVerify`.  The parity-0 compressed row after `k` double-steps is the even-index
-entries of Knuth row `2k+1` (`rowInv`); the fused coefficients `coL`/`coM`/`coR` are exactly two
-Knuth recurrence steps (`knuth_two_step`), so `combF` advances the row (`combF_window`); each head
-is `knuth (2k+1) 0 = tangentNumber (k+1)`, so the accumulator is `[T_N, …, T_1]` (`accInv`). -/
+`foldLink`: the fold computes the tangent numbers, proved against the Knuth table `knuth` of
+`Bernoulli.TangentVerify` via the row invariant `rowInv`, the two-step recurrence
+`knuth_two_step`/`combF_window`, and the accumulator invariant `accInv`. -/
 
 /-- `s` even-index entries of Knuth row `m` from column `2j`; recursive so it peels from the
 front. -/
@@ -121,9 +103,8 @@ theorem combF_cons (nx : ℕ) (rest : List ℕ) (j p q : ℕ) :
     combF (nx :: rest) j p q
         = (coL j * p + coM j * q + coR j * nx) :: combF rest (j + 1) q nx := rfl
 
-/-- `combF` carries the even entries of Knuth row `m` (window at index `j`) to those of row `m+2`.
-`hb` says the window has reached past the diagonal, so the entry after the list, and all beyond,
-vanish. -/
+/-- `combF` carries the even entries of Knuth row `m` (window at index `j`) to those of row `m+2`,
+once the window has reached past the diagonal (`hb`). -/
 theorem combF_window (m j s : ℕ) (hb : m + 1 < 2 * (j + s + 1)) :
     combF (erow m (j + 1) s) j (knuth m (2 * j - 2)) (knuth m (2 * j))
         = erow (m + 2) j (s + 2) := by

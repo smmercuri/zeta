@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Basic
@@ -16,14 +21,11 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 /-!
 # The Euler–Maclaurin Hardy `Z` approximants, and the identities the enclosures certify
 
-Local statements of the four approximant definitions from the zero-certificate development
-(`Zeta/EulerMaclaurin` + `Zeta/Zeros` on the main branch), kept verbatim so that a merge needs
-only definitional bridges, together with the algebraic identities that connect them to the
-shapes the enclosure builders assemble:
-
-- the folding identity for the zeta approximant (`N^{-s-(2k-1)} = N^{-s}·(N^{2k-1})⁻¹` collapses
-  the Bernoulli tail onto the single `N^{-s}` factor);
-- the real-part expansion `Re(e^{iθ}·ζ) = cos θ·Re ζ − sin θ·Im ζ` behind the Hardy `Z` value.
+Identities connecting the Euler–Maclaurin and Riemann–Siegel Hardy `Z` approximants and their
+error bounds to the shapes the enclosure builders assemble: the folding identity for the zeta
+approximant, the real-part expansion behind the Hardy `Z` value, named partial sums with their
+peel steps, the one-step main-sum lemmas, and the Riemann–Siegel correction and error-bound
+renames.
 
 Everything here is `∀`-quantified mathematics; the per-instance work (rectangles, radii, kernel
 checks) lives in the metaprogram layer.
@@ -60,9 +62,8 @@ theorem natCast_cpow_eq (n : ℕ) (hn : 0 < n) (σ t : ℝ) :
       add_zero, mul_one]
     congr 1 <;> congr 1 <;> ring
 
-/-- `|(XP − XN)/Xd − (YP − YN)/Yd| ≤ δn/δd` for two signed fractions given by their natural parts,
-as one Boolean check on numerals: both one-sided inequalities, cleared of denominators. Written in
-`Nat.mul`/`Nat.add` so a kernel `reflBoolTrue` check never unfolds an arithmetic instance. -/
+/-- Boolean check, cleared of denominators, that `|(XP − XN)/Xd − (YP − YN)/Yd| ≤ δn/δd`. Spelled
+with `Nat.mul`/`Nat.add` so a kernel `reflBoolTrue` check never unfolds an arithmetic instance. -/
 def natAbsSubLe (XP XN Xd YP YN Yd δn δd : ℕ) : Bool :=
   Nat.ble (((XP.mul Yd).add (YN.mul Xd)).mul δd)
       ((δn.mul (Xd.mul Yd)).add (((XN.mul Yd).add (YP.mul Xd)).mul δd)) &&
@@ -100,17 +101,14 @@ open Enclosure
 open Complex
 
 /-- The strengthened Hardy `Z` error bound: the theta Stirling error times the approximant
-modulus, plus the *named* zeta remainder bound. On the main branch,
-`norm_zetaRemainder_le` bounds `‖zetaRemainder‖` by `zetaRemainderBound`, so a value exceeding this
-quantity exceeds `hardyZErrorBoundEM` as well; this is the quantity the enclosure layer bounds. -/
+modulus, plus `zetaRemainderBound`. It dominates `hardyZErrorBoundEM`. -/
 noncomputable abbrev hardyZErrorBoundStrong (M N : ℕ) (t : ℝ) : ℝ :=
   riemannSiegelThetaStirlingErrorBound M (thetaShift M)
       * ‖zetaApproximant (1 / 2 + Complex.I * t) M N‖
     + zetaRemainderBound (1 / 2 + Complex.I * t) M N
 
-/-- The strengthened bound dominates the working bound: substitute `norm_zetaRemainder_le`
-(`‖zetaRemainder‖ ≤ zetaRemainderBound`) into the sum. The `-(2M+1) < s.re` hypothesis is
-trivial at `s.re = ½`; `1 ≤ N` is carried as a kernel-checked `Nat.ble` literal. -/
+/-- `hardyZErrorBoundStrong` dominates `hardyZErrorBoundEM`; `1 ≤ N` is a `Nat.ble` check so the
+kernel decides it. -/
 theorem hardyZErrorBoundEM_le_strong (M N : ℕ) (t : ℝ) (hN : Nat.ble 1 N = true) :
     hardyZErrorBoundEM M N t ≤ hardyZErrorBoundStrong M N t := by
   have hN' : 1 ≤ N := Nat.le_of_ble_eq_true hN
@@ -121,14 +119,12 @@ theorem hardyZErrorBoundEM_le_strong (M N : ℕ) (t : ℝ) (hN : Nat.ble 1 N = t
     linarith
   exact add_le_add le_rfl (norm_zetaRemainder_le _ M N hN' hs)
 
-/-- Chain a bound comparison through a stronger bound, all arguments explicit (the
-`hardy_error_ok_full` assembly step). -/
+/-- `lt_of_le_of_lt` with every argument explicit. -/
 theorem gt_trans_le (x s b : ℝ) (hle : b ≤ s) (h : x > s) : x > b := lt_of_le_of_lt hle h
 
 /-! ### The identities the builders certify against -/
 
-/-- `Re(e^{iθ}·ζ) = cos θ·Re ζ − sin θ·Im ζ`: what the Hardy `Z` assembly (cos/sin images of the
-theta enclosure against the zeta rectangle) is an enclosure of. -/
+/-- `Re(e^{iθ}·ζ) = cos θ·Re ζ − sin θ·Im ζ`, the quantity the Hardy `Z` assembly encloses. -/
 theorem re_exp_mul (θ : ℝ) (ζ : ℂ) :
     (Complex.exp (Complex.I * (θ : ℂ)) * ζ).re = Real.cos θ * ζ.re - Real.sin θ * ζ.im := by
   rw [mul_comm Complex.I, Complex.exp_mul_I, Complex.mul_re, Complex.add_re, Complex.add_im,
@@ -136,9 +132,8 @@ theorem re_exp_mul (θ : ℝ) (ζ : ℂ) :
   simp [Complex.cos_ofReal_re, Complex.sin_ofReal_re, Complex.cos_ofReal_im,
     Complex.sin_ofReal_im]
 
-/-- The folding identity: every `N`-power in the boundary and Bernoulli terms is `N^{-s}` times
-an exact quantity, so `ζ̃` is the head sum plus `N^{-s}` times a single (rational when `s` is
-rational) multiplier. This is the shape `mkZetaApproxCNear` assembles. -/
+/-- The folding identity: `ζ̃` is the head sum plus `N^{-s}` times a single multiplier (rational
+when `s` is), the shape `mkZetaApproxCNear` assembles. -/
 theorem zetaApproximant_eq_folded (s : ℂ) (M N : ℕ) (hN : 0 < N) :
     zetaApproximant s M N
       = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s))
@@ -171,9 +166,8 @@ theorem zetaApproximant_eq_folded (s : ℂ) (M N : ℕ) (hN : 0 < N) :
 
 Each exact complex leaf of the approximants (`s`, `s + n`, `w + j`, plain constants) equals an
 explicit `⟨sfrac, sfrac⟩` pair, so a radius-zero constant rectangle names it through
-`Complex.IsNear.of_eq`. The component numerators stay symbolic ℕ arithmetic (`(1+4j)·td` and
-the like); at literal instantiations the kernel evaluates them against the constant's literal
-fields. -/
+`Complex.IsNear.of_eq`. The component numerators stay symbolic ℕ arithmetic, which the kernel
+evaluates at literal instantiations. -/
 
 /-- The critical-line point `s = ½ + i·t` in rectangle form, for a recognised rational `t`. -/
 theorem s_crit_mk (t : ℝ) (tneg : Bool) (tn td : ℕ) (ht : t = sfrac tneg tn td) :
@@ -193,8 +187,7 @@ theorem s_add_nat_mk (t : ℝ) (tneg : Bool) (tn td n : ℕ) (ht : t = sfrac tne
   ring
 
 /-- The shifted Stirling point `w + j = ¼ + i·t/2 + j = ((1+4j)·td)/(4·td) + i·(tn/(2·td))` in
-rectangle form (`td > 0`). The component fractions share the denominators the `cLogNear` call
-uses. -/
+rectangle form (`td > 0`), over the denominators the `cLogNear` call uses. -/
 theorem w_shift_mk (t : ℝ) (tneg : Bool) (tn td j : ℕ) (ht : t = sfrac tneg tn td)
     (htd : Nat.ble 1 td = true) :
     1 / 4 + Complex.I * ((t : ℂ) / 2) + (j : ℂ)
@@ -208,19 +201,14 @@ theorem w_shift_mk (t : ℝ) (tneg : Bool) (tn td j : ℕ) (ht : t = sfrac tneg 
     field_simp
   · cases tneg <;> simp [Complex.add_im, Complex.mul_im, sfrac] <;> field_simp <;> ring
 
-/-- `(ascPochhammer ℂ 1).eval s = s`: the base of the named Pochhammer chain
-(`ascPochhammer_succ_eval_c` supplies each further step). The index is a raw literal
-(`nat_lit`), matching the raw index the step lemma leaves behind, so the chain's rename seams
-stay syntactic. -/
+/-- Base of the Pochhammer chain stepped by `ascPochhammer_succ_eval_c`. The index is a raw
+`nat_lit`, matching the step lemma, so the renames stay syntactic. -/
 theorem ascPochhammer_one_eval (s : ℂ) : (ascPochhammer ℂ (nat_lit 1)).eval s = s := by
   rw [ascPochhammer_one, Polynomial.eval_X]
 
-/-- `ascPochhammer_succ_eval` specialized to `ℂ`, with the successor index a literal `b` tied
-by `Nat.beq`. Stating the left side at the literal (rather than `n + 1`) keeps the renamed
-value's index a raw numeral: the next step's `of_eq` then compares the two sides syntactically
-instead of unfolding the numeral — which cascaded into the kernel walking the whole ℂ
-`HMul`/`Complex.instMul` instance chain (measured 2 `Complex.re` + 2 `Complex.im` + 2
-`HMul.hMul`/`Mul.mul` unfolds per Pochhammer step). -/
+/-- `ascPochhammer_succ_eval` over `ℂ` at a literal successor index `b` (tied by `Nat.beq`, not
+`n + 1`), so the next step's `of_eq` compares syntactically instead of unfolding the numeral into
+the ℂ multiplication instances. -/
 theorem ascPochhammer_succ_eval_c (n b : ℕ) (s : ℂ) (hb : Nat.beq b (n.add 1) = true) :
     (ascPochhammer ℂ b).eval s = (ascPochhammer ℂ n).eval s * (s + n) := by
   obtain rfl := Nat.eq_of_beq_eq_true hb
@@ -283,10 +271,8 @@ theorem head_sum_succ (s : ℂ) (a b : ℕ) (hb : Nat.beq b (a.add 1) = true)
   obtain rfl := Nat.eq_of_beq_eq_true hb
   exact Finset.sum_Ico_succ_top (Nat.le_of_ble_eq_true ha) _
 
-/-- The head partial sum as a NAMED value. The per-step certificate statements then carry the
-5-node application `headSumC s N` instead of the elaborated `Finset.sum` tree (~100 nodes with
-its instance chain, duplicated into both rectangle components), so the kernel walks the sum
-expression once, at the final `head_sum_c_eq` rename, not once per peel step. -/
+/-- The head partial sum as a named value, so the peel-step statements carry `headSumC s N`
+rather than the `Finset.sum` tree, which the kernel then walks once (at `head_sum_c_eq`). -/
 noncomputable def headSumC (s : ℂ) (N : ℕ) : ℂ := ∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)
 
 /-- `head_sum_base` over the named partial sum (raw-literal index, matching the peel steps). -/
@@ -299,8 +285,7 @@ theorem head_sum_c_succ (s : ℂ) (a b : ℕ) (hb : Nat.beq b (a.add 1) = true)
     (ha : Nat.ble 1 a = true) : headSumC s b = headSumC s a + (a : ℂ) ^ (-s) :=
   head_sum_succ s a b hb ha
 
-/-- The head sum at `N = 2` is exactly `1` (`1^{-s} = 1`), in rectangle form; lets the head
-accumulation seed at `n = 2` and skip the wasted full `cpow` leaf for `n = 1`. -/
+/-- The head sum at `N = 2` is `1`, in rectangle form: the seed of the head accumulation. -/
 theorem head_sum_c_two (s : ℂ) :
     headSumC s (nat_lit 2)
       = ⟨sfrac false (nat_lit 1) (nat_lit 1), sfrac false (nat_lit 0) (nat_lit 1)⟩ := by
@@ -308,13 +293,11 @@ theorem head_sum_c_two (s : ℂ) :
     Complex.one_cpow]
   apply Complex.ext <;> simp [sfrac]
 
-/-- Rename the finished named head sum back onto its `Finset.sum` form (one definitional
-unfold, applied once per rectangle). -/
+/-- `headSumC` as its `Finset.sum`. -/
 theorem head_sum_c_eq (s : ℂ) (N : ℕ) :
     (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) = headSumC s N := rfl
 
-/-- The empty Bernoulli tail (`M = 0`), in rectangle form (raw-literal upper bound, matching
-the `m`-side of the first peel step). -/
+/-- The empty Bernoulli tail (`M = 0`), in rectangle form (raw-literal upper bound). -/
 theorem bern_sum_base (s : ℂ) (N : ℕ) :
     (∑ k ∈ Finset.Icc (1 : ℕ) (nat_lit 0),
         ((bernoulli (2 * k) : ℝ) / ((2 * k)! : ℝ) : ℂ)
@@ -325,10 +308,8 @@ theorem bern_sum_base (s : ℂ) (N : ℕ) :
   exact complex_zero_mk
 
 /-- Peel the top term off the Bernoulli tail: `∑_{Icc 1 (m+1)} = ∑_{Icc 1 m} + F (m+1)`. The
-peeled top term's Pochhammer/power exponent is the literal `e = 2b − 1` (tied by `Nat.beq`), so
-the step statement matches the incrementally built Pochhammer and power leaves without the
-kernel reducing `2b − 1` at every peel; the summation lambdas stay generic (under binders,
-never kernel-reduced). -/
+exponent is a literal `e = 2b − 1` tied by `Nat.beq`, so the kernel does not reduce `2b − 1` at
+every peel. -/
 theorem bern_sum_succ (s : ℂ) (N m b e : ℕ) (hb : Nat.beq b (m.add 1) = true)
     (he : Nat.beq (e.add 1) (Nat.mul 2 b) = true) :
     (∑ k ∈ Finset.Icc 1 b,
@@ -396,9 +377,8 @@ theorem natCast_pow_inv_mk (N m P : ℕ) (hP : Nat.pow N m = P)
   · rw [Complex.ofReal_im]
     simp [sfrac]
 
-/-- Primitive factorial for kernel reduction: raw `Nat.rec` + `Nat.mul` (no equation-compiler
-`Nat.factorial._f`/`.match_1` and no `HMul`), so the error-leaf `mkNatEvalAux` value checks stay on
-the `reduce_nat` fast path. Related to `Nat.factorial` by `factNat_eq`, which is elaborator-side. -/
+/-- The factorial as raw `Nat.rec` and `Nat.mul`, so kernel value checks stay on the
+`reduce_nat` fast path; `factNat_eq` relates it to `Nat.factorial`. -/
 def factNat (n : ℕ) : ℕ := n.rec 1 (fun k acc => Nat.mul (Nat.succ k) acc)
 
 theorem factNat_eq (n : ℕ) : factNat n = Nat.factorial n := by
@@ -443,11 +423,8 @@ The Stirling value at `z = w + N`, the log sum over `w + j`, and the `(t/2)·log
 each in the shapes the builders assemble. The `w`-powers `z^{1−2k}` route through the named
 inverse of the natural power. -/
 
-/-- `w + 0 − ½` in rectangle form (`N = 0`, `td > 0`): the companion of `w_sub_half_mk`, which
-needs `N ≥ 1` twice over — its hypothesis, and its real numerator `(4N − 1)`, which truncates to
-`0` in `ℕ` at `N = 0` where the true value is `−1/4`. Here the sign flag carries that minus
-instead. Needed because `hardyZApproximantRS` pins the phase at
-`riemannSiegelThetaApproximant 2 0 t`. -/
+/-- `w + 0 − ½` in rectangle form (`td > 0`): the `N = 0` case of `w_sub_half_mk`, whose
+numerator `4N − 1` truncates in `ℕ`, so here the sign flag carries the minus. -/
 theorem w_sub_half_zero_mk (t : ℝ) (tneg : Bool) (tn td : ℕ) (ht : t = sfrac tneg tn td)
     (htd : Nat.ble 1 td = true) :
     (1 / 4 + Complex.I * ((t : ℂ) / 2) + ((nat_lit 0 : ℕ) : ℂ)) - 1 / 2
@@ -519,11 +496,9 @@ theorem stirling_coeff_mk (k bn bd : ℕ) (bneg : Bool)
   · rw [Complex.ofReal_im]
     simp [sfrac]
 
-/-- `w^(1−2k : ℤ)` as the inverse of the natural power (`k ≥ 1`), the exponent a literal `e`
-tied by `Nat.beq`. With a symbolic `(2k).sub 1` exponent the `of_eq` rename against the
-incrementally built power `w ^ (2k−1)` (a raw literal) made the kernel unfold `Inv.inv` down
-through `Complex.instInv`/`Complex.inv` into `⇑normSq` (measured 2 `DFunLike.coe` + 2
-`ZeroHom.toFun` unfolds per Stirling term); with the literal the comparison is syntactic. -/
+/-- `w^(1−2k : ℤ)` as the inverse of the natural power (`k ≥ 1`). The exponent is a literal `e`
+tied by `Nat.beq`, so the rename against the built power is syntactic rather than unfolding
+`Complex.inv`. -/
 theorem zpow_one_sub_two_mul (w : ℂ) (k e : ℕ) (hk : Nat.ble 1 k = true)
     (he : Nat.beq (e.add 1) (Nat.mul 2 k) = true) :
     w ^ (1 - 2 * (k : ℤ)) = (w ^ e)⁻¹ := by
@@ -544,9 +519,8 @@ theorem pow_succ_c (w : ℂ) (m b : ℕ) (hb : Nat.beq b (m.add 1) = true) :
   obtain rfl := Nat.eq_of_beq_eq_true hb
   exact pow_succ w m
 
-/-- `w^1 = w` (raw-literal exponent, matching the literal the `pow_succ_c` chain carries: an
-`OfNat` exponent here made the first step's rename walk `HPow`/`Monoid.npow` into the ℂ
-multiplication instance). -/
+/-- `w^1 = w` at a raw-literal exponent, matching the `pow_succ_c` chain (an `OfNat` exponent
+would make the first rename unfold `Monoid.npow`). -/
 theorem pow_one_c (w : ℂ) : w ^ (nat_lit 1) = w := pow_one w
 
 /-- The empty Stirling correction sum, in rectangle form (raw-literal upper bound). -/
@@ -583,8 +557,7 @@ theorem log_sum_succ (t : ℝ) (m b : ℕ) (hb : Nat.beq b (m.add 1) = true) :
   obtain rfl := Nat.eq_of_beq_eq_true hb
   exact Finset.sum_range_succ _ m
 
-/-- The theta log partial sum as a NAMED value (cf. `headSumC`): keeps the per-step and
-checkpoint statements small. -/
+/-- The theta log partial sum as a named value (cf. `headSumC`). -/
 noncomputable def logSumC (t : ℝ) (N : ℕ) : ℂ :=
   ∑ j ∈ Finset.range N, Complex.log (1 / 4 + Complex.I * ((t : ℂ) / 2) + (j : ℂ))
 
@@ -598,16 +571,13 @@ theorem log_sum_c_succ (t : ℝ) (m b : ℕ) (hb : Nat.beq b (m.add 1) = true) :
     logSumC t b = logSumC t m + Complex.log (1 / 4 + Complex.I * ((t : ℂ) / 2) + (m : ℂ)) :=
   log_sum_succ t m b hb
 
-/-- Rename the finished named log sum back onto its `Finset.sum` form (one definitional
-unfold, applied once). -/
+/-- `logSumC` as its `Finset.sum`. -/
 theorem log_sum_c_eq (t : ℝ) (N : ℕ) :
     (∑ j ∈ Finset.range N, Complex.log (1 / 4 + Complex.I * ((t : ℂ) / 2) + (j : ℂ)))
       = logSumC t N := rfl
 
-/-- `logGammaStirling M w` unfolded to its definitional body, in the exact shape the Stirling
-builder assembles. Citing this once lets the builder rename its assembled enclosure onto the
-compact `logGammaStirling M (w + N)` through a proven equality, instead of a `rfl` transport that
-forces the kernel to delta-expand the whole gamma series at every bracket point. -/
+/-- `logGammaStirling M w` unfolded to the shape the Stirling builder assembles; renaming through
+this equality avoids a `rfl` transport that delta-expands the gamma series. -/
 theorem logGammaStirling_unfold (M : ℕ) (w : ℂ) :
     Complex.Stirling.logGammaStirling M w
       = (w - 1 / 2) * Complex.log w - w + (1 / 2 : ℂ) * (Real.log (2 * Real.pi) : ℂ)
@@ -616,9 +586,7 @@ theorem logGammaStirling_unfold (M : ℕ) (w : ℂ) :
   rfl
 
 /-- `riemannSiegelThetaApproximant M N t` unfolded to the shape `mkThetaNamed` assembles (the
-Stirling value now compact via `logGammaStirling_unfold`, the log sum in its `Finset.sum` form),
-so `mkThetaApproxNamed` renames onto the approximant through this proven equality rather than a
-`rfl` transport. -/
+Stirling value compact, the log sum as a `Finset.sum`). -/
 theorem riemannSiegelThetaApproximant_named (M N : ℕ) (t : ℝ) :
     riemannSiegelThetaApproximant M N t
       = ((Complex.Stirling.logGammaStirling M (1 / 4 + Complex.I * (t / 2) + N)
@@ -626,11 +594,8 @@ theorem riemannSiegelThetaApproximant_named (M N : ℕ) (t : ℝ) :
           - t / 2 * Real.log Real.pi) :=
   rfl
 
-/-- **The order-2, shift-0 theta approximant in real closed form.** With `w = ¼ + it/2`,
-`Im((w − ½)·Log w) = (t/4)·log(1/16 + t²/4) − ¼·arg w`, `arg w = π/2 − arctan(1/(2t))` for
-`t > 0`, `Im(−w) = −t/2`, and the Bernoulli terms `w⁻¹/12 − (w³)⁻¹/360` have an exact rational
-imaginary part. So no complex arithmetic is needed to enclose `θ̃`: one real log, one small
-arctan, `log π`, and rationals. -/
+/-- **The order-2, shift-0 theta approximant in real closed form** (one real log, one arctan,
+`log π` and rationals), for `t > 0`. -/
 theorem riemannSiegelThetaApproximant_two_zero {t : ℝ} (ht : 0 < t) :
     riemannSiegelThetaApproximant 2 0 t
       = t / 4 * Real.log (1 / 16 + t ^ 2 / 4) - 1 / 4 * (Real.pi / 2 - Real.arctan (1 / (2 * t)))
@@ -691,7 +656,7 @@ theorem riemannSiegelThetaApproximant_two_zero_mk (t : ℝ) (tn td S Q V T4 T2 R
     push_cast at this
     linarith
   rw [riemannSiegelThetaApproximant_two_zero (by rw [sfrac_false_div]; positivity)]
-  simp only [sfrac, if_false, if_true, one_mul, neg_one_mul, Bool.false_eq_true]
+  simp only [sfrac, ite_false, ite_true, one_mul, neg_one_mul, Bool.false_eq_true]
   have hlog : (1 / 16 + ((tn : ℝ) / td) ^ 2 / 4)
       = (((td * td + 4 * tn * tn : ℕ) : ℝ) / ((16 * td * td : ℕ) : ℝ)) := by
     push_cast; field_simp; ring
@@ -782,9 +747,8 @@ theorem pow_succ_r (x : ℝ) (m b : ℕ) (hb : Nat.beq b (m.add 1) = true) :
 /-- `x^1 = x` over `ℝ` (raw-literal exponent; see `pow_one_c`). -/
 theorem pow_one_r (x : ℝ) : x ^ (nat_lit 1) = x := pow_one x
 
-/-- The `zetaRemainderBound` prefactor shape: the real denominator `s.re + m` at the
-critical-line point is the exact rational `(1+2m)/2`, so the division folds into a constant
-multiplier. -/
+/-- The `zetaRemainderBound` prefactor with the denominator `s.re + m` at the critical-line
+point folded into the constant `(1+2m)/2`. -/
 theorem zrb_shape_eq (x c t : ℝ) (m : ℕ) :
     x / ((1 / 2 + Complex.I * (t : ℂ)).re + ((m : ℕ) : ℝ)) * c
       = x * sfrac false (nat_lit 2) (Nat.add 1 (Nat.mul 2 m)) * c := by
@@ -799,9 +763,8 @@ theorem zrb_shape_eq (x c t : ℝ) (m : ℕ) :
   field_simp
   ring
 
-/-- `n^{-s-m}` at `s = ½ + i·t` in the cpow builder's rectangle shape: magnitude
-`(√P)⁻¹` (the power `n^{1+2m}` carried as a literal `P`), phase argument `sfrac false n 1`,
-matching the built enclosure so the rename transports by reflexivity. -/
+/-- `n^{-s-m}` at `s = ½ + i·t` in the cpow builder's rectangle shape: magnitude `(√P)⁻¹` with
+`P = n^{1+2m}` a literal, phase argument `sfrac false n 1`. -/
 theorem cpow_neg_s_sub_mk (t : ℝ) (tn td n m P : ℕ) (ht : t = sfrac false tn td)
     (hn : Nat.ble 1 n = true) (hP : Nat.pow n (Nat.add 1 (Nat.mul 2 m)) = P) :
     (n : ℂ) ^ (-(1 / 2 + Complex.I * (t : ℂ)) - ((m : ℕ) : ℂ))
@@ -863,10 +826,8 @@ theorem main_sum_rs_term_mk (θ t : ℝ) (tn td n : ℕ) (ht : t = sfrac false t
   subst ht
   rw [hlogsfrac, div_eq_inv_mul]
 
-/-- The Riemann–Siegel main sum's partial sum as a NAMED value; `mainSumOfPhase` is twice it.
-Carrying the 4-node application `mainSumRS θ t ν` through the peel steps keeps the elaborated
-`Finset.sum` out of every intermediate certificate, exactly as `headSumC` does on the
-Euler–Maclaurin side. -/
+/-- The Riemann–Siegel main partial sum as a named value (cf. `headSumC`); `mainSumOfPhase` is
+twice it. -/
 noncomputable def mainSumRS (θ t : ℝ) (ν : ℕ) : ℝ :=
   ∑ n ∈ Finset.Icc 1 ν, Real.cos (θ - t * Real.log n) / Real.sqrt n
 
@@ -877,36 +838,30 @@ theorem main_sum_rs_base (θ t : ℝ) :
   rw [mainSumRS, hIcc, Finset.sum_empty]
   simp [sfrac]
 
-/-- Peel the top term off the main sum: `∑_{Icc 1 b} = ∑_{Icc 1 a} + f b` (`b = a + 1`). The
-peeled index is the raw literal `b`, so the next step's `of_eq` compares the two sides
-syntactically instead of reducing `a + 1`; see `ascPochhammer_succ_eval_c`. -/
+/-- Peel the top term off the main sum: `∑_{Icc 1 b} = ∑_{Icc 1 a} + f b`. The index is the
+raw literal `b` (tied to `a + 1` by `Nat.beq`), so the next step compares syntactically. -/
 theorem main_sum_rs_succ (θ t : ℝ) (a b : ℕ) (hb : Nat.beq b (a.add 1) = true) :
     mainSumRS θ t b
       = mainSumRS θ t a + Real.cos (θ - t * Real.log b) / Real.sqrt b := by
   obtain rfl := Nat.eq_of_beq_eq_true hb
   exact Finset.sum_Icc_succ_top (Nat.le_add_left 1 a) _
 
-/-- The main sum at `ν = 1` is `cos θ` (`log 1 = 0`, `√1 = 1`): lets the accumulation seed at
-`n = 2` and skip a wasted `log`/`sqrt` leaf, as `head_sum_c_two` does on the EM side. -/
+/-- The main sum at `ν = 1`: the seed of the accumulation (cf. `head_sum_c_two`). -/
 theorem main_sum_rs_one (θ t : ℝ) : mainSumRS θ t (nat_lit 1) = Real.cos θ := by
   rw [main_sum_rs_succ θ t (nat_lit 0) (nat_lit 1) (by rfl), main_sum_rs_base]
   simp [sfrac]
 
-/-- Rename the finished named main sum onto `mainSumOfPhase`, the form the approximant is stated
-in. The doubling is stated as `x + x` rather than `2 * x`: no enclosure builder produces a bare
-`2` numeral (`mkConstNear` yields `sfrac false 2 1`), so the builder doubles with `addNear` and
-this is the shape that then matches syntactically. -/
+/-- `mainSumOfPhase` as the doubled named sum. The doubling is `x + x`, not `2 * x`, to match the
+builder's `addNear` syntactically. -/
 theorem main_sum_of_phase_eq (θ t : ℝ) (ν : ℕ) :
     Zeta.RiemannSiegel.mainSumOfPhase θ t ν = mainSumRS θ t ν + mainSumRS θ t ν :=
   two_mul (mainSumRS θ t ν)
 
 /-! ### One main-sum step as a single lemma
 
-`mainSumRS_step` adds the term `b` to the named partial sum in one kernel step: every interval
-operation between the input enclosures and the next partial sum, and the range reduction of the
-phase by a multiple of `π/2`, is folded into its proof, and each use checks only a few short
-numeral conditions (two `natAbsSubLe`, one radius `Nat.ble`, positivity), all over one shared
-denominator. Kernel cost is proportional to the number of `Nat` operations in those conditions. -/
+`mainSumRS_step` adds the term `b` to the named partial sum in one kernel step. The interval
+arithmetic and the reduction of the phase by a multiple of `π/2` are folded into its proof, so
+each use checks only a few numeral conditions over one shared denominator. -/
 
 /-! The quadrant identities and signs `mainSumRS_step` takes: `cos (r + k·π/2) = ε·g r` for
 `k mod 4 = 0, 1, 2, 3` with `(g, ε) = (cos, 1), (sin, −1), (cos, −1), (sin, 1)`. The signs are named
@@ -960,8 +915,7 @@ theorem cos_quad_nat3 (k : ℕ) (hk : Nat.beq (k % 4) 3 = true) (r : ℝ) :
   obtain ⟨q, rfl⟩ := exists_eq_four_mul_add_of_mod k 3 hk
   rw [quadSignPos, one_mul, ← cos_quad3 r q]; push_cast; ring_nf
 
-/-- One main-sum term's enclosure, `|A·cos φ − (Ac/B)·(Cc/B)| ≤ rA/B + (Ac/B)·ρ`: the per-term
-half of `mainSumRS_step`, shared by the single and the paired steps. -/
+/-- The enclosure `|A·cos φ − (Ac/B)·(Cc/B)| ≤ rA/B + (Ac/B)·ρ` of one main-sum term. -/
 theorem mainSumTerm_bound (θ : ℝ) (g : ℝ → ℝ) (ε : ℝ) (b tn td k B DI M : ℕ)
     (nθ : Bool) (cθ rθ cL rL cA rA : ℕ) (nφ : Bool) (u Pc rπ : ℕ) (nI : Bool) (cI : ℕ) (nC : Bool)
     (hε : |ε| = 1) (hquad : ∀ r : ℝ, Real.cos (r + (k : ℝ) * (Real.pi / 2)) = ε * g r)
@@ -1072,19 +1026,12 @@ theorem mainSumTerm_bound (θ : ℝ) (g : ℝ → ℝ) (ε : ℝ) (b tn td k B D
   exact hterm
 
 /-- **One Riemann–Siegel main-sum step.** From enclosures of the named partial sum up to `a`, the
-phase `θ`, `log b`, `(√b)⁻¹`, the `π` tier and the in-range certificate of `g (u/B)`, enclose the
-named partial sum up to `b = a + 1`. Every enclosure shares the centre and radius denominator `B`
-(`π` has its own `M`, since its error is multiplied by `k`), which keeps the numeral conditions
-short: kernel cost follows their size. The range reduction is folded in: `φc ≈ ±(u/B + k·π/2)`, and
-`cos (r + k·π/2) = ε·g r` (`hquad`, from `cos_quad_nat0..3`).
-
-With `φ = θ − t·log b`, `φc = θc/B − (tn/td)·Lc/B` and `ψ = ±(u/B + k·π/2)`: `|φ − ψ| ≤ rθ/B +
-t·rL/B + 1/B + k·rπ/(2M)`, and the certificate adds `1/DI = 2/B`; so `|cos φ − Cc/B| ≤ ρ = (rθ +
-3)/B + t·rL/B + k·rπ/(2M)`. Then `|A·cos φ − Ac·Cc/B²| ≤ rA/B + (Ac/B)·ρ` since `|cos φ| ≤ 1`, plus
-the sum's radius and the rounding `1/B` of the new centre. The numeral conditions: `hpos` and `hDI`
-(denominators positive, `2·DI = B`), `hφ` (the phase centre within `1/B` of the reduced point),
-`hR` (`|Sc/B + (Ac/B)·(Cc/B) − R/B| ≤ 1/B`) and `hrad` (the radius inequality cleared of
-denominators). -/
+phase `θ`, `log b`, `(√b)⁻¹`, `π` and the in-range certificate of `g (u/B)`, encloses the named
+partial sum up to `b = a + 1`, with the phase reduced by `k·π/2` (`hquad`, from
+`cos_quad_nat0..3`). Every enclosure has denominator `B` (`M` for `π`, whose error is multiplied by
+`k`). The numeral conditions: `hpos` and `hDI` (denominators positive, `2·DI = B`), `hφ` (the
+phase centre within `1/B` of the reduced point), `hR` (`|Sc/B + (Ac/B)·(Cc/B) − R/B| ≤ 1/B`) and
+`hrad` (the radius inequality cleared of denominators). -/
 theorem mainSumRS_step (θ t : ℝ) (g : ℝ → ℝ) (ε : ℝ) (a b tn td k B DI M : ℕ)
     (nθ : Bool) (cθ rθ cL rL cA rA : ℕ) (nS : Bool) (cS rS : ℕ) (nφ : Bool) (u Pc rπ : ℕ)
     (nI : Bool) (cI : ℕ) (nC nR : Bool) (cR rR : ℕ)
@@ -1169,8 +1116,8 @@ theorem mainSumRS_step (θ t : ℝ) (g : ℝ → ℝ) (ε : ℝ) (a b tn td k B 
   rw [key, keyR]
   exact div_le_div_of_nonneg_right hrad' hden.le
 
-/-- `R/B ≤ X ≤ R/B + 1/B` for `X = (XP − XN)/B²` and `R = ±cR`, as one-sided `Nat.ble`s: the centre
-was floored, so the error's sign is known and no two-sided cross-multiplication is needed. -/
+/-- Boolean check that `R/B ≤ X ≤ R/B + 1/B` for `X = (XP − XN)/B²` and `R = ±cR`, as one-sided
+`Nat.ble`s (the centre is floored). -/
 def natFloorLe (XP XN : ℕ) (nR : Bool) (cR B : ℕ) : Bool :=
   Nat.ble (((numPosC nR cR).mul B).add XN) (XP.add ((numNegC nR cR).mul B)) &&
     Nat.ble (XP.add ((numNegC nR cR).mul B)) ((((numPosC nR cR).mul B).add XN).add B)
@@ -1198,49 +1145,50 @@ theorem abs_sub_le_of_natFloorLe {XP XN cR B : ℕ} {nR : Bool} (hB : 0 < B)
       div_le_div_iff₀ (by positivity) hBr]
     nlinarith
 
-/-- **Two main-sum terms in one step.** As `mainSumRS_step`, but adding terms `b₁ = a + 1` and
-`b₂ = a + 2` together: one floored centre (`hR`, one-sided) and one radius check (`hrad`) per
-pair. The intermediate rounding is redundant, so this removes condition terms rather than moving
-them. -/
-theorem mainSumRS_step2 (θ t : ℝ) (g₁ g₂ : ℝ → ℝ) (ε₁ ε₂ : ℝ) (a b₁ b₂ tn td k₁ k₂ B DI M : ℕ)
-    (nθ : Bool) (cθ rθ cL₁ rL₁ cA₁ rA₁ cL₂ rL₂ cA₂ rA₂ : ℕ) (nS : Bool) (cS rS : ℕ)
-    (nφ₁ : Bool) (u₁ : ℕ) (nφ₂ : Bool) (u₂ Pc rπ : ℕ)
-    (nI₁ : Bool) (cI₁ : ℕ) (nC₁ nI₂ : Bool) (cI₂ : ℕ) (nC₂ nR : Bool) (cR rR : ℕ)
-    (hε₁ : |ε₁| = 1) (hquad₁ : ∀ r : ℝ, Real.cos (r + (k₁ : ℝ) * (Real.pi / 2)) = ε₁ * g₁ r)
-    (hsign₁ : sfrac nC₁ cI₁ B = ε₁ * sfrac nI₁ cI₁ B)
-    (hε₂ : |ε₂| = 1) (hquad₂ : ∀ r : ℝ, Real.cos (r + (k₂ : ℝ) * (Real.pi / 2)) = ε₂ * g₂ r)
-    (hsign₂ : sfrac nC₂ cI₂ B = ε₂ * sfrac nI₂ cI₂ B)
-    (ht : t = sfrac false tn td) (hb₁ : Nat.beq b₁ (a.add 1) = true)
-    (hb₂ : Nat.beq b₂ (b₁.add 1) = true)
-    (hS : Real.IsNear (mainSumRS θ t a) nS cS B rS B)
-    (hθ : Real.IsNear θ nθ cθ B rθ B)
+/-- **Two main-sum terms in one step.** As `mainSumRS_step`, adding `b₁ = a + 1` and `b₂ = a + 2`
+with one floored centre (`hR`) and one radius check (`hrad`). Binders that change least between
+steps come first, so the olean shares the prefixes of successive applications. -/
+theorem mainSumRS_step2
+    (td B DI M : ℕ) (nθ : Bool) (rL₁ rL₂ Pc rπ : ℕ) (nI₁ nI₂ : Bool)
+    (hpi : Real.IsNear Real.pi false Pc M rπ M)
+    (hpos : Nat.ble (nat_lit 1) (((td.mul B).mul M).mul DI) = true)
+    (hDI : Nat.beq (Nat.mul 2 DI) B = true) (g₁ g₂ : ℝ → ℝ) (ε₁ ε₂ : ℝ) (rA₁ rA₂ : ℕ)
+    (nS nφ₁ nφ₂ nC₁ nC₂ nR : Bool) (hε₁ : |ε₁| = 1) (hε₂ : |ε₂| = 1) (a b₁ : ℕ)
+    (hb₁ : Nat.beq b₁ (a.add 1) = true) (b₂ : ℕ) (hb₂ : Nat.beq b₂ (b₁.add 1) = true)
+    (cL₁ cA₁ cL₂ cA₂ : ℕ)
     (hL₁ : Real.IsNear (Real.log (sfrac false b₁ (nat_lit 1))) false cL₁ B rL₁ B)
     (hA₁ : Real.IsNear (Real.sqrt (b₁ : ℝ))⁻¹ false cA₁ B rA₁ B)
     (hL₂ : Real.IsNear (Real.log (sfrac false b₂ (nat_lit 1))) false cL₂ B rL₂ B)
-    (hA₂ : Real.IsNear (Real.sqrt (b₂ : ℝ))⁻¹ false cA₂ B rA₂ B)
-    (hpi : Real.IsNear Real.pi false Pc M rπ M)
-    (hI₁ : Real.IsNear (g₁ ((u₁ : ℝ) / (B : ℝ))) nI₁ cI₁ B 1 DI)
-    (hI₂ : Real.IsNear (g₂ ((u₂ : ℝ) / (B : ℝ))) nI₂ cI₂ B 1 DI)
-    (hpos : Nat.ble (nat_lit 1) (((td.mul B).mul M).mul DI) = true)
-    (hDI : Nat.beq (Nat.mul 2 DI) B = true)
+    (hA₂ : Real.IsNear (Real.sqrt (b₂ : ℝ))⁻¹ false cA₂ B rA₂ B) (θ t : ℝ) (tn cθ rθ : ℕ)
+    (ht : t = sfrac false tn td) (hθ : Real.IsNear θ nθ cθ B rθ B) (k₂ : ℕ)
+    (hquad₂ : ∀ r : ℝ, Real.cos (r + (k₂ : ℝ) * (Real.pi / 2)) = ε₂ * g₂ r) (k₁ : ℕ)
+    (hquad₁ : ∀ r : ℝ, Real.cos (r + (k₁ : ℝ) * (Real.pi / 2)) = ε₁ * g₁ r) (rS cS u₁ : ℕ)
     (hφ₁ : natAbsSubLe (numPosC nθ (td.mul cθ)) ((numNegC nθ (td.mul cθ)).add (tn.mul cL₁))
       (td.mul B) (numPosC nφ₁ (((Nat.mul 2 M).mul u₁).add ((k₁.mul Pc).mul B)))
       (numNegC nφ₁ (((Nat.mul 2 M).mul u₁).add ((k₁.mul Pc).mul B))) ((Nat.mul 2 M).mul B)
       (nat_lit 1) B = true)
+    (u₂ : ℕ)
     (hφ₂ : natAbsSubLe (numPosC nθ (td.mul cθ)) ((numNegC nθ (td.mul cθ)).add (tn.mul cL₂))
       (td.mul B) (numPosC nφ₂ (((Nat.mul 2 M).mul u₂).add ((k₂.mul Pc).mul B)))
       (numNegC nφ₂ (((Nat.mul 2 M).mul u₂).add ((k₂.mul Pc).mul B))) ((Nat.mul 2 M).mul B)
       (nat_lit 1) B = true)
+    (cI₁ cI₂ cR : ℕ)
     (hR : natFloorLe ((((numPosC nS cS).mul B).add (cA₁.mul (numPosC nC₁ cI₁))).add
         (cA₂.mul (numPosC nC₂ cI₂)))
       ((((numNegC nS cS).mul B).add (cA₁.mul (numNegC nC₁ cI₁))).add (cA₂.mul (numNegC nC₂ cI₂)))
       nR cR B = true)
+    (rR : ℕ)
     (hrad : Nat.ble (((((((rS.add rA₁).add rA₂).add 1).mul B).mul td).mul (Nat.mul 2 M) |>.add
         (cA₁.mul (((Nat.mul 2 M).mul ((td.mul (rθ.add 3)).add (tn.mul rL₁))).add
           ((k₁.mul rπ).mul (td.mul B))))) |>.add
         (cA₂.mul (((Nat.mul 2 M).mul ((td.mul (rθ.add 3)).add (tn.mul rL₂))).add
           ((k₂.mul rπ).mul (td.mul B)))))
-      (((rR.mul B).mul td).mul (Nat.mul 2 M)) = true) :
+      (((rR.mul B).mul td).mul (Nat.mul 2 M)) = true)
+    (hsign₁ : sfrac nC₁ cI₁ B = ε₁ * sfrac nI₁ cI₁ B)
+    (hsign₂ : sfrac nC₂ cI₂ B = ε₂ * sfrac nI₂ cI₂ B)
+    (hS : Real.IsNear (mainSumRS θ t a) nS cS B rS B)
+    (hI₁ : Real.IsNear (g₁ ((u₁ : ℝ) / (B : ℝ))) nI₁ cI₁ B 1 DI)
+    (hI₂ : Real.IsNear (g₂ ((u₂ : ℝ) / (B : ℝ))) nI₂ cI₂ B 1 DI) :
     Real.IsNear (mainSumRS θ t b₂) nR cR B rR B := by
   rw [main_sum_rs_succ θ t b₁ b₂ hb₂, main_sum_rs_succ θ t a b₁ hb₁,
     main_sum_rs_term_mk θ t tn td b₁ ht, main_sum_rs_term_mk θ t tn td b₂ ht]
@@ -1324,20 +1272,16 @@ theorem mainSumRS_step2 (θ t : ℝ) (g₁ g₂ : ℝ → ℝ) (ε₁ ε₂ : �
 
 Renames for the three non-sum pieces of `hardyZApproximantRS`'s correction term
 `(-1)^ν · T^{-1/4} · (Ψ(p) + C₁(p)/√T)` at `T = t/2π`: the sign, the normalised height, and the
-quarter-power. `Ψ = correction` and `C₁ = correctionLinear` are *not* covered — they are defined
-through `modelIntegral`/`modelMoment` and have no elementary closed form for the enclosure engine
-to build (`cos_mul_correction` characterises `Ψ` only implicitly, and degenerates at
-`p = 1/4, 3/4`). -/
+quarter-power. `Ψ = correction` and `C₁ = correctionLinear` are renamed separately, by
+`correction_mk` and the `Ψ`-derivative chain. -/
 
-/-- `(-1)^n = 1` at an even literal exponent, in `sfrac` form. The sign of the Riemann–Siegel
-correction is decided at build time from the parity of the cutoff, so no power is ever enclosed. -/
+/-- `(-1)^n = 1` at an even literal exponent, in `sfrac` form. -/
 theorem neg_one_pow_even_mk (n : ℕ) (h : Nat.beq (n % 2) (nat_lit 0) = true) :
     (-1 : ℝ) ^ n = sfrac false (nat_lit 1) (nat_lit 1) := by
   rw [(Nat.even_iff.2 (Nat.eq_of_beq_eq_true h)).neg_one_pow]
   norm_num [sfrac]
 
-/-- `(-1)^n = -1` at an odd literal exponent, in `sfrac` form; the companion of
-`neg_one_pow_even_mk`. -/
+/-- `(-1)^n = -1` at an odd literal exponent, in `sfrac` form. -/
 theorem neg_one_pow_odd_mk (n : ℕ) (h : Nat.beq (n % 2) (nat_lit 1) = true) :
     (-1 : ℝ) ^ n = sfrac true (nat_lit 1) (nat_lit 1) := by
   rw [(Nat.odd_iff.2 (Nat.eq_of_beq_eq_true h)).neg_one_pow]
@@ -1353,25 +1297,22 @@ theorem t_div_two_pi_mk (t : ℝ) (tn td : ℕ) (ht : t = sfrac false tn td) :
   subst ht
   rw [h2, div_eq_mul_inv]
 
-/-- `0 ≤ t/2π` for a nonnegative rational endpoint: the side condition `rpow_neg_quarter_mk`
-takes, in the surface form the endpoint carries. -/
+/-- `0 ≤ t/2π` for a nonnegative rational endpoint (the side condition of
+`rpow_neg_quarter_mk`). -/
 theorem sfrac_div_two_pi_nonneg (tn td : ℕ) : 0 ≤ sfrac false tn td / (2 * Real.pi) := by
   rw [sfrac_false_div]
   positivity
 
-/-- `x^{-1/4} = (√(√x))⁻¹`: the quarter-power the Riemann–Siegel correction carries, as two
-square-root images and a reciprocal. The engine has no `rpow` builder, and this is the only
-shape it can assemble. -/
+/-- `x^{-1/4} = (√(√x))⁻¹`: the quarter-power as two square roots and a reciprocal, since the
+engine has no `rpow` builder. -/
 theorem rpow_neg_quarter_mk (x : ℝ) (hx : 0 ≤ x) :
     x ^ (-(1 / 4) : ℝ) = (Real.sqrt (Real.sqrt x))⁻¹ := by
   rw [Real.sqrt_eq_rpow, Real.sqrt_eq_rpow, ← Real.rpow_mul hx, Real.rpow_neg hx]
   norm_num
 
-/-- **The Riemann–Siegel correction in the shape the builder assembles**: the classical quotient
-`Ψ(p) = cos(2π(p² − p − 1/16)) / cos(2πp)`, with the reciprocal pulled to the front and every
-rational constant in `sfrac` form. The side condition is discharged once and for all by
-`cos_two_pi_fract_sqrt_ne_zero`: at a rational endpoint `p` is irrational, so it never lands on
-`1/4` or `3/4` and the denominator never vanishes. -/
+/-- **The Riemann–Siegel correction in the shape the builder assembles**: the quotient
+`Ψ(p) = cos(2π(p² − p − 1/16)) / cos(2πp)`, with the reciprocal in front and every rational
+constant in `sfrac` form. The side condition comes from `cos_two_pi_p_ne_zero_mk`. -/
 theorem correction_mk (p : ℝ)
     (h : Real.cos (sfrac false (nat_lit 2) (nat_lit 1) * Real.pi * p) ≠ 0) :
     Zeta.RiemannSiegel.correction p
@@ -1384,10 +1325,8 @@ theorem correction_mk (p : ℝ)
   rw [h2, h16, eq_inv_mul_iff_mul_eq₀ h, Zeta.RiemannSiegel.cos_mul_correction p]
   ring_nf
 
-/-- `cos(2πp) ≠ 0` at a certificate endpoint, in the surface form the correction builder produces:
-`t = tn/td` a positive rational, the cutoff already identified with the literal `ν` (by
-`floor_sqrt_eq_dec`), constants in `sfrac` form. Discharges `correction_mk`'s side condition; the
-mathematics is `cos_two_pi_fract_sqrt_ne_zero`. -/
+/-- `cos(2πp) ≠ 0` at a certificate endpoint, in the surface form the correction builder produces
+(`t = tn/td` a positive rational, cutoff `ν`): `correction_mk`'s side condition. -/
 theorem cos_two_pi_p_ne_zero_mk (t : ℝ) (tn td ν : ℕ) (ht : t = sfrac false tn td)
     (htn : Nat.ble 1 tn = true) (htd : Nat.ble 1 td = true)
     (hν : ⌊Real.sqrt (t / (2 * Real.pi))⌋₊ = ν) :
@@ -1407,8 +1346,7 @@ theorem cos_two_pi_p_ne_zero_mk (t : ℝ) (tn td ν : ℕ) (ht : t = sfrac false
   exact Zeta.RiemannSiegel.cos_two_pi_fract_sqrt_ne_zero q hq
 
 /-- **The `32π ≤ t` threshold** the first-order Riemann–Siegel bound needs
-(`ZIntervalRS.Certificate.le_fst`), from one cross-multiplied `Nat.ble`: `π < 3.15`
-(`Real.pi_lt_d2`) gives `32π < 100.8 = 504/5`. -/
+(`ZIntervalRS.Certificate.le_fst`), from one cross-multiplied `Nat.ble`. -/
 theorem thirtyTwoPi_le_dec {t : ℝ} (tn td : ℕ) (ht : t = sfrac false tn td)
     (htd : Nat.ble 1 td = true)
     (h : Nat.ble (Nat.mul 504 td) (Nat.mul 5 tn) = true) : 32 * Real.pi ≤ t := by
@@ -1421,9 +1359,7 @@ theorem thirtyTwoPi_le_dec {t : ℝ} (tn td : ℕ) (ht : t = sfrac false tn td)
   linarith
 
 /-- **The Riemann–Siegel cutoff at a rational endpoint**, `⌊√(t/2π)⌋₊ = ν`, from two
-cross-multiplied ℕ side conditions. Squaring removes the square root, so the cutoff is decided by
-`2πν² ≤ t < 2π(ν+1)²`, and `2π·10²⁰ ∈ (628318530717958647692, 628318530717958647694)` by
-`Real.pi_gt_d20`/`pi_lt_d20`. -/
+cross-multiplied ℕ side conditions encoding `2πν² ≤ t < 2π(ν+1)²`. -/
 theorem floor_sqrt_eq_dec {t : ℝ} (tn td ν : ℕ) (ht : t = sfrac false tn td)
     (htd : Nat.ble 1 td = true)
     (hlo : Nat.ble (Nat.mul (Nat.mul 628318530717958647694 (Nat.mul ν ν)) td)
@@ -1454,9 +1390,8 @@ theorem floor_sqrt_eq_dec {t : ℝ} (tn td ν : ℕ) (ht : t = sfrac false tn td
   · rw [Real.sqrt_lt' (by positivity), div_lt_iff₀ h2pi, div_lt_iff₀ hd, sq]
     nlinarith [hhi', hpil, hd]
 
-/-- `0 < t/2π` for a positive rational endpoint: the side condition the `rpow` renames of the
-error bound take (they invert, so nonnegativity is not enough — cf.
-`sfrac_div_two_pi_nonneg`). -/
+/-- `0 < t/2π` for a positive rational endpoint, the side condition of the `rpow` renames of the
+error bound (which invert, so `sfrac_div_two_pi_nonneg` is not enough). -/
 theorem sfrac_div_two_pi_pos (tn td : ℕ) (htn : Nat.ble 1 tn = true)
     (htd : Nat.ble 1 td = true) : 0 < sfrac false tn td / (2 * Real.pi) := by
   have h1 : (0 : ℝ) < tn := pos_real_of_ble htn
@@ -1464,18 +1399,11 @@ theorem sfrac_div_two_pi_pos (tn td : ℕ) (htn : Nat.ble 1 tn = true)
   rw [sfrac_false_div]
   exact div_pos (div_pos h1 h2) (by positivity)
 
-/-- `0 ≤ t/2π` at an endpoint in any surface form. The metaprogram applies this directly, so it
-is parameterised by `t` and `ht` rather than stated about `sfrac false tn td`: `tE` is whatever the
-row carries (a decimal literal, say), and only `htE` ties it to the `sfrac` form. -/
+/-- `0 ≤ t/2π` at an endpoint in any surface form: `t` is whatever the row carries, and only
+`ht` ties it to the `sfrac` form. -/
 theorem t_div_two_pi_nonneg (t : ℝ) (tn td : ℕ) (ht : t = sfrac false tn td) :
     0 ≤ t / (2 * Real.pi) := by
   subst ht; exact sfrac_div_two_pi_nonneg tn td
-
-/-- `0 < t/2π` at an endpoint in any surface form; the strict companion of
-`t_div_two_pi_nonneg`, for the reciprocals in the error bound. -/
-theorem t_div_two_pi_pos (t : ℝ) (tn td : ℕ) (ht : t = sfrac false tn td)
-    (htn : Nat.ble 1 tn = true) (htd : Nat.ble 1 td = true) : 0 < t / (2 * Real.pi) := by
-  subst ht; exact sfrac_div_two_pi_pos tn td htn htd
 
 /-- `√(√x) = x^{1/4}`: the bridge between the engine's two square-root images and the real
 exponents the Riemann–Siegel error bound carries. -/
@@ -1508,9 +1436,8 @@ theorem rpow_neg_fifteen_quarter_mk (x : ℝ) (hx : 0 < x) :
     ← Real.rpow_add hx, ← Real.rpow_neg hx.le]
   norm_num
 
-/-- **The linear-free Riemann–Siegel approximant at a literal cutoff.** `hardyZApproximantRS₀`
-mentions `⌊√(t/2π)⌋₊`, a real-number floor that no amount of unfolding turns into a numeral, so the
-builder's literal `ν` is put in through this rename; `hν` comes from `floor_sqrt_eq_dec`. -/
+/-- **The linear-free Riemann–Siegel approximant at a literal cutoff `ν`**, since the floor
+`⌊√(t/2π)⌋₊` never unfolds to a numeral; `hν` comes from `floor_sqrt_eq_dec`. -/
 theorem hardyZApproximantRS₀_eq (t : ℝ) (ν : ℕ)
     (hν : ⌊Real.sqrt (t / (2 * Real.pi))⌋₊ = ν) :
     hardyZApproximantRS₀ t
@@ -1523,11 +1450,10 @@ theorem hardyZApproximantRS₀_eq (t : ℝ) (ν : ℕ)
   subst hν
   rfl
 
-/-- **The linear-free Riemann–Siegel error bound in the shape the builder assembles**:
+/-- The linear-free Riemann–Siegel error bound in the shape the builder assembles:
 `25/4·T^{-5/4} + 1/32·T^{-15/4} + 13/10·T^{-3/4}` with every real exponent turned into products of
-`q = √(√T)` and `T`, and every coefficient in `sfrac` form. One rename for the whole bound, as
-`correction_mk` is for `Ψ` — the coefficients alone would defeat a `rfl`, since `sfrac false 25 4`
-is `1 * (25/4)` and `one_mul` is a theorem, not definitional. -/
+`q = √(√T)` and `T`, and every coefficient in `sfrac` form. A `rfl` would not do:
+`sfrac false 25 4` is `1 * (25/4)`, and `one_mul` is not definitional. -/
 theorem hardyZErrorBoundRS₀_mk (t : ℝ) (tn td : ℕ) (ht : t = sfrac false tn td)
     (htn : Nat.ble 1 tn = true) (htd : Nat.ble 1 td = true) :
     hardyZErrorBoundRS₀ t
@@ -1549,10 +1475,9 @@ theorem hardyZErrorBoundRS₀_mk (t : ℝ) (tn td : ℕ) (ht : t = sfrac false t
   rw [h25, h32, h13, ← rpow_neg_five_quarter_mk _ hT, ← rpow_neg_fifteen_quarter_mk _ hT,
     ← rpow_neg_three_quarter_mk _ hT]
 
-/-- **The first-order Riemann–Siegel approximant at a literal cutoff** — the `hardyZApproximantRS₀`
-counterpart for the full approximant, carrying `Ψ(p) + C₁(p)/√T`. `hν` comes from
-`floor_sqrt_eq_dec`, and the cutoff is stated as `sfrac false ν 1` to match what the builder's
-`p = √T − ν` actually is. -/
+/-- **The first-order Riemann–Siegel approximant at a literal cutoff**, carrying
+`Ψ(p) + C₁(p)/√T` (cf. `hardyZApproximantRS₀_eq`). The cutoff is stated as `sfrac false ν 1` to
+match the builder's `p = √T − ν`. -/
 theorem hardyZApproximantRS_eq (t : ℝ) (ν : ℕ)
     (hν : ⌊Real.sqrt (t / (2 * Real.pi))⌋₊ = ν) :
     hardyZApproximantRS t
@@ -1568,9 +1493,9 @@ theorem hardyZApproximantRS_eq (t : ℝ) (ν : ℕ)
   subst hν
   rfl
 
-/-- **The first-order Riemann–Siegel error bound in the shape the builder assembles**:
-`25/4·T^{-5/4} + 1/32·T^{-15/4}`, the two-term companion of `hardyZErrorBoundRS₀_mk` (no
-discarded-`C₁` charge, since the full approximant carries it). -/
+/-- The first-order Riemann–Siegel error bound in the shape the builder assembles:
+`25/4·T^{-5/4} + 1/32·T^{-15/4}`, the two-term companion of `hardyZErrorBoundRS₀_mk` (the full
+approximant carries `C₁`, so the bound has no `T^{-3/4}` term). -/
 theorem hardyZErrorBoundRS_mk (t : ℝ) (tn td : ℕ) (ht : t = sfrac false tn td)
     (htn : Nat.ble 1 tn = true) (htd : Nat.ble 1 td = true) :
     hardyZErrorBoundRS t
@@ -1744,10 +1669,8 @@ theorem correctionLinear_mk (p : ℝ) :
   rw [h96, Zeta.RiemannSiegel.correctionLinear_eq, div_eq_mul_inv]
   ring
 
-/-- Reciprocal through a negation: `x⁻¹ = -((-x)⁻¹)`. `mkInvImageNear` inverts only enclosures
-with a positive centre, so a negative one is inverted after negating and negated back — the
-Riemann–Siegel `cos(2πp)` denominator is negative for every `p ∈ (1/4, 3/4)`, i.e. about half the
-certificate endpoints. -/
+/-- Reciprocal through a negation, for inverting enclosures with a negative centre
+(`mkInvImageNear` inverts only positive ones). -/
 theorem inv_eq_neg_inv_neg (x : ℝ) : x⁻¹ = -(-x)⁻¹ := by
   rw [inv_neg, neg_neg]
 

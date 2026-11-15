@@ -30,7 +30,7 @@ open scoped Real
 section Tail
 open MeasureTheory
 
-/-- **Tail majorant** (`lem:le_tail_majorant`). The tight majorant
+/-- The tail majorant (`lem:le_tail_majorant`): the tight majorant
 `N(σ) = 2^{-σ} + 2^{1-σ}/(σ-1)` for `ζ(σ) - 1 = ∑_n (n+2)^{-σ}`, `σ > 1`. -/
 theorem tsum_one_div_nat_add_two_rpow_le_majorant {σ : ℝ} (hσ : 1 < σ) :
     ∑' n : ℕ, 1 / ((n : ℝ) + 2) ^ σ ≤ 2 ^ (-σ) + 2 ^ (1 - σ) / (σ - 1) := by
@@ -51,7 +51,7 @@ theorem tsum_one_div_nat_add_two_rpow_le_majorant {σ : ℝ} (hσ : 1 < σ) :
   · exact h0
   · push_cast; ring_nf
 
-/-- **Convexity chord for `2^{-u}`** (`lem:le_two_pow_chord`). -/
+/-- The convexity chord for `2^{-u}` on `[0, 1]` (`lem:le_two_pow_chord`). -/
 theorem Real.rpow_two_neg_le_one_sub_half {u : ℝ} (hu0 : 0 ≤ u) (hu1 : u ≤ 1) :
     (2 : ℝ) ^ (-u) ≤ 1 - u / 2 := by
   have h := convexOn_exp.2 (Set.mem_univ (0 : ℝ)) (Set.mem_univ (-Real.log 2))
@@ -115,7 +115,7 @@ private lemma integrableOn_tail_majorant {c : ℝ} (hc : 1 < c) :
     IntegrableOn (fun σ : ℝ ↦ (2 : ℝ) ^ (-σ) + 2 ^ (1 - σ) / (σ - 1)) (Set.Ioi c) :=
   (integrableOn_two_rpow_neg_Ioi _).add (integrableOn_tail_majorant_snd hc)
 
-/-- **Tail-integral core.** The integral of the tail majorant over `(a, ∞)`, for `1 < a ≤ 2`, in
+/-- The integral of the tail majorant over `(a, ∞)`, for `1 < a ≤ 2`, in
 a form whose only transcendental ingredient is `log((a-1)⁻¹)`. -/
 private lemma integral_tail_majorant_le_core {a : ℝ} (ha : 1 < a) (ha2 : a ≤ 2) :
     ∫ σ in Set.Ioi a, ((2 : ℝ) ^ (-σ) + 2 ^ (1 - σ) / (σ - 1))
@@ -207,8 +207,8 @@ private lemma log_25_24_mul_two_pow_le (k : ℕ) :
   rw [Real.log_mul (by norm_num) (by positivity), Real.log_pow]
   linarith [Real.log_le_sub_one_of_pos (show (0 : ℝ) < 25 / 24 by norm_num)]
 
-/-- **Explicit tail integral** (`lem:le_tail_int_bound`). The tail majorant integrates to
-`≤ 23/5` over `(103/100, ∞)`. -/
+/-- The tail majorant integrates to
+`≤ 23/5` over `(103/100, ∞)` (`lem:le_tail_int_bound`). -/
 theorem integral_tail_majorant_le :
     ∫ σ in Set.Ioi (103 / 100 : ℝ), ((2 : ℝ) ^ (-σ) + 2 ^ (1 - σ) / (σ - 1)) ≤ 23 / 5 := by
   have h := integral_tail_majorant_le_core (a := 103 / 100) (by norm_num) (by norm_num)
@@ -219,8 +219,8 @@ theorem integral_tail_majorant_le :
     push_cast at h5; linarith
   linarith [h, hlog, Real.log_two_lt_d9]
 
-/-- **Explicit tail witness** (`lem:le_tail_explicit`). The tail constant `C_t ≤ 49` at
-`a = 103/100` (that is, `d = 53/100`). Superseded by `logNormZetaIntegral_tail_ge_sharp`. -/
+/-- The tail constant `C_t ≤ 49` at `a = 103/100`, that is, `d = 53/100`
+(`lem:le_tail_explicit`). `logNormZetaIntegral_tail_ge_sharp` gives `C_t ≤ 23/5`. -/
 theorem logNormZetaIntegral_tail_ge_explicit (t : ℝ) :
     (-49 ≤ ∫ σ in Set.Ioi (103 / 100 : ℝ),
         Real.log ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖)
@@ -238,7 +238,7 @@ theorem logNormZetaIntegral_tail_ge_explicit (t : ℝ) :
     linarith [hsum, Real.log_two_gt_d9]
   exact ⟨by linarith, by linarith⟩
 
-/-- **Tail-witness core.** Any bound `∫_a^∞ N ≤ B` on the tight majorant
+/-- Any bound `∫_a^∞ N ≤ B` on the tight majorant
 `N σ = 2^{-σ} + 2^{1-σ}/(σ-1)` (`1 < a`) is a tail witness `C_t ≤ B`. -/
 private lemma neg_le_logNormZetaIntegral_of_integral_majorant_le {a B : ℝ} (ha1 : 1 < a)
     (hIN : ∫ σ in Set.Ioi a, ((2 : ℝ) ^ (-σ) + 2 ^ (1 - σ) / (σ - 1)) ≤ B) (b t : ℝ) :
@@ -247,8 +247,7 @@ private lemma neg_le_logNormZetaIntegral_of_integral_majorant_le {a B : ℝ} (ha
   neg_le_logNormZetaIntegral_of_tsum_le ha1 (integrableOn_tail_majorant ha1)
     (fun _ hσ ↦ tsum_one_div_nat_add_two_rpow_le_majorant (lt_trans ha1 hσ)) hIN
 
-/-- **Sharp tail witness** (`lem:le_tail_sharp`). The tail constant `C_t ≤ 23/5` at
-`a = 103/100`. -/
+/-- The tail constant `C_t ≤ 23/5` at `a = 103/100` (`lem:le_tail_sharp`). -/
 theorem logNormZetaIntegral_tail_ge_sharp (t : ℝ) :
     (-(23 / 5) ≤ ∫ σ in Set.Ioi (103 / 100 : ℝ),
         Real.log ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖)
@@ -257,8 +256,8 @@ theorem logNormZetaIntegral_tail_ge_sharp (t : ℝ) :
   neg_le_logNormZetaIntegral_of_integral_majorant_le (a := 103 / 100) (by norm_num)
     integral_tail_majorant_le (156 / 100) t
 
-/-- **Explicit tail integral at the deeper abscissa `a = 124/100`** (`= ½ + d`, `d = 74/100`).
-The tail majorant integrates to `≤ 5/2` there. -/
+/-- The tail majorant integrates to `≤ 5/2` over `(124/100, ∞)`, where `124/100 = ½ + d` with
+`d = 74/100`. -/
 theorem integral_tail_majorant_le_124 :
     ∫ σ in Set.Ioi (124 / 100 : ℝ), ((2 : ℝ) ^ (-σ) + 2 ^ (1 - σ) / (σ - 1)) ≤ 5 / 2 := by
   have h := integral_tail_majorant_le_core (a := 124 / 100) (by norm_num) (by norm_num)
@@ -269,8 +268,7 @@ theorem integral_tail_majorant_le_124 :
     push_cast at h2; linarith
   linarith [h, hlog, Real.log_two_lt_d9]
 
-/-- **Tight tail witness at depth `d = 74/100`** (`lem:ls_Ct`). The tail constant `C_t ≤ 5/2` at
-`a = ½ + d = 124/100`. -/
+/-- The tail constant `C_t ≤ 5/2` at `a = ½ + d = 124/100`, `d = 74/100` (`lem:ls_Ct`). -/
 theorem logNormZetaIntegral_tail_ge_tight (t : ℝ) :
     (-(5 / 2) ≤ ∫ σ in Set.Ioi (124 / 100 : ℝ),
         Real.log ‖riemannZeta ((σ : ℂ) + Complex.I * t)‖)

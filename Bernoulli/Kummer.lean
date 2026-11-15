@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import Bernoulli.BernoulliValues
 
 /-!
@@ -9,9 +14,8 @@ the even indices `k = 2, 4, …, p-3` (Kummer's criterion).  This file defines t
 regular prime below 200 (the 38 of them).
 
 The reduced numerators are prime-independent, emitted once as the `bernNumAbs_m` lemmas by
-`Bernoulli.BernoulliValues`.  So a whole prime's regularity proof is, per Bernoulli number, one
-divisibility check on the shared literal — no tangent table and no cross-multiplies re-checked per
-prime.  It uses no `interval_cases` and no `native_decide`. -/
+`Bernoulli.BernoulliValues`, so a prime's regularity proof is one divisibility check per Bernoulli
+number on the shared literal. No `interval_cases`, no `native_decide`. -/
 
 open scoped Nat
 
@@ -31,9 +35,9 @@ def KummerCriterion (p : ℕ) : Prop :=
 
 /-! ## Ball skeleton: a `Nat`-recursion bounded-∀ certificate
 
-A `Nat`-recursion chain that never builds an intermediate list, avoiding the per-index
-`List.range.loop` reduction that dominates a `List.range N` + `Forall₂` sweep skeleton.  `KQ p m`
-is the per-index predicate; the per-prime proof is
+A `Nat`-recursion chain that never builds an intermediate list (a `List.range N` sweep is
+dominated by reducing `List.range.loop`). `KQ p m` is the per-index predicate; the per-prime proof
+is
 `kummerCriterion_of_ball p N hle (ball_k_succ … (ball_k_zero p))`, each index's fact built by name
 from `bernNumAbs_m`. -/
 
@@ -65,14 +69,11 @@ theorem kq_of (p m n : ℕ) (habs : (bernoulli (2 * m + 2)).num.natAbs = n) (hn 
 
 /-! ## Regular primes below 200
 
-`derive_regular_below N` proves `KummerCriterion p` (regularity) for every regular prime `p < N`, as
-a lemma `regular_p`.  Regularity is decided by the computation itself: it reads the reduced
-numerators of `B_2, …, B_{p-3}` off the `bernNumAbs_m` lemmas (emitted by
-`Bernoulli.BernoulliValues`) and emits a proof only when `p` divides none of them.  Irregular primes
-(below 200: `37, 59, 67, 101, 103, 131, 149, 157`) are silently skipped.  Each proof is
-`kummerCriterion_of_ball` over the ball chain, built as a raw `Expr` and `addDecl`ed — no
-`elabCommand`, no `Syntax`, no `decide`; every side condition is a `reflBoolTrue`.
-`native_decide`-free. -/
+`derive_regular_below N` adds a lemma `regular_p : KummerCriterion p` for every regular prime
+`p < N`, reading the reduced numerators of `B_2, …, B_{p-3}` off the `bernNumAbs_m` lemmas and
+silently skipping irregular primes (below 200: `37, 59, 67, 101, 103, 131, 149, 157`). Each proof is
+`kummerCriterion_of_ball` over the ball chain, built as a raw `Expr` and `addDecl`ed, every side
+condition a `reflBoolTrue`. -/
 open Lean Lean.Meta Lean.Elab Lean.Elab.Command in
 /-- Add `regular_p : KummerCriterion p` for every regular prime `p < N`. -/
 elab "derive_regular_below " nStx:num : command => liftTermElabM do
@@ -121,8 +122,7 @@ elab "derive_regular_below " nStx:num : command => liftTermElabM do
 
 /-! ## All regular primes below 200
 
-The sweep reads `|num(B_{2m+2})| = n` by name off the environment lemma `bernNumAbs_m`
-emitted by `Bernoulli.BernoulliValues`, so a per-prime read is an `O(1)` constant reference. -/
+The sweep reads `|num(B_{2m+2})| = n` by name off the lemma `bernNumAbs_m`. -/
 
 derive_regular_below 200
 

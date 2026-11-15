@@ -21,7 +21,7 @@ constant `B = 2π|T - a²|/a` measures how far the crossing point `a` sits from 
 vanishes when the contour crosses exactly at the saddle.
 
 Everything reduces to elementary inequalities for `arctan`, stated here for the normalised argument
-`g(r) = arctan(1 + 2r) - π/4` of the contour point `L(a)(ra)`, which is independent of `a` — whence
+`g(r) = arctan(1 + 2r) - π/4` of the contour point `L(a)(ra)`, which is independent of `a`, whence
 the name `Zeta.RiemannSiegel.lineArg`.
 
 That majorant discards a factor `4` in the Gaussian exponent, which is irrelevant when the region
@@ -31,7 +31,7 @@ comes from never estimating `g` itself but only the *defect* `ψ(r) = r - g(r)`,
 `λ g - r - r² = ε g - r² - ψ` identically, with `ε = λ - 1`. The sharp phase bound splits at
 `w = -a/2`, and is sharp to leading order on the half carrying the saddle: at `ε = 0` and `|w| ≪ a`
 it reads `φ(w) ≤ -4πw² + O(w³/a)`, against the truth `φ(w) = -4πw² + O(w³/a)`. The linear term
-`B|w|` is the same in both, and cannot be improved: it is the genuine displacement of the crossing
+`B|w|` is the same in both, and cannot be improved: it is the displacement of the crossing
 point from the saddle.
 
 ## Main results
@@ -70,7 +70,7 @@ theorem lineArg_zero : lineArg 0 = 0 := by simp [lineArg, Real.arctan_one]
 
 private theorem lineArg_neg_half : lineArg (-(1 / 2)) = -(π / 4) := by norm_num [lineArg]
 
-/-- **The normalised argument is strictly increasing.** -/
+/-- The normalised argument is strictly increasing. -/
 theorem strictMono_lineArg : StrictMono lineArg := fun _ _ h ↦ by
   simpa [lineArg] using Real.arctan_lt_arctan_iff.2 (by linarith)
 
@@ -88,7 +88,7 @@ theorem hasDerivAt_lineArg (r : ℝ) : HasDerivAt lineArg (2 / (1 + (1 + 2 * r) 
   rw [show 1 / (1 + (1 + 2 * r) ^ 2) * 2 = 2 / (1 + (1 + 2 * r) ^ 2) by ring] at h'
   exact h'
 
-/-- **The normalised argument as a single arctangent**, `g(r) = arctan(r/(1 + r))` on `(-1, ∞)`. -/
+/-- The normalised argument as a single arctangent, `g(r) = arctan(r/(1 + r))` on `(-1, ∞)`. -/
 theorem lineArg_eq_arctan {r : ℝ} (hr : -1 < r) : lineArg r = Real.arctan (r / (1 + r)) := by
   have h := Real.arctan_add (x := 1 + 2 * r) (y := -1) (by linarith)
   rw [Real.arctan_neg, Real.arctan_one, show (1 + 2 * r + -1) / (1 - (1 + 2 * r) * -1)
@@ -98,17 +98,17 @@ theorem lineArg_eq_arctan {r : ℝ} (hr : -1 < r) : lineArg r = Real.arctan (r /
   rw [lineArg]
   linarith
 
-/-- **The sharp majorant for the normalised argument on `[0, ∞)`**, `g(r) ≤ r/(1 + r)`: the
+/-- The sharp majorant for the normalised argument on `[0, ∞)`, `g(r) ≤ r/(1 + r)`: the
 `r ≥ 0` half of `Zeta.RiemannSiegel.lineArg_le_sub_div`. -/
 private theorem lineArg_le_div {r : ℝ} (hr : 0 ≤ r) : lineArg r ≤ r / (1 + r) := by
   rw [lineArg_eq_arctan (by linarith)]
   exact Real.arctan_le_self (by positivity)
 
-/-- **The normalised argument is dominated by the identity on `[0, ∞)`.** -/
+/-- The normalised argument is dominated by the identity on `[0, ∞)`. -/
 theorem lineArg_le_self {r : ℝ} (hr : 0 ≤ r) : lineArg r ≤ r :=
   (lineArg_le_div hr).trans <| by rw [div_le_iff₀ (by linarith)]; nlinarith
 
-/-- **The sharp majorant for the normalised argument on `[-½, 0]`**: the `r ≤ 0` half of
+/-- The sharp majorant for the normalised argument on `[-½, 0]`: the `r ≤ 0` half of
 `Zeta.RiemannSiegel.lineArg_le_sub_div`. -/
 private theorem lineArg_le_div_one_sub {r : ℝ} (hr : -(1 / 2) ≤ r) (hr0 : r ≤ 0) :
     lineArg r ≤ (r - 2 * r ^ 2) / (1 - r) := by
@@ -143,7 +143,7 @@ private theorem lineArg_le_div_one_sub {r : ℝ} (hr : -(1 / 2) ≤ r) (hr0 : r 
   rw [show (r - 2 * r ^ 2) / (1 - r) = 2 * r + 1 - (1 - r)⁻¹ by field_simp; ring]
   linarith
 
-/-- **The quadratic majorant for `arctan`**, `arctan(1 + 2r) ≤ π/4 + r + r²/2`. -/
+/-- The quadratic majorant for `arctan`, `arctan(1 + 2r) ≤ π/4 + r + r²/2`. -/
 theorem lineArg_le (r : ℝ) : lineArg r ≤ r + r ^ 2 / 2 := by
   rcases le_total 0 r with hr | hr
   · nlinarith [lineArg_le_self hr, sq_nonneg r]
@@ -155,7 +155,7 @@ theorem lineArg_le (r : ℝ) : lineArg r ≤ r + r ^ 2 / 2 := by
     have h : lineArg r ≤ -(π / 4) := lineArg_neg_half ▸ strictMono_lineArg.monotone hr'
     linarith [Real.pi_gt_three, sq_nonneg (r + 1)]
 
-/-- **The sharp majorant for the normalised argument** (`riemann_siegel.tex`,
+/-- The sharp majorant for the normalised argument (`riemann_siegel.tex`,
 `lem:rs_arctan_sharp`): the defect `ψ(r) = r - g(r)` is at least `r²/(1 + |r|)` for `r ≥ -½`. The
 threshold `-½` is not sharp; the bound holds down to `r = -1.082…`. -/
 theorem lineArg_le_sub_div {r : ℝ} (hr : -(1 / 2) ≤ r) : lineArg r ≤ r - r ^ 2 / (1 + |r|) := by
@@ -172,7 +172,7 @@ theorem lineArg_le_sub_div {r : ℝ} (hr : -(1 / 2) ≤ r) : lineArg r ≤ r - r
     rw [abs_of_nonpos h, heq]
     exact lineArg_le_div_one_sub hr h
 
-/-- **The cost of perturbing the normalised argument**, `c g(r) ≤ |c| (|r| + ψ(r))` in terms of
+/-- The cost of perturbing the normalised argument, `c g(r) ≤ |c| (|r| + ψ(r))` in terms of
 the defect `ψ(r) = r - g(r)`. -/
 theorem mul_lineArg_le (c r : ℝ) : c * lineArg r ≤ |c| * (|r| + (r - lineArg r)) := by
   rcases le_total 0 r with h | h
@@ -181,18 +181,17 @@ theorem mul_lineArg_le (c r : ℝ) : c * lineArg r ≤ |c| * (|r| + (r - lineArg
   · rw [abs_of_nonpos h]
     nlinarith [lineArg_nonpos h, neg_abs_le c, abs_nonneg c]
 
-/-- **The perturbed majorant for the normalised argument.** -/
+/-- The perturbed majorant for the normalised argument. -/
 theorem mul_lineArg_sub_le {lam r : ℝ} (hone : |lam - 1| ≤ 1) :
     lam * lineArg r - r - r ^ 2 ≤ -(r ^ 2 / 2) + |lam - 1| * |r| := by
-  -- The two terms must never be separated: `|g r| ≤ |r|` is FALSE (`g'` attains `2` at `r = -1/2`),
-  -- and the true global bound `|g| ≤ 2|r|` would double `B` in `phase_le`, inflating the final
-  -- estimate by a factor of about `10⁵`. For `r < 0` the loss is absorbed by the slack in
-  -- `lineArg_le` instead.
+  -- The two terms are bounded together: `|g r| ≤ |r|` fails (`g'` attains `2` at `r = -1/2`),
+  -- and the global bound `|g| ≤ 2|r|` would double `B` in `phase_le`. For `r < 0` the loss is
+  -- absorbed by the slack in `lineArg_le`.
   linarith [mul_lineArg_le (lam - 1) r, mul_nonneg (abs_nonneg (lam - 1)) (sq_nonneg r),
     mul_nonneg (by linarith : (0 : ℝ) ≤ 1 - |lam - 1|)
       (by linarith [lineArg_le r] : (0 : ℝ) ≤ r ^ 2 / 2 + (r - lineArg r))]
 
-/-- **The sharp perturbed majorant for the normalised argument** (`riemann_siegel.tex`,
+/-- The sharp perturbed majorant for the normalised argument (`riemann_siegel.tex`,
 `lem:rs_arctan_perturbed_sharp`), on the range `r ≥ -½`. -/
 theorem mul_lineArg_sub_le' {lam r : ℝ} (hone : |lam - 1| ≤ 1) (hr : -(1 / 2) ≤ r) :
     lam * lineArg r - r - r ^ 2
@@ -202,7 +201,7 @@ theorem mul_lineArg_sub_le' {lam r : ℝ} (hone : |lam - 1| ≤ 1) (hr : -(1 / 2
       (by linarith [lineArg_le_sub_div hr] : r ^ 2 / (1 + |r|) ≤ r - lineArg r)
       (by linarith : (0 : ℝ) ≤ 1 - |lam - 1|)]
 
-/-- **The sharp perturbed majorant for the normalised argument** (`riemann_siegel.tex`,
+/-- The sharp perturbed majorant for the normalised argument (`riemann_siegel.tex`,
 `lem:rs_arctan_perturbed_sharp`), on the range `r ≤ -½`. -/
 theorem mul_lineArg_sub_le_of_le_neg_half {lam r : ℝ} (hlam : 2 / π ≤ lam) (hr : r ≤ -(1 / 2)) :
     lam * lineArg r - r - r ^ 2 ≤ -(r ^ 2 / 2) := by
@@ -222,7 +221,7 @@ theorem slantArg_line_eq_lineArg {a : ℝ} (ha : 0 < a) (w : ℝ) :
 `x^{-1/2-it} e^{iπx²}` along the slanted contour `L(a)`. -/
 noncomputable def phase (t a w : ℝ) : ℝ := t * slantArg (line a w) - 2 * π * w * (a + w)
 
-/-- **The Riemann–Siegel phase exponentiates to the modulus of the integrand.** -/
+/-- The Riemann–Siegel phase exponentiates to the modulus of the integrand. -/
 theorem norm_slantCpow_mul_exp_eq_phase {a : ℝ} (ha : a ≠ 0) (t w : ℝ) :
     ‖slantCpow (line a w) (-(1 / 2 + (t : ℂ) * I)) * exp (π * I * line a w ^ 2)‖
       = ‖line a w‖ ^ (-(1 / 2) : ℝ) * Real.exp (phase t a w) := by
@@ -266,7 +265,7 @@ private theorem abs_div_sq_sub_one_eq {t a : ℝ} (ha : 0 < a) :
   rw [show t / (2 * π) / a ^ 2 - 1 = (t / (2 * π) - a ^ 2) / a ^ 2 by field_simp,
     abs_div, abs_of_pos ha₂]
 
-/-- **The Gaussian majorant for the Riemann–Siegel phase**, with constant `B = 2π|T - a²|/a` for
+/-- The Gaussian majorant for the Riemann–Siegel phase, with constant `B = 2π|T - a²|/a` for
 `T = t/2π`: the distance from the crossing point `a` to the saddle `√T` of the integrand. -/
 theorem phase_le {t a : ℝ} (ht : 0 ≤ t) (ha : 0 < a) (hT : t / (2 * π) ≤ 2 * a ^ 2) (w : ℝ) :
     phase t a w ≤ -(π * w ^ 2) + 2 * π * |t / (2 * π) - a ^ 2| / a * |w| := by
@@ -276,7 +275,7 @@ theorem phase_le {t a : ℝ} (ht : 0 ≤ t) (ha : 0 < a) (hT : t / (2 * π) ≤ 
   rw [abs_div_sq_sub_one_eq ha, abs_div, abs_of_pos ha]
   field_simp
 
-/-- **The sharp Gaussian majorant for the Riemann–Siegel phase** (`riemann_siegel.tex`,
+/-- The sharp Gaussian majorant for the Riemann–Siegel phase (`riemann_siegel.tex`,
 `lem:rs_phase_sharp`), on the half `w ≥ -a/2` of the contour carrying the saddle. -/
 theorem phase_le' {t a : ℝ} (ht : 0 ≤ t) (ha : 0 < a) (hT : t / (2 * π) ≤ 2 * a ^ 2)
     {w : ℝ} (hw : -(a / 2) ≤ w) :
@@ -292,7 +291,7 @@ theorem phase_le' {t a : ℝ} (ht : 0 ≤ t) (ha : 0 < a) (hT : t / (2 * π) ≤
     show (1 : ℝ) + |w| / a = (a + |w|) / a by field_simp]
   field_simp
 
-/-- **The sharp Gaussian majorant for the Riemann–Siegel phase** (`riemann_siegel.tex`,
+/-- The sharp Gaussian majorant for the Riemann–Siegel phase (`riemann_siegel.tex`,
 `lem:rs_phase_sharp`) on the half `w ≤ -a/2` of the contour away from the saddle, where the
 crossing point is passed and no linear term survives. -/
 theorem phase_le_of_le_neg_half {t a : ℝ} (ha : 0 < a) (hT : 2 / π * a ^ 2 ≤ t / (2 * π))

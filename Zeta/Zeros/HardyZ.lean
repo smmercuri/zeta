@@ -23,7 +23,7 @@ term is a function of `M`, `N`, `t` alone.
 
 ## Main definitions
 
-- `hardyZ`: Hardy's `Z(t) = Re(e^{iθ(t)} ζ(½+it))`.
+- `Zeta.hardyZ`: Hardy's `Z(t) = Re(e^{iθ(t)} ζ(½+it))`.
 - `riemannSiegelThetaApproximant`, `riemannSiegelThetaStirlingErrorBound`,
   `riemannSiegelThetaStirlingErrorBound'`: the shifted order-`M`, cutoff-`N` Stirling approximant
   of `θ` and its error bounds, in `Re w` and in `‖w‖` form.
@@ -58,11 +58,11 @@ open Complex
 open scoped Nat
 
 
-/-- **Hardy's `Z` function** `Z(t) = Re(e^{iθ(t)} ζ(½+it))`, with `θ = riemannSiegelTheta`. -/
-noncomputable def hardyZ (t : ℝ) : ℝ :=
+/-- Hardy's `Z` function `Z(t) = Re(e^{iθ(t)} ζ(½+it))`, with `θ = riemannSiegelTheta`. -/
+noncomputable def Zeta.hardyZ (t : ℝ) : ℝ :=
   (Complex.exp (Complex.I * (riemannSiegelTheta t : ℂ)) * riemannZeta (1 / 2 + Complex.I * t)).re
 
-/-- **Continuity of the `log Γ` branch along the half-argument curve** `u ↦ ¼ + i u/2`. -/
+/-- Continuity of the `log Γ` branch along the half-argument curve `u ↦ ¼ + i u/2`. -/
 theorem continuous_logGamma_curve :
     Continuous fun u : ℝ ↦ logGamma (1 / 4 + Complex.I * ((u : ℂ) / 2)) := by
   refine continuous_iff_continuousAt.mpr fun u => ?_
@@ -70,7 +70,7 @@ theorem continuous_logGamma_curve :
   exact ContinuousAt.comp (f := fun u : ℝ => (1 / 4 : ℂ) + Complex.I * ((u : ℂ) / 2))
     (hasDerivAt_logGamma hre).continuousAt (by fun_prop)
 
-/-- **Theta via the holomorphic `log Γ` branch.** For `T ≥ 0`,
+/-- Theta via the holomorphic `log Γ` branch: for `T ≥ 0`,
 `θ(T) = Im (log Γ (¼ + i T/2)) − (T/2) log π`, with `Complex.logGamma` the holomorphic branch on
 the right half-plane normalised real on the positive axis. -/
 theorem riemannSiegelTheta_eq_im_logGamma {T : ℝ} (hT : 0 ≤ T) :
@@ -88,7 +88,7 @@ theorem riemannSiegelTheta_eq_im_logGamma {T : ℝ} (hT : 0 ≤ T) :
 
 namespace Complex
 
-/-- **Deligne's real archimedean factor on the critical line, as an exponential**:
+/-- Deligne's real archimedean factor on the critical line, as an exponential:
 `Γ_ℝ(½+it) = exp (log Γ(¼+it/2) − (¼+it/2) log π)`, the logarithm of `Γ` being the holomorphic
 branch `Complex.logGamma`. -/
 theorem Gammaℝ_half_add_mul_I_eq_exp (t : ℝ) :
@@ -112,7 +112,7 @@ theorem Gammaℝ_half_add_mul_I_eq_exp (t : ℝ) :
   congr 1
   ring
 
-/-- **The functional-equation factor on the critical line** (`riemann_siegel_zero.tex`,
+/-- The functional-equation factor on the critical line (`riemann_siegel_zero.tex`,
 `lem:rsz_chi_theta`): `χ(½+it) = e^{-2iθ(t)}` for `t ≥ 0`. -/
 theorem chi_half_add_mul_I {t : ℝ} (ht : 0 ≤ t) :
     chi (1 / 2 + I * t) = exp (-(2 * (riemannSiegelTheta t : ℂ)) * I) := by
@@ -136,8 +136,8 @@ theorem chi_half_add_mul_I {t : ℝ} (ht : 0 ≤ t) :
 
 end Complex
 
-/-- **Continuity of Hardy's `Z`** on `[0, ∞)`. -/
-theorem continuousOn_hardyZ : ContinuousOn hardyZ (Set.Ici (0 : ℝ)) := by
+/-- Continuity of Hardy's `Z` on `[0, ∞)`. -/
+theorem continuousOn_hardyZ : ContinuousOn Zeta.hardyZ (Set.Ici (0 : ℝ)) := by
   -- `θ` is continuous on `Ici 0` via the `log Γ` bridge.
   have hlog : Continuous fun t : ℝ =>
       (logGamma (1 / 4 + Complex.I * ((t : ℂ) / 2))).im - t / 2 * Real.log Real.pi :=
@@ -159,10 +159,10 @@ theorem continuousOn_hardyZ : ContinuousOn hardyZ (Set.Ici (0 : ℝ)) := by
       ((Complex.continuous_ofReal.comp_continuousOn hθ).const_mul Complex.I)).mul hζ.continuousOn
   exact Complex.continuous_re.comp_continuousOn hmul
 
-/-- **Zeros of Hardy's `Z` are the critical-line zeros of `ζ`.** For `t ≥ 0`,
+/-- Zeros of Hardy's `Z` are the critical-line zeros of `ζ`: for `t ≥ 0`,
 `Z(t) = 0 ↔ ζ(½+it) = 0`. -/
 theorem hardyZ_eq_zero_iff_riemannZeta {t : ℝ} (ht : 0 ≤ t) :
-    hardyZ t = 0 ↔ riemannZeta (1 / 2 + Complex.I * t) = 0 := by
+    Zeta.hardyZ t = 0 ↔ riemannZeta (1 / 2 + Complex.I * t) = 0 := by
   set s : ℂ := 1 / 2 + Complex.I * (t : ℂ) with hs
   have hsre : s.re = 1 / 2 := by rw [hs]; simp
   have hs0 : s ≠ 0 := fun h => by rw [h] at hsre; norm_num at hsre
@@ -214,16 +214,16 @@ theorem hardyZ_eq_zero_iff_riemannZeta {t : ℝ} (ht : 0 ≤ t) :
     rw [hR]; conv_lhs => rw [hξ_re, hQ_re]
     rw [← Complex.ofReal_div]
   -- `Z(t)` is the real number `ξ.re / Q.re / exp(L.re)`.
-  have hZC : ((hardyZ t : ℝ) : ℂ) = Gammaℝ s * riemannZeta s / (Real.exp L.re : ℂ) := by
+  have hZC : ((Zeta.hardyZ t : ℝ) : ℂ) = Gammaℝ s * riemannZeta s / (Real.exp L.re : ℂ) := by
     have hval : Complex.exp (Complex.I * (riemannSiegelTheta t : ℂ)) * riemannZeta s
         = Gammaℝ s * riemannZeta s / (Real.exp L.re : ℂ) := by rw [hexpiθ]; ring
-    rw [hardyZ, show (1 / 2 + Complex.I * (t : ℂ)) = s from hs.symm, hval, hR_eq,
+    rw [Zeta.hardyZ, show (1 / 2 + Complex.I * (t : ℂ)) = s from hs.symm, hval, hR_eq,
       ← Complex.ofReal_div, Complex.ofReal_re]
   -- Assemble the iff.
   rw [← Complex.ofReal_eq_zero, hZC, div_eq_zero_iff, mul_eq_zero]
   simp only [hΓℝ_ne, hexpLre_ne, or_false, false_or]
 
-/-- **Unit-phase difference bound.** For real phases `α, β`, `‖e^{iα} - e^{iβ}‖ ≤ |α - β|`. -/
+/-- Unit-phase difference bound: for real phases `α, β`, `‖e^{iα} - e^{iβ}‖ ≤ |α - β|`. -/
 theorem norm_expImul_sub_expImul_le_abs (α β : ℝ) :
     ‖Complex.exp (Complex.I * (α : ℂ)) - Complex.exp (Complex.I * (β : ℂ))‖ ≤ |α - β| := by
   have hunit : ‖Complex.exp (Complex.I * (β : ℂ))‖ = 1 := by
@@ -237,7 +237,7 @@ theorem norm_expImul_sub_expImul_le_abs (α β : ℝ) :
   have := Real.norm_exp_I_mul_ofReal_sub_one_le (x := α - β)
   rwa [Real.norm_eq_abs] at this
 
-/-- **Phase perturbation.** For real phases `α, β` and complex `z, w`,
+/-- Phase perturbation: for real phases `α, β` and complex `z, w`,
 `‖e^{iα}z - e^{iβ}w‖ ≤ |α-β|‖z‖ + ‖z-w‖`. -/
 theorem norm_expImul_sub_expImul_le (α β : ℝ) (z w : ℂ) :
     ‖Complex.exp (Complex.I * (α : ℂ)) * z - Complex.exp (Complex.I * (β : ℂ)) * w‖
@@ -254,9 +254,9 @@ theorem norm_expImul_sub_expImul_le (α β : ℝ) (z w : ℂ) :
     _ = ‖a - b‖ * ‖z‖ + ‖z - w‖ := by rw [norm_mul, norm_mul, hunit, one_mul]
     _ ≤ |α - β| * ‖z‖ + ‖z - w‖ := by gcongr
 
-/-- **Phase perturbation, approximant form.** For real phases `α, β` and complex `z, w`,
-`‖e^{iα}z - e^{iβ}w‖ ≤ |α-β|‖w‖ + ‖z-w‖`. Unlike `norm_expImul_sub_expImul_le`, the leading
-factor is the norm of `w`, in applications the known approximant. -/
+/-- Phase perturbation, approximant form: for real phases `α, β` and complex `z, w`,
+`‖e^{iα}z - e^{iβ}w‖ ≤ |α-β|‖w‖ + ‖z-w‖`. The leading factor is the norm of `w`, in applications
+the known approximant. -/
 theorem norm_expImul_sub_expImul_le' (α β : ℝ) (z w : ℂ) :
     ‖Complex.exp (Complex.I * (α : ℂ)) * z - Complex.exp (Complex.I * (β : ℂ)) * w‖
       ≤ |α - β| * ‖w‖ + ‖z - w‖ := by
@@ -264,59 +264,59 @@ theorem norm_expImul_sub_expImul_le' (α β : ℝ) (z w : ℂ) :
   rwa [norm_sub_rev (Complex.exp (Complex.I * (β : ℂ)) * w), abs_sub_comm β α,
     norm_sub_rev w z] at h
 
-/-- **Rigorous `Z`-function error bound.** For any approximations `θ̃ ∈ ℝ`, `ζ̃ ∈ ℂ` of `θ(t)` and
+/-- The `Z`-function error bound: for any approximations `θ̃ ∈ ℝ`, `ζ̃ ∈ ℂ` of `θ(t)` and
 `ζ(½+it)`,
 
 `|Z(t) - Re(e^{iθ̃} ζ̃)| ≤ |θ(t) - θ̃| · ‖ζ(½+it)‖ + ‖ζ(½+it) - ζ̃‖`. -/
 theorem abs_hardyZ_sub_re_le (t : ℝ) (θ' : ℝ) (ζ' : ℂ) :
-    |hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re|
+    |Zeta.hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re|
       ≤ |riemannSiegelTheta t - θ'| * ‖riemannZeta (1 / 2 + Complex.I * t)‖
         + ‖riemannZeta (1 / 2 + Complex.I * t) - ζ'‖ := by
   set ζv : ℂ := riemannZeta (1 / 2 + Complex.I * t) with hζv
-  have hre : hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re
+  have hre : Zeta.hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re
       = (Complex.exp (Complex.I * (riemannSiegelTheta t : ℂ)) * ζv
           - Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re := by
-    rw [hardyZ, hζv, Complex.sub_re]
+    rw [Zeta.hardyZ, hζv, Complex.sub_re]
   rw [hre]
   refine le_trans (Complex.abs_re_le_norm _) ?_
   exact norm_expImul_sub_expImul_le (riemannSiegelTheta t) θ' ζv ζ'
 
-/-- **Rigorous `Z`-function error bound, approximant form.** For any approximations `θ̃ ∈ ℝ`,
+/-- The `Z`-function error bound, approximant form: for any approximations `θ̃ ∈ ℝ`,
 `ζ̃ ∈ ℂ` of `θ(t)` and `ζ(½+it)`,
 
 `|Z(t) - Re(e^{iθ̃} ζ̃)| ≤ |θ(t) - θ̃| · ‖ζ̃‖ + ‖ζ(½+it) - ζ̃‖`.
 
-Unlike `abs_hardyZ_sub_re_le`, the leading term uses the *computed* modulus `‖ζ̃‖`. -/
+The leading term uses the *computed* modulus `‖ζ̃‖`. -/
 theorem abs_hardyZ_sub_re_le' (t : ℝ) (θ' : ℝ) (ζ' : ℂ) :
-    |hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re|
+    |Zeta.hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re|
       ≤ |riemannSiegelTheta t - θ'| * ‖ζ'‖
         + ‖riemannZeta (1 / 2 + Complex.I * t) - ζ'‖ := by
   set ζv : ℂ := riemannZeta (1 / 2 + Complex.I * t) with hζv
-  have hre : hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re
+  have hre : Zeta.hardyZ t - (Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re
       = (Complex.exp (Complex.I * (riemannSiegelTheta t : ℂ)) * ζv
           - Complex.exp (Complex.I * (θ' : ℂ)) * ζ').re := by
-    rw [hardyZ, hζv, Complex.sub_re]
+    rw [Zeta.hardyZ, hζv, Complex.sub_re]
   rw [hre]
   refine le_trans (Complex.abs_re_le_norm _) ?_
   exact norm_expImul_sub_expImul_le' (riemannSiegelTheta t) θ' ζv ζ'
 
 open Complex.Stirling
 
-/-- **The Riemann–Siegel theta Stirling error bound**
+/-- The Riemann–Siegel theta Stirling error bound
 `(2M+1)!/(2M(2π)^{2M}) · (¼+N)^{-2M}`, the right-hand side of
 `abs_riemannSiegelTheta_sub_stirling_shift_le`. -/
 noncomputable abbrev riemannSiegelThetaStirlingErrorBound (M N : ℕ) : ℝ :=
   ((2 * M + 1)! : ℝ) / (2 * M * (2 * Real.pi) ^ (2 * M)) * (1 / 4 + N : ℝ) ^ (-(2 * M : ℤ))
 
-/-- **The Riemann–Siegel theta Stirling error bound in `‖w‖` form**
+/-- The Riemann–Siegel theta Stirling error bound in `‖w‖` form
 `(2M+1)! 2^{2M+1}/(2M(2π)^{2M}) · ((¼+N)² + t²/4)^{-M}`, the right-hand side of
-`abs_riemannSiegelTheta_sub_stirling_shift_le'`. The base is `‖¼ + N + it/2‖²`, so, unlike
-`riemannSiegelThetaStirlingErrorBound`, the bound decays in the height `t`. -/
+`abs_riemannSiegelTheta_sub_stirling_shift_le'`. The base is `‖¼ + N + it/2‖²`, so the bound
+decays in the height `t`. -/
 noncomputable abbrev riemannSiegelThetaStirlingErrorBound' (M N : ℕ) (t : ℝ) : ℝ :=
   ((2 * M + 1)! : ℝ) * 2 ^ (2 * M + 1) / (2 * M * (2 * Real.pi) ^ (2 * M))
     * ((1 / 4 + N) ^ 2 + (t / 2) ^ 2 : ℝ) ^ (-(M : ℤ))
 
-/-- **The shifted Riemann–Siegel theta approximant.** With `w_t = ¼ + i t/2`, the order-`M`,
+/-- The shifted Riemann–Siegel theta approximant: with `w_t = ¼ + i t/2`, the order-`M`,
 cutoff-`N` Stirling approximant of `riemannSiegelTheta`:
 `θ̃_{M,N}(t) = Im (S_M(w_t + N) − ∑_{j<N} Log (w_t + j)) − (t/2) log π`. -/
 noncomputable abbrev riemannSiegelThetaApproximant (M N : ℕ) (t : ℝ) : ℝ :=
@@ -345,7 +345,7 @@ private theorem riemannSiegelTheta_sub_approximant_eq {M N : ℕ} (hM : 1 ≤ M)
   simp only [riemannSiegelThetaApproximant, Complex.add_im, Complex.sub_im]
   ring
 
-/-- **Theta error, shifted — the algorithm's bound.** For `M ≥ 1`, `N : ℕ` and `T ≥ 0`,
+/-- Theta error, shifted: for `M ≥ 1`, `N : ℕ` and `T ≥ 0`,
 `|θ(T) − θ̃_{M,N}(T)| ≤ (2M+1)!/(2M(2π)^{2M}) · (¼+N)^{-2M}`. The integer shift `N` makes the
 Stirling argument's real part `¼ + N` as large as desired. -/
 theorem abs_riemannSiegelTheta_sub_stirling_shift_le {M N : ℕ} (hM : 1 ≤ M) {T : ℝ} (hT : 0 ≤ T) :
@@ -357,9 +357,9 @@ theorem abs_riemannSiegelTheta_sub_stirling_shift_le {M N : ℕ} (hM : 1 ≤ M) 
   simp only [logGammaRemainderBound, riemannSiegelThetaStirlingErrorBound]
   rw [re_thetaArg_add_natCast]
 
-/-- **Theta error, shifted, in `‖w‖` form.** For `M ≥ 1`, `N : ℕ` and `T ≥ 0`,
+/-- Theta error, shifted, in `‖w‖` form: for `M ≥ 1`, `N : ℕ` and `T ≥ 0`,
 `|θ(T) − θ̃_{M,N}(T)| ≤ (2M+1)! 2^{2M+1}/(2M(2π)^{2M}) · ((¼+N)² + T²/4)^{-M}`, a bound that
-decays in `T` where `abs_riemannSiegelTheta_sub_stirling_shift_le`'s `(¼+N)^{-2M}` does not. -/
+decays in `T`. -/
 theorem abs_riemannSiegelTheta_sub_stirling_shift_le' {M N : ℕ} (hM : 1 ≤ M) {T : ℝ}
     (hT : 0 ≤ T) :
     |riemannSiegelTheta T - riemannSiegelThetaApproximant M N T|
@@ -373,7 +373,7 @@ theorem abs_riemannSiegelTheta_sub_stirling_shift_le' {M N : ℕ} (hM : 1 ≤ M)
   simp only [logGammaRemainderNormBound, riemannSiegelThetaStirlingErrorBound']
   rw [show (-(2 * M : ℤ)) = 2 * (-(M : ℤ)) by ring, zpow_mul, zpow_ofNat, hsq]
 
-/-- **Theta error, unshifted.** For `M ≥ 1` and `T ≥ 0`, the order-`M` Stirling estimate
+/-- Theta error, unshifted: for `M ≥ 1` and `T ≥ 0`, the order-`M` Stirling estimate
 `θ̃_M(T) = Im S_M(¼ + iT/2) − (T/2) log π` satisfies
 `|θ(T) − θ̃_M(T)| ≤ (2M+1)!/(2M(2π)^{2M}) · (¼)^{-2M}`. -/
 theorem abs_riemannSiegelTheta_sub_stirling_le {M : ℕ} (hM : 1 ≤ M) {T : ℝ} (hT : 0 ≤ T) :
@@ -383,10 +383,10 @@ theorem abs_riemannSiegelTheta_sub_stirling_le {M : ℕ} (hM : 1 ≤ M) {T : ℝ
   simpa [riemannSiegelThetaApproximant] using
     abs_riemannSiegelTheta_sub_stirling_shift_le (N := 0) hM hT
 
-/-- **Theta error, unshifted, in `‖w_T‖` form.** For `M ≥ 1` and `T ≥ 0`, the order-`M` Stirling
+/-- Theta error, unshifted, in `‖w_T‖` form: for `M ≥ 1` and `T ≥ 0`, the order-`M` Stirling
 estimate `θ̃_M(T) = Im S_M(¼ + iT/2) − (T/2) log π` satisfies
 `|θ(T) − θ̃_M(T)| ≤ (2M+1)! 2^{2M+1}/(2M(2π)^{2M}) · ‖¼ + iT/2‖^{-2M}`, a bound that decays in
-`T` where `abs_riemannSiegelTheta_sub_stirling_le`'s `(¼)^{-2M}` does not. -/
+`T`. -/
 theorem abs_riemannSiegelTheta_sub_stirling_le' {M : ℕ} (hM : 1 ≤ M) {T : ℝ} (hT : 0 ≤ T) :
     |riemannSiegelTheta T
         - ((logGammaStirling M (1 / 4 + Complex.I * (T / 2))).im - T / 2 * Real.log Real.pi)|
@@ -401,7 +401,7 @@ theorem abs_riemannSiegelTheta_sub_stirling_le' {M : ℕ} (hM : 1 ≤ M) {T : �
   rw [hdiff]
   exact (Complex.abs_im_le_norm _).trans (norm_logGammaRemainderIoi_le' hM hre)
 
-/-- **Theta error at order `2`, in closed form**: `|θ(t) − θ̃_{2,0}(t)| ≤ 12 t^{-4}`. -/
+/-- Theta error at order `2`, in closed form: `|θ(t) − θ̃_{2,0}(t)| ≤ 12 t^{-4}`. -/
 theorem abs_riemannSiegelTheta_sub_approximant_two_le {t : ℝ} (ht : 0 < t) :
     |riemannSiegelTheta t - riemannSiegelThetaApproximant 2 0 t| ≤ 12 / t ^ 4 := by
   have him : (1 / 4 + Complex.I * ((t : ℂ) / 2)).im = t / 2 := by simp
@@ -442,41 +442,38 @@ theorem abs_riemannSiegelTheta_sub_approximant_two_le {t : ℝ} (ht : 0 < t) :
         gcongr
         norm_num
 
-/-- **The theta Stirling shift.** The number of `log Γ` recurrence steps used to make the Stirling
-argument `Re(w_t) = ¼` large before the order-`M` expansion. Unlike the zeta direct-sum cutoff `N`
-(which must grow like `t/π`), the theta shift only needs to push `¼ + shift` large enough that the
-Stirling remainder `∼ (¼ + shift)^{-2M}` sits below the certificate margin. `2M` already gives error
-`(¼+2M)^{-2M}` (e.g. `< 6·10⁻²²` at `M = 9`), so the shift is a fixed multiple of `M`, independent
-of the height — this decouples the `O(N)` theta log-sum from the zeta cutoff. -/
+/-- The theta Stirling shift: the number of `log Γ` recurrence steps applied before the order-`M`
+expansion, moving the Stirling argument's real part from `¼` to `¼ + 2M`. The Stirling remainder
+then scales like `(¼ + 2M)^{-2M}`, independent of the height and of the zeta cutoff `N`. -/
 def thetaShift (M : ℕ) : ℕ := 2 * M
 
-/-- **The Riemann–Siegel/Euler–Maclaurin approximant for Hardy's `Z`**,
+/-- The Riemann–Siegel/Euler–Maclaurin approximant for Hardy's `Z`,
 `Z̃_{M,N}(t) = Re(e^{i θ̃_{M,thetaShift M}(t)} · ζ̃_{M,N}(t))`, built from the theta approximant
 `riemannSiegelThetaApproximant M (thetaShift M) t` and the zeta approximant
-`zetaApproximant (½ + it) M N`. The theta shift is decoupled from the zeta cutoff `N` because the
-theta error depends only on `M` and the shift, not on `N`. -/
+`zetaApproximant (½ + it) M N`. The theta shift is independent of the zeta cutoff `N`, since the
+theta error depends only on `M` and the shift. -/
 noncomputable abbrev hardyZApproximantEM (M N : ℕ) (t : ℝ) : ℝ :=
   (Complex.exp (Complex.I * ((riemannSiegelThetaApproximant M (thetaShift M) t : ℝ) : ℂ))
       * zetaApproximant (1 / 2 + Complex.I * t) M N).re
 
-/-- **The error term of the approximant for Hardy's `Z`**, `Z(t) − Z̃_{M,N}(t)`. It is bounded by
+/-- The error term of the approximant for Hardy's `Z`, `Z(t) − Z̃_{M,N}(t)`. It is bounded by
 `abs_hardyZRemainderEM_le`. -/
 noncomputable abbrev hardyZRemainderEM (M N : ℕ) (t : ℝ) : ℝ :=
-  hardyZ t - hardyZApproximantEM M N t
+  Zeta.hardyZ t - hardyZApproximantEM M N t
 
 /-- Hardy's `Z` splits as its approximant plus its remainder. -/
 theorem hardyZ_eq_approximantEM_add_remainderEM (M N : ℕ) (t : ℝ) :
-    hardyZ t = hardyZApproximantEM M N t + hardyZRemainderEM M N t := by
+    Zeta.hardyZ t = hardyZApproximantEM M N t + hardyZRemainderEM M N t := by
   rw [hardyZRemainderEM]; ring
 
-/-- **The parameterised Hardy `Z` error bound**
+/-- The parameterised Hardy `Z` error bound
 `θ̃err_{M,N} · ‖ζ̃_{M,N}(t)‖ + ‖R^ζ_{M,N}(t)‖`, a function of `M`, `N`, `t` alone. -/
 noncomputable abbrev hardyZErrorBoundEM (M N : ℕ) (t : ℝ) : ℝ :=
   riemannSiegelThetaStirlingErrorBound M (thetaShift M)
       * ‖zetaApproximant (1 / 2 + Complex.I * t) M N‖
     + ‖zetaRemainder (1 / 2 + Complex.I * t) M N‖
 
-/-- **The rigorous, fully parameterised Hardy `Z` error bound.** For `M ≥ 1`, `N ≥ 1` and `t ≥ 0`,
+/-- The fully parameterised Hardy `Z` error bound: for `M ≥ 1`, `N ≥ 1` and `t ≥ 0`,
 `|Z(t) − Z̃_{M,N}(t)| ≤ hardyZErrorBoundEM M N t`. Bounding its trailing `‖R^ζ‖` by
 `norm_zetaRemainder_le` makes the whole error explicit. -/
 theorem abs_hardyZRemainderEM_le {M N : ℕ} (hM : 1 ≤ M) (hN : 1 ≤ N) {t : ℝ} (ht : 0 ≤ t) :

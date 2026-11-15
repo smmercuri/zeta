@@ -1,7 +1,7 @@
 /-
 The `Zeta` library root: every module under `Zeta/` except the generated certificate
-files, which `Zeta.Zeros.Certificates` imports. Use `./mk_all.sh` to generate rather 
-than `lake exe mk_all`. 
+files, which `Zeta.Zeros.Certificates` imports. Use `scripts/mk_all.sh` to generate rather
+than `lake exe mk_all`.
 -/
 module
 

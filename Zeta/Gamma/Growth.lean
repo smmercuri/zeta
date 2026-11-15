@@ -5,6 +5,7 @@ Authors: Salvatore Mercuri
 -/
 module
 
+public import Zeta.Analysis.Complex.Arg
 public import Zeta.Analysis.SpecialFunctions.Arctan
 public import Zeta.Gamma.DigammaStirling
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Digamma
@@ -27,7 +28,7 @@ for fixed `0 < a ≤ b` there are `0 < c₁ ≤ c₂` with
 
 * `Complex.hasDerivAt_log_norm`, `Complex.hasDerivAt_log_norm_Gamma_comp`,
   `Complex.hasDerivAt_log_norm_Gamma_vertical` (`lem:gs_deriv_logabs`):
-  `d/dt log‖Γ(σ + it)‖ = -Im ψ(σ + it)`, with no branch of `log Γ` chosen.
+  `d/dt log‖Γ(σ + it)‖ = -Im ψ(σ + it)`.
 * `Complex.integral_im_log_add_ofReal_mul_I` (`lem:gs_arg_integral`):
   `∫₀ᵗ Im Log(σ + iτ) dτ = t·arctan(t/σ) - (σ/2)·log(1 + t²/σ²)`.
 * `Complex.continuousAt_digamma`: continuity of `ψ` on `{Re > 0}`.
@@ -64,9 +65,9 @@ private theorem log_one_add_sq_div {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
   rw [show (1 + t ^ 2 / σ ^ 2) = (σ ^ 2 + t ^ 2) / σ ^ 2 by field_simp,
     Real.log_div (by positivity) (by positivity)]
 
-/-- **Branch-free derivative of `log‖G‖`.** For a complex-valued path `G : ℝ → ℂ` differentiable
+/-- Branch-free derivative of `log‖G‖`: for a complex-valued path `G : ℝ → ℂ` differentiable
 at `x` with `G x ≠ 0`, the real function `t ↦ log‖G t‖` is differentiable at `x` with derivative
-`Re(G'(x) / G x)`. No branch of a complex logarithm of `G` is involved. -/
+`Re(G'(x) / G x)`. -/
 theorem hasDerivAt_log_norm {G : ℝ → ℂ} {g' : ℂ} {x : ℝ}
     (hG : HasDerivAt G g' x) (hne : G x ≠ 0) :
     HasDerivAt (fun t ↦ Real.log ‖G t‖) (g' / G x).re x := by
@@ -84,7 +85,7 @@ theorem hasDerivAt_log_norm {G : ℝ → ℂ} {g' : ℂ} {x : ℝ}
   rw [hval]
   exact hlog0.const_mul (2 : ℝ)⁻¹
 
-/-- **Chain rule for `log‖Γ ∘ φ‖`.** For a complex path `φ : ℝ → ℂ` differentiable at `x` whose
+/-- Chain rule for `log‖Γ ∘ φ‖`: for a complex path `φ : ℝ → ℂ` differentiable at `x` whose
 value `φ x` lies in the right half-plane, `d/dx log‖Γ(φ x)‖ = Re (φ'(x) · ψ(φ x))` with
 `ψ = Complex.digamma`. -/
 theorem hasDerivAt_log_norm_Gamma_comp {φ : ℝ → ℂ} {φ' : ℂ} {x : ℝ}
@@ -98,7 +99,7 @@ theorem hasDerivAt_log_norm_Gamma_comp {φ : ℝ → ℂ} {φ' : ℂ} {x : ℝ}
   rw [Complex.digamma_def, logDeriv_apply]
   field_simp
 
-/-- **Vertical derivative of `log|Γ|` (`lem:gs_deriv_logabs`).** For `σ > 0` and `t ∈ ℝ`,
+/-- Vertical derivative of `log|Γ|` (`lem:gs_deriv_logabs`): for `σ > 0` and `t ∈ ℝ`,
 `d/dt log‖Γ(σ + i t)‖ = -Im ψ(σ + i t)`, with `ψ = Complex.digamma`. -/
 theorem hasDerivAt_log_norm_Gamma_vertical {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
     HasDerivAt (fun τ : ℝ ↦ Real.log ‖Complex.Gamma ((σ : ℂ) + (τ : ℂ) * Complex.I)‖)
@@ -107,7 +108,7 @@ theorem hasDerivAt_log_norm_Gamma_vertical {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
     simpa using ((Complex.ofRealCLM.hasDerivAt (x := t)).mul_const Complex.I).const_add (σ : ℂ)
   simpa [Complex.I_mul_re] using hasDerivAt_log_norm_Gamma_comp hpath (by simp [hσ])
 
-/-- **The integrated argument (`lem:gs_arg_integral`).** For `σ > 0` and any `t`,
+/-- The integrated argument (`lem:gs_arg_integral`): for `σ > 0` and any `t`,
 `∫₀ᵗ Im Log(σ + i τ) dτ = t·arctan(t/σ) - (σ/2)·log(1 + t²/σ²)`. -/
 theorem integral_im_log_add_ofReal_mul_I {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
     (∫ τ in (0 : ℝ)..t, (Complex.log ((σ : ℂ) + (τ : ℂ) * Complex.I)).im)
@@ -118,12 +119,7 @@ theorem integral_im_log_add_ofReal_mul_I {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
     intro τ
     have hre : ((σ : ℂ) + (τ : ℂ) * Complex.I).re = σ := by simp
     have him : ((σ : ℂ) + (τ : ℂ) * Complex.I).im = τ := by simp
-    rw [Complex.log_im]
-    have h1 : -(Real.pi / 2) < Complex.arg ((σ : ℂ) + (τ : ℂ) * Complex.I) :=
-      Complex.neg_pi_div_two_lt_arg_iff.mpr (Or.inl (by rw [hre]; exact hσ))
-    have h2 : Complex.arg ((σ : ℂ) + (τ : ℂ) * Complex.I) < Real.pi / 2 :=
-      Complex.arg_lt_pi_div_two_iff.mpr (Or.inl (by rw [hre]; exact hσ))
-    rw [← Real.arctan_tan h1 h2, Complex.tan_arg, hre, him]
+    rw [Complex.log_im, Complex.arg_eq_arctan (by rw [hre]; exact hσ), hre, him]
   -- An explicit antiderivative of `u ↦ arctan(u/σ)`.
   have hF : ∀ u : ℝ, HasDerivAt
       (fun u ↦ u * Real.arctan (u / σ) - σ / 2 * Real.log (σ ^ 2 + u ^ 2))
@@ -148,7 +144,7 @@ theorem integral_im_log_add_ofReal_mul_I {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
   simp only [zero_mul, add_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
   ring
 
-/-- **Continuity of the digamma function on the right half-plane.** For `Re z > 0`, `ψ = digamma`
+/-- Continuity of the digamma function on the right half-plane: for `Re z > 0`, `ψ = digamma`
 is continuous at `z`. -/
 theorem continuousAt_digamma {z : ℂ} (hz : 0 < z.re) : ContinuousAt Complex.digamma z :=
   (differentiableAt_digamma hz).continuousAt
@@ -233,7 +229,7 @@ private theorem continuous_imDigammaError {σ : ℝ} (hσ : 0 < σ) :
   exact ((continuous_im_digamma_vertical hσ).sub (continuous_im_log_vertical hσ)).add
     (continuous_im_inv_two_z hσ)
 
-/-- **Exact vertical integral identity for `log|Γ|`.** For `σ > 0`,
+/-- Exact vertical integral identity for `log|Γ|`: for `σ > 0`,
 `log‖Γ(σ + it)‖ = log‖Γ(σ)‖ - t·arctan(t/σ) + (σ/2 - 1/4)·log(1 + t²/σ²) - ∫₀ᵗ Im E(σ + iτ) dτ`. -/
 private theorem log_norm_Gamma_vertical_eq {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
     Real.log ‖Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I)‖
@@ -336,7 +332,7 @@ private theorem abs_log_growth_term_le {a b σ t : ℝ} (ha : 0 < a) (hab : a �
   exact mul_le_mul (by rw [abs_le]; constructor <;> nlinarith) hlogbound (abs_nonneg _)
     (by linarith)
 
-/-- **Bound on the error integral.** For `σ ≥ a > 0` and `t ≥ 0`, given the first-order digamma
+/-- Bound on the error integral: for `σ ≥ a > 0` and `t ≥ 0`, given the first-order digamma
 bound `‖E(s)‖ ≤ C₀‖s‖⁻²`, one has `|∫₀ᵗ Im E(σ + iτ) dτ| ≤ C₀·π/(2a)`, uniformly in `t`. -/
 private theorem abs_integral_imDigammaError_le {a : ℝ} (ha : 0 < a) (C₀ : ℝ) (hC₀ : 0 < C₀)
     (hbound : ∀ s : ℂ, a ≤ s.re →
@@ -368,9 +364,9 @@ private theorem abs_integral_imDigammaError_le {a : ℝ} (ha : 0 < a) (C₀ : �
     _ ≤ C₀ * (Real.pi / 2 / a) := mul_le_mul_of_nonneg_left (by gcongr) hC₀.le
     _ = C₀ * Real.pi / (2 * a) := by rw [div_div]; ring
 
-/-- **Explicit uniform two-sided bound on the remainder** `log‖Γ(σ + it)‖ - ((σ - 1/2)·log t -
-(π/2)·t)`, with *given* constants `M` (a bound on `|log‖Γ(σ)‖|` over `[a, b]`) and `C₀` (the
-digamma-remainder constant), so that callers may thread concrete numerals through. -/
+/-- Explicit uniform two-sided bound on the remainder `log‖Γ(σ + it)‖ - ((σ - 1/2)·log t -
+(π/2)·t)`, in terms of given constants `M` (a bound on `|log‖Γ(σ)‖|` over `[a, b]`) and `C₀` (the
+digamma-remainder constant). -/
 theorem log_norm_Gamma_remainder_le {a b M C₀ : ℝ} (ha : 0 < a) (hab : a ≤ b)
     (hM : ∀ σ ∈ Set.Icc a b, |Real.log ‖Complex.Gamma (σ : ℂ)‖| ≤ M) (hC₀ : 0 < C₀)
     (hCb : ∀ s : ℂ, a ≤ s.re →
@@ -390,7 +386,7 @@ theorem log_norm_Gamma_remainder_le {a b M C₀ : ℝ} (ha : 0 < a) (hab : a ≤
   rw [abs_le]
   refine ⟨?_, ?_⟩ <;> linarith [hA.1, hA.2, hB0, hBb, hC.1, hC.2, hD.1, hD.2]
 
-/-- **Uniform two-sided bound on the remainder** `log‖Γ(σ + it)‖ - ((σ - 1/2)·log t - (π/2)·t)`
+/-- Uniform two-sided bound on the remainder `log‖Γ(σ + it)‖ - ((σ - 1/2)·log t - (π/2)·t)`
 for `σ ∈ [a, b]`, `t ≥ 1`. -/
 private theorem log_norm_Gamma_remainder_bounded {a b : ℝ} (ha : 0 < a) (hab : a ≤ b) :
     ∃ K : ℝ, ∀ σ : ℝ, a ≤ σ → σ ≤ b → ∀ t : ℝ, 1 ≤ t →
@@ -435,7 +431,7 @@ private theorem norm_Gamma_vertical_le_of_one_le {a b K : ℝ} (ha : 0 < a)
   exact ⟨(le_div_iff₀ hP).mp (heq ▸ Real.exp_le_exp.mpr hlo),
     (div_le_iff₀ hP).mp (heq ▸ Real.exp_le_exp.mpr hhi)⟩
 
-/-- **Vertical-strip growth bound for `Γ` (`thm:gs_Gamma_growth`).** Fix `0 < a ≤ b`. There are
+/-- Vertical-strip growth bound for `Γ` (`thm:gs_Gamma_growth`). Fix `0 < a ≤ b`. There are
 constants `0 < c₁ ≤ c₂`, depending only on `a, b`, such that for all `σ ∈ [a, b]` and all `t` with
 `|t| ≥ 1`,
 `c₁·|t|^{σ-1/2}·e^{-(π/2)|t|} ≤ ‖Γ(σ + it)‖ ≤ c₂·|t|^{σ-1/2}·e^{-(π/2)|t|}`. -/
