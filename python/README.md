@@ -132,7 +132,7 @@ which will unnecessarily inflate both Python and Lean's kernel computation time.
 
 ### Applying Euler-Maclaurin
 
-Compared to the Riemann-Siegel approximator below, Euler-Maclaurin is heavier computationally
+Compared to the Riemann-Siegel approximant below, Euler-Maclaurin is heavier computationally
 and it requires various parameter choices. However, Riemann-Siegel is only effective for large 
 enough heights, hence we apply Euler-Maclaurin to the range `(1, 149.5)` along the critical line.
 Found zeros are stored alongside parameter choices for each, ready for communication to the 
