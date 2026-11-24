@@ -9,6 +9,8 @@ public import Zeta.Summation.Complex
 public import Mathlib.NumberTheory.LSeries.RiemannZeta
 public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 
+import Mathlib.Analysis.PSeriesComplex
+
 /-!
 # Euler–Maclaurin expansion of the Riemann zeta function (region `Re s > 1`)
 
@@ -44,7 +46,7 @@ theorem tendsto_natCast_cpow_nhds_zero {c : ℂ} (hc : c.re < 0) :
   rw [Function.comp_apply, neg_neg]
   exact (Complex.norm_cpow_eq_rpow_re_of_pos (by exact_mod_cast hR) c).symm
 
-/-- **Integrability of the kernel times a complex power.** For `1 ≤ N` and `w.re < -1`, the
+/-- For `1 ≤ N` and `w.re < -1`, the
 function `x ↦ B̃_p(x) · (x:ℂ)^w` is integrable on `(N, ∞)`. -/
 theorem integrableOn_Ioi_bernoulliFun_fract_mul_cpow (p N : ℕ) (hN : 1 ≤ N) {w : ℂ}
     (hw : w.re < -1) :
@@ -57,17 +59,14 @@ theorem integrableOn_Ioi_bernoulliFun_fract_mul_cpow (p N : ℕ) (hN : 1 ≤ N) 
       le_of_eq (Complex.norm_cpow_eq_rpow_re_of_pos
         (lt_of_lt_of_le hN0 (Set.mem_Ioi.mp hx).le) w)
 
-/-- **The improper Euler–Maclaurin remainder**
+/-- The improper Euler–Maclaurin remainder
 `(-1)^(p+1)/p! · ∫_{(a,∞)} B̃_p(x) · f⁽ᵖ⁾(x) dx`, the `R → ∞` limit of the compact-interval
-remainder `eulerMaclaurinRemainder p f a R`.
-
-Unlike `eulerMaclaurinRemainder` this is an improper integral over `Set.Ioi a`; the two agree
-only where that integral converges. -/
+remainder `eulerMaclaurinRemainder p f a R` where the integral over `Set.Ioi a` converges. -/
 noncomputable def eulerMaclaurinRemainderIoi (p : ℕ) (f : ℝ → ℂ) (a : ℝ) : ℂ :=
   (-1 : ℂ) ^ (p + 1) / (p ! : ℂ)
     * ∫ x in Set.Ioi a, (bernoulliFun p (Int.fract x) : ℂ) * iteratedDeriv p f x
 
-/-- **Absolute convergence of the zeta remainder integral.** For `1 ≤ N` and `Re s + p > 1`,
+/-- Absolute convergence of the zeta remainder integral: for `1 ≤ N` and `Re s + p > 1`,
 the integrand `B̃_p(x) · f_s⁽ᵖ⁾(x)` of the order-`p` Euler–Maclaurin remainder is integrable on
 `(N, ∞)`. -/
 theorem integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_cpow
@@ -88,7 +87,7 @@ theorem integrableOn_Ioi_bernoulliFun_fract_iteratedDeriv_cpow
 
 end Complex
 
-/-- **Euler–Maclaurin expansion of `riemannZeta s` for `Re s > 1`.** For `1 ≤ N` and order
+/-- Euler–Maclaurin expansion of `riemannZeta s` for `Re s > 1`: for `1 ≤ N` and order
 `p = 2M+1`,
 `ζ(s) = ∑_{n=1}^{N-1} n⁻ˢ + N^{1-s}/(s-1) + N⁻ˢ/2
           + ∑_{k=1}^{M} B_{2k}/(2k)! · (s)_{2k-1} · N^{-s-(2k-1)} + R_M(s, N)`,

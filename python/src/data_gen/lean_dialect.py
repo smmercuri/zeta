@@ -1,13 +1,13 @@
 """How a store row renders as Lean.
 
-The certificate generators compute nothing: they read a store and emit Lean. What varies
-between approximation methods is therefore not an approximant but a *rendering* — which
-interval structure a row builds, which obligations its certificate carries, and which smart
-constructor bundles them. That is what a `LeanDialect` captures; batch splitting, seam
-theorems and the assembler are method-agnostic and live in the generators themselves.
+The certificate generators read a store and emit Lean. What varies between approximation
+methods is the *rendering*: which interval structure a row builds, which obligations its
+certificate carries, and which smart constructor bundles them. A `LeanDialect` captures that;
+batch splitting, seam theorems and the assembler are method-agnostic and live in the
+generators themselves.
 
-The dialect is selected from the store's own manifest (`params.method`), so a generator never
-needs to be told which method produced the data it was pointed at.
+The dialect is selected from the store's own manifest (`params.method`), so a generator reads
+the method from the data it is pointed at.
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ class LeanDialect(ABC):
     exists_zero_module: str
 
     #: Lean module providing this dialect's certificate tactics, or `None` when its
-    #: ball-arithmetic obligations are still emitted as `sorry`. Generated modules import it.
+    #: ball-arithmetic obligations are emitted as `sorry`. Generated modules import it.
     tactic_module: str | None = None
 
     #: True when `certificate_block` discharges every obligation (no `sorry` emitted).
@@ -101,7 +101,7 @@ class EulerMaclaurinDialect(LeanDialect):
         if parts[5] == "None" or parts[6] == "None":
             raise SystemExit(
                 f"{path}: row {parts[0]} has Bernoulli count None; the Lean "
-                "`fstBernoulli : Nat` needs a concrete number — regenerate the "
+                "`fstBernoulli : Nat` needs a concrete number; regenerate the "
                 "store with a real `--M` (not automatic stopping)."
             )
 
@@ -109,8 +109,8 @@ class EulerMaclaurinDialect(LeanDialect):
     exists_zero_module = "Zeta.Zeros.Interval"
 
     def interval_block(self, name: str, row: list[str]) -> str:
-        """Only used where a row must be named individually — inside a gram block. Whole
-        batches go through `build_batch`, which builds the same term without naming it."""
+        """Used where a row must be named individually: inside a gram block. Whole batches
+        go through `build_batch`, which builds the same term unnamed."""
         idx, left, right, lc, rc, lb, rb = row
         return f"""/-- Interval bracketing zeta zero #{idx} (`t ≈ {left}`). -/
 abbrev {name} : ZIntervalEM where
@@ -174,14 +174,13 @@ abbrev {name} : ZIntervalRS where
 """
 
     def certificate_block(self, name: str, row: list[str]) -> str:
-        """Only used where a row must be named individually — inside a gram block. Whole
-        batches go through `build_batch_rs`, which builds the same term without naming it.
+        """Used where a row must be named individually: inside a gram block. Whole batches
+        go through `build_batch_rs`, which builds the same term unnamed.
 
-        `norm_num` first in `le_fst`: it reduces the interval's `toProd.1` projection to the
-        literal, which `linarith` will not do on its own — alone it sees an opaque term and
-        fails. The three ball-arithmetic obligations are discharged by the `Enclosure` engine
-        against `hardyZApproximantRS₀`/`hardyZErrorBoundRS₀`, both of which are concrete, so
-        there is no Euler–Maclaurin-style strengthened-bound step to chain through."""
+        `norm_num` runs first in `le_fst` to reduce the interval's `toProd.1` projection to
+        the literal that `linarith` then uses. The three ball-arithmetic obligations are
+        discharged by the `Enclosure` engine against the concrete
+        `hardyZApproximantRS₀`/`hardyZErrorBoundRS₀`."""
         return f"""theorem {name}_cert : {name}.Certificate where
   le_fst := by
     norm_num
@@ -200,7 +199,7 @@ DIALECTS: dict[str, LeanDialect] = {
 def dialect_for(store: Path, manifest: dict) -> LeanDialect:
     """The dialect named by a store manifest.
 
-    Stores predating the `method` key are Euler–Maclaurin. Both the zeros and the gram store
+    A store without the `method` key is Euler–Maclaurin. Both the zeros and the gram store
     record `params` at top level.
     """
     method = manifest.get("params", {}).get("method", "euler_maclaurin")

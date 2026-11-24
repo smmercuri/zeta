@@ -30,7 +30,7 @@ part of `h` on a suitable circle (`hadamard_factorization.tex`).
 open Complex Filter Topology Set Metric
 
 
-/-- **Real-part growth of the exponent (`lem:hf_reH_growth`).** If `ξ = exp(h) · P` with `h` entire
+/-- Real-part growth of the exponent (`lem:hf_reH_growth`): if `ξ = exp(h) · P` with `h` entire
 and `P` the canonical product of the zeros of `ξ`, then there is `C > 0` such that for every `R ≥ 2`
 there is a radius `R' ∈ [R, 2R]` on whose circle `Re h(s) ≤ C · R^{3/2}`. -/
 theorem re_log_riemannXi_div_canonicalProduct_le {h : ℂ → ℂ}

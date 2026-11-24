@@ -13,16 +13,16 @@ public import Zeta.RiemannSiegel.Inner
 
 Companion to `Zeta/RiemannSiegel/Inner.lean`: the region `|w| > W` of the contour, `W` the splitting
 radius `Zeta.RiemannSiegel.splitRadius`, `W = T^{1/12}` (`riemann_siegel_first.tex`,
-`lem:rsf_outer`). There the saddle discrepancy `Δ` is no longer small, so nothing is gained by
-expanding `e^Δ - 1`; instead `e^Δ` and `1` are bounded separately, the first by the order-zero
-Gaussian majorant `Zeta.RiemannSiegel.norm_contourIntegrand_le` for the true integrand and the
-second by the Gaussian numerator of the model. Both tails are super-polynomially small, and the
+`lem:rsf_outer`). There the saddle discrepancy `Δ` is not small, so `e^Δ` and `1` are bounded
+separately, the first by the order-zero Gaussian majorant
+`Zeta.RiemannSiegel.norm_contourIntegrand_le` for the true integrand and the second by the
+Gaussian numerator of the model. Both tails are super-polynomially small, and the
 whole estimate is a `T`-uniform `T^{-1/2}`.
 
-As in the inner region, the uniformity in `T` is not obtained from a monotonicity argument but by
-substituting `√T = W^6` (`splitRadius_pow_six`) and `W ≥ 3.16` (`le_splitRadius`): what has to be
-proved is the single-variable inequality `320 W^6 ≤ e^{πW²/2}`, and that follows from the
-fourteenth term of the exponential series.
+As in the inner region, the uniformity in `T` is obtained by substituting `√T = W^6`
+(`splitRadius_pow_six`) and `W ≥ 3.16` (`le_splitRadius`): what has to be proved is the
+single-variable inequality `320 W^6 ≤ e^{πW²/2}`, and that follows from the fourteenth term of
+the exponential series.
 
 ## Main results
 
@@ -38,7 +38,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The uniformity in `T` of the outer estimate**, as a polynomial inequality in `W = T^{1/12}`
+/-- The uniformity in `T` of the outer estimate, as a polynomial inequality in `W = T^{1/12}`
 alone. -/
 private theorem mul_pow_six_le_exp {W : ℝ} (hW : (3.16 : ℝ) ≤ W) :
     320 * W ^ 6 ≤ Real.exp (π * W ^ 2 / 2) := by
@@ -47,8 +47,7 @@ private theorem mul_pow_six_le_exp {W : ℝ} (hW : (3.16 : ℝ) ≤ W) :
   have hfact : ((Nat.factorial 14 : ℕ) : ℝ) = 87178291200 := by
     norm_num [Nat.factorial]
   have hy : (0 : ℝ) ≤ π * W ^ 2 / 2 := by positivity
-  -- the fourteenth term of the exponential series is the weakest one that suffices: the crude
-  -- `e^{-x} ≤ (n/x)^n`, without the factorial, is not enough for any `n`
+  -- the fourteenth term of the exponential series
   refine le_trans ?_ (Real.pow_div_factorial_le_exp (π * W ^ 2 / 2) hy 14)
   rw [hfact, le_div_iff₀ (by norm_num : (0 : ℝ) < 87178291200),
     show (π * W ^ 2 / 2) ^ 14 = π ^ 14 * W ^ 6 * W ^ 22 / 2 ^ 14 by ring,
@@ -62,7 +61,7 @@ private theorem mul_pow_six_le_exp {W : ℝ} (hW : (3.16 : ℝ) ≤ W) :
     _ ≤ π ^ 14 * W ^ 22 * W ^ 6 := mul_le_mul_of_nonneg_right hstep (by positivity)
     _ = π ^ 14 * W ^ 6 * W ^ 22 := by ring
 
-/-- **The pointwise majorant for the true integrand**: renormalised by the saddle factor, the
+/-- The pointwise majorant for the true integrand: renormalised by the saddle factor, the
 Riemann–Siegel integrand along `L(ν + ½)` is a Gaussian of half the model's width. -/
 private theorem norm_modelIntegrand_mul_exp_saddleDiscrepancy_le {t : ℝ} (ht : 0 < t) {ν : ℕ}
     (hS : (1000 : ℝ) ≤ Real.sqrt (t / (2 * π))) (hν : (ν : ℝ) ≤ Real.sqrt (t / (2 * π)))
@@ -128,7 +127,7 @@ private theorem norm_modelIntegrand_mul_exp_saddleDiscrepancy_le {t : ℝ} (ht :
         mul_le_mul_of_nonneg_right (by linarith) (by positivity)
     _ = 1100 * Real.exp (-(π / 2) * w ^ 2) * (t / (2 * π)) ^ (-(1 / 4) : ℝ) := by ring
 
-/-- **The pointwise majorant for the model integrand on the outer region** `|w| > W`. -/
+/-- The pointwise majorant for the model integrand on the outer region `|w| > W`. -/
 private theorem norm_modelIntegrand_le_outer {p W w : ℝ} (hκ : |1 / 2 - p| ≤ 1 / 2)
     (hW : (1 : ℝ) ≤ W) (hw : W < |w|) :
     ‖modelIntegrand (p : ℂ) (1 / 2) w‖
@@ -163,7 +162,7 @@ private theorem norm_modelIntegrand_le_outer {p W w : ℝ} (hκ : |1 / 2 - p| �
           * Real.exp (-(2 * π) * (w + (1 / 2 - p) / 2) ^ 2)) :=
         mul_le_mul hconst hexp (Real.exp_nonneg _) (by norm_num)
 
-/-- **The outer saddle-point estimate** (`riemann_siegel_first.tex`, `lem:rsf_outer`): the
+/-- The outer saddle-point estimate (`riemann_siegel_first.tex`, `lem:rsf_outer`): the
 contribution to the model integral of the region `|w| > W = T^{1/12}`, away from the saddle. -/
 theorem norm_integral_outer_le {t : ℝ} (ht : 10 ^ 6 ≤ t / (2 * π)) {ν : ℕ}
     (hν : (ν : ℝ) ≤ Real.sqrt (t / (2 * π)))
@@ -244,7 +243,7 @@ theorem norm_integral_outer_le {t : ℝ} (ht : 10 ^ 6 ≤ t / (2 * π)) {ν : �
     _ ≤ 320 * Real.exp (-(π / 2) * W ^ 2) := by
         rw [integral_add hmajGint.integrableOn hmajHint.integrableOn]
         nlinarith [add_le_add htailG htailH, (Real.exp_pos (-(π / 2) * W ^ 2)).le]
-    -- and the numerical endgame: `320 e^{-πW²/2} ≤ W^{-6} = T^{-1/2}`
+    -- and the final numerical step: `320 e^{-πW²/2} ≤ W^{-6} = T^{-1/2}`
     _ ≤ 1 / S := by
         rw [show Real.exp (-(π / 2) * W ^ 2) = 1 / Real.exp (π * W ^ 2 / 2) by
               rw [one_div, ← Real.exp_neg]; congr 1; ring,

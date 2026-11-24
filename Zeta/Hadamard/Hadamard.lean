@@ -13,6 +13,7 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import Mathlib.Analysis.Analytic.Order
 public import Mathlib.Analysis.Complex.CauchyIntegral
 public import Mathlib.Data.Set.Card
+public import Mathlib.Topology.Algebra.InfiniteSum.Field
 
 /-!
 # The genus-one Weierstrass elementary factor
@@ -206,7 +207,7 @@ lemma multipliable_weierstrassE1 (hsum : Summable fun i => ‖(ρ i)⁻¹‖ ^ 2
   rw [heq]
   exact multipliable_one_add_of_summable (summable_norm_weierstrassE1_sub_one ρ hsum s)
 
-/-- **Local uniform convergence of the canonical product (`lem:hf_prod_summable`).** If
+/-- Local uniform convergence of the canonical product (`lem:hf_prod_summable`). If
 `∑ᵢ ‖ρᵢ⁻¹‖² < ∞`, then `∏ᵢ E₁(s/ρᵢ)` converges to `P` locally uniformly on `ℂ`. -/
 lemma hasProdLocallyUniformlyOn_riemannXiCanonicalProduct
     (hsum : Summable fun i => ‖(ρ i)⁻¹‖ ^ 2) :
@@ -243,7 +244,7 @@ lemma hasProdLocallyUniformlyOn_riemannXiCanonicalProduct
   convert Summable.hasProdUniformlyOn_one_add hK hu hbd hcts using 2 with s s i <;>
     simp [riemannXiCanonicalProduct]
 
-/-- **The canonical product is entire** (entirety half of `lem:hf_prod_entire`): if
+/-- The canonical product is entire (entirety half of `lem:hf_prod_entire`): if
 `∑ᵢ ‖ρᵢ⁻¹‖² < ∞`, then `P` is differentiable on all of `ℂ`. -/
 theorem differentiable_riemannXiCanonicalProduct
     (hsum : Summable fun i => ‖(ρ i)⁻¹‖ ^ 2) :
@@ -262,7 +263,7 @@ private lemma div_ne_one_of_forall_ne {s : ℂ} (hs : ∀ i, s ≠ ρ i) (i : ι
   · rw [hρ, div_zero]; exact zero_ne_one
   · exact fun h => hs i ((div_eq_one_iff_eq hρ).mp h)
 
-/-- **The canonical product is zero-free away from the `ρᵢ`** (nonvanishing content of
+/-- The canonical product is zero-free away from the `ρᵢ` (nonvanishing content of
 `lem:hf_quot`): if `∑ᵢ ‖ρᵢ⁻¹‖² < ∞` and `s ≠ ρᵢ` for every `i`, then `P(s) ≠ 0`. -/
 lemma riemannXiCanonicalProduct_ne_zero_of_forall_ne
     (hsum : Summable fun i => ‖(ρ i)⁻¹‖ ^ 2) {s : ℂ} (hs : ∀ i, s ≠ ρ i) :
@@ -307,7 +308,7 @@ lemma log_norm_riemannXiCanonicalProduct_eq_tsum
   rw [log_norm_riemannXiCanonicalProduct ρ hsum hs]
   exact tsum_congr fun i => log_norm_weierstrassE1 (div_ne_one_of_forall_ne ρ hs i)
 
-/-- **Order-`3/2` growth of the canonical product (`lem:hf_prod_order`).** If `∑ᵢ ‖ρᵢ⁻¹‖² < ∞`
+/-- Order-`3/2` growth of the canonical product (`lem:hf_prod_order`). If `∑ᵢ ‖ρᵢ⁻¹‖² < ∞`
 and `∑ᵢ ‖ρᵢ⁻¹‖^{3/2} < ∞`, there is `C_P > 0` with `log ‖P(s)‖ ≤ C_P ‖s‖^{3/2}` for every `s`.
 The two summability hypotheses are redundant (`hsum32` implies `hsum`) but both are threaded, as
 the concrete zero-enumeration supplies each directly. -/
@@ -351,7 +352,7 @@ theorem log_norm_riemannXiCanonicalProduct_le
       rw [hP0, norm_zero, Real.log_zero]
       positivity
 
-/-- **Order-of-vanishing matching for the canonical product** (order half of `lem:hf_prod_entire`):
+/-- Order-of-vanishing matching for the canonical product (order half of `lem:hf_prod_entire`):
 if `∑ᵢ ‖ρᵢ⁻¹‖² < ∞` and every `ρᵢ ≠ 0`, the analytic order of `P` at `a` equals the number
 `#{i | ρᵢ = a}` of indices mapping to `a`. -/
 theorem analyticOrderNatAt_riemannXiCanonicalProduct

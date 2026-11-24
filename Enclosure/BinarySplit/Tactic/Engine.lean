@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Basic
@@ -22,47 +27,31 @@ verifier assembler `mkVerifyLe`.
 namespace BSN
 open Enclosure
 
-/-- Memo cache for `piVal` (used in `Tactic.Pi`): `π` is a constant, so `(P, Q)` at a given
-precision `E` is computed once per process. The range reduction requests `piVal` repeatedly (three
-per trig reduction, for the cos and sin of every head-sum term) at a handful of distinct precisions,
-so the cache collapses those requests to one Machin arctan binary split per precision. Lives here
-(not in `Tactic.Pi`) so it is initialized before `Tactic.Pi`'s own `pi_near_*` constants elaborate
-against `piVal`. -/
+/-- Per-process memo of `piVal`'s `(P, Q)` by precision `E`. Declared here rather than in
+`Tactic.Pi` so it is initialized before `Tactic.Pi`'s `pi_near_*` constants elaborate. -/
 initialize piValCache : IO.Ref (Std.HashMap Nat (Nat × Nat)) ← IO.mkRef ∅
 
-/-- Memo caches for the `n`-only leaf enclosures `√(N/M)` and `log(a/b)`, which the zeta head sum
-rebuilds for the same `n` at the same precision on every bracket endpoint of a chunk. The value
-is the raw `RNear` payload `(proof, neg, cn, cd, rn, rd)` (kept tuple-form here so this module need
-not depend on `RNear`, defined downstream in `Tactic.Enclosures`); the enclosure proof is a closed
-term about `√(N/M)` / `log(a/b)`, so it is reused verbatim. Living here (imported) means they are
-initialized before `Tactic.Enclosures`' own `sqrt_near%`/`log_near%` benchmark defs elaborate. -/
+/-- Memo caches for the leaf enclosures `√(N/M)` and `log(a/b)`, keyed by arguments and precision,
+holding the `RNear` payload `(proof, x, neg, cn, cd, rn, rd)` as a tuple (`RNear` is defined
+downstream). Declared here so they are initialized before `Tactic.Enclosures` elaborates. -/
 initialize sqrtNearCache : IO.Ref (Std.HashMap (Nat × Nat × Nat)
       (Lean.Expr × Lean.Expr × Bool × Nat × Nat × Nat × Nat)) ← IO.mkRef ∅
 initialize logNearCache : IO.Ref (Std.HashMap (Nat × Nat × Nat × Nat)
       (Lean.Expr × Lean.Expr × Bool × Nat × Nat × Nat × Nat)) ← IO.mkRef ∅
 
-/-- Memo for the `forCos`-independent part of the `sin`/`cos` range reduction, holding the argument
-`(a, b, D)` it was computed at. `cos(t·log n)` and `sin(t·log n)` reduce the *same* argument and
-differ only in the inner Taylor series and quadrant lemma, and they are built one after the other,
-so a single slot catches every reuse there is. Value `(#[k, qq, j, E, Pc, Q, u, v], #[piPf, xE,
-rcvE, hrc])`, packed as arrays so this module need not depend on a `Reduce` structure.
-
-One slot rather than a table because the arguments are phases, all distinct: a table holds thousands
-of entries keyed on pairs of big integers to serve the one repeat, and hashing those keys costs more
-than recomputing the reduction would. -/
+/-- One-slot memo for the `forCos`-independent part of the `sin`/`cos` range reduction: the
+argument `(a, b, D)` and the packed result `(#[k, qq, j, E, Pc, Q, u, v], #[piPf, xE, rcvE, hrc])`.
+A single slot because `sin` and `cos` of the same argument are built consecutively and arguments
+otherwise never repeat. -/
 initialize trigReduceCache : IO.Ref (Option ((Nat × Nat × Nat) × (Array Nat × Array Lean.Expr))) ←
   IO.mkRef none
-
-/-! ### Proof-emitting metaprogram (literals computed in `MetaM`, `beq` reflection) -/
 
 open Lean Elab Meta Tactic
 
 /-! ### Shared real-value `Expr` builders
 
-The enclosed real of a leaf/combinator is a fixed function of its inputs, built directly (matching
-the certificate lemmas' conclusions) rather than read back from a proof's type by `inferType`.
-These primitives live here so the `log2`/`π` factor lifts (`mkBoundAux`) can state their aux-lemma
-types too. -/
+Builders for the enclosed real of a leaf or combinator, constructed directly in the form the
+certificate lemmas conclude about rather than read back from a proof's type by `inferType`. -/
 
 /-- The type `ℝ`. -/
 meta def realTyE : Expr := mkConst ``Real
@@ -71,9 +60,7 @@ meta def realTyE : Expr := mkConst ``Real
 meta def mkNatCastR (n : ℕ) : Expr :=
   mkApp2 (mkConst ``Nat.cast [.zero]) realTyE (mkConst ``Real.instNatCast) |>.app (natLitShared n)
 
-/-- `(↑u / ↑v : ℝ)`, the argument form the trig/exp/log certificate lemmas conclude about
-(`Real.sin ((u:ℝ)/v)` etc.), matching `@HDiv.hDiv ℝ ℝ ℝ (instHDiv (DivInvMonoid.toDiv
-Real.instDivInvMonoid)) ↑u ↑v`. -/
+/-- `(↑u / ↑v : ℝ)`, in the elaborated form of the trig/exp/log certificate lemmas' arguments. -/
 meta def mkCastDivR (u v : ℕ) : Expr :=
   mkAppN (mkConst ``HDiv.hDiv [.zero, .zero, .zero])
     #[realTyE, realTyE, realTyE,
@@ -85,8 +72,7 @@ meta def mkCastDivR (u v : ℕ) : Expr :=
 meta def mkNegR (x : Expr) : Expr :=
   mkApp3 (mkConst ``Neg.neg [.zero]) realTyE (mkConst ``Real.instNeg) x
 
-/-- `((-↑u) / ↑v : ℝ)`, the RHS of `sfrac_true_div` (`Real.sin ((-(u:ℝ))/v)` etc.), matching
-`HDiv.hDiv ℝ ℝ ℝ … (Neg.neg ↑u) ↑v`. -/
+/-- `((-↑u) / ↑v : ℝ)`, in the elaborated form of the RHS of `sfrac_true_div`. -/
 meta def mkNegCastDivR (u v : ℕ) : Expr :=
   mkAppN (mkConst ``HDiv.hDiv [.zero, .zero, .zero])
     #[realTyE, realTyE, realTyE,
@@ -99,8 +85,7 @@ meta def mkNegCastDivR (u v : ℕ) : Expr :=
 meta def mkSfracR (neg : Bool) (cn cd : ℕ) : Expr :=
   mkAppN (mkConst ``sfrac) #[toExpr neg, natLitShared cn, natLitShared cd]
 
-/-- `Real.f x` for a unary real function `f` (`Real.exp`/`Real.sin`/`Real.cos`/`Real.log`/
-`Real.sqrt`/`Real.arctan`), applied to the enclosed real `x`. -/
+/-- `fn x` for a unary real function constant `fn` such as `Real.exp`. -/
 meta def mkRealFn (fn : Name) (x : Expr) : Expr := mkApp (mkConst fn) x
 
 /-- The `ℕ` numeral `(n : ℕ)` in `OfNat.ofNat ℕ n (instOfNatNat n)` form. -/
@@ -108,8 +93,8 @@ private meta def mkNatOfNat (n : ℕ) : Expr :=
   mkApp3 (mkConst ``OfNat.ofNat [.zero]) (mkConst ``Nat) (mkRawNatLit n)
     (mkApp (mkConst ``instOfNatNat) (mkRawNatLit n))
 
-/-- The `ℝ` numeral literal `(2 : ℝ)` in the elaborated `OfNat.ofNat ℝ 2 (instOfNatAtLeastTwo …)`
-form, matching the `Real.log 2` argument the shared `log2` tier constants conclude about. -/
+/-- `(2 : ℝ)` in the elaborated `OfNat.ofNat ℝ 2 (instOfNatAtLeastTwo …)` form used by the `log2`
+tier constants. -/
 meta def mkRealTwo : Expr :=
   let atLeastTwo := mkApp2 (mkConst ``Nat.instAtLeastTwoHAddOfNat)
     (mkNatOfNat 1) (mkApp (mkConst ``Nat.instNeZeroSucc) (mkNatOfNat 0))
@@ -117,56 +102,45 @@ meta def mkRealTwo : Expr :=
     (mkApp4 (mkConst ``instOfNatAtLeastTwo [.zero]) realTyE (mkRawNatLit 2)
       (mkConst ``Real.instNatCast) atLeastTwo)
 
-/-- `Real.IsNear x neg cn cd rn rd` as an `Expr`, from the enclosed real `x` (built directly) and
-the literal fields. -/
+/-- The type `Real.IsNear x neg cn cd rn rd` with literal fields. -/
 meta def mkIsNearTy (x : Expr) (neg : Bool) (cn cd rn rd : ℕ) : Expr :=
   mkAppN (mkConst ``Real.IsNear)
     #[x, toExpr neg, natLitShared cn, natLitShared cd, natLitShared rn, natLitShared rd]
 
-/-- Lift a fully-applied bound proof of the given type `ty` into its own auxiliary lemma and return
-a reference to it (`mkConst`), so the enclosing definition body stays a single constant. Shared by
-the `log2`/`π` Machin factor proofs. The caller passes `ty` directly (built from the factor's
-literal fields), so it is not re-derived from `pf` by `inferType`. Value and type are
-`instantiateMVars`'d first (else the kernel rejects the aux lemma with "declaration has
-metavariables"). -/
+/-- A constant referring to a new auxiliary lemma of type `ty` with proof `pf` (both
+`instantiateMVars`'d). -/
 meta def mkBoundAux (ty pf : Expr) : MetaM Expr := do
   let pf ← instantiateMVars pf
   let ty ← instantiateMVars ty
   return mkConst (← mkAuxLemma [] ty pf)
 
-/-- The dyadic denominator for precision `1/D`: the least power of two `≥ 2·D`, so that
-the rounding error `1/Q ≤ 1/(2D)`. -/
+/-- The dyadic denominator for precision `1/D`: the least power of two `≥ 2·D`. -/
 meta def dyadicDenom (D : ℕ) : ℕ := 2 ^ Nat.clog 2 (2 * D)
 
-/-- Primitive-form `ℕ` expression builders (no `HMul`/`HAdd`/`HPow` instance indirection in
-kernel-checked positions). -/
+/-- `Nat.mul a b` (likewise `natAddE`, `natSuccE`, `natPowE`), spelled without the
+`HMul`/`HAdd`/`HPow` instance indirection. -/
 meta def natMulE (a b : Expr) : Expr := mkApp2 (mkConst ``Nat.mul) a b
 meta def natAddE (a b : Expr) : Expr := mkApp2 (mkConst ``Nat.add) a b
 meta def natSuccE (a : Expr) : Expr := mkApp (mkConst ``Nat.succ) a
 meta def natPowE (a b : Expr) : Expr := mkApp2 (mkConst ``Nat.pow) a b
-meta def natFactE (a : Expr) : Expr := mkApp (mkConst ``Nat.factorial) a
 
-/-- One-time evaluation lemma `e = <literal>` for a closed `ℕ` expression, `mkAuxLemma`-deduped, so
-each distinct value (a factorial, a large power) is computed once per module and later cited. -/
+/-- A constant proving `e = v` for a closed `ℕ` expression `e`, as an auxiliary lemma deduplicated
+by `mkAuxLemma`. -/
 meta def mkNatEvalAux (e : Expr) (v : ℕ) : MetaM Expr := do
   let nm ← mkAuxLemma [] (mkApp3 (mkConst ``Eq [Level.one]) (mkConst ``Nat) e (natLitShared v))
     (mkApp2 (Expr.const ``Eq.refl [Level.one]) (mkConst ``Nat) (natLitShared v))
   return mkConst nm
 
-/-- Shared term-count search for the factorial even/odd series (`sin` and `cos`): the least `M`
-satisfying the tail guard at index `k`. Carries `L = u^k · 2D` and `R = v^k · k!` as running
-products, each updated by one big×small multiply per step, so the guard `u^k·2D ≤ v^k·k!` needs no
-big×big products. The wrappers `sinTermCount`/`cosTermCount` differ only in the seeds (`k = 1` for
-sin's `4M+1` tail index, `k = 0` for cos's `4M`). -/
+/-- The least term count `M` (from the seed) for the `sin`/`cos` even/odd series whose tail guard
+holds, with `L = u^k · 2D` and `R = v^k · k!` carried as running products. -/
 partial def trigTermCountAux (u v M k L R : ℕ) : ℕ :=
   if u.blt ((k + 1) * v) && (2 * u ^ 2).ble ((k + 1) ^ 2 * v ^ 2)
       && (2 * L).ble R then M
   else trigTermCountAux u v (M + 1) (k + 4) (L * u ^ 4)
     (R * (v ^ 4 * ((k + 1) * (k + 2) * (k + 3) * (k + 4))))
 
-/-- The signed dyadic rational `(((↑mp - ↑mn : ℤ) : ℚ) / ↑Q : ℚ)` built directly as an `Expr`. The
-signed numerator is a difference of two `ℕ` `mp - mn` (exactly one nonzero), cast `ℕ → ℤ → ℚ`, over
-`Q` cast `ℕ → ℚ`: it matches the `ℚ`-cast numerator the `*_dyadic_bound` lemmas carry. -/
+/-- The signed dyadic rational `(((↑mp - ↑mn : ℤ) : ℚ) / ↑Q : ℚ)`, in the form the
+`*_dyadic_bound` lemmas carry. -/
 meta def mkSignedDyadic (mp mn Q : ℕ) : MetaM Expr := do
   let int := mkConst ``Int
   let rat := mkConst ``Rat
@@ -179,9 +153,7 @@ meta def mkSignedDyadic (mp mn Q : ℕ) : MetaM Expr := do
   return mkApp6 (mkConst ``HDiv.hDiv [.zero, .zero, .zero]) rat rat rat
     (mkApp2 (mkConst ``instHDiv [.zero]) rat (mkConst ``Rat.instDiv)) num den
 
-/-- The dyadic rational `(↑p / ↑Q : ℚ)` built directly as an `Expr` (both `ℕ`-casts).
-The `ℕ`-numerator analogue of `mkSignedDyadic` (the `*_dyadic_bound` lemmas carry a
-`ℕ`-cast numerator). -/
+/-- The dyadic rational `(↑p / ↑Q : ℚ)` with both casts from `ℕ`. -/
 meta def mkNatDyadic (p Q : ℕ) : MetaM Expr := do
   let rat := mkConst ``Rat
   let n := mkApp3 (mkConst ``Nat.cast [.zero]) rat (mkConst ``Rat.instNatCast) (natLitShared p)
@@ -189,24 +161,17 @@ meta def mkNatDyadic (p Q : ℕ) : MetaM Expr := do
   return mkApp6 (mkConst ``HDiv.hDiv [.zero, .zero, .zero]) rat rat rat
     (mkApp2 (mkConst ``instHDiv [.zero]) rat (mkConst ``Rat.instDiv)) n d
 
-/-- Close a `|X − q| ≤ eps` goal from an `IsNear` certificate of `X`: the enclosure fields
-`(cneg, cn, cd, rn, rd)` are passed directly by the caller (threaded from the certificate builder,
-not read off the type), `q` and `eps` are recognised, the two containment conditions are pre-checked
-in `MetaM` (so a false or too-tight claim errors in the tactic, not in the kernel), and the
-`isNear_verify_le` application is returned. `X` is the goal's own minuend expression; the
-certificate's enclosed real must be definitionally equal to it. `cert : Real.IsNear _ cneg cn cd rn
-rd`. -/
+/-- A proof of `|X − q| ≤ eps` from `cert : Real.IsNear X cneg cn cd rn rd`, or an error (raised
+in `MetaM`, not the kernel) when the enclosure does not verify the bound. -/
 meta def mkVerifyLe (tac : Name) (X q eps cert : Expr) (cneg : Bool) (cn cd rn rd :
       ℕ) : MetaM Expr := do
   let (qneg, qn, qd, qpf) ← recognizeRat q
   let (eneg, en, ed, epf) ← recognizeRat eps
   if eneg then throwError "{tac}: the bound must be positive"
   if cd == 0 || rd == 0 || qd == 0 || ed == 0 then throwError "{tac}: zero denominator"
-  -- fast path: when the goal's `q` equals the enclosure centre as a rational (every `approx%`+
-  -- `bound` path, `q` may be gcd-reduced, so compare by cross-multiplication), `|X − q| =
-  -- |X − centre| ≤ rn/rd`, so the bound collapses to `qn·cd = cn·qd` (one big multiply) and
-  -- `rn·ed ≤ en·rd`, skipping `isNear_verify_le`'s four-denominator triple products (the kernel
-  -- bottleneck at high precision).
+  -- fast path: when the goal's `q` equals the enclosure centre as a rational (compared by
+  -- cross-multiplication, since `q` may be gcd-reduced), `|X − q| = |X − centre| ≤ rn/rd`, so the
+  -- bound reduces to `qn·cd = cn·qd` and `rn·ed ≤ en·rd` (`isNear_verify_le_center`).
   if qneg == cneg && qn * cd == cn * qd && rn * ed ≤ en * rd then
     return mkAppN (mkConst ``isNear_verify_le_center)
       #[X, q, eps, toExpr cneg, natLitShared cn, natLitShared cd, natLitShared rn, natLitShared rd,
@@ -230,21 +195,17 @@ meta def mkVerifyLe (tac : Name) (X q eps cert : Expr) (cneg : Bool) (cn cd rn r
 
 /-! ### Precision weakening for cached tier constants -/
 
-/-- Centre fields for weakening an enclosure to radius `1/E`: floor the centre `cn/cd` onto the
-dyadic grid `B = 2^⌈log₂(2E)⌉`, then `gcd`-reduce. Pure, so tier-planning code can predict the
-exact fields `mkWeakenedNear` emits. -/
+/-- The centre fields `mkWeakenedNear` emits for radius `1/E`: `cn/cd` floored onto the dyadic
+grid `2^⌈log₂(2E)⌉` and `gcd`-reduced. -/
 meta def weakenFields (cn cd E : ℕ) : ℕ × ℕ :=
   let B := 2 ^ Nat.clog 2 (2 * E)
   let cnF := cn * B / cd
-  let g := Nat.gcd cnF B
+  let g := gcdPow2 cnF B
   (cnF / g, B / g)
 
-/-- Weaken a named `IsNear` constant (enclosed real `x`, fields `neg cn cd rn rd`) to a coarser
-enclosure of radius exactly `1/E`, by one `Real.IsNear.recentre` over `mkConst constName`. The
-recentred centre has ~`log₂ E`-bit fields (`weakenFields`). The radius condition `rn/rd ≤ 1/(2E)` is
-checked natively, so a too-tight call errors here. Returns `(proof, cn', cd')`; the caller passes
-the enclosed real `x` directly (`Real.pi`/`Real.log 2` for the shared tiers) instead of it being
-read off the constant's type. -/
+/-- `(proof, cn', cd')` with `proof` a `Real.IsNear x neg cn' cd' 1 E` obtained from the named
+`IsNear` constant by one `Real.IsNear.recentre`, centre fields from `weakenFields`. Errors when
+the radius `1/E` is too tight. -/
 meta def mkWeakenedNear (constName : Name) (x : Expr) (neg : Bool) (cn cd rn rd E : ℕ) :
     MetaM (Expr × ℕ × ℕ) := do
   let (cn', cd') := weakenFields cn cd E
@@ -257,7 +218,25 @@ meta def mkWeakenedNear (constName : Name) (x : Expr) (neg : Bool) (cn cd rn rd 
       tier, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
   return (proof, cn', cd')
 
-/-- Generic pure value of `binarySplit Pf Qf m n` (for the function drivers' sub-series). -/
+/-- A named tier of the constant `x` for precision `1/E`: `(Euse, cn, cd, proof)` with
+`proof : Real.IsNear x false cn cd 1 Euse` from the `10¹⁵` tier `name15` or the `10⁵⁰` tier
+`name50` (fields from `val`), recentred to radius `1/(4E)` when `weaken` and the tier is at least
+three bits finer than `E`; `none` when `E > 10⁵⁰`. -/
+meta def mkConstTier? (x : Expr) (name15 name50 : Name) (val : ℕ → MetaM (ℕ × ℕ)) (E : ℕ)
+    (weaken : Bool := false) : MetaM (Option (ℕ × ℕ × ℕ × Expr)) := do
+  let some (T, name) :=
+      if E ≤ 10 ^ 15 then some (10 ^ 15, name15)
+      else if E ≤ 10 ^ 50 then some (10 ^ 50, name50)
+      else none
+    | return none
+  let (pt, Qt) ← val T
+  if weaken && 8 * E ≤ T then
+    let (proof, cn, cd) ← mkWeakenedNear name x false pt Qt 1 T (4 * E)
+    return some (4 * E, cn, cd, proof)
+  else
+    return some (T, pt, Qt, mkConst name)
+
+/-- The value of `binarySplit Pf Qf m n`. -/
 partial def evalFoldGen (Pf Qf : ℕ → ℕ) (m n : ℕ) : ℕ × ℕ × ℕ :=
   if m + 1 == n then (Pf m, Qf m, Pf m)
   else if m < n then
@@ -269,9 +248,8 @@ partial def evalFoldGen (Pf Qf : ℕ → ℕ) (m n : ℕ) : ℕ × ℕ × ℕ :=
 
 /-! ### Proof-emitting metaprogram: literals computed in `MetaM`, discharged by `beq` reflection. -/
 
-/-- Widest collapsed base case `proveBS` emits in one application: `binarySplit_of_base⟨w⟩`
-must exist for every width `2 ≤ w ≤ bsBaseCap` (width 1 is `binarySplit_of_base`); the ladder
-in `Basic.lean` goes up to 16. -/
+/-- Widest collapsed base case `proveBS` emits in one application. A lemma
+`binarySplit_of_base⟨w⟩` must exist in `Basic.lean` for every width `2 ≤ w ≤ bsBaseCap`. -/
 meta def bsBaseCap : ℕ := 16
 
 /-- The collapsed base-case lemma names, indexed by width `n - m` (index 0 unused). -/
@@ -284,8 +262,7 @@ meta def baseLemmaName : Array Name :=
     ``binarySplit_of_base16]
 
 open Lean Elab Meta in
-/-- `evalFoldGen` over the monadic value closures: the pure result tuple of `binarySplit p q m n`,
-for the collapsed base cases of `proveBS`. -/
+/-- `evalFoldGen` for monadic value closures. -/
 meta partial def evalFoldM (Pf Qf : ℕ → MetaM ℕ) (m n : ℕ) : MetaM (ℕ × ℕ × ℕ) := do
   if m + 1 == n then
     let pm ← Pf m
@@ -299,16 +276,15 @@ meta partial def evalFoldM (Pf Qf : ℕ → MetaM ℕ) (m n : ℕ) : MetaM (ℕ 
     return (0, 1, 1)
 
 open Lean Elab Meta in
-/-- Build `binarySplit p q mE nE = (literal 3-tuple)` and return `((T,Q,P), proof)`. Leaf values
-come from the closures `Pf`/`Qf` (pass the native compiled sequence functions, e.g.
-`pure ∘ artanhP u`); `pE`/`qE` are used only inside the emitted proof term, never reduced. -/
+/-- `((T, Q, P), proof)` with `proof : binarySplit pE qE mE nE = (T, Q, P)`, the literals computed
+from the closures `Pf`/`Qf`; `pE`/`qE` only appear in the proof term and are never reduced. -/
 meta partial def proveBS (Pf Qf : ℕ → MetaM ℕ) (pE qE mE nE : Expr) (m n : ℕ) :
     MetaM ((ℕ × ℕ × ℕ) × Expr) := do
   if m < n && n - m ≤ bsBaseCap then
     let (T, Q, P) ← evalFoldM Pf Qf m n
     let pf := mkAppN (.const baseLemmaName[n - m]! [])
-      #[pE, qE, mE, nE, natLitShared T, natLitShared Q, natLitShared P,
-        reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue]
+      #[mE, nE, reflBoolTrue, qE, natLitShared Q, reflBoolTrue, natLitShared P, pE, reflBoolTrue,
+        natLitShared T, reflBoolTrue]
     return ((T, Q, P), pf)
   else if m < n then
     let k := (m + n) / 2
@@ -328,16 +304,16 @@ meta partial def proveBS (Pf Qf : ℕ → MetaM ℕ) (pE qE mE nE : Expr) (m n :
     let pf := mkAppN (.const ``binarySplit_of_le []) #[pE, qE, mE, nE, reflBoolTrue]
     return ((0, 1, 1), pf)
 
+/-- The binder order of `cos_dyadic_bound_f` and `sin_dyadic_bound_f`, as positions in the argument
+list `mkEvenOddCertCore` assembles (least-changing arguments first, for olean prefix sharing). -/
+meta def trigBoundOrder : Array ℕ :=
+  #[1, 18, 4, 5, 17, 26, 2, 19, 3, 20, 7, 15, 10, 16, 6, 8, 9, 11, 0, 13, 14, 23, 12, 24, 25, 21,
+    22]
+
 open Lean Elab Meta in
-/-- Shared even/odd certificate core for `sin`/`cos`/`arctan`. Runs the two binary splits over
-`[0, M-1)` on the sequences named `evenP u`/`evenQ v`/`oddP u`/`oddQ v` (values from the pure
-closures `fPe`/`fQe`/`fPo`/`fQo`), recombines the sub-series values `Ne/De − No/Do` (via the
-per-function closure `numden`), floor-rounds the signed value to `(neg, cn)` over
-`Q = dyadicDenom D`, and assigns the sign-specialized bound lemma (`boundLemmaPos`/`boundLemmaNeg`)
-with the split bound `Mm = M − 1`, `nPre` leading `reflBoolTrue` conditions (8 for `sin`/`cos`, 7
-for `arctan`), the two split certificates, and the 4 trailing rounding/precision conditions (the
-tail guard's factor is expressed via the split's own denominator, so the kernel never reduces a
-factorial). Returns `(proof, neg, cn, Q)`. -/
+/-- `(proof, neg, cn, Q)` for the `sin`/`cos`/`arctan` even/odd series: two binary splits over
+`[0, M-1)`, recombined by `numden` and floor-rounded to `±cn/Q` with `Q = dyadicDenom D`, applied
+to `boundLemmaPos` or `boundLemmaNeg` with `nPre` leading `reflBoolTrue` conditions. -/
 meta def mkEvenOddCertCore (evenP evenQ oddP oddQ : Name) (fPe fQe fPo fQo : ℕ → ℕ)
     (u v M D : ℕ) (numden : ℕ × ℕ × ℕ × ℕ → ℕ × ℕ × ℕ × ℕ)
     (boundLemmaPos boundLemmaNeg : Name) (nPre : ℕ) :
@@ -347,21 +323,24 @@ meta def mkEvenOddCertCore (evenP evenQ oddP oddQ : Name) (fPe fQe fPo fQo : ℕ
   let qeE := mkApp (mkConst evenQ) (natLitShared v)
   let poE := mkApp (mkConst oddP) (natLitShared u)
   let qoE := mkApp (mkConst oddQ) (natLitShared v)
-  let ((Te, Qe, Pe), heven) ← proveBS (fun i => pure (fPe i)) (fun i => pure (fQe i))
+  let ((Te, Qe, Pe), heven) ← proveBS (fun i ↦ pure (fPe i)) (fun i ↦ pure (fQe i))
     peE qeE (natLitShared 0) (natLitShared (M - 1)) 0 (M - 1)
-  let ((To, Qo, Po), hodd) ← proveBS (fun i => pure (fPo i)) (fun i => pure (fQo i))
+  let ((To, Qo, Po), hodd) ← proveBS (fun i ↦ pure (fPo i)) (fun i ↦ pure (fQo i))
     poE qoE (natLitShared 0) (natLitShared (M - 1)) 0 (M - 1)
   let (Ne, De, No, Do) := numden (Te, Qe, To, Qo)
   let mInt : Int := Int.fdiv (((Ne : Int) * Do - (No : Int) * De) * (Q : Int)) ((De : Int) * Do)
   let neg := decide (mInt < 0)
   let cn := mInt.natAbs
-  let app := mkAppN (mkConst (if neg then boundLemmaNeg else boundLemmaPos))
+  let args : Array Expr :=
     (#[natLitShared u, natLitShared v, natLitShared M, natLitShared (M - 1), natLitShared Q,
        natLitShared D,
       natLitShared Te, natLitShared Qe,
       natLitShared Pe, natLitShared To, natLitShared Qo, natLitShared Po, natLitShared cn]
       ++ (List.replicate nPre reflBoolTrue).toArray ++ #[heven, hodd]
       ++ #[reflBoolTrue, reflBoolTrue, reflBoolTrue, reflBoolTrue])
+  let thm := if neg then boundLemmaNeg else boundLemmaPos
+  let app := mkAppN (mkConst thm)
+    (if !neg && nPre == 8 then trigBoundOrder.map (args[·]!) else args)
   return (app, neg, cn, Q)
 
 end BSN

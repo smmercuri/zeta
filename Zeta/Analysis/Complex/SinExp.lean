@@ -16,11 +16,7 @@ public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 Facts about `Complex.sin` and `Complex.exp` that are missing from Mathlib: the exponential form
 `e^{iz} − e^{−iz} = 2i sin z`, the vanishing of `sin (π ·)` exactly on `ℤ`, and the moduli of
 `sin`, `cos` and of the Gaussians `z ↦ exp (π i z²)` and `z ↦ exp (2π i z²)`.
-
-They are the algebraic and size estimates driving the Riemann–Siegel contour bounds
-(`riemann_siegel.tex`): the modulus of `sin` is bounded below along a line of slope one both by its
-real part near a half-integer and by `sinh` away from the real axis, while the Gaussian
-`exp (π i z²)` decays exactly where `Re z * Im z → ∞`.
+They feed the Riemann–Siegel contour bounds (`riemann_siegel.tex`).
 
 ## Main results
 
@@ -54,8 +50,7 @@ theorem exp_mul_I_sub_exp_neg_mul_I (z : ℂ) : exp (z * I) - exp (-(z * I)) = 2
   rw [show (-(z * I)) = (-z) * I by ring, exp_mul_I, exp_mul_I, cos_neg, sin_neg]
   ring
 
-/-- **Partial fractions for the Riemann–Siegel kernel denominator**: the numerator `e^{−2πiz}`
-splits off an entire term, leaving the bare denominator behind. -/
+/-- **Partial fractions for the Riemann–Siegel kernel denominator.** -/
 theorem exp_neg_two_pi_mul_I_div_sub_eq {z : ℂ} (hz : exp (π * I * z) ≠ exp (-(π * I * z))) :
     exp (-(2 * π * I * z)) / (exp (π * I * z) - exp (-(π * I * z)))
       = 1 / (exp (π * I * z) - exp (-(π * I * z))) - exp (-(π * I * z)) := by
@@ -100,19 +95,19 @@ theorem exp_pi_div_four_mul_I_mul_self :
   rw [← exp_add, show ((π / 4 : ℝ) : ℂ) * I + ((π / 4 : ℝ) : ℂ) * I = (π : ℂ) / 2 * I by
     push_cast; ring, exp_pi_div_two_mul_I]
 
-/-- **The quarter-turn undoes half the rotation by `π/4`**, `i e^{-iπ/4} = e^{iπ/4}`. -/
+/-- The quarter-turn undoes half the rotation by `π/4`: `i e^{-iπ/4} = e^{iπ/4}`. -/
 theorem I_mul_exp_neg_pi_div_four_mul_I :
     I * exp (-((π / 4 : ℝ) * I)) = exp ((π / 4 : ℝ) * I) := by
   linear_combination (-exp (-((π / 4 : ℝ) * I))) * exp_pi_div_four_mul_I_mul_self +
     exp ((π / 4 : ℝ) * I) * exp_pi_div_four_mul_I_mul_exp_neg
 
-/-- **The rotation by `-π/4`, applied twice**, `e^{-iπ/4} e^{-iπ/4} = -i`. -/
+/-- The rotation by `-π/4`, applied twice: `e^{-iπ/4} e^{-iπ/4} = -i`. -/
 theorem exp_neg_pi_div_four_mul_I_mul_self :
     exp (-((π / 4 : ℝ) * I)) * exp (-((π / 4 : ℝ) * I)) = -I := by
   rw [← exp_add, show -(((π / 4 : ℝ) : ℂ) * I) + -(((π / 4 : ℝ) : ℂ) * I) = -((π : ℂ) / 2 * I) by
     push_cast; ring, exp_neg, exp_pi_div_two_mul_I, inv_I]
 
-/-- The modulus of the velocity `1 + i` of a slope-one contour. -/
+/-- The modulus of `1 + i`. -/
 theorem norm_one_add_I : ‖(1 + I : ℂ)‖ = Real.sqrt 2 := by
   rw [← Real.sqrt_sq (norm_nonneg ((1 : ℂ) + I)), Complex.sq_norm, Complex.normSq_apply]
   norm_num
@@ -127,7 +122,7 @@ theorem exp_neg_pi_div_four_mul_I_mul_im (z : ℂ) :
     (exp (-((π / 4 : ℝ) * I)) * z).im = Real.sqrt 2 / 2 * (z.im - z.re) := by
   rw [exp_neg_pi_div_four_mul_I]; simp [Complex.mul_im]; ring
 
-/-- The eighth root of unity, normalised by `√2`, is the half-turn bisector `(1 + i)/2`. -/
+/-- The eighth root of unity `e^{iπ/4}` divided by `√2`. -/
 theorem exp_pi_div_four_mul_I_div_sqrt_two :
     exp ((π / 4 : ℝ) * I) / (Real.sqrt 2 : ℂ) = (1 + I) / 2 := by
   have h2 : (Real.sqrt 2 : ℂ) ≠ 0 := ofReal_ne_zero.2 (by positivity)
@@ -135,7 +130,7 @@ theorem exp_pi_div_four_mul_I_div_sqrt_two :
   push_cast
   ring
 
-/-- The zeros of `z ↦ sin (π z)` are exactly the integers. -/
+/-- `sin (π z)` does not vanish off the integers. -/
 theorem sin_pi_mul_ne_zero {z : ℂ} (hz : ∀ n : ℤ, z ≠ n) : sin (π * z) ≠ 0 := by
   have hpi : (π : ℂ) ≠ 0 := ofReal_ne_zero.2 Real.pi_ne_zero
   exact sin_ne_zero_iff.2 fun k h ↦ hz k (mul_left_cancel₀ hpi (by rw [h]; ring))
@@ -148,7 +143,7 @@ theorem norm_sin_sq (z : ℂ) : ‖sin z‖ ^ 2 = Real.sin z.re ^ 2 + Real.sinh 
   rw [h, Complex.sq_norm, normSq_add_mul_I, mul_pow, mul_pow, Real.cosh_sq]
   nlinarith [Real.sin_sq_add_cos_sq z.re]
 
-/-- **The complex sine is bounded below by `sinh` of the distance to the real axis.** -/
+/-- The complex sine is bounded below by `sinh` of the distance to the real axis. -/
 theorem sinh_abs_im_le_norm_sin (z : ℂ) : Real.sinh |z.im| ≤ ‖sin z‖ := by
   have h0 : (0 : ℝ) ≤ Real.sinh |z.im| := by
     rw [Real.sinh_eq]
@@ -160,8 +155,7 @@ theorem sinh_abs_im_le_norm_sin (z : ℂ) : Real.sinh |z.im| ≤ ‖sin z‖ := 
     · rw [h, Real.sinh_neg, neg_sq]
   nlinarith [norm_sin_sq z, sq_nonneg (Real.sin z.re), norm_nonneg (sin z)]
 
-/-- **The complex sine is at least `1` in modulus** at distance `√2/2` or more from the real axis,
-once its argument has been scaled by `π`. -/
+/-- **`sin (π z)` has modulus at least `1`** when `|Im z| ≥ √2/2`. -/
 theorem one_le_norm_sin_pi_mul {z : ℂ} (hz : Real.sqrt 2 / 2 ≤ |z.im|) : 1 ≤ ‖sin (π * z)‖ := by
   have hpi := Real.pi_gt_three
   have hs2 : (1 : ℝ) ≤ Real.sqrt 2 := by
@@ -182,8 +176,7 @@ theorem norm_cos_sq (z : ℂ) : ‖cos z‖ ^ 2 = Real.cos z.re ^ 2 + Real.sinh 
   rw [h, Complex.sq_norm, normSq_add_mul_I, mul_pow, neg_pow, mul_pow, Real.cosh_sq]
   nlinarith [Real.sin_sq_add_cos_sq z.re]
 
-/-- The modulus of the Gaussian `exp (π i z²)`, which decays exactly in the first and third
-quadrants. -/
+/-- The modulus of the Gaussian `exp (π i z²)`. -/
 theorem norm_exp_pi_mul_I_mul_sq (z : ℂ) :
     ‖exp (π * I * z ^ 2)‖ = Real.exp (-(2 * π * z.re * z.im)) := by
   rw [norm_exp]
@@ -191,8 +184,7 @@ theorem norm_exp_pi_mul_I_mul_sq (z : ℂ) :
   simp only [sq, mul_re, mul_im, ofReal_re, ofReal_im, I_re, I_im]
   ring
 
-/-- The modulus of the rescaled Gaussian `exp (2π i z²)`, which decays exactly in the first and
-third quadrants. -/
+/-- The modulus of the rescaled Gaussian `exp (2π i z²)`. -/
 theorem norm_exp_two_pi_mul_I_mul_sq (z : ℂ) :
     ‖exp (2 * π * I * z ^ 2)‖ = Real.exp (-(4 * π * z.re * z.im)) := by
   rw [norm_exp]

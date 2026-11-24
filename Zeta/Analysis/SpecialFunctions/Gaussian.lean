@@ -11,18 +11,10 @@ public import Mathlib.MeasureTheory.Group.Integral
 /-!
 # Gaussian majorants and the absolute moments of a Gaussian
 
-Two gaps in Mathlib's Gaussian API, both needed by the Riemann–Siegel estimates.
-
-*A linear term in `|w|`.* The function `w ↦ exp (-πw² + b|w|)` is the majorant produced by the
-Riemann–Siegel phase estimate (`riemann_siegel.tex`, `thm:rs_remainder_bound`). Completing the
-square turns it into `exp (b²/4π) · exp (-π(|w| - b/2π)²)`, a Gaussian centred at `±b/2π`; since the
-two peaks are genuine, its integral is *twice* the Gaussian integral `∫ exp (-πu²) du = 1`, not
-once.
-
-*Absolute moments.* Mathlib evaluates `∫ exp (-bw²) dw` and its half-line counterpart, but none of
-the higher moments. Only *absolute* moments are of any use for a majorant, which is a polynomial in
-`|w|`; the odd moments of the signed variable all vanish
-(`riemann_siegel_first.tex`, `lem:rsf_inner`).
+Two gaps in Mathlib's Gaussian API, both needed by the Riemann–Siegel estimates: the majorant
+`w ↦ exp (-πw² + b|w|)` (`riemann_siegel.tex`, `thm:rs_remainder_bound`), a Gaussian with two
+peaks at `±b/2π`, so its integral is at most *twice* `exp (b²/4π)`; and the absolute moments
+`∫ |w|^n e^{-bw²} dw` and their tails (`riemann_siegel_first.tex`, `lem:rsf_inner`).
 
 ## Main results
 
@@ -121,14 +113,14 @@ private theorem integrable_majorant (b : ℝ) :
       (exp (-π * (w - b / (2 * π)) ^ 2) + exp (-π * (w + b / (2 * π)) ^ 2)) :=
   ((integrable_exp_neg_pi_mul_sub_sq _).add (integrable_exp_neg_pi_mul_add_sq _)).const_mul _
 
-/-- **The Gaussian with a linear term in `|w|` is integrable.** -/
+/-- The Gaussian with a linear term in `|w|` is integrable. -/
 theorem integrable_exp_neg_pi_mul_sq_add_mul_abs (b : ℝ) :
     Integrable fun w : ℝ ↦ exp (-(π * w ^ 2) + b * |w|) := by
   refine (integrable_majorant b).mono' (by fun_prop) (Filter.Eventually.of_forall fun w ↦ ?_)
   rw [norm_of_nonneg (exp_pos _).le]
   exact exp_neg_pi_mul_sq_add_mul_abs_le b w
 
-/-- **An explicit bound for the integral of a Gaussian with a linear term in `|w|`.** -/
+/-- An explicit bound for the integral of a Gaussian with a linear term in `|w|`. -/
 theorem integral_exp_neg_pi_mul_sq_add_mul_abs_le (b : ℝ) :
     ∫ w : ℝ, exp (-(π * w ^ 2) + b * |w|) ≤ 2 * exp (b ^ 2 / (4 * π)) := by
   calc ∫ w : ℝ, exp (-(π * w ^ 2) + b * |w|)
@@ -142,8 +134,8 @@ theorem integral_exp_neg_pi_mul_sq_add_mul_abs_le (b : ℝ) :
           integral_exp_neg_pi_mul_add_sq]
         ring
 
-/-- **A Gaussian integrates against a power singularity at the origin**, as soon as that
-singularity is itself integrable. -/
+/-- A Gaussian integrates against a power singularity at the origin when that singularity is
+itself integrable. -/
 theorem integrable_rpow_abs_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) {q : ℝ} (hq : -1 < q) :
     Integrable fun w : ℝ ↦ |w| ^ q * exp (-b * w ^ 2) := by
   have hIoi : IntegrableOn (fun w : ℝ ↦ |w| ^ q * exp (-b * w ^ 2)) (Set.Ioi 0) :=
@@ -155,8 +147,8 @@ theorem integrable_rpow_abs_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) {q : ℝ} 
     integrableOn_Ici_iff_integrableOn_Ioi]
   exact ⟨hIio, hIoi⟩
 
-/-- **The Gaussian with a linear term in `|w|` integrates against a power singularity at the
-origin.** -/
+/-- The Gaussian with a linear term in `|w|` integrates against a power singularity at the
+origin. -/
 theorem integrable_rpow_abs_mul_exp_neg_pi_mul_sq_add_mul_abs {q : ℝ} (hq : -1 < q) (b : ℝ) :
     Integrable fun w : ℝ ↦ |w| ^ q * exp (-(π * w ^ 2) + b * |w|) := by
   have hmaj : Integrable fun w : ℝ ↦ exp (b ^ 2 / (2 * π)) * (|w| ^ q * exp (-(π / 2) * w ^ 2)) :=
@@ -185,20 +177,19 @@ section Moments
 
 variable {b : ℝ}
 
-/-- **A Gaussian integrates against any natural power on the half-line.** -/
+/-- A Gaussian integrates against any natural power on the half-line. -/
 theorem integrableOn_pow_mul_exp_neg_mul_sq (hb : 0 < b) (n : ℕ) :
     IntegrableOn (fun w : ℝ ↦ w ^ n * exp (-b * w ^ 2)) (Set.Ioi 0) := by
   simpa using integrableOn_rpow_mul_exp_neg_mul_sq hb
     (lt_of_lt_of_le (by norm_num) (Nat.cast_nonneg n))
 
-/-- **A Gaussian integrates against any natural power of `|·|`.** -/
+/-- A Gaussian integrates against any natural power of `|·|`. -/
 theorem integrable_abs_pow_mul_exp_neg_mul_sq (hb : 0 < b) (n : ℕ) :
     Integrable fun w : ℝ ↦ |w| ^ n * exp (-b * w ^ 2) := by
   simpa using integrable_rpow_abs_mul_exp_neg_mul_sq hb
     (lt_of_lt_of_le (by norm_num) (Nat.cast_nonneg n))
 
-/-- **A Gaussian carrying a linear term in `|w|` still integrates against any natural power of
-`|·|`.** -/
+/-- A Gaussian carrying a linear term in `|w|` integrates against any natural power of `|·|`. -/
 theorem integrable_abs_pow_mul_exp_neg_mul_sq_add_mul_abs (hb : 0 < b) (c : ℝ) (n : ℕ) :
     Integrable fun w : ℝ ↦ |w| ^ n * exp (-b * w ^ 2 + c * |w|) := by
   have hmaj : Integrable fun w : ℝ ↦ exp (c ^ 2 / (2 * b)) * (|w| ^ n * exp (-(b / 2) * w ^ 2)) :=
@@ -215,8 +206,8 @@ theorem integrable_abs_pow_mul_exp_neg_mul_sq_add_mul_abs (hb : 0 < b) (c : ℝ)
       ≤ |w| ^ n * exp (c ^ 2 / (2 * b) + -(b / 2) * w ^ 2) := by gcongr
     _ = exp (c ^ 2 / (2 * b)) * (|w| ^ n * exp (-(b / 2) * w ^ 2)) := by rw [exp_add]; ring
 
-/-- **A Gaussian carrying a linear term in `|w|` integrates against any power of an affine
-function of `|w|`.** -/
+/-- A Gaussian carrying a linear term in `|w|` integrates against any power of an affine
+function of `|w|`. -/
 theorem integrable_pow_add_mul_abs_mul_exp_neg_mul_sq_add_mul_abs (hb : 0 < b) {A β : ℝ}
     (hA : 0 ≤ A) (hβ : 0 ≤ β) (c : ℝ) (n : ℕ) :
     Integrable fun w : ℝ ↦ (A + β * |w|) ^ n * exp (-b * w ^ 2 + c * |w|) := by
@@ -236,7 +227,7 @@ theorem integrable_pow_add_mul_abs_mul_exp_neg_mul_sq_add_mul_abs (hb : 0 < b) {
     _ = 2 ^ (n - 1) * (A ^ n * exp (-b * w ^ 2 + c * |w|)
           + β ^ n * (|w| ^ n * exp (-b * w ^ 2 + c * |w|))) := by rw [mul_pow]; ring
 
-/-- **A Gaussian beats any polynomial at infinity.** -/
+/-- A Gaussian beats any polynomial at infinity. -/
 private theorem tendsto_pow_mul_exp_neg_mul_sq_atTop_nhds_zero (hb : 0 < b) (n : ℕ) :
     Filter.Tendsto (fun w : ℝ ↦ w ^ n * exp (-b * w ^ 2)) Filter.atTop (nhds 0) := by
   have hexp : Filter.Tendsto (fun x : ℝ ↦ exp (-(1 / 2) * x)) Filter.atTop (nhds 0) := by
@@ -247,7 +238,7 @@ private theorem tendsto_pow_mul_exp_neg_mul_sq_atTop_nhds_zero (hb : 0 < b) (n :
     ((n : ℝ))).isBigO.trans_tendsto hexp).congr fun x ↦ ?_
   rw [rpow_natCast]
 
-/-- **The first moment of a Gaussian on a half-line.** -/
+/-- The first moment of a Gaussian on a half-line. -/
 theorem integral_Ioi_mul_exp_neg_mul_sq (hb : 0 < b) (c : ℝ) :
     ∫ w in Set.Ioi c, w * exp (-b * w ^ 2) = exp (-b * c ^ 2) / (2 * b) := by
   have hb0 : b ≠ 0 := hb.ne'
@@ -268,7 +259,7 @@ theorem integral_Ioi_mul_exp_neg_mul_sq (hb : 0 < b) (c : ℝ) :
   rw [eq_div_iff (by positivity : (2 : ℝ) * b ≠ 0)]
   linear_combination key
 
-/-- **The integration-by-parts recursion for the moments of a Gaussian on the half-line.** -/
+/-- The integration-by-parts recursion for the moments of a Gaussian on the half-line. -/
 theorem integral_Ioi_pow_add_two_mul_exp_neg_mul_sq (hb : 0 < b) (n : ℕ) :
     ∫ w in Set.Ioi (0 : ℝ), w ^ (n + 2) * exp (-b * w ^ 2)
       = ((n : ℝ) + 1) / (2 * b) * ∫ w in Set.Ioi (0 : ℝ), w ^ n * exp (-b * w ^ 2) := by
@@ -311,7 +302,7 @@ private theorem integral_abs_pow_mul_exp_neg_mul_sq_eq_two_mul (n : ℕ) :
   simp only [sq_abs] at h
   exact h
 
-/-- **The first absolute moment of a Gaussian.** -/
+/-- The first absolute moment of a Gaussian. -/
 theorem integral_abs_mul_exp_neg_mul_sq (hb : 0 < b) :
     ∫ w : ℝ, |w| * exp (-b * w ^ 2) = 1 / b := by
   have h := integral_abs_pow_mul_exp_neg_mul_sq_eq_two_mul (b := b) 1
@@ -319,7 +310,7 @@ theorem integral_abs_mul_exp_neg_mul_sq (hb : 0 < b) :
   rw [h, integral_Ioi_mul_exp_neg_mul_sq hb 0, show -b * (0 : ℝ) ^ 2 = 0 by ring, Real.exp_zero]
   field_simp
 
-/-- **The integration-by-parts recursion for the absolute moments of a Gaussian.** -/
+/-- The integration-by-parts recursion for the absolute moments of a Gaussian. -/
 theorem integral_abs_pow_add_two_mul_exp_neg_mul_sq (hb : 0 < b) (n : ℕ) :
     ∫ w : ℝ, |w| ^ (n + 2) * exp (-b * w ^ 2)
       = ((n : ℝ) + 1) / (2 * b) * ∫ w : ℝ, |w| ^ n * exp (-b * w ^ 2) := by
@@ -328,7 +319,7 @@ theorem integral_abs_pow_add_two_mul_exp_neg_mul_sq (hb : 0 < b) (n : ℕ) :
     integral_Ioi_pow_add_two_mul_exp_neg_mul_sq hb n]
   ring
 
-/-- **The even absolute moments of a Gaussian.** -/
+/-- The even absolute moments of a Gaussian. -/
 theorem integral_abs_pow_even_mul_exp_neg_mul_sq (hb : 0 < b) (m : ℕ) :
     ∫ w : ℝ, |w| ^ (2 * m) * exp (-b * w ^ 2)
       = (2 * m)! / (4 ^ m * m !) * (√(π / b) / b ^ m) := by
@@ -347,7 +338,7 @@ theorem integral_abs_pow_even_mul_exp_neg_mul_sq (hb : 0 < b) (m : ℕ) :
       field_simp
       ring
 
-/-- **The odd absolute moments of a Gaussian.** -/
+/-- The odd absolute moments of a Gaussian. -/
 theorem integral_abs_pow_odd_mul_exp_neg_mul_sq (hb : 0 < b) (m : ℕ) :
     ∫ w : ℝ, |w| ^ (2 * m + 1) * exp (-b * w ^ 2) = m ! / b ^ (m + 1) := by
   induction m with
@@ -360,7 +351,7 @@ theorem integral_abs_pow_odd_mul_exp_neg_mul_sq (hb : 0 < b) (m : ℕ) :
       field_simp
       ring
 
-/-- **The second moment of a Gaussian.** -/
+/-- The second moment of a Gaussian. -/
 theorem integral_sq_mul_exp_neg_mul_sq (hb : 0 < b) :
     ∫ w : ℝ, w ^ 2 * exp (-b * w ^ 2) = √(π / b) / (2 * b) := by
   have h := integral_abs_pow_even_mul_exp_neg_mul_sq hb 1
@@ -374,7 +365,7 @@ private theorem even_four : Even 4 := ⟨2, rfl⟩
 
 private theorem even_six : Even 6 := ⟨3, rfl⟩
 
-/-- **The fourth moment of a Gaussian.** -/
+/-- The fourth moment of a Gaussian. -/
 theorem integral_pow_four_mul_exp_neg_mul_sq (hb : 0 < b) :
     ∫ w : ℝ, w ^ 4 * exp (-b * w ^ 2) = 3 * √(π / b) / (4 * b ^ 2) := by
   have h := integral_abs_pow_even_mul_exp_neg_mul_sq hb 2
@@ -384,7 +375,7 @@ theorem integral_pow_four_mul_exp_neg_mul_sq (hb : 0 < b) :
   field_simp
   ring
 
-/-- **The sixth moment of a Gaussian.** -/
+/-- The sixth moment of a Gaussian. -/
 theorem integral_pow_six_mul_exp_neg_mul_sq (hb : 0 < b) :
     ∫ w : ℝ, w ^ 6 * exp (-b * w ^ 2) = 15 * √(π / b) / (8 * b ^ 3) := by
   have h := integral_abs_pow_even_mul_exp_neg_mul_sq hb 3
@@ -394,12 +385,12 @@ theorem integral_pow_six_mul_exp_neg_mul_sq (hb : 0 < b) :
   field_simp
   ring
 
-/-- **The third absolute moment of a Gaussian.** -/
+/-- The third absolute moment of a Gaussian. -/
 theorem integral_abs_pow_three_mul_exp_neg_mul_sq (hb : 0 < b) :
     ∫ w : ℝ, |w| ^ 3 * exp (-b * w ^ 2) = 1 / b ^ 2 := by
   simpa using integral_abs_pow_odd_mul_exp_neg_mul_sq hb 1
 
-/-- **The Gaussian tail on a half-line.** -/
+/-- The Gaussian tail on a half-line. -/
 theorem integral_Ioi_exp_neg_mul_sq_le (hb : 0 < b) {c : ℝ} (hc : 0 < c) :
     ∫ w in Set.Ioi c, exp (-b * w ^ 2) ≤ exp (-b * c ^ 2) / (2 * b * c) := by
   have h1 : IntegrableOn (fun w : ℝ ↦ exp (-b * w ^ 2)) (Set.Ioi c) :=
@@ -420,7 +411,7 @@ theorem integral_Ioi_exp_neg_mul_sq_le (hb : 0 < b) {c : ℝ} (hc : 0 < c) :
         rw [integral_const_mul, integral_Ioi_mul_exp_neg_mul_sq hb c]
         field_simp
 
-/-- **The third moment of a Gaussian on a half-line.** -/
+/-- The third moment of a Gaussian on a half-line. -/
 theorem integral_Ioi_pow_three_mul_exp_neg_mul_sq (hb : 0 < b) (c : ℝ) :
     ∫ w in Set.Ioi c, w ^ 3 * exp (-b * w ^ 2)
       = exp (-b * c ^ 2) * (c ^ 2 / (2 * b) + 1 / (2 * b ^ 2)) := by
@@ -458,7 +449,7 @@ theorem integral_Ioi_pow_three_mul_exp_neg_mul_sq (hb : 0 < b) (c : ℝ) :
 private theorem lt_abs_of_mem_compl_Icc {c w : ℝ} (hw : w ∈ (Set.Icc (-c) c)ᶜ) : c < |w| := by
   rwa [Set.mem_compl_iff, Set.mem_Icc, ← abs_le, not_le] at hw
 
-/-- **The integral of an even function outside a symmetric interval** is twice its tail on the
+/-- The integral of an even function outside a symmetric interval is twice its tail on the
 half-line. -/
 theorem integral_compl_Icc_eq_two_mul_integral_Ioi {f : ℝ → ℝ} (hf : Integrable f)
     (hfe : ∀ w : ℝ, f (-w) = f w) {c : ℝ} (hc : 0 ≤ c) :
@@ -482,7 +473,7 @@ theorem integral_compl_Icc_eq_two_mul_integral_Ioi {f : ℝ → ℝ} (hf : Integ
   rw [hcompl, setIntegral_union hdisj measurableSet_Ioi hf.integrableOn hf.integrableOn, hIio]
   ring
 
-/-- **The Gaussian tail outside a symmetric interval.** -/
+/-- The Gaussian tail outside a symmetric interval. -/
 theorem integral_compl_Icc_exp_neg_mul_sq_le (hb : 0 < b) {c : ℝ} (hc : 0 < c) :
     ∫ w in (Set.Icc (-c) c)ᶜ, exp (-b * w ^ 2) ≤ exp (-b * c ^ 2) / (b * c) := by
   have hb0 : b ≠ 0 := hb.ne'
@@ -493,7 +484,7 @@ theorem integral_compl_Icc_exp_neg_mul_sq_le (hb : 0 < b) {c : ℝ} (hc : 0 < c)
     field_simp
   linarith [integral_Ioi_exp_neg_mul_sq_le hb hc]
 
-/-- **The tail of a Gaussian against `|w|`, outside a symmetric interval.** -/
+/-- The tail of a Gaussian against `|w|`, outside a symmetric interval. -/
 theorem integral_compl_Icc_abs_mul_exp_neg_mul_sq (hb : 0 < b) {c : ℝ} (hc : 0 ≤ c) :
     ∫ w in (Set.Icc (-c) c)ᶜ, |w| * exp (-b * w ^ 2) = exp (-b * c ^ 2) / b := by
   have hb0 : b ≠ 0 := hb.ne'
@@ -506,7 +497,7 @@ theorem integral_compl_Icc_abs_mul_exp_neg_mul_sq (hb : 0 < b) {c : ℝ} (hc : 0
     integral_Ioi_mul_exp_neg_mul_sq hb c]
   field_simp
 
-/-- **The tail of a Gaussian against `|w|³`, outside a symmetric interval.** -/
+/-- The tail of a Gaussian against `|w|³`, outside a symmetric interval. -/
 theorem integral_compl_Icc_abs_pow_three_mul_exp_neg_mul_sq (hb : 0 < b) {c : ℝ} (hc : 0 ≤ c) :
     ∫ w in (Set.Icc (-c) c)ᶜ, |w| ^ 3 * exp (-b * w ^ 2)
       = exp (-b * c ^ 2) * (c ^ 2 / b + 1 / b ^ 2) := by
@@ -521,9 +512,7 @@ theorem integral_compl_Icc_abs_pow_three_mul_exp_neg_mul_sq (hb : 0 < b) {c : �
     integral_Ioi_pow_three_mul_exp_neg_mul_sq hb c]
   ring
 
-/-- **The tail of a Gaussian against `w²`, outside a symmetric interval.** Unlike the first and
-third absolute moments, this one is an inequality: `w² e^{-bw²}` has no elementary
-antiderivative. -/
+/-- **The tail of a Gaussian against `w²`, outside a symmetric interval.** -/
 theorem integral_compl_Icc_sq_mul_exp_neg_mul_sq_le (hb : 0 < b) {c : ℝ} (hc : 0 < c) :
     ∫ w in (Set.Icc (-c) c)ᶜ, w ^ 2 * exp (-b * w ^ 2)
       ≤ exp (-b * c ^ 2) * (c / b + 1 / (b ^ 2 * c)) := by
@@ -556,7 +545,7 @@ private theorem exp_neg_mul_sq_mul_poly_eq (b c₀ c₁ c₂ c₃ : ℝ) :
   funext w
   ring
 
-/-- **A Gaussian against a cubic in `|w|` is integrable.** -/
+/-- A Gaussian against a cubic in `|w|` is integrable. -/
 theorem integrable_exp_neg_mul_sq_mul_poly (hb : 0 < b) (c₀ c₁ c₂ c₃ : ℝ) :
     Integrable fun w : ℝ ↦ exp (-b * w ^ 2) * (c₀ + c₁ * |w| + c₂ * w ^ 2 + c₃ * |w| ^ 3) := by
   rw [exp_neg_mul_sq_mul_poly_eq]
@@ -565,7 +554,7 @@ theorem integrable_exp_neg_mul_sq_mul_poly (hb : 0 < b) (c₀ c₁ c₂ c₃ : �
   · simpa [sq_abs] using (integrable_abs_pow_mul_exp_neg_mul_sq hb 2).const_mul c₂
   · exact (integrable_abs_pow_mul_exp_neg_mul_sq hb 3).const_mul c₃
 
-/-- **A Gaussian against a cubic in `|w|`**, in terms of the first three absolute moments. -/
+/-- A Gaussian against a cubic in `|w|`, in terms of the first three absolute moments. -/
 theorem integral_exp_neg_mul_sq_mul_poly (hb : 0 < b) (c₀ c₁ c₂ c₃ : ℝ) :
     ∫ w : ℝ, exp (-b * w ^ 2) * (c₀ + c₁ * |w| + c₂ * w ^ 2 + c₃ * |w| ^ 3)
       = c₀ * √(π / b) + c₁ / b + c₂ * (√(π / b) / (2 * b)) + c₃ / b ^ 2 := by
@@ -589,8 +578,7 @@ theorem integral_exp_neg_mul_sq_mul_poly (hb : 0 < b) (c₀ c₁ c₂ c₃ : ℝ
     integral_abs_pow_three_mul_exp_neg_mul_sq hb]
   ring
 
-/-- **A Gaussian against a cubic in `|w|`, outside a symmetric interval.** The hypothesis
-`1 ≤ bA²` is what makes the two even moments obey the same `A^{k-1}` shape as the odd ones. -/
+/-- **A Gaussian against a cubic in `|w|`, outside a symmetric interval.** -/
 theorem integral_compl_Icc_exp_neg_mul_sq_mul_poly_le (hb : 0 < b) {A : ℝ} (hA : 0 < A)
     (hbA : 1 ≤ b * A ^ 2) {c₀ c₁ c₂ c₃ : ℝ} (h₀ : 0 ≤ c₀) (h₂ : 0 ≤ c₂) (h₃ : 0 ≤ c₃) :
     ∫ w in (Set.Icc (-A) A)ᶜ, exp (-b * w ^ 2) * (c₀ + c₁ * |w| + c₂ * w ^ 2 + c₃ * |w| ^ 3)
@@ -667,7 +655,7 @@ private theorem setIntegral_comp_add_right_le_of_nonneg {f : ℝ → ℝ} (hf : 
     exact Set.indicator_nonneg (fun u _ ↦ hf0 u) _
 
 /-- **A Gaussian against a cubic in `|w|`, both centred at `-d`, outside a symmetric interval of
-radius `W`.** The tail is measured at the radius `A ≤ W - |d|` that survives the translation. -/
+radius `W`**, measured at a radius `A ≤ W - |d|`. -/
 theorem integral_compl_Icc_exp_neg_mul_sq_mul_poly_comp_add_right_le (hb : 0 < b) {W d A : ℝ}
     (hA : 0 < A) (hAW : A + |d| ≤ W) (hbA : 1 ≤ b * A ^ 2) {c₀ c₁ c₂ c₃ : ℝ} (h₀ : 0 ≤ c₀)
     (h₁ : 0 ≤ c₁) (h₂ : 0 ≤ c₂) (h₃ : 0 ≤ c₃) :
@@ -686,8 +674,7 @@ theorem integral_compl_Icc_exp_neg_mul_sq_mul_poly_comp_add_right_le (hb : 0 < b
   rw [Set.mem_compl_iff, Set.mem_Icc, ← abs_le, not_le]
   exact hshift
 
-/-- **A Gaussian centred at `-d`, outside a symmetric interval of radius `W`**, the degenerate case
-of `integral_compl_Icc_exp_neg_mul_sq_mul_poly_comp_add_right_le`. -/
+/-- **A Gaussian centred at `-d`, outside a symmetric interval of radius `W`.** -/
 theorem integral_compl_Icc_exp_neg_mul_sq_comp_add_right_le (hb : 0 < b) {W d A : ℝ} (hA : 0 < A)
     (hAW : A + |d| ≤ W) (hbA : 1 ≤ b * A ^ 2) :
     ∫ w in (Set.Icc (-W) W)ᶜ, exp (-b * (w + d) ^ 2) ≤ exp (-b * A ^ 2) / (b * A) := by
@@ -706,7 +693,7 @@ private theorem exp_neg_mul_sq_mul_even_poly_eq (b c₀ c₂ c₄ c₆ : ℝ) :
   funext w
   ring
 
-/-- **A Gaussian against an even polynomial of degree six is integrable.** -/
+/-- A Gaussian against an even polynomial of degree six is integrable. -/
 theorem integrable_exp_neg_mul_sq_mul_even_poly (hb : 0 < b) (c₀ c₂ c₄ c₆ : ℝ) :
     Integrable fun w : ℝ ↦ exp (-b * w ^ 2) * (c₀ + c₂ * w ^ 2 + c₄ * w ^ 4 + c₆ * w ^ 6) := by
   rw [exp_neg_mul_sq_mul_even_poly_eq]
@@ -715,7 +702,7 @@ theorem integrable_exp_neg_mul_sq_mul_even_poly (hb : 0 < b) (c₀ c₂ c₄ c�
   · simpa [even_four.pow_abs] using (integrable_abs_pow_mul_exp_neg_mul_sq hb 4).const_mul c₄
   · simpa [even_six.pow_abs] using (integrable_abs_pow_mul_exp_neg_mul_sq hb 6).const_mul c₆
 
-/-- **A Gaussian against an even polynomial of degree six**, in terms of its first four even
+/-- A Gaussian against an even polynomial of degree six, in terms of its first four even
 moments. -/
 theorem integral_exp_neg_mul_sq_mul_even_poly (hb : 0 < b) (c₀ c₂ c₄ c₆ : ℝ) :
     ∫ w : ℝ, exp (-b * w ^ 2) * (c₀ + c₂ * w ^ 2 + c₄ * w ^ 4 + c₆ * w ^ 6)
@@ -741,7 +728,7 @@ theorem integral_exp_neg_mul_sq_mul_even_poly (hb : 0 < b) (c₀ c₂ c₄ c₆ 
     integral_pow_four_mul_exp_neg_mul_sq hb, integral_pow_six_mul_exp_neg_mul_sq hb]
   field_simp
 
-/-- **A Gaussian against an even polynomial of degree six, both centred at `-d`.** -/
+/-- A Gaussian against an even polynomial of degree six, both centred at `-d`. -/
 theorem integral_exp_neg_mul_sq_mul_even_poly_comp_add_right (hb : 0 < b) (c₀ c₂ c₄ c₆ d : ℝ) :
     ∫ w : ℝ, exp (-b * (w + d) ^ 2) *
         (c₀ + c₂ * (w + d) ^ 2 + c₄ * (w + d) ^ 4 + c₆ * (w + d) ^ 6)
@@ -754,12 +741,12 @@ theorem integral_exp_neg_mul_sq_mul_even_poly_comp_add_right (hb : 0 < b) (c₀ 
       (c₀ + c₂ * u ^ 2 + c₄ * u ^ 4 + c₆ * u ^ 6)) d,
     integral_exp_neg_mul_sq_mul_even_poly hb]
 
-/-- **A Gaussian against an even polynomial of degree four is integrable.** -/
+/-- A Gaussian against an even polynomial of degree four is integrable. -/
 theorem integrable_exp_neg_mul_sq_mul_even_quartic (hb : 0 < b) (c₀ c₂ c₄ : ℝ) :
     Integrable fun w : ℝ ↦ exp (-b * w ^ 2) * (c₀ + c₂ * w ^ 2 + c₄ * w ^ 4) := by
   simpa using integrable_exp_neg_mul_sq_mul_even_poly hb c₀ c₂ c₄ 0
 
-/-- **A Gaussian against an even polynomial of degree four, both centred at `-d`.** -/
+/-- A Gaussian against an even polynomial of degree four, both centred at `-d`. -/
 theorem integral_exp_neg_mul_sq_mul_even_quartic_comp_add_right (hb : 0 < b) (c₀ c₂ c₄ d : ℝ) :
     ∫ w : ℝ, exp (-b * (w + d) ^ 2) * (c₀ + c₂ * (w + d) ^ 2 + c₄ * (w + d) ^ 4)
       = (c₀ + c₂ / (2 * b) + 3 * c₄ / (4 * b ^ 2)) * √(π / b) := by

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.Batch
@@ -9,11 +14,10 @@ public import Zeta.Zeros.Certificates.Basic
 # Native Riemann–Siegel batches
 
 `checkTiling bs W W₁ n an ad bn bd` checks, by evaluation, that the brackets between consecutive
-boundaries `bs` are each `ZIntervalRS.Certified` (the linear-free `Certificate₀`, against the error
-bound at the batch's bottom boundary, which is valid throughout because the bound is antitone;
-falling back to the full `Certificate`), and that the batch has `n` brackets running from `an/ad`
-to `bn/bd`. `batchSpec_of_tiling` turns `true` into the `BatchSpec n an ad bn bd` a kernel-checked
-batch exports, so the existing assembly applies unchanged; a batch file proves
+boundaries `bs` are each `ZIntervalRS.Certified` (the linear-free `Certificate₀` against the error
+bound at the batch's bottom boundary, else the full `Certificate`), and that the batch has `n`
+brackets running from `an/ad` to `bn/bd`. `batchSpec_of_tiling` turns `true` into the
+`BatchSpec n an ad bn bd` a kernel-checked batch exports; a batch file proves
 `checkTiling … = true` by `native_decide`.
 -/
 @[expose] public section
@@ -32,7 +36,7 @@ theorem certifiedSign_spec {z b : Option Encl} {x y : ℝ} {s : Bool}
   have eZ := hz Z hZ
   have eB := hb B hB
   by_cases hc : endpointOk Z B = true
-  · rw [if_pos hc] at he
+  · rw [ite_eq_left hc] at he
     cases he
     simp only [endpointOk, Bool.and_eq_true, and_assoc] at hc
     obtain ⟨hcdx, hrdx, hcde, hrde, hlt, hmargin⟩ := hc
@@ -41,10 +45,10 @@ theorem certifiedSign_spec {z b : Option Encl} {x y : ℝ} {s : Bool}
     cases zneg
     · exact Real.IsNear.pos_val eZ hcdx hrdx hlt
     · exact Real.IsNear.neg_val eZ hcdx hrdx hlt
-  · rw [if_neg hc] at he
+  · rw [ite_eq_right hc] at he
     cases he
 
-/-- An enclosure of the error bound at some `0 < s₀ ≤ t` serves at `t`: the bound is antitone. -/
+/-- An enclosure of the error bound at some `0 < s₀ ≤ t` serves at `t`. -/
 theorem endpointSign₀_spec {tab : TermTable} {tn td W : ℕ} {B : Option Encl} {s₀ : ℝ} {s : Bool}
     (htab : tab.Valid) (hB : ∀ B', B = some B' → B'.Encloses (hardyZErrorBoundRS₀ s₀))
     (hs₀ : 0 < s₀) (hle : s₀ ≤ sfrac false tn td) (h : endpointSign₀ tab tn td W B = some s) :
@@ -63,8 +67,8 @@ theorem endpointSign₁_spec {tab : TermTable} {tn td W : ℕ} {s : Bool} (htab 
 
 /-! ### One bracket -/
 
-/-- The bracket as a `ZIntervalRS`. When its endpoints are out of order (which `rowOk` rules
-out) it degenerates to its left endpoint, so that it is defined without a proof argument. -/
+/-- The bracket as a `ZIntervalRS`, degenerating to its left endpoint when its endpoints are out
+of order (which `rowOk` rules out), so that it takes no proof argument. -/
 noncomputable def Row.ivl (r : Row) : ZIntervalRS :=
   if h : sfrac false r.an r.ad ≤ sfrac false r.bn r.bd then ⟨(sfrac false r.an r.ad,
     sfrac false r.bn r.bd), h⟩
@@ -86,16 +90,16 @@ theorem Row.le_of_rowOk {r : Row} (h : rowOk r = true) :
 
 theorem Row.ivl_snd {r : Row} (h : rowOk r = true) : r.ivl.snd = sfrac false r.bn r.bd := by
   unfold Row.ivl
-  rw [dif_pos (Row.le_of_rowOk h)]
+  rw [dite_eq_left (Row.le_of_rowOk h)]
 
 /-- Opposite strict signs multiply to a negative number. -/
 theorem mul_neg_of_signs {x y : ℝ} {s₁ s₂ : Bool} (hs : s₁ ≠ s₂)
     (h₁ : if s₁ then x < 0 else 0 < x) (h₂ : if s₂ then y < 0 else 0 < y) : x * y < 0 := by
   cases s₁ <;> cases s₂
   · exact absurd rfl hs
-  · simp only [Bool.false_eq_true, if_false, if_true] at h₁ h₂
+  · simp only [Bool.false_eq_true, ite_false, ite_true] at h₁ h₂
     exact mul_neg_of_pos_of_neg h₁ h₂
-  · simp only [Bool.false_eq_true, if_false, if_true] at h₁ h₂
+  · simp only [Bool.false_eq_true, ite_false, ite_true] at h₁ h₂
     exact mul_neg_of_neg_of_pos h₁ h₂
   · exact absurd rfl hs
 
@@ -163,9 +167,8 @@ theorem batchSpec_of_rows (rows : List Row) (n an ad bn bd : ℕ)
 
 /-! ### A batch as a tiling
 
-A batch from a widened store is a tiling: consecutive brackets share their boundary. Checking it
-as a list of boundaries computes each boundary's value once and carries its sign to the next
-bracket; the main-sum factors come from one table for the whole batch. -/
+A batch from a widened store is a tiling: consecutive brackets share their boundary, so each
+boundary's sign is computed once, and the main-sum factors come from one table per batch. -/
 
 theorem tilingOk_rows {tab : TermTable} {W W₁ : ℕ} {B : Option Encl} {s₀ : ℝ}
     (htab : tab.Valid) (hB : ∀ B', B = some B' → B'.Encloses (hardyZErrorBoundRS₀ s₀))

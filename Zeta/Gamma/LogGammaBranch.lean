@@ -132,7 +132,7 @@ theorem logGamma_ofReal {x : ℝ} (hx : 0 < x) :
     rw [← Complex.ofReal_injective hre, Real.log_exp]
   rw [hreal, hlog]
 
-/-- **Functional equation of the branch.** `log Γ (z + 1) = Log z + log Γ z` for `Re z > 0`, where
+/-- Functional equation of the branch: `log Γ (z + 1) = Log z + log Γ z` for `Re z > 0`, where
 `Log` is the principal complex logarithm. -/
 theorem logGamma_add_one {z : ℂ} (hz : 0 < z.re) :
     logGamma (z + 1) = Complex.log z + logGamma z := by
@@ -170,7 +170,7 @@ theorem logGamma_add_one {z : ℂ} (hz : 0 < z.re) :
   simp only [hk] at hconst
   linear_combination hconst
 
-/-- **Exact integer shift of the branch.** For `Re w > 0` and `N : ℕ`,
+/-- Exact integer shift of the branch. For `Re w > 0` and `N : ℕ`,
 `log Γ w = log Γ (w + N) - ∑_{j=0}^{N-1} Log (w + j)`. -/
 theorem logGamma_eq_sub_sum_log_add {w : ℂ} (hw : 0 < w.re) (N : ℕ) :
     logGamma w

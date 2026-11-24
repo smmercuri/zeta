@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.RiemannSiegel
@@ -13,7 +18,7 @@ At a rational endpoint `t = tn/td`, enclosures of the linear-free Riemann–Sieg
 `hardyZApproximantRS₀ t` and its error bound `hardyZErrorBoundRS₀ t`. Each piece is built along the
 expression tree of the `BSN` lemma that names it (`floor_sqrt_eq_dec`, `t_div_two_pi_mk`,
 `riemannSiegelThetaApproximant_two_zero_mk`, `correction_mk`, `hardyZApproximantRS₀_eq`,
-`hardyZErrorBoundRS₀_mk`), so soundness is the operations' soundness followed by that lemma.
+`hardyZErrorBoundRS₀_mk`).
 
 All arithmetic runs on one grid `1/dyadic W`, with every transcendental leaf to `1/W`.
 -/
@@ -58,7 +63,7 @@ theorem thetaWith_encloses {tn td W Q : ℕ} {c : ThetaConsts} {logPi : Option E
     e.Encloses (riemannSiegelThetaApproximant 2 0 (sfrac false tn td)) := by
   unfold thetaWith at h
   by_cases hc : thetaOk tn td c = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     simp only [thetaOk, Bool.and_eq_true, and_assoc] at hc
     obtain ⟨htn, htd, hS, hQ, hV, hT4, hT2, hRn, hRd⟩ := hc
     simp only [Option.bind_eq_some_iff] at h
@@ -78,7 +83,7 @@ theorem thetaWith_encloses {tn td W Q : ℕ} {c : ThetaConsts} {logPi : Option E
     have es₂ := Encl.subR_encloses es₁ (Encl.const_encloses false tn _) hs₂
     have es₃ := Encl.subR_encloses es₂ ea₃ hs₃
     exact Encl.addR_encloses es₃ (Encl.const_encloses true _ _) he
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem theta_encloses {tn td W : ℕ} {logPi : Option Encl} {e : Encl}
@@ -196,17 +201,17 @@ theorem angleEntry_spec {tab : TermTable} {H T : Fx} {W : ℕ} {arr : Array (Opt
       cs.2.Encloses tab.Q (Real.sin (t * Real.log arr.size)) := by
   unfold angleEntry at h
   by_cases h1 : arr.size ≤ 1
-  · rw [if_pos h1] at h
+  · rw [ite_eq_left h1] at h
     cases h
     have hlog : Real.log (arr.size : ℝ) = 0 := by
       rcases Nat.le_one_iff_eq_zero_or_eq_one.mp h1 with h0 | h0 <;> simp [h0]
     rw [hlog, mul_zero, Real.cos_zero, Real.sin_zero]
     exact ⟨by simpa using Fx.ofInt_encloses htab.Q 1, Fx.zero_encloses⟩
-  · rw [if_neg h1] at h
+  · rw [ite_eq_right h1] at h
     by_cases h2 : (smallFactor arr.size arr.size 2 < arr.size &&
         smallFactor arr.size arr.size 2 * (arr.size / smallFactor arr.size arr.size 2) ==
           arr.size) = true
-    · rw [if_pos h2] at h
+    · rw [ite_eq_left h2] at h
       simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h2
       obtain ⟨-, hpm⟩ := h2
       obtain ⟨a, ha, b, hb, rfl⟩ := by
@@ -229,7 +234,7 @@ theorem angleEntry_spec {tab : TermTable} {H T : Fx} {W : ℕ} {arr : Array (Opt
         rw [e, Real.log_mul (by positivity) (by positivity), mul_add]
       rw [hlog]
       exact hrot
-    · rw [if_neg h2] at h
+    · rw [ite_eq_right h2] at h
       obtain ⟨L, hL, hcs⟩ := Option.bind_eq_some_iff.mp h
       exact Fx.cosSinT_encloses htab.Q hH htab.trig
         (Fx.mul_encloses htab.Q hT (lgAt_encloses htab hL)) hcs
@@ -290,7 +295,7 @@ theorem mainSumF_encloses {θ : Fx} {tab : TermTable} {tn td W ν : ℕ} {θr : 
       Real.cos (θr - sfrac false tn td * Real.log n) / Real.sqrt n) := by
   unfold mainSumF at h
   by_cases htd : Nat.ble 1 td = true
-  · rw [if_pos htd] at h
+  · rw [ite_eq_left htd] at h
     simp only [Option.bind_eq_some_iff, Option.map_eq_some_iff] at h
     obtain ⟨H, hH, cs, hcs, S', hS', rfl⟩ := h
     have eH := htab.H H hH
@@ -301,7 +306,7 @@ theorem mainSumF_encloses {θ : Fx} {tab : TermTable} {tn td W ν : ℕ} {θr : 
     rw [sum_cos_sub_eq]
     exact Fx.add_encloses (Fx.mul_encloses htab.Q ec (Fx.tighten_encloses htab.Q e1))
       (Fx.mul_encloses htab.Q es (Fx.tighten_encloses htab.Q e2))
-  · rw [if_neg htd] at h
+  · rw [ite_eq_right htd] at h
     cases h
 
 theorem mainSum_encloses {θE : Encl} {tab : TermTable} {tn td W ν : ℕ} {θ : ℝ}
@@ -316,9 +321,8 @@ theorem mainSum_encloses {θE : Encl} {tab : TermTable} {tn td W ν : ℕ} {θ :
 
 Each along its `BSN` lemma (`correction_mk`, `deriv_correction_mk`,
 `iteratedDeriv_two_correction_mk`, `iteratedDeriv_three_correction_mk`, `correctionLinear_mk`):
-the reciprocal of `C = cos 2πp` times a combination of trig leaves and the derivatives already
-built. Their common side condition `cos 2πp ≠ 0` holds at every certificate endpoint
-(`BSN.cos_two_pi_p_ne_zero_mk`). -/
+the reciprocal of `C = cos 2πp` times a combination of trig leaves and the lower derivatives.
+Their common side condition `cos 2πp ≠ 0` comes from `BSN.cos_two_pi_p_ne_zero_mk`. -/
 
 /-- What `CorrLeaves` encloses at `p`. -/
 structure CorrLeaves.Encloses (L : CorrLeaves) (p : ℝ) : Prop where
@@ -499,17 +503,6 @@ theorem cos_ne_zero_of_endpointPos {tn td ν : ℕ} (hpos : endpointPos tn td = 
   simp only [endpointPos, Bool.and_eq_true] at hpos
   exact cos_two_pi_p_ne_zero_mk _ tn td ν rfl hpos.1 hpos.2 hν
 
-theorem approx₀Of_encloses {tn td ν Q : ℕ} {A : ApproxParts} {e : Encl}
-    (hpos : endpointPos tn td = true)
-    (hν : ⌊Real.sqrt (sfrac false tn td / (2 * Real.pi))⌋₊ = ν)
-    (hA : A.Encloses (sfrac false tn td) ν) (h : approx₀Of A Q = some e) :
-    e.Encloses (hardyZApproximantRS₀ (sfrac false tn td)) := by
-  simp only [approx₀Of, Option.bind_eq_some_iff] at h
-  obtain ⟨ψ, hψ, b, hb, he⟩ := h
-  have eψ := correction_encloses hA.L (cos_ne_zero_of_endpointPos hpos hν) hψ
-  rw [hardyZApproximantRS₀_eq _ ν hν]
-  exact Encl.subR_encloses hA.S₂ (Encl.mulR_encloses hA.sgnq eψ hb) he
-
 theorem approx₁Of_encloses {tn td ν Q : ℕ} {A : ApproxParts} {e : Encl}
     (hpos : endpointPos tn td = true)
     (hν : ⌊Real.sqrt (sfrac false tn td / (2 * Real.pi))⌋₊ = ν)
@@ -530,19 +523,12 @@ theorem approxPartsAt_spec {tab : TermTable} {tn td W ν : ℕ} {A : ApproxParts
       A.Encloses (sfrac false tn td) ν := by
   unfold approxPartsAt at h
   by_cases hpos : endpointPos tn td = true
-  · rw [if_pos hpos] at h
+  · rw [ite_eq_left hpos] at h
     simp only [Option.bind_eq_some_iff, Option.map_eq_some_iff, Prod.mk.injEq] at h
     obtain ⟨ν', hν, A', hA, rfl, rfl⟩ := h
     exact ⟨hpos, cutoff_eq hν, approxParts_encloses htab hA⟩
-  · rw [if_neg hpos] at h
+  · rw [ite_eq_right hpos] at h
     cases h
-
-theorem approx₀_encloses {tab : TermTable} {tn td W : ℕ} {e : Encl} (htab : tab.Valid)
-    (h : approx₀ tab tn td W = some e) :
-    e.Encloses (hardyZApproximantRS₀ (sfrac false tn td)) := by
-  obtain ⟨⟨ν, A⟩, hA, he⟩ := Option.bind_eq_some_iff.mp h
-  obtain ⟨hpos, hν, eA⟩ := approxPartsAt_spec htab hA
-  exact approx₀Of_encloses hpos hν eA he
 
 theorem approx₁_encloses {tab : TermTable} {tn td W : ℕ} {e : Encl} (htab : tab.Valid)
     (h : approx₁ tab tn td W = some e) :
@@ -559,7 +545,7 @@ theorem thetaF_encloses {tn td W Q : ℕ} {c : ThetaConsts} {H lp θ : Fx} (hQ :
     θ.Encloses Q (riemannSiegelThetaApproximant 2 0 (sfrac false tn td)) := by
   unfold thetaF at h
   by_cases hc : thetaFOk tn td c = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     simp only [thetaFOk, thetaOk, Bool.and_eq_true, and_assoc] at hc
     obtain ⟨htn, htd, hS, hQc, hV, hT4, hT2, hRn, hRd, hT4p, hT2p, hRdp⟩ := hc
     simp only [Option.bind_eq_some_iff, Option.map_eq_some_iff] at h
@@ -581,7 +567,7 @@ theorem thetaF_encloses {tn td W Q : ℕ} {c : ThetaConsts} {H lp θ : Fx} (hQ :
       simp only [sfrac]; push_cast; ring
     rw [hq]
     exact Fx.add_encloses (Fx.sub_encloses (Fx.sub_encloses (Fx.sub_encloses e1 e2) e3) e4) e5
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem corrF_encloses {tab : TermTable} {H TP P ψ : Fx} {p : ℝ} (htab : tab.Valid)
@@ -605,9 +591,9 @@ theorem signPow_encloses {Q ν : ℕ} {X : Fx} {x : ℝ} (hX : X.Encloses Q x) :
   unfold signPow
   rcases Nat.mod_two_eq_zero_or_one ν with h | h
   · have hp : (-1 : ℝ) ^ ν = 1 := Even.neg_one_pow (Nat.even_iff.mpr h)
-    rw [if_neg (by simp [h]), hp, one_mul]; exact hX
+    rw [ite_eq_right (by simp [h]), hp, one_mul]; exact hX
   · have hp : (-1 : ℝ) ^ ν = -1 := Odd.neg_one_pow (Nat.odd_iff.mpr h)
-    rw [if_pos (by simp [h]), hp, neg_one_mul]; exact Fx.neg_encloses hX
+    rw [ite_eq_left (by simp [h]), hp, neg_one_mul]; exact Fx.neg_encloses hX
 
 theorem approx₀FWith_encloses {tab : TermTable} {tn td W ν : ℕ} {H TP ITP lp A : Fx}
     (htab : tab.Valid) (hH : H.Encloses tab.Q (Real.pi / 2))
@@ -643,12 +629,12 @@ theorem approx₀F_encloses {tab : TermTable} {tn td W : ℕ} {e : Encl} (htab :
     e.Encloses (hardyZApproximantRS₀ (sfrac false tn td)) := by
   unfold approx₀F at h
   by_cases hpos : endpointPos tn td = true
-  · rw [if_pos hpos] at h
+  · rw [ite_eq_left hpos] at h
     simp only [Option.bind_eq_some_iff, Option.map_eq_some_iff] at h
     obtain ⟨ν, hν, H, hH, TP, hTP, ITP, hITP, lp, hlp, A, hA, rfl⟩ := h
     exact Fx.toEncl_encloses (approx₀FWith_encloses htab (htab.H H hH) (htab.tp TP hTP)
       (htab.itp ITP hITP) (htab.logPiF lp hlp) hpos (cutoff_eq hν) hA)
-  · rw [if_neg hpos] at h
+  · rw [ite_eq_right hpos] at h
     cases h
 
 /-! ### The error bound `hardyZErrorBoundRS₀ t` -/
@@ -657,7 +643,7 @@ theorem errBoundWith_encloses {tn td Q : ℕ} {e : Encl} (h : errBoundWith tn td
     e.Encloses (hardyZErrorBoundRS₀ (sfrac false tn td)) := by
   unfold errBoundWith at h
   by_cases hc : (Nat.ble 1 tn && Nat.ble 1 td) = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     simp only [Bool.and_eq_true] at hc
     obtain ⟨htn, htd⟩ := hc
     simp only [Option.bind_eq_some_iff] at h
@@ -674,7 +660,7 @@ theorem errBoundWith_encloses {tn td Q : ℕ} {e : Encl} (h : errBoundWith tn td
       ha₃
     rw [hardyZErrorBoundRS₀_mk _ tn td rfl htn htd]
     exact Encl.addR_encloses (Encl.addR_encloses ea₁ ea₂ hs₁) ea₃ he
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem errBound_encloses {tn td W : ℕ} {e : Encl} (h : errBound tn td W = some e) :
@@ -685,7 +671,7 @@ theorem errBound₁With_encloses {tn td Q : ℕ} {e : Encl} (h : errBound₁With
     e.Encloses (hardyZErrorBoundRS (sfrac false tn td)) := by
   unfold errBound₁With at h
   by_cases hc : (Nat.ble 1 tn && Nat.ble 1 td) = true
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     simp only [Bool.and_eq_true] at hc
     obtain ⟨htn, htd⟩ := hc
     simp only [Option.bind_eq_some_iff] at h
@@ -699,7 +685,7 @@ theorem errBound₁With_encloses {tn td Q : ℕ} {e : Encl} (h : errBound₁With
     have ea₂ := Encl.mulR_encloses (Encl.const_encloses false 1 32) (Encl.inv_encloses em₃ hi₂) ha₂
     rw [hardyZErrorBoundRS_mk _ tn td rfl htn htd]
     exact Encl.addR_encloses ea₁ ea₂ he
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     cases h
 
 theorem errBound₁_encloses {tn td W : ℕ} {e : Encl} (h : errBound₁ tn td W = some e) :

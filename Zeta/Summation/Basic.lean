@@ -36,7 +36,7 @@ open scoped Nat
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
 
 
-/-- **Per-interval Euler–Maclaurin step.** The trapezoidal rule with remainder on the unit
+/-- Per-interval Euler–Maclaurin step: the trapezoidal rule with remainder on the unit
 interval `[n, n+1]`, for real `n`:
 `∫ₙⁿ⁺¹ f = (f n + f (n+1))/2 - ∫ₙⁿ⁺¹ B₁(x - n) · f'(x) dx`. -/
 private theorem integral_interval_eq {f f' : ℝ → E} {n : ℝ}
@@ -57,7 +57,7 @@ private theorem integral_interval_eq {f f' : ℝ → E} {n : ℝ}
   rw [key]
   module
 
-/-- **Unit-interval Euler–Maclaurin step**: the case `n = 0` of `integral_interval_eq`. -/
+/-- Unit-interval Euler–Maclaurin step: the case `n = 0` of `integral_interval_eq`. -/
 private theorem integral_unitInterval_eq {f f' : ℝ → E}
     (hf : ∀ x ∈ Set.uIcc (0 : ℝ) 1, HasDerivAt f (f' x) x)
     (hf' : IntervalIntegrable f' volume 0 1) :
@@ -67,7 +67,7 @@ private theorem integral_unitInterval_eq {f f' : ℝ → E}
     (by simpa using hf) (by simpa using hf')
   simpa only [zero_add, sub_zero] using h
 
-/-- **Order-raising recurrence for the Euler–Maclaurin tower.** The order-`q` remainder integral
+/-- Order-raising recurrence for the Euler–Maclaurin tower: the order-`q` remainder integral
 over `[n, n+1]` in terms of the order-`(q+1)` one, for `q ≠ 0`. -/
 private theorem integral_bernoulliFun_smul_eq {g g' : ℝ → E} {n : ℝ} {q : ℕ} (hq : q ≠ 0)
     (hg : ∀ x ∈ Set.uIcc n (n + 1), HasDerivAt g (g' x) x)
@@ -101,7 +101,7 @@ private theorem integral_bernoulliFun_smul_eq {g g' : ℝ → E} {n : ℝ} {q : 
   rw [one_div, smul_sub, key]
   module
 
-/-- **Per-interval Euler–Maclaurin tower (raw form).** For a family `F 0, …, F p` on `[n, n+1]`
+/-- Per-interval Euler–Maclaurin tower (raw form): for a family `F 0, …, F p` on `[n, n+1]`
 with `F (q+1)` the derivative of `F q`,
 `∫ₙⁿ⁺¹ F 0 = (F 0 n + F 0 (n+1))/2 + ∑_{q=1}^{p-1} (-1)^q B_{q+1}/(q+1)! · ΔF q`
 `+ (-1)^p/p! · ∫ₙⁿ⁺¹ B_p(x-n)·F p`, with `ΔF q = F q (n+1) - F q n`.
@@ -144,7 +144,7 @@ private theorem uIcc_add_natCast_subset_uIcc (a : ℝ) {N k : ℕ} (hk : k < N) 
   have hk0 : (0 : ℝ) ≤ (k : ℝ) := Nat.cast_nonneg k
   apply Set.uIcc_subset_uIcc <;> rw [Set.mem_uIcc] <;> left <;> constructor <;> linarith
 
-/-- **Global Euler–Maclaurin tower (raw form).** The per-interval tower summed over the `N` unit
+/-- Global Euler–Maclaurin tower (raw form): the per-interval tower summed over the `N` unit
 intervals `[a+n, a+n+1]`, with the Bernoulli boundary sum telescoped:
 `∫ₐ^{a+N} F 0 = ∑_{n<N} (F 0 (a+n) + F 0 (a+n+1))/2
   + ∑_{q=1}^{p-1} (-1)^q B_{q+1}/(q+1)! · (F q (a+N) - F q a)
@@ -206,7 +206,7 @@ private theorem integral_eq_tower_sum {a : ℝ} (F : ℕ → ℝ → E) {N p : �
     hbern, ← Finset.smul_sum, ← Finset.smul_sum]
 
 omit [CompleteSpace E] in
-/-- **Trapezoidal reindexing.** The trapezoidal sum over the `N` unit intervals starting at `a`
+/-- Trapezoidal reindexing: the trapezoidal sum over the `N` unit intervals starting at `a`
 equals the full sum of the `N + 1` sample values minus half the two endpoint values. -/
 private theorem sum_trapezoid_eq (a : ℝ) (g : ℝ → E) (N : ℕ) :
     ∑ n ∈ Finset.range N, (2⁻¹ : ℝ) • (g (a + (n : ℝ)) + g (a + (n : ℝ) + 1))
@@ -219,7 +219,7 @@ private theorem sum_trapezoid_eq (a : ℝ) (g : ℝ → E) (N : ℕ) :
     simp only [← add_assoc]
     module
 
-/-- **Euler–Maclaurin summation formula (raw form).** The value-sum counterpart of
+/-- Euler–Maclaurin summation formula (raw form): the value-sum counterpart of
 `integral_eq_tower_sum`, for a family `F 0, …, F p` on `[a, a+N]`:
 `∑_{n=0}^{N} F 0 (a+n) = ∫ₐ^{a+N} F 0 + (F 0 a + F 0 (a+N))/2
   - ∑_{q=1}^{p-1} (-1)^q B_{q+1}/(q+1)! · (F q (a+N) - F q a)
@@ -237,7 +237,7 @@ private theorem sum_eq_tower_integral {a : ℝ} (F : ℕ → ℝ → E) {N p : �
   abel
 
 omit [CompleteSpace E] in
-/-- **Even/odd collapse of the Euler–Maclaurin Bernoulli sum.** For any coefficient family
+/-- Even/odd collapse of the Euler–Maclaurin Bernoulli sum: for any coefficient family
 `c : ℕ → E`,
 `∑_{q=1}^{p-1} (-1)^q B_{q+1}/(q+1)! · c q = -∑_{k=1}^{⌊p/2⌋} B_{2k}/(2k)! · c (2k-1)`. -/
 private theorem sum_Ico_bernoulli_collapse (c : ℕ → E) (p : ℕ) :
@@ -282,7 +282,7 @@ private theorem sum_Ico_bernoulli_collapse (c : ℕ → E) (p : ℕ) :
       Odd.neg_one_pow ⟨m, rfl⟩]
     module
 
-/-- **Euler–Maclaurin summation formula (even-index form).** The value-sum tower with the
+/-- Euler–Maclaurin summation formula (even-index form): the value-sum tower with the
 Bernoulli boundary sum folded onto the even indices:
 `∑_{n=0}^{N} F 0 (a+n) = ∫ₐ^{a+N} F 0 + (F 0 a + F 0 (a+N))/2
   + ∑_{k=1}^{⌊p/2⌋} B_{2k}/(2k)! · (F (2k-1) (a+N) - F (2k-1) a)
@@ -304,7 +304,7 @@ private theorem sum_eq_tower_integral_even {a : ℝ} (F : ℕ → ℝ → E) {N 
   rw [sum_eq_tower_integral F hp hderiv hF_int, hcol]
   abel
 
-/-- **Per-interval Euler–Maclaurin tower (even-index form).** The classical
+/-- Per-interval Euler–Maclaurin tower (even-index form): the classical
 iterated-derivative form on a single unit interval `[n, n+1]`:
 `∫ₙⁿ⁺¹ f = (f n + f (n+1))/2 - ∑_{k=1}^{⌊p/2⌋} B_{2k}/(2k)! · Δf⁽²ᵏ⁻¹⁾`
 `+ (-1)^p/p! · ∫ₙⁿ⁺¹ B_p(x-n)·f⁽ᵖ⁾`, with `Δg = g (n+1) - g n`. -/
@@ -328,7 +328,7 @@ private theorem integral_unitInterval_eq_tower {n : ℝ} {f : ℝ → E} {p : �
   abel
 
 omit [CompleteSpace E] in
-/-- **Concatenation of the per-interval remainder integrals.** For an integer `a`,
+/-- Concatenation of the per-interval remainder integrals: for an integer `a`,
 `∑_{n<N} ∫_{a+n}^{a+n+1} B_p(x-(a+n))·G(x) dx = ∫_a^{a+N} B_p(Int.fract x)·G(x) dx`. -/
 private theorem sum_integral_bernoulliFun_eq (a : ℤ) (p N : ℕ) (G : ℝ → E)
     (hG : IntervalIntegrable G volume (a : ℝ) ((a : ℝ) + N)) :
@@ -371,7 +371,7 @@ private theorem sum_integral_bernoulliFun_eq (a : ℤ) (p N : ℕ) (G : ℝ → 
   simpa [Nat.cast_add, Nat.cast_one, add_assoc] using h
 
 
-/-- **The Euler–Maclaurin remainder** `R_p(f; a, b) = (-1)^(p+1)/p! · ∫_a^b B̃_p(x) · f⁽ᵖ⁾(x) dx`,
+/-- The Euler–Maclaurin remainder `R_p(f; a, b) = (-1)^(p+1)/p! · ∫_a^b B̃_p(x) · f⁽ᵖ⁾(x) dx`,
 with `B̃_p` the periodized Bernoulli function `bernoulliFun p (Int.fract x)` and
 `f⁽ᵖ⁾ = iteratedDeriv p f`. The kernel is a *real* scalar, so this one definition serves any
 real Banach space `E`. -/
@@ -379,7 +379,7 @@ noncomputable def eulerMaclaurinRemainder (p : ℕ) (f : ℝ → E) (a b : ℝ) 
   ((-1 : ℝ) ^ (p + 1) / (p ! : ℝ))
     • ∫ x in a..b, bernoulliFun p (Int.fract x) • iteratedDeriv p f x
 
-/-- **Euler–Maclaurin summation formula with remainder.** For an integer `a`, an order `p ≥ 1`
+/-- Euler–Maclaurin summation formula with remainder: for an integer `a`, an order `p ≥ 1`
 and `f : ℝ → E` whose iterated derivatives form a derivative chain on `[a, a+N]` and are
 interval-integrable there,
 `∑_{n=0}^{N} f(a+n) = ∫_a^{a+N} f + (f a + f (a+N))/2

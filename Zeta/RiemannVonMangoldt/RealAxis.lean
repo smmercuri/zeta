@@ -25,7 +25,7 @@ is the real segment `[-1, 2]`, on which `ξ` does not vanish.
 
 open Complex Set
 
-/-- **`ζ` is real and negative on the open real segment `(0, 1)`.** -/
+/-- `ζ` is real and negative on the open real segment `(0, 1)`. -/
 theorem riemannZeta_ofReal_neg_of_mem_Ioo {σ : ℝ} (hσ : σ ∈ Ioo (0 : ℝ) 1) :
     (riemannZeta (σ : ℂ)).im = 0 ∧ (riemannZeta (σ : ℂ)).re < 0 :=
   ⟨Complex.conj_eq_iff_im.mp (by simpa using (riemannZeta_conj (σ : ℂ)).symm),
@@ -42,7 +42,7 @@ private theorem riemannXi_ofReal_ne_zero_of_one_lt {σ : ℝ} (hσ : 1 < σ) :
   exact mul_ne_zero (prefactor_ne_zero_of hσ0 hσ1 hΓ)
     (riemannZeta_ne_zero_of_one_le_re (by rw [Complex.ofReal_re]; linarith))
 
-/-- **`ξ` has no zeros on the real segment `[-1, 2]`.** -/
+/-- `ξ` has no zeros on the real segment `[-1, 2]`. -/
 theorem riemannXi_ofReal_ne_zero_of_mem_Icc {σ : ℝ} (hσ : σ ∈ Icc (-1 : ℝ) 2) :
     riemannXi (σ : ℂ) ≠ 0 := by
   obtain ⟨hlo, hhi⟩ := hσ

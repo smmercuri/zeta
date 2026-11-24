@@ -24,7 +24,7 @@ open Real
 
 namespace Real
 
-/-- **Cubic contraction of `x ↦ x + sin x` toward `π`**: `|x - π| < δ` implies
+/-- Cubic contraction of `x ↦ x + sin x` toward `π`: `|x - π| < δ` implies
 `|(x + sin x) - π| < δ³ / 6`. -/
 theorem abs_add_sin_sub_pi_lt {x δ : ℝ} (h : |x - π| < δ) :
     |(x + sin x) - π| < δ ^ 3 / 6 := by

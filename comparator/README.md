@@ -11,21 +11,14 @@ The height-dependent scale of the formalization in this project presents challen
 in facilitating independent verification. 
 Comparator exports the solution's entire dependency closure and re-checks it in a fresh kernel, 
 so it does not need to trust any pre-compiled oleans. 
-Up to height `1e5`, the main theorem of this project can be built on a local machine in under 
-an hour and requires approximately 41GB of local storage for the `olean` files.
-However, at height `1e6` and beyond, this becomes a build of a day or more with around 2TB of 
-storage required.
-We thus provide two methods, _global_ and _sharded_, for the independent verification of the 
-main theorem.
+Up to height `1e5`, the main theorem of this project can be built on a laptop in under 
+20 minutes and requires approximately 18GB of local storage for the proof terms.
+However, at height `1e6` this becomes a build of 1 h 40 min on a 48-thread server with around 500GB of
+storage required, and both grow quickly beyond that.
+We thus provide two methods, _sharded_ and _global_, for the independent verification of the 
+main theorem. Sharded is the main method; see the warning under [Running](#running).
 
 ## Verifying the main theorem
-
-**Global.** `Main` is the challenge `riemannHypothesisUpTo_<T>`, with its solution 
-coming from the project's main theorem. The global approach to verification involves 
-directly running this challenge, which builds (if not already built) and then re-checks the entire 
-set of zero and Gram certificates in one run. At height 1e4 this is feasible locally, 
-however it becomes impractical as the height grows and at 1e6 it is infeasible on an 
-ordinary machine.
 
 **Sharded.** The project's proof of the main theorem computes certificates for the zeros of 
 the Riemann zeta function in independent, pairwise disjoint batches. 
@@ -45,7 +38,6 @@ A _shard_ is a collection of batches. The idea here is that independent verifica
 heights may be performed by multiple runs, either sequentially on the same machine or in parallel
 across independent machines, each taking disjoint shards according to machine specifications.
 Each run only needs the shard's proofs, keeping memory and storage requirements manageable.
-When using parallelisation across independent machines, computation is also divided.
 
 Verifying every batch target and the reduction implies the main result. The batch challenges and 
 the reduction's hypotheses refer to the same named statements in `Batches/Statements.lean`, and 
@@ -53,35 +45,71 @@ comparator checks that each target sees the same definition of each name, so the
 guaranteed to fit together; what remains is only coverage, that every `Spec` the reduction 
 assumes has a passing batch target. 
 
+**Global.** `Main` is the challenge `riemannHypothesisUpTo_<T>`, with its solution 
+coming from the project's main theorem. The global approach to verification involves 
+directly running this challenge, which builds (if not already built) and then re-checks the entire 
+set of zero and Gram certificates in one run. This is feasible locally only at height `1e4`: 
+it becomes impractical as the height grows, and at `1e6` it is infeasible on an ordinary 
+machine. See the warning under [Running](#running).
+
+Both methods check the Riemann hypothesis theorem. No target checks `Zeta.simpleZerosUpTo_<T>`.
+
 **Background.**
 `Analytic/` checks the main theorems in the background material used for the main theorem's proof. 
-These are the Riemann–von Mangoldt formula (`riemannZeta.N_eq`) and Lehman's bound with constant 5
-(`norm_integral_argZeta_le_five_unconditional`).
+These are the Riemann–von Mangoldt formula (`riemannZeta_N_eq`), Lehman's bound with constant 5
+(`norm_integral_argZeta_le_five`), and Turing's bound at a Gram point
+(`riemannZeta_N_le_of_gramPoints`).
 
 ## Running
 
-Scripts are provided to run comparator in the global and sharded modes described above.
-Use `comparator/run.sh <config.json>` to run comparator for a single challenge. 
-So `comparator/run.sh comparator/Main/config.json` runs the global method. 
-Sharding can be achieved by multiple invocations of `comparator/run.sh` on a batch `config.json`,
-but this accrues fixed overheads for each run and is inefficient. To reduce this, when running 
-sharded verification, use `comparator/shard.sh <Method/BatchNNNN> … <Method/BatchNNNN>`. 
-For example
+Comparator's tools must be built first; see the Comparator section of the
+[root README](../README.md#comparator).
 
-    comparator/run.sh comparator/Reduction/config.json
-    comparator/run.sh comparator/Batches/RiemannSiegel/Batch0050/config.json
-    comparator/shard.sh RiemannSiegel/Batch0041 … RiemannSiegel/Batch0050
+| Coverage | Command | What it checks |
+|---|---|---|
+| **Full** | `comparator/sharded_run.sh [--size 10] [--jobs 1]` | The complete result: the reduction and every batch, in shards. **Recommended.** |
+| | `comparator/run.sh --force` | The main theorem, in one run. Needs `--force`; see the first warning below. |
+| **Partial** | `comparator/sharded_run.sh --sample 300 --seed <public value>` | A reproducible random selection of batches, without the reduction. |
+| | `comparator/run.sh <config.json>` | One target, e.g. `comparator/Reduction/config.json`. |
+| | `comparator/shard.sh <Method/BatchNNNN> …` | Several chosen batches in one run. |
+
+`sharded_run.sh` discards the proofs of batches it had to build once their shard passes, and an
+interrupted run resumes where it stopped. `--jobs N` checks `N` shards at once; each needs memory
+for its own export. Each shard's output goes to a log under `comparator/Shard/`.
+
+> **Warning.** Use `sharded_run.sh`. Lean hashes `Nat` literals modulo $2^{64}$
+> ([lean4#15686](https://github.com/leanprover/lean4/issues/15686)), and these proofs contain many large dyadic literals that are multiples of
+> $2^{64}$. Exported together they collide in the exporter's table and lookups become quadratic,
+> so a global export can take hours or longer. Shards keep each export small.
+
+> **Warning.** `sharded_run.sh` does not check the formal theorem `Zeta.riemannHypothesisUpTo_<T>`
+> itself. It checks each batch's statement and the theorem that those statements imply the main
+> theorem's statement (`Comparator.riemannHypothesisUpTo_of_batches`, in
+> `comparator/Reduction/Solution.lean`). Applying that theorem to the checked batches is the one
+> step comparator does not check.
+
+> **Warning.** Comparator reads each batch's proof term, so a batch built with `--proofs=discard`
+> has to be rebuilt first with `scripts/proofs.sh restore <Method/BatchNNNN>`; Lake will not rebuild it
+> on its own. Otherwise the run fails with `invalid header`.
 
 ## Regenerating
 
 Much like the project's formal code itself, the batch and reduction challenges are generated from 
 project data using Python scripts, and should never be handwritten. 
 First, make sure that the project's formal certificates have already been generated using 
-`gen_zero_certificates.py`. Then run
+`gen_zero_certificates.py`. 
+Then run
 
     PYTHONPATH=python/src python3 python/src/data_gen/gen_comparator.py comparator
 
+This uses only the Python standard library, so the `zeta` environment is not needed. Pass `--shards` 
+to write only the batch targets, each stating its `BatchSpec` inline, with no shared statements and no 
+reduction. This is for sampled checks at heights where the reduction is too large, and uses little 
+memory at any height.
+
+Alternatively pass `--comparator` to `scripts/gen_certificates.sh` when generating all 
+Lean certificate files; `scripts/pipeline.sh` regenerates them by default.
 Conversely, `Main` and `Analytic` challenges are handwritten. 
-If you run `comparator/shard.sh` then a gitignored `Shard` challenge will appear in your 
-directory. 
+If you run `comparator/shard.sh` or `comparator/sharded_run.sh` then a gitignored `Shard` 
+challenge will appear in your directory. 
 The `Shard` challenge is what enables multi-batch verification in a single comparator run. 

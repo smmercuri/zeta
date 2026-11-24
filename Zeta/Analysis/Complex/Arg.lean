@@ -17,9 +17,9 @@ argument lies in `(-π/2, π/2)`, where `Real.arctan` inverts `Real.tan`, so the
 the expected formula.
 
 Rotating a point by `e^{iθ}` adds `θ` to its argument, but only up to the branch: mathlib records
-this modulo `2π` as an identity of `Real.Angle` (`Complex.arg_mul_coe_angle`), whereas what an
-explicit branch computation needs is the identity of real numbers, under the hypothesis that keeps
-the sum inside the principal range.
+this modulo `2π` as an identity of `Real.Angle` (`Complex.arg_mul_coe_angle`). An explicit branch
+computation needs the identity of real numbers, under the hypothesis that the sum lies in the
+principal range.
 
 ## Main results
 
@@ -33,12 +33,12 @@ open scoped Real
 
 namespace Complex
 
-/-- **On the open right half-plane the argument is the arctangent of the slope.** -/
+/-- On the open right half-plane the argument is the arctangent of the slope. -/
 theorem arg_eq_arctan {z : ℂ} (hz : 0 < z.re) : arg z = Real.arctan (z.im / z.re) := by
   obtain ⟨h₁, h₂⟩ := abs_lt.1 (abs_arg_lt_pi_div_two_iff.2 (Or.inl hz))
   rw [← tan_arg z, Real.arctan_tan h₁ h₂]
 
-/-- **Rotation adds to the argument**, as an identity of real numbers, whenever the rotated argument
+/-- Rotation adds to the argument, as an identity of real numbers, whenever the rotated argument
 stays in the principal range `(-π, π]`. -/
 theorem arg_exp_ofReal_mul_I_mul {θ : ℝ} {x : ℂ} (hx : x ≠ 0)
     (hθ : arg x + θ ∈ Set.Ioc (-π) π) : arg (exp ((θ : ℂ) * I) * x) = arg x + θ := by

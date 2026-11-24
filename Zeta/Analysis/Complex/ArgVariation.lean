@@ -165,7 +165,7 @@ noncomputable def argVariation (a b : ℝ) (φ : ℝ → ℂ) : ℝ :=
 theorem argVariation_eq_of_isContLog (hab : a ≤ b) {φ g : ℝ → ℂ}
     (hg : IsContLog a b φ g) : argVariation a b φ = (g b).im - (g a).im := by
   have hex : ∃ g, IsContLog a b φ g := ⟨g, hg⟩
-  rw [argVariation, dif_pos hex]
+  rw [argVariation, dite_eq_left hex]
   exact IsContLog.im_sub_eq hab hex.choose_spec hg
 
 /-- **Congruence.** If `φ` and `ψ` agree on `[a, b]`, their argument variations agree. -/
@@ -178,7 +178,7 @@ theorem argVariation_congr (hab : a ≤ b) {φ ψ : ℝ → ℂ}
   · have hex' : ¬ ∃ g, IsContLog a b ψ g := fun ⟨g, hg⟩ =>
       hex ⟨g, hg.1, fun u hu => (hg.2 u hu).trans (h hu).symm⟩
     unfold argVariation
-    rw [dif_neg hex, dif_neg hex']
+    rw [dite_eq_right hex, dite_eq_right hex']
 
 /-- **Multiplicativity in the integrand.** -/
 theorem argVariation_mul (hab : a ≤ b) {φ ψ : ℝ → ℂ}

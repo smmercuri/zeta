@@ -39,7 +39,7 @@ private theorem digammaRemainderIoi_eq {M : ℕ} {z : ℂ} (hz : 0 < z.re) :
         - Complex.digamma z := by
   rw [digamma_eq_log_sub z hz M]; ring
 
-/-- **Shared derivative.** On `{Re > 0}`, `g := logGamma - S_M` has derivative
+/-- On `{Re > 0}`, `g := logGamma - S_M` has derivative
 `-R^ψ_{2M+1}`. -/
 private theorem hasDerivAt_logGamma_sub_logGammaStirling {M : ℕ} {z : ℂ} (hz : 0 < z.re) :
     HasDerivAt (fun s ↦ logGamma s - logGammaStirling M s)
@@ -50,7 +50,7 @@ private theorem hasDerivAt_logGamma_sub_logGammaStirling {M : ℕ} {z : ℂ} (hz
         - ∑ k ∈ Finset.Icc 1 M, (bernoulli (2 * k) : ℂ) / (2 * k) * z ^ (-(2 * k : ℤ)))
       by rw [digamma_eq_log_sub z hz M]; ring]
 
-/-- **Chain rule for `g` along a real-parametrised affine complex path.** If `ψ` is complex
+/-- Chain rule for `g` along a real-parametrised affine complex path. If `ψ` is complex
 differentiable at `↑t` with `Re (ψ ↑t) > 0`, then `t ↦ g (ψ ↑t)` has derivative `-R^ψ(ψ ↑t) · c`,
 where `g := logGamma - S_M`. -/
 private theorem hasDerivAt_logGamma_sub_logGammaStirling_comp {M : ℕ} {ψ : ℂ → ℂ}
@@ -99,7 +99,7 @@ private theorem norm_digammaRemainderIoi_le_re {M : ℕ} (hM : 1 ≤ M) {s : ℂ
     _ ≤ ((2 * M + 1)! : ℝ) / (2 * π) ^ (2 * M) * s.re ^ (-(2 * M + 1 : ℝ)) :=
         mul_le_mul_of_nonneg_left hmono hCpos
 
-/-- **Integrability along the ray.** `τ ↦ R^ψ(w+τ)` is integrable on `(0, ∞)`. -/
+/-- `τ ↦ R^ψ(w+τ)` is integrable on `(0, ∞)`. -/
 private theorem integrableOn_digammaRemainderIoi_shift {M : ℕ} (hM : 1 ≤ M) {w : ℂ}
     (hw : 0 < w.re) :
     IntegrableOn (fun τ : ℝ ↦ digammaRemainderIoi (w + (τ : ℂ)) (2 * M + 1)) (Set.Ioi 0) := by
@@ -123,7 +123,7 @@ private theorem integrableOn_digammaRemainderIoi_shift {M : ℕ} (hM : 1 ≤ M) 
   rwa [show (w + (τ : ℂ)).re = τ + w.re by
     simp only [Complex.add_re, Complex.ofReal_re]; ring] at hb
 
-/-- **Horizontal fundamental theorem of calculus.** For `n : ℕ`,
+/-- The fundamental theorem of calculus along a horizontal segment: for `n : ℕ`,
 `g(w) - g(w+n) = ∫_0^n R^ψ(w+τ) dτ`, where `g = logGamma - S_M`. -/
 private theorem logGamma_sub_logGammaStirling_shift_eq_integral {M : ℕ} (hM : 1 ≤ M)
     {w : ℂ} (hw : 0 < w.re) (n : ℕ) :
@@ -171,7 +171,7 @@ private theorem logGammaStirling_ofReal {M : ℕ} {x : ℝ} (hx : 0 < x) :
   push_cast [Complex.ofReal_log hx.le, Complex.ofReal_zpow]
   ring
 
-/-- **Real-axis limit.** `g(x) → 0` as real `x → +∞`. -/
+/-- `g(x) → 0` as real `x → +∞`. -/
 private theorem tendsto_g_ofReal_atTop {M : ℕ} :
     Tendsto (fun x : ℝ ↦ logGamma (x : ℂ) - logGammaStirling M (x : ℂ)) atTop (𝓝 0) := by
   have hreal : Tendsto (fun x : ℝ ↦ Real.log (Real.Gamma x)
@@ -187,7 +187,8 @@ private theorem tendsto_g_ofReal_atTop {M : ℕ} :
   push_cast
   ring
 
-/-- **Vertical transfer.** `g(w+n) → 0` as `n → ∞`, where `g = logGamma - S_M`. -/
+/-- `g(w+n) → 0` as `n → ∞`, where `g = logGamma - S_M`, by a vertical segment from the real
+axis. -/
 private theorem tendsto_g_shift_atTop {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0 < w.re) :
     Tendsto (fun n : ℕ ↦ logGamma (w + n) - logGammaStirling M (w + n)) atTop (𝓝 0) := by
   set C : ℝ := ((2 * M + 1)! : ℝ) / (2 * π) ^ (2 * M)
@@ -249,7 +250,7 @@ private theorem tendsto_g_shift_atTop {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0
     exact hbnd
   simpa using htrans.add hreal
 
-/-- **Euler–Maclaurin/Stirling expansion of `log Γ`.** For every `M ≥ 1` and every `w` with
+/-- Euler–Maclaurin/Stirling expansion of `log Γ`: for every `M ≥ 1` and every `w` with
 `Re w > 0`, `Log Γ(w) = S_M(w) + ρ_M(w)`. -/
 theorem logGamma_eq_stirling_add_remainder {M : ℕ} (hM : 1 ≤ M) {w : ℂ} (hw : 0 < w.re) :
     logGamma w = logGammaStirling M w + logGammaRemainderIoi M w := by

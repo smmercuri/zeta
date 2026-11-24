@@ -6,7 +6,7 @@ from itertools import chain
 
 from collections.abc import Callable
 
-from config import OUT_DIR, LEHMAN_CONST, DIGITS
+from config import OUT_DIR, LEHMAN_CONST, GRAM_DP
 from gram import get_good_gramBlock, GramBlock
 from data_gen.store_zeros import write_rows
 from util import ZInterval, ZApproximant
@@ -49,9 +49,9 @@ def theta_params_rule(
     about `theta`, and `riemannSiegelThetaApproximant` needs Stirling orders whichever method
     found the zeros around it. The parameters are chosen by inverting
     `theta_stirling_error`: the shift `N` defaults to `0`, and `M` to the smallest order whose
-    bound at `t` is below `target` — `M = 2` from `~530` up, `M = 3` from `~130` up. Every
-    gram-point certificate then carries `N` certified `log` terms, so the shift must not grow
-    with the height; the old `(1/4 + N)^{-2M}` bound forced `N ≈ 1.25·t/(2π)`.
+    bound at `t` is below `target` (`M = 2` from `~530` up, `M = 3` from `~130` up). Every
+    gram-point certificate then carries `N` certified `log` terms, so the shift is constant in
+    the height.
 
     Args:
         N (Callable[[float], int] | int, optional): shift at height `t`; a bare `int` is
@@ -125,7 +125,7 @@ def prune_stale_zeros(approx: ZApproximant, keep: set[str]):
     """Delete the `zeros_<idx>.txt` files left behind by earlier runs.
 
     The gram store holds exactly one gram block, so any zero file not named in the
-    current manifest's `zeros_map` is orphaned. Pruning is not merely tidiness:
+    current manifest's `zeros_map` is orphaned. Pruning matters for correctness:
     `gen_gram_certificates.parse_zeros` falls back to the `zeros_<idx>.txt` naming
     convention when an index is absent from `zeros_map`, so a stale file can be read
     silently into the generated Lean. Called only after the new block is fully
@@ -142,7 +142,7 @@ def prune_stale_zeros(approx: ZApproximant, keep: set[str]):
 
 class GramInterval(ZInterval):
     """A bracket around a Gram point. Its row carries the Stirling parameters `theta_params` at
-    each endpoint, which certify `theta` there, rather than the approximant's parameters."""
+    each endpoint, which certify `theta` there."""
 
     def __init__(self, lower, upper, theta_params):
         super().__init__(lower, upper, approx=None)
@@ -170,7 +170,7 @@ def store_gram(
     lehman_const: float = LEHMAN_CONST,
     gram_cap: int = 1000,
     epsilon: float = 1 / 4,
-    digits: int = DIGITS,
+    digits: int = GRAM_DP,
     theta_params=None,
 ):
     bl, zeros = get_good_gramBlock(
@@ -185,8 +185,8 @@ def store_gram(
     params = approx.metadata() | {
         "bisection_depth": bisection_depth,
         "epsilon": epsilon,
-        # The theta parameterisation is not the approximant's; record it so a store says
-        # which Stirling orders its gram brackets were certified with.
+        # The theta parameterisation, so a store says which Stirling orders its gram
+        # brackets were certified with.
         "theta_at_height": dict(zip(THETA_COLS, map(str, theta_params(T)))),
     }
     rows = gram_rows(bl, theta_params)

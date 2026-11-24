@@ -16,7 +16,7 @@ The contour integral `I(s, a) = ∫_{L(a)} x^{-s} G(x) dx` of `Zeta/RiemannSiege
 an entire function of `s` (`riemann_siegel_zero.tex`, `lem:rsz_entire`). This is differentiation
 under the integral sign: the integrand is `e^{-s Log x} G(x)` in the branch
 `Zeta.RiemannSiegel.slantLog`, so its `s`-derivative is `-Log x` times itself, and the Gaussian
-majorant `Zeta.RiemannSiegel.norm_contourIntegrand_le_exp` — which is uniform for `s` in a box —
+majorant `Zeta.RiemannSiegel.norm_contourIntegrand_le_exp` (uniform for `s` in a box)
 survives multiplication by `‖Log L(a)(w)‖ = O(|w|)`.
 
 ## Main results
@@ -34,7 +34,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The `s`-derivative of the Riemann–Siegel integrand.** -/
+/-- The `s`-derivative of the Riemann–Siegel integrand. -/
 theorem hasDerivAt_contourIntegrand {a : ℝ} (ha0 : 0 < a) (s : ℂ) (w : ℝ) :
     HasDerivAt (fun u ↦ contourIntegrand u a w)
       (-slantLog (line a w) * contourIntegrand s a w) s := by
@@ -46,7 +46,7 @@ theorem hasDerivAt_contourIntegrand {a : ℝ} (ha0 : 0 < a) (s : ℂ) (w : ℝ) 
   exact (((hasDerivAt_neg' (𝕜 := ℂ) s).mul_const (slantLog (line a w))).cexp.mul_const
     (kernel (line a w))).congr_deriv (by ring)
 
-/-- **The Riemann–Siegel contour integral is an entire function of `s`**
+/-- The Riemann–Siegel contour integral is an entire function of `s`
 (`riemann_siegel_zero.tex`, `lem:rsz_entire`), along any contour whose kernel denominator is
 bounded below. -/
 theorem differentiable_contourIntegral {a c : ℝ} (ha0 : 0 < a) (hc : 0 < c)
@@ -96,7 +96,7 @@ theorem differentiable_contourIntegral {a c : ℝ} (ha0 : 0 < a) (hc : 0 < c)
     (Filter.Eventually.of_forall fun w s _ ↦
       hasDerivAt_contourIntegrand ha0 s w)).2.differentiableAt.const_mul (1 + I)
 
-/-- **The contour integral is entire along a contour crossing the real axis inside `(0, ½]`.** -/
+/-- The contour integral is entire along a contour crossing the real axis inside `(0, ½]`. -/
 theorem differentiable_contourIntegral_of_le_half {a : ℝ} (ha0 : 0 < a) (ha : a ≤ 1 / 2) :
     Differentiable ℂ fun s ↦ contourIntegral s a :=
   differentiable_contourIntegral ha0 (c := min (1 / 2) (a / Real.sqrt 2))

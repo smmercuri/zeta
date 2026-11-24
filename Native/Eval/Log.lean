@@ -1,9 +1,13 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Enclosure.Defs
 public import Enclosure.BinarySplit.Defs
 public import Native.Eval.Const
-public import Native.Eval.Trig
 
 /-!
 # `Native.Eval.Log`: the computable part

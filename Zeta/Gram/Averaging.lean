@@ -16,9 +16,9 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 For the Riemann–Siegel theta function `θ = riemannSiegelTheta`, the normalised phase increment
 `gramCoord l t = (θ(t) − θ(l))/π` averages to at most `1/2` over a Gram interval, and likewise
-over a whole Gram block in its fractional form. This file also records the calculus of `θ` that
-the bound rests on — its derivative, continuity, convexity, and strict monotonicity past `7`
-(blueprint `gram_averaging.tex`).
+over a whole Gram block in its fractional form; also the calculus of `θ` the bound rests on (its
+derivative, continuity, convexity, and strict monotonicity past `7`; blueprint
+`gram_averaging.tex`).
 
 ## Main definitions
 
@@ -48,8 +48,7 @@ open scoped Topology Real
 
 open Complex
 
-/-- **Chord integral bound.** For `f` convex and continuous on `[a, b]` with `a < b`,
-`∫_a^b (f t − f a) dt ≤ (b − a)(f b − f a)/2`. -/
+/-- **Chord integral bound** for a convex continuous function on `[a, b]`. -/
 theorem ConvexOn.integral_sub_left_le {f : ℝ → ℝ} {a b : ℝ} (hab : a < b)
     (hf : ConvexOn ℝ (Set.Icc a b) f) (hfc : ContinuousOn f (Set.Icc a b)) :
     ∫ t in a..b, (f t - f a) ≤ (b - a) * (f b - f a) / 2 := by
@@ -74,8 +73,7 @@ theorem ConvexOn.integral_sub_left_le {f : ℝ → ℝ} {a b : ℝ} (hab : a < b
     ring
   rwa [heval] at hmono
 
-/-- **First derivative of the Riemann–Siegel theta function.** For `T > 0`,
-`θ'(T) = ½ Re ψ(¼ + iT/2) − ½ log π`, where `ψ = Complex.digamma`. -/
+/-- **First derivative of the Riemann–Siegel theta function**, with `ψ = Complex.digamma`. -/
 theorem hasDerivAt_riemannSiegelTheta {T : ℝ} (hT : 0 < T) :
     HasDerivAt riemannSiegelTheta
       (1 / 2 * (Complex.digamma (1 / 4 + Complex.I * (T / 2))).re
@@ -128,8 +126,8 @@ theorem convexOn_riemannSiegelTheta : ConvexOn ℝ (Set.Ici 0) riemannSiegelThet
 argument and running variable `t` the second. -/
 noncomputable def gramCoord (l t : ℝ) : ℝ := (riemannSiegelTheta t - riemannSiegelTheta l) / Real.pi
 
-/-- **Gram-point averaging bound.** Over a Gram interval `[l, l+h] ⊆ [0, ∞)` (one on which `θ`
-gains exactly `π`), `∫_l^{l+h} gramCoord l t dt ≤ h/2`. -/
+/-- **Gram-point averaging bound** over a Gram interval `[l, l+h] ⊆ [0, ∞)` (one on which `θ`
+gains exactly `π`). -/
 theorem integral_gramCoord_le {l h : ℝ} (hl : 0 ≤ l) (hh : 0 < h)
     (hgram : riemannSiegelTheta (l + h) - riemannSiegelTheta l = Real.pi) :
     ∫ t in l..l + h, gramCoord l t ≤ h / 2 := by
@@ -153,13 +151,9 @@ private theorem le_of_stepwise_lt {k : ℕ} {p : ℕ → ℝ} (hmono : ∀ i < k
   | refl => exact fun _ ↦ le_rfl
   | @step m _ ih => exact fun hmk ↦ (ih (by lia)).trans (hmono m (by lia)).le
 
-/-- **Gram-block averaging bound.** For an increasing block of points `p 0 < p 1 < ⋯ < p k` in
-`[0, ∞)` across each of which `θ` gains exactly `π` (consecutive Gram points), the phase
-increments measured from the *left* endpoint of each Gram interval sum to at most half the total
-width: `∑_{i<k} ∫_{p i}^{p (i+1)} gramCoord (p i) t dt ≤ (p k − p 0)/2`.
-
-Note the summand restarts at `0` on every Gram interval, so the bound is `(p k − p 0)/2` and not
-`k` times it. -/
+/-- **Gram-block averaging bound**: over consecutive Gram intervals `[p i, p (i+1)] ⊆ [0, ∞)`, the
+phase increments measured from the *left* endpoint of each interval sum to at most half the total
+width. -/
 theorem sum_integral_gramCoord_le {k : ℕ} {p : ℕ → ℝ} (hp0 : 0 ≤ p 0)
     (hmono : ∀ i < k, p i < p (i + 1))
     (hgram : ∀ i < k, riemannSiegelTheta (p (i + 1)) - riemannSiegelTheta (p i) = Real.pi) :
@@ -174,14 +168,10 @@ theorem sum_integral_gramCoord_le {k : ℕ} {p : ℕ → ℝ} (hp0 : 0 ≤ p 0)
     (by linarith [hmono i hi']) (by rw [e]; exact hgram i hi')
   rwa [e] at hkey
 
-/-- **Gram-block averaging bound, single-integral form.** Over a Gram block `p 0 < ⋯ < p k` in
-`[0, ∞)` on which `θ` is strictly increasing and gains exactly `π` across each Gram interval, the
-*fractional* phase increment measured from the block's left endpoint averages to at most half the
-block width: `∫_{p 0}^{p k} {gramCoord (p 0) t} dt ≤ (p k − p 0)/2`, `{·} = Int.fract`.
-
-This is the form Turing's method consumes (`riemannZeta.N_le_of_gramPoints`). Strict monotonicity
-of `θ` on the block, which convexity alone does not give, is what pins the fractional part; the
-caller supplies it, e.g. from `strictMonoOn_riemannSiegelTheta_gramDomain`. -/
+/-- **Gram-block averaging bound, single-integral form**: over a Gram block `p 0 < ⋯ < p k` in
+`[0, ∞)` on which `θ` is strictly increasing, the *fractional* phase increment measured from the
+block's left endpoint averages to at most `1/2`. The caller supplies strict monotonicity, e.g. from
+`strictMonoOn_riemannSiegelTheta_gramDomain`. -/
 theorem integral_fract_gramCoord_le {k : ℕ} {p : ℕ → ℝ} (hp0 : 0 ≤ p 0)
     (hmono : ∀ i < k, p i < p (i + 1))
     (hsmono : StrictMonoOn riemannSiegelTheta (Set.Icc (p 0) (p k)))
@@ -247,12 +237,10 @@ theorem integral_fract_gramCoord_le {k : ℕ} {p : ℕ → ℝ} (hp0 : 0 ≤ p 0
 
 open Set
 
-/-- The monotonicity domain `[7, ∞)` of `θ`. The last stationary point of `θ` is `t₀ ≈ 6.29`;
-`7` is a safe cut-off that is easier to certify. -/
+/-- The monotonicity domain `[7, ∞)` of `θ` (whose last stationary point is `t₀ ≈ 6.29`). -/
 abbrev gramDomain : Set ℝ := Ici 7
 
-/-- **The numeric heart of the monotonicity domain**: `Re ψ(¼ + i·7/2) > log π`, i.e. `θ'` is
-positive at the base point `7`. -/
+/-- **`θ'(7) > 0`**, in digamma form. -/
 private theorem log_pi_lt_re_digamma_quarter_seven :
     Real.log Real.pi < (Complex.digamma (1 / 4 + Complex.I * (((7 : ℝ) : ℂ) / 2))).re := by
   set s : ℂ := 1 / 4 + Complex.I * (((7 : ℝ) : ℂ) / 2) with hs_def

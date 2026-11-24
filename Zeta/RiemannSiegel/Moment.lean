@@ -132,7 +132,7 @@ theorem hasDerivAt_modelMomentIntegrand (n : ℕ) (p : ℂ) {a : ℝ} {m : ℤ} 
     HasDerivAt (fun q : ℂ ↦ modelMomentIntegrand n q a w)
       (-(n : ℂ) * modelMomentIntegrand (n - 1) p a w
         - 4 * π * I * modelMomentIntegrand (n + 1) p a w) p := by
-  -- at `n = 0` the truncated subtraction `n − 1` is harmless: the term carries the factor `n`
+  -- at `n = 0` the term with the truncated subtraction `n − 1` carries the factor `n = 0`
   have hD : (2 : ℂ) * I * sin (π * line a w) ≠ 0 := by
     simpa [I_ne_zero] using sin_pi_mul_line_ne_zero ha w
   have hfun : ∀ (k : ℕ) (q : ℂ), modelMomentIntegrand k q a w
@@ -145,7 +145,7 @@ theorem hasDerivAt_modelMomentIntegrand (n : ℕ) (p : ℂ) {a : ℝ} {m : ℤ} 
   have hpow : HasDerivAt (fun q : ℂ ↦ (line a w - q) ^ n)
       (-(n : ℂ) * (line a w - p) ^ (n - 1)) p := (hg.pow n).congr_deriv (by ring)
   -- the step is type-ascribed, so that the beta-redexes the derivative rules leave behind are
-  -- discharged by defeq rather than handed to `ring`
+  -- discharged by defeq
   have hquad : HasDerivAt (fun q : ℂ ↦ 2 * (π : ℂ) * I * (line a w - q) ^ 2)
       (-(4 * (π : ℂ) * I) * (line a w - p)) p :=
     ((hg.pow 2).const_mul (2 * (π : ℂ) * I)).congr_deriv (by push_cast; ring)

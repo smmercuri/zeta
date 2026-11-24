@@ -10,9 +10,9 @@ Do not edit by hand: regenerate instead.
 
 14 good gram blocks (14 bracketed zeros) packaged as one
 `CertifiedGramBlockSeq`, with the zeros bracketed by the riemann_siegel approximant.
-Gram-point theta-Stirling parameters are read straight from the store — bracketing a gram
-point is a question about `theta`, so they are the same whichever approximant certified the
-zeros ({'theta_cutoff': '0', 'theta_bernoulli': '2'}, working precision 200 bits).
+Gram-point theta-Stirling parameters are read straight from the store and are the same
+whichever approximant certified the zeros
+({'theta_cutoff': '0', 'theta_bernoulli': '2'}, working precision 200 bits).
 
 The gram points' `fst_bound`/`snd_bound` are discharged by `gram_bound` (kernel-checked
 `Enclosure` ball arithmetic): bracketing a gram point is a question about `theta` alone, so
@@ -305,7 +305,7 @@ theorem gp15_cert : gp15.Certificate where
   fst_bound := by gram_bound
   snd_bound := by gram_bound
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10011.534111770236390959623836338242`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10011.534110000000000000000000000000`). -/
 abbrev z1_1 : ZIntervalRS where
   fst := 10011.53411
   snd := 10011.64063
@@ -335,7 +335,7 @@ theorem blk1_cert : blk1.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z1_1_cert
   contains_zero := ⟨z1_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10012.066682890452279263792061057891`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10012.066680000000000000000000000000`). -/
 abbrev z2_1 : ZIntervalRS where
   fst := 10012.06668
   snd := 10012.17320
@@ -365,7 +365,7 @@ theorem blk2_cert : blk2.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z2_1_cert
   contains_zero := ⟨z2_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10013.025301716305807013217241677240`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10013.025300000000000000000000000000`). -/
 abbrev z3_1 : ZIntervalRS where
   fst := 10013.02530
   snd := 10013.13182
@@ -395,7 +395,7 @@ theorem blk3_cert : blk3.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z3_1_cert
   contains_zero := ⟨z3_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10013.770885395332307145830911681363`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10013.770880000000000000000000000000`). -/
 abbrev z4_1 : ZIntervalRS where
   fst := 10013.77088
   snd := 10013.87740
@@ -425,7 +425,7 @@ theorem blk4_cert : blk4.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z4_1_cert
   contains_zero := ⟨z4_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10015.049011768783137381319348070820`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10015.049010000000000000000000000000`). -/
 abbrev z5_1 : ZIntervalRS where
   fst := 10015.04901
   snd := 10015.15553
@@ -455,7 +455,7 @@ theorem blk5_cert : blk5.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z5_1_cert
   contains_zero := ⟨z5_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10015.581557537932091401593557514228`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10015.581550000000000000000000000000`). -/
 abbrev z6_1 : ZIntervalRS where
   fst := 10015.58155
   snd := 10015.68807
@@ -485,7 +485,7 @@ theorem blk6_cert : blk6.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z6_1_cert
   contains_zero := ⟨z6_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10016.646638169771900059483603771626`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10016.646630000000000000000000000000`). -/
 abbrev z7_1 : ZIntervalRS where
   fst := 10016.64663
   snd := 10016.75315
@@ -515,7 +515,7 @@ theorem blk7_cert : blk7.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z7_1_cert
   contains_zero := ⟨z7_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10017.818209188020158103275556670684`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10017.818200000000000000000000000000`). -/
 abbrev z8_1 : ZIntervalRS where
   fst := 10017.81820
   snd := 10017.92452
@@ -545,7 +545,7 @@ theorem blk8_cert : blk8.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z8_1_cert
   contains_zero := ⟨z8_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10018.350734992404302434238435871194`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10018.350730000000000000000000000000`). -/
 abbrev z9_1 : ZIntervalRS where
   fst := 10018.35073
   snd := 10018.45724
@@ -575,7 +575,7 @@ theorem blk9_cert : blk9.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z9_1_cert
   contains_zero := ⟨z9_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10019.096264915160500883818685774145`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10019.096260000000000000000000000000`). -/
 abbrev z10_1 : ZIntervalRS where
   fst := 10019.09626
   snd := 10019.20277
@@ -605,7 +605,7 @@ theorem blk10_cert : blk10.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z10_1_cert
   contains_zero := ⟨z10_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10020.267797088283642145749306571991`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10020.267790000000000000000000000000`). -/
 abbrev z11_1 : ZIntervalRS where
   fst := 10020.26779
   snd := 10020.37430
@@ -635,7 +635,7 @@ theorem blk11_cert : blk11.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z11_1_cert
   contains_zero := ⟨z11_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10020.800305238024624414015197398282`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10020.800300000000000000000000000000`). -/
 abbrev z12_1 : ZIntervalRS where
   fst := 10020.80030
   snd := 10020.90681
@@ -665,7 +665,7 @@ theorem blk12_cert : blk12.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z12_1_cert
   contains_zero := ⟨z12_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10021.865310639046386373621387603909`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10021.865310000000000000000000000000`). -/
 abbrev z13_1 : ZIntervalRS where
   fst := 10021.86531
   snd := 10021.97182
@@ -695,7 +695,7 @@ theorem blk13_cert : blk13.Certificate where
     · exact riemannZeta.exists_zero_of_zIntervalRS_certificate _ z13_1_cert
   contains_zero := ⟨z13_1, by simp, by norm_num [Set.mem_Icc], by norm_num [Set.mem_Icc]⟩
 
-/-- Interval bracketing zeta zero #1 (`t ≈ 10022.504306268148615718657323573742`). -/
+/-- Interval bracketing zeta zero #1 (`t ≈ 10022.504300000000000000000000000000`). -/
 abbrev z14_1 : ZIntervalRS where
   fst := 10022.50430
   snd := 10022.61081

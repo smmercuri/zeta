@@ -1,30 +1,27 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import Bernoulli.BernoulliValues
 
 /-!
 # Exact rational Bernoulli numbers, and a lemma generator
 
-The exact-value layer on top of `Bernoulli.BernoulliValues`: whereas that module certifies the
-reduced *numerators* (for the regular-prime sweeps), here we produce the full rational values
-`bernoulli n = p / q`.
-
-`bernoulli_even_div` reads an even Bernoulli number off its tangent number as a reduced fraction,
-once a candidate `p / q` is supplied and validated by the integer identity `p·B = q·A` (`q > 0`);
-the `0`, `1` and odd entries reuse Mathlib's `bernoulli_zero`, `bernoulli_one`,
-`bernoulli_eq_zero_of_odd`.
-
-The `derive_bernoulli N` command materialises `bernoulli_0, …, bernoulli_N`, each a lemma
-`bernoulli n = p / q` with `p / q` displayed in clean `ℚ` numerals: the even entries read their
-tangent number off the `tangentNumberLit_k` lemmas (emitted by `Bernoulli.TangentVerify`, so
-`N < 200`), with the reduced `p / q` computed in `MetaM` and every side condition a kernel-checked
-`reflBoolTrue`.  No `native_decide`.
+The full rational values `bernoulli n = p / q`, on top of the reduced numerators of
+`Bernoulli.BernoulliValues`. `bernoulli_even_div` reads an even Bernoulli number off its tangent
+number, given a candidate `p / q` validated by `p·B = q·A` (`q > 0`). The `derive_bernoulli N`
+command adds `bernoulli_0, …, bernoulli_N` (`N < 200`, the range of the `tangentNumberLit_k`
+lemmas), each in clean `ℚ` numerals with every side condition a kernel-checked `reflBoolTrue`.
+No `native_decide`.
 -/
 
 open scoped Nat
 
 namespace TangentNumbers
 
-/-- `B_{2m+2} = p / q`, from the tangent number and a validated `p·B = q·A` (`q > 0`).  Reduction is
-not needed for the equality, but the generator supplies the reduced `p/q`. -/
+/-- `B_{2m+2} = p / q`, from the tangent number and a validated `p·B = q·A` (`q > 0`; `p / q` need
+not be reduced). -/
 theorem bernoulli_even_div (m : ℕ) (Tn : ℕ) (p q : ℤ)
     (hT : tangentNumber (m + 1) = Tn)
     (hq : decide (0 < q) = true)
@@ -57,9 +54,9 @@ theorem bernoulli_odd_div (m : ℕ) : bernoulli (2 * m + 3) = ((0 : ℤ) : ℚ) 
 
 /-! ## The generator
 
-`derive_bernoulli N` adds `bernoulli_0, …, bernoulli_N`, each `bernoulli n = p / q` with `p / q` a
-reduced rational displayed with clean `ℚ` numerals (e.g. `bernoulli 12 = -691 / 2730`).  The proof
-carries `ℤ`-cast numerals, which are `rfl`-defeq to the stated `ℚ` numerals. -/
+`derive_bernoulli N` adds `bernoulli_0, …, bernoulli_N`, each `bernoulli n = p / q` with `p / q`
+reduced, in clean `ℚ` numerals (e.g. `bernoulli 12 = -691 / 2730`), `rfl`-defeq to the `ℤ`-cast
+numerals of the generated terms. -/
 open Lean Lean.Meta Lean.Elab Lean.Elab.Command Lean.Elab.Term in
 elab "derive_bernoulli " nStx:num : command => do
   let N := nStx.getNat

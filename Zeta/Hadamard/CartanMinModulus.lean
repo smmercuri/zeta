@@ -37,7 +37,7 @@ open Complex Filter Topology MeasureTheory
 
 /-! ### Elementary lower bounds for the factor and the logarithm -/
 
-/-- **Quadratic lower bound on the elementary factor (`lem:cm_elem_lower`).** For `‖w‖ ≤ 1/2`,
+/-- Quadratic lower bound on the elementary factor (`lem:cm_elem_lower`). For `‖w‖ ≤ 1/2`,
 `-4 ‖w‖² ≤ log ‖E₁(w)‖`. -/
 theorem neg_le_log_norm_weierstrassE1 {w : ℂ} (hw : ‖w‖ ≤ 1 / 2) :
     -4 * ‖w‖ ^ 2 ≤ Real.log ‖weierstrassE1 w‖ := by
@@ -60,7 +60,7 @@ theorem neg_le_log_norm_weierstrassE1 {w : ℂ} (hw : ‖w‖ ≤ 1 / 2) :
     _ ≤ Real.log (1 - x) := hlog
     _ ≤ Real.log ‖weierstrassE1 w‖ := Real.log_le_log hpos hge
 
-/-- **A square-root domination of the squared logarithm (`lem:cm_logsq_le`).** For `R ≥ 1`,
+/-- A square-root domination of the squared logarithm (`lem:cm_logsq_le`). For `R ≥ 1`,
 `(log R + 1)² ≤ 16 R^{1/2}`. -/
 theorem Real.log_add_one_sq_le {R : ℝ} (hR : 1 ≤ R) :
     (Real.log R + 1) ^ 2 ≤ 16 * R ^ (1 / 2 : ℝ) := by
@@ -118,7 +118,7 @@ theorem finite_setOf_norm_riemannXiZeros_le (t : ℝ) :
   rw [setOf_norm_le_eq_biUnion]
   exact (finite_zerosInBall t).biUnion fun z _ ↦ finite_setOf_riemannXiZeros_eq z
 
-/-- **The truncated index count equals the zero-counting function.** -/
+/-- The truncated index count equals the zero-counting function. -/
 theorem ncard_setOf_norm_riemannXiZeros_le_eq (t : ℝ) :
     (({i : RiemannXiZerosIndex | ‖riemannXiZeros i‖ ≤ t}.ncard : ℝ)) = riemannXiZeroCount t := by
   have hZfin := finite_zerosInBall t
@@ -158,7 +158,7 @@ theorem ncard_setOf_norm_riemannXiZeros_le_eq (t : ℝ) :
       rw [← divisor_riemannXi_closedBall_eq t hzb]; exact hzint
   rw [hncard, hcount, Nat.cast_sum]
 
-/-- **Cardinality of the truncated zero set (`lem:cm_card`).** There is `C_n > 0` with
+/-- Cardinality of the truncated zero set (`lem:cm_card`). There is `C_n > 0` with
 `#{i | ‖ρ_i‖ ≤ t} ≤ C_n t log t` for all `t ≥ 2`. -/
 theorem exists_card_riemannXiZeros_le :
     ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 2 ≤ t →
@@ -168,7 +168,7 @@ theorem exists_card_riemannXiZeros_le :
 
 /-! ### One-dimensional radius selection -/
 
-/-- **Avoiding finitely many points on an interval (`lem:cm_radial_select`).** If `S` is a finite
+/-- Avoiding finitely many points on an interval (`lem:cm_radial_select`). If `S` is a finite
 set of reals, `a ≤ b`, `δ > 0` and `2 δ (#S) < b - a`, then there is `r ∈ [a, b]` with
 `δ ≤ |r - t|` for every `t ∈ S`. -/
 theorem exists_mem_Icc_forall_le_dist {S : Finset ℝ} {a b δ : ℝ} (hδ : 0 < δ)
@@ -209,7 +209,7 @@ private lemma inv_rpow_mul_rpow {a : ℝ} (ha : 0 < a) (p q : ℝ) :
   congr 1
   ring
 
-/-- **Summability of the `p`-power of inverse moduli (`lem:cm_summable_rpow`).** For `p > 1` the
+/-- Summability of the `p`-power of inverse moduli (`lem:cm_summable_rpow`). For `p > 1` the
 family `i ↦ ‖ρ_i⁻¹‖ ^ p` is summable. -/
 theorem summable_inv_norm_rpow_riemannXiZeros {p : ℝ} (hp : 1 < p) :
     Summable (fun i : RiemannXiZerosIndex ↦ ‖(riemannXiZeros i)⁻¹‖ ^ p) := by
@@ -239,7 +239,7 @@ private theorem summable_inv_norm_rpow_three_halves :
 
 private theorem holderSum_nonneg : 0 ≤ holderSum := tsum_nonneg fun _ ↦ by positivity
 
-/-- **The shared Hölder wrap-up.** If on a set `s` of zeros the summand `f` is pointwise
+/-- If on a set `s` of zeros the summand `f` is pointwise
 `≤ e · ‖ρ⁻¹‖^{3/2}`, then `∑_{i ∈ s} f i ≤ (S + 1) · e`. -/
 private theorem tsum_subtype_le_of_le_mul {s : Set RiemannXiZerosIndex}
     {f : RiemannXiZerosIndex → ℝ} (hfs : Summable fun i : s ↦ f (i : RiemannXiZerosIndex))
@@ -256,7 +256,7 @@ private theorem tsum_subtype_le_of_le_mul {s : Set RiemannXiZerosIndex}
           (summable_inv_norm_rpow_three_halves.tsum_subtype_le _ s fun _ ↦ by positivity) he
     _ ≤ (holderSum + 1) * e := by nlinarith [holderSum_nonneg]
 
-/-- **Head sum of inverse moduli (`lem:cm_sum_inv`).** There is `C₁ > 0` such that for every
+/-- Head sum of inverse moduli (`lem:cm_sum_inv`). There is `C₁ > 0` such that for every
 `t ≥ 0`, `∑_{‖ρ_i‖ ≤ t} ‖ρ_i⁻¹‖ ≤ C₁ t^{1/2}`. -/
 theorem exists_sum_inv_norm_riemannXiZeros_le :
     ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 0 ≤ t →
@@ -277,7 +277,7 @@ theorem exists_sum_inv_norm_riemannXiZeros_le :
         mul_le_mul_of_nonneg_left (Real.rpow_le_rpow ha.le hi (by norm_num)) (by positivity)
     _ = t ^ (1 / 2 : ℝ) * a⁻¹ ^ (3 / 2 : ℝ) := by ring
 
-/-- **Tail sum of inverse squared moduli (`lem:cm_sum_inv_sq_tail`).** There is `C₂ > 0` such that
+/-- Tail sum of inverse squared moduli (`lem:cm_sum_inv_sq_tail`). There is `C₂ > 0` such that
 for every `t > 0`, `∑_{‖ρ_i‖ > t} ‖ρ_i⁻¹‖² ≤ C₂ t^{-1/2}`. -/
 theorem exists_sum_inv_norm_sq_riemannXiZeros_tail_le :
     ∃ C : ℝ, 0 < C ∧ ∀ t : ℝ, 0 < t →
@@ -323,7 +323,7 @@ private lemma near_rpow_id {R : ℝ} (hR : 0 < R) :
   rw [Real.mul_rpow (by norm_num) hR.le, h4,
     show 2 * R * (2 * R ^ (1 / 2 : ℝ)) = 4 * (R * R ^ (1 / 2 : ℝ)) by ring, self_mul_rpow_half hR]
 
-/-- **Lower bound on the far part (`lem:cm_far_lower`).** There is `C_F > 0` such that for `R ≥ 2`
+/-- Lower bound on the far part (`lem:cm_far_lower`). There is `C_F > 0` such that for `R ≥ 2`
 and `‖s‖ ≤ 2R`, `∑_{‖ρ_i‖ > 4R} log ‖E₁(s/ρ_i)‖ ≥ -C_F R^{3/2}`. -/
 theorem exists_tsum_far_log_norm_weierstrassE1_ge :
     ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 2 ≤ R → ∀ s : ℂ, ‖s‖ ≤ 2 * R →
@@ -361,7 +361,7 @@ theorem exists_tsum_far_log_norm_weierstrassE1_ge :
           ‖(riemannXiZeros (i : RiemannXiZerosIndex))⁻¹‖ ^ 2 :=
         mul_le_mul_of_nonpos_left (hC2 (4 * R) h4R) (by nlinarith [sq_nonneg R, hRpos])
 
-/-- **Lower bound on the near part on a good circle (`lem:cm_near_lower`).** There is `C_N > 0` such
+/-- Lower bound on the near part on a good circle (`lem:cm_near_lower`). There is `C_N > 0` such
 that for every `R ≥ 2` there is `R' ∈ [R, 2R]` for which, for all `s` with `‖s‖ = R'`: (1) `s ≠ ρ_i`
 for every near `i` (`‖ρ_i‖ ≤ 4R`), and (2) `∑_{near} log ‖E₁(s/ρ_i)‖ ≥ -C_N R^{3/2}`. -/
 theorem exists_finset_near_log_norm_weierstrassE1_ge :
@@ -470,7 +470,7 @@ theorem exists_finset_near_log_norm_weierstrassE1_ge :
 
 /-! ### Assembly: the minimum-modulus selection -/
 
-/-- **Minimum-modulus lower bound for the canonical product (`thm:cm_minmod`, `lem:hf_minmod`).**
+/-- Minimum-modulus lower bound for the canonical product (`thm:cm_minmod`, `lem:hf_minmod`).
 There is `C' > 0` such that for every `R ≥ 2` there is `R' ∈ [R, 2R]` with `P(s) ≠ 0` and
 `log ‖P(s)‖ ≥ -C' R^{3/2}` for all `‖s‖ = R'`, where
 `P = riemannXiCanonicalProduct riemannXiZeros`. -/

@@ -18,12 +18,11 @@ kernel `Zeta.RiemannSiegel.kernel` against the branch `Zeta.RiemannSiegel.slantC
 `x ↦ x^{-s}`, taken along the slanted line `Zeta.RiemannSiegel.line` (`riemann_siegel.tex`,
 `def:rs_integral`).
 
-The integral converges absolutely for every `s`, and for a very robust reason: the Gaussian factor
-`e^{iπx²}` of the kernel contributes `e^{-2πw(a+w)}`, whose square-exponential decay beats both the
-polynomial factor `‖x‖^{-Re s}` and the exponential factor `e^{slantArg x · Im s}` coming from the
-power — the latter being bounded outright, since the argument along the contour never reaches
-`±3π/4`. The crude constant obtained here is irrelevant: the sharp estimate on the critical line is
-the business of `Zeta/RiemannSiegel/Bound.lean`.
+The integral converges absolutely for every `s`: the Gaussian factor `e^{iπx²}` of the kernel
+contributes `e^{-2πw(a+w)}`, whose square-exponential decay beats both the polynomial factor
+`‖x‖^{-Re s}` and the exponential factor `e^{slantArg x · Im s}` coming from the power (the latter
+is bounded outright, since the argument along the contour stays below `3π/4` in modulus). The sharp
+estimate on the critical line is in `Zeta/RiemannSiegel/Bound.lean`.
 
 ## Main results
 
@@ -37,7 +36,7 @@ the business of `Zeta/RiemannSiegel/Bound.lean`.
 * `Zeta.RiemannSiegel.integrable_contourIntegrand`,
   `Zeta.RiemannSiegel.integrable_contourIntegrand_of_le_half`: absolute convergence;
 * `Zeta.RiemannSiegel.norm_kernel_line_le`: a Gaussian bound `‖G(L(a)(w))‖ = O(e^{-πw²})` for the
-  kernel alone, with no power attached;
+  kernel alone;
 * `Zeta.RiemannSiegel.slantIntegral`: the integral of an arbitrary integrand along `L(a)`;
 * `Zeta.RiemannSiegel.contourIntegral`: the contour integral `I(s, a)`.
 -/
@@ -63,12 +62,12 @@ end Complex
 
 namespace Zeta.RiemannSiegel
 
-/-- The **Riemann–Siegel integrand** `x ↦ x^{-s} G(x)`, in which the power is taken in the branch
+/-- The Riemann–Siegel integrand `x ↦ x^{-s} G(x)`, in which the power is taken in the branch
 `Zeta.RiemannSiegel.slantCpow` adapted to the contour. -/
 noncomputable def integrand (s x : ℂ) : ℂ :=
   slantCpow x (-s) * kernel x
 
-/-- The **integrand of the Riemann–Siegel contour integral**, `w ↦ L(a)(w)^{-s} G(L(a)(w))`. -/
+/-- The integrand of the Riemann–Siegel contour integral, `w ↦ L(a)(w)^{-s} G(L(a)(w))`. -/
 noncomputable def contourIntegrand (s : ℂ) (a w : ℝ) : ℂ :=
   integrand s (line a w)
 
@@ -80,7 +79,7 @@ theorem norm_contourIntegrand (s : ℂ) (a w : ℝ) :
   rw [contourIntegrand, integrand, kernel_eq_div_two_mul_I_mul_sin, ← mul_div_assoc, norm_div,
     norm_two_mul_I_mul]
 
-/-- **The modulus of the integrand as an exponential**, the logarithm of the modulus and the
+/-- The modulus of the integrand as an exponential, the logarithm of the modulus and the
 argument of the power having been separated from the Gaussian and from the kernel's denominator. -/
 theorem norm_contourIntegrand_eq_exp (s : ℂ) {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
     ‖contourIntegrand s a w‖
@@ -93,7 +92,7 @@ theorem norm_contourIntegrand_eq_exp (s : ℂ) {a : ℝ} (ha0 : 0 < a) (w : ℝ)
     ← Real.exp_add (Real.log ‖line a w‖ * (-s).re) (slantArg (line a w) * s.im)]
   ring
 
-/-- **The integrand is continuous along a contour that misses the integers.** -/
+/-- The integrand is continuous along a contour that misses the integers. -/
 theorem continuous_contourIntegrand (s : ℂ) {a : ℝ} (ha0 : 0 < a)
     (hsin : ∀ w : ℝ, sin (π * line a w) ≠ 0) : Continuous (contourIntegrand s a) := by
   have hline := continuous_line a
@@ -108,9 +107,9 @@ theorem continuous_contourIntegrand (s : ℂ) {a : ℝ} (ha0 : 0 < a)
   unfold contourIntegrand integrand slantCpow
   exact (continuous_const.mul hpow).mul hker
 
-/-- **A Gaussian majorant for the Riemann–Siegel integrand**, along any contour whose kernel
+/-- A Gaussian majorant for the Riemann–Siegel integrand, along any contour whose kernel
 denominator is bounded below by `c`. The bound is stated through upper bounds `σ, τ` for
-`|Re s|, |Im s|` rather than through `s` itself, so that it is uniform for `s` in a box. -/
+`|Re s|, |Im s|`, so that it is uniform for `s` in a box. -/
 theorem norm_contourIntegrand_le_exp {s : ℂ} {a c σ τ : ℝ} (ha0 : 0 < a) (hc : 0 < c)
     (hsin : ∀ w : ℝ, c ≤ ‖sin (π * line a w)‖) (hσ : |s.re| ≤ σ) (hτ : |s.im| ≤ τ) (w : ℝ) :
     ‖contourIntegrand s a w‖
@@ -141,7 +140,7 @@ theorem norm_contourIntegrand_le_exp {s : ℂ} {a c σ τ : ℝ} (ha0 : 0 < a) (
     ← Real.exp_add]
   gcongr Real.exp ?_ / ?_ <;> linarith [hsin w]
 
-/-- **Absolute convergence of the Riemann–Siegel contour integral**, along any contour whose
+/-- Absolute convergence of the Riemann–Siegel contour integral, along any contour whose
 kernel denominator is bounded below. -/
 theorem integrable_contourIntegrand (s : ℂ) {a c : ℝ} (ha0 : 0 < a) (hc : 0 < c)
     (hsin : ∀ w : ℝ, c ≤ ‖sin (π * line a w)‖) : Integrable (contourIntegrand s a) := by
@@ -151,14 +150,14 @@ theorem integrable_contourIntegrand (s : ℂ) {a c : ℝ} (ha0 : 0 < a) (hc : 0 
     (continuous_contourIntegrand s ha0 hsin0).aestronglyMeasurable
     (.of_forall (norm_contourIntegrand_le_exp ha0 hc hsin le_rfl le_rfl))
 
-/-- **Absolute convergence along a contour crossing the real axis inside `(0, ½]`.** -/
+/-- Absolute convergence along a contour crossing the real axis inside `(0, ½]`. -/
 theorem integrable_contourIntegrand_of_le_half (s : ℂ) {a : ℝ} (ha0 : 0 < a) (ha : a ≤ 1 / 2) :
     Integrable (contourIntegrand s a) :=
   integrable_contourIntegrand s ha0 (c := min (1 / 2) (a / Real.sqrt 2))
     (lt_min (by norm_num) (by positivity))
     fun w ↦ (min_le_min le_rfl (norm_line_ge a w)).trans (norm_sin_pi_mul_line_ge_min ha0.le ha w)
 
-/-- **A Gaussian bound for the kernel along a contour crossing the real axis inside `(0, ½]`**: the
+/-- A Gaussian bound for the kernel along a contour crossing the real axis inside `(0, ½]`: the
 kernel's Gaussian numerator decays like `e^{-πw²}` while its denominator stays bounded away from
 zero. -/
 theorem norm_kernel_line_le {a : ℝ} (ha0 : 0 < a) (ha : a ≤ 1 / 2) (w : ℝ) :
@@ -179,11 +178,11 @@ theorem norm_kernel_line_le {a : ℝ} (ha0 : 0 < a) (ha : a ≤ 1 / 2) (w : ℝ)
   gcongr
   nlinarith [sq_nonneg (a + w), Real.pi_pos]
 
-/-- The **integral along the slanted contour** `L(a)`, `∫_{L(a)} f = (1 + i) ∫_ℝ f(L(a)(w)) dw`. -/
+/-- The integral along the slanted contour `L(a)`, `∫_{L(a)} f = (1 + i) ∫_ℝ f(L(a)(w)) dw`. -/
 noncomputable def slantIntegral (f : ℂ → ℂ) (a : ℝ) : ℂ :=
   (1 + I) * ∫ w : ℝ, f (line a w)
 
-/-- The **Riemann–Siegel contour integral** `I(s, a) = ∫_{L(a)} x^{-s} G(x) dx`, parametrised by
+/-- The Riemann–Siegel contour integral `I(s, a) = ∫_{L(a)} x^{-s} G(x) dx`, parametrised by
 the slanted contour `Zeta.RiemannSiegel.line`, whose constant velocity is `1 + i`. -/
 noncomputable def contourIntegral (s : ℂ) (a : ℝ) : ℂ :=
   (1 + I) * ∫ w : ℝ, contourIntegrand s a w

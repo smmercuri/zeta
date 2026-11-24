@@ -12,7 +12,7 @@ public import Zeta.ArgZeta.LowerBound
 /-!
 # Lehman's bound on `∫ S(t) dt`
 
-**Lehman's bound** `|∫_{t₁}^{t₂} S(t) dt| ≤ A + B log(t₂/2π)` with `B = 0.128`
+Lehman's bound `|∫_{t₁}^{t₂} S(t) dt| ≤ A + B log(t₂/2π)` with `B = 0.128`
 (`thm:lb_main`), assembled from Littlewood's reduction and the upper and lower bounds on
 `logNormZetaIntegral`.
 
@@ -32,7 +32,7 @@ open Complex Filter Topology MeasureTheory Set
 open scoped Real
 
 
-/-- **Fully parametric core of Lehman's bound.** Lehman's bound with explicit
+/-- Lehman's bound with explicit
 `A = ((a₁+a₂) + (b₁+b₂) log 2π)/π`, for any admissible pair of leading coefficients `b₁, b₂`
 in the two `I(t)` bounds. -/
 theorem norm_integral_argZeta_le_of_bounds' {a₁ a₂ b₁ b₂ : ℝ}
@@ -72,7 +72,7 @@ theorem norm_integral_argZeta_le_of_bounds' {a₁ a₂ b₁ b₂ : ℝ}
   constructor <;>
     nlinarith [ha₁ t₁ ht1.le hne1, ha₁ t₂ ht2' hne2, ha₂ t₁ ht1.le hne1, ha₂ t₂ ht2' hne2]
 
-/-- **Parametric core of Lehman's bound.** The `d = 53/100`, `c = 5/2` specialisation of
+/-- Lehman's bound at `d = 53/100`, `c = 5/2`: the specialisation of
 `norm_integral_argZeta_le_of_bounds'`, with explicit
 `A = ((a₁+a₂) + (3/16 + (3/4)(53/100)²) log 2π)/π`. -/
 theorem norm_integral_argZeta_le_of_bounds {a₁ a₂ : ℝ}
@@ -91,7 +91,7 @@ theorem norm_integral_argZeta_le_of_bounds {a₁ a₂ : ℝ}
   norm_integral_argZeta_le_of_bounds' (by norm_num) (by positivity)
     (by nlinarith [Real.pi_gt_d2]) ha₁ ha₂
 
-/-- **Lehman's bound** (`thm:lb_main`). `|∫_{t₁}^{t₂} S(t) dt| ≤ A + 0.128 · log(t₂/2π)` for
+/-- Lehman's bound (`thm:lb_main`): `|∫_{t₁}^{t₂} S(t) dt| ≤ A + 0.128 · log(t₂/2π)` for
 some constant `A`, where `S = argZeta`, provided `t₁, t₂` are not ordinates of zeros of `ζ` in
 the half-plane `Re s ≥ 1/2`. -/
 theorem norm_integral_argZeta_le :
@@ -103,7 +103,7 @@ theorem norm_integral_argZeta_le :
   obtain ⟨a₂, ha₂⟩ := le_logNormZetaIntegral (d := 53 / 100) (by norm_num) (by norm_num)
   exact ⟨_, norm_integral_argZeta_le_of_bounds ha₁ ha₂⟩
 
-/-- **Weak, explicit-`A` form of Lehman's bound.** `|∫_{t₁}^{t₂} S(t) dt| ≤ 13 + 0.128 ·
+/-- Lehman's bound with `A = 13`: `|∫_{t₁}^{t₂} S(t) dt| ≤ 13 + 0.128 ·
 log(t₂/2π)`, under a remaining numerical hypothesis `a₂ ≤ 30` on the additive constant of the
 lower `I(t)` bound. -/
 theorem norm_integral_argZeta_le_explicit

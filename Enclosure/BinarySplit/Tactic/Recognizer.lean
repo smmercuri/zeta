@@ -1,15 +1,19 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Basic
+public import Fast.Lit
 
 /-!
 # Metaprogram helpers and the general rational recogniser
 
-The shared metaprogram bottom layer: `reflBoolTrue` (the `Bool = true` reflection proof), the
-closed-numeral evaluators `evalNat`/`evalRealAsNat`, and `recognizeRat`, which reads any rational
-surface literal (integer, fraction, decimal, and their negatives) and returns `(neg, num, den)` with
-a proof `e = sfrac neg num den`. It walks the literal structurally; `ℕ`-exponent powers go through
-`sfrac_pow_eq`, and real-exponent powers (`Real.rpow`) are rejected.
+The closed-numeral evaluators `evalNat`/`evalRealAsNat`, and `recognizeRat`, which reads a
+rational surface literal (integer, fraction, decimal, `ℕ`-exponent power, and their negatives) as
+`(neg, num, den)` with a proof `e = sfrac neg num den`. Re-exports `Fast.Lit`.
 -/
 @[expose] public section
 
@@ -21,51 +25,8 @@ open Lean Elab Meta
 
 /-! ### Shared metaprogram helpers -/
 
-/-- `@Eq.refl Bool true`; discharges a `(b : Bool) = true` side condition by forcing the kernel to
-reduce `b` to `true` (GMP-fast `Nat.beq`/`ble`/`blt`). -/
-meta def reflBoolTrue : Expr :=
-  mkApp2 (.const ``Eq.refl [.succ .zero]) (.const ``Bool []) (.const ``Bool.true [])
-
-/-- Cache key wrapping `ℕ` with a hash that sees the whole value (mod the largest 64-bit prime),
-not core's low-64-bits `Hashable Nat` under which every dyadic denominator `2^k` (`k ≥ 64`) hashes
-to `0` and collapses the map into one collision bucket. -/
-structure NatLitKey where
-  val : Nat
-
-meta instance : BEq NatLitKey := ⟨fun a b => a.val == b.val⟩
-meta instance : Hashable NatLitKey := ⟨fun a => UInt64.ofNat (a.val % 18446744073709551557)⟩
-
-/-- Process-global interning cache for big `ℕ` literal `Expr`s (see `natLitShared`). A
-`PersistentHashMap`, not `Std.HashMap`: under interpreted execution a flat map is never uniquely
-owned in an update and copies the whole table per insert, whereas the persistent map's insert is
-`O(log n)`. -/
-meta initialize natLitCache : IO.Ref (Lean.PersistentHashMap NatLitKey Expr) ← IO.mkRef {}
-
-private meta unsafe def natLitSharedImpl (n : Nat) : Expr :=
-  if n < 9223372036854775808 then
-    mkRawNatLit n
-  else
-    unsafeBaseIO do
-      -- lock-free hit path (`get`, no `take`); a racing double-insert of the same value is
-      -- benign: both objects are structurally identical, one wins the map
-      match (← natLitCache.get).find? ⟨n⟩ with
-      | some e => return e
-      | none =>
-        let e := mkRawNatLit n
-        natLitCache.modify (·.insert ⟨n⟩ e)
-        return e
-
-/-- `mkRawNatLit` with process-global value interning of big (GMP) numerals: every emission site
-for the same value returns the SAME `Expr` object, so the compacted olean stores each big numeral
-once (the compactor compares big-`Nat` payloads by pointer only). Values below `2^63` are runtime
-scalars, deduped by value already, so they skip the cache. Reads are lock-free; the insert is safe
-under parallel elaboration. -/
-@[implemented_by natLitSharedImpl]
-meta def natLitShared (n : Nat) : Expr := mkRawNatLit n
-
-/-- Evaluate a closed `ℕ` expression to a literal by walking the arithmetic structure directly and
-computing with GMP `Nat`. `whnf` is applied only as a fallback for a non-canonical head (`mdata`, a
-reducible wrapper). -/
+/-- The value of a closed `ℕ` expression, read off its arithmetic structure, with `whnf` only as a
+fallback for a non-canonical head. -/
 meta partial def evalNat (e : Expr) : MetaM ℕ := do
   if let .lit (.natVal k) := e then return k
   if let some k := e.nat? then return k
@@ -83,7 +44,7 @@ meta partial def evalNat (e : Expr) : MetaM ℕ := do
     if e' == e then throwError "evalNat: not a closed Nat: ctor={e.ctorName} expr={e}"
     evalNat e'
 
-/-- Read a `ℕ` value from a closed real numeral expression (`OfNat`, `^`, `*`, `+`, `ℕ`-casts). -/
+/-- The `ℕ` value of a closed real numeral expression (`OfNat`, `^`, `*`, `+`, `ℕ`-casts). -/
 meta partial def evalRealAsNat (e : Expr) : MetaM ℕ := do
   match_expr e with
   | OfNat.ofNat _ n _ => evalNat n
@@ -95,9 +56,8 @@ meta partial def evalRealAsNat (e : Expr) : MetaM ℕ := do
 
 /-! ### The recogniser -/
 
-/-- Check that a power's exponent type `β` is `ℕ` (the `Monoid.npow` form `x ^ (n : ℕ)`
-elaborates to). A `ℝ` exponent is `Real.rpow`, which is not a rational literal; it gets a
-dedicated error suggesting a `ℕ` exponent. -/
+/-- Fails unless a power's exponent type `β` is `ℕ`, with a dedicated error for a `ℝ` exponent
+(`Real.rpow`). -/
 meta def checkNatExponent (β e : Expr) : MetaM Unit := do
   if β.isConstOf ``Real then
     throwError "recognizeRat: {e} is a real-exponent power (`Real.rpow`), not a rational \
@@ -107,7 +67,7 @@ meta def checkNatExponent (β e : Expr) : MetaM Unit := do
 
 /-- The `sfrac_pow_eq` application: a proof `a ^ b = sfrac neg' (u^n) (v^n)` from
 `pf : a = sfrac neg u v`, where `n` is the value of the exponent expression `b` and
-`neg' = neg && n odd`. The sign and the two `Nat.pow` conditions are `reflBoolTrue`. -/
+`neg' = neg && n odd`. -/
 meta def mkPowEqPf (a b pf : Expr) (neg neg' : Bool) (u v n : ℕ) : Expr :=
   mkAppN (mkConst ``sfrac_pow_eq)
     #[a, toExpr neg, toExpr neg', natLitShared u, natLitShared v, b, natLitShared (u ^ n),
@@ -136,11 +96,9 @@ meta partial def recognizeInt (e : Expr) : MetaM (Bool × ℕ × Expr) := do
               else mkApp (mkConst ``sfrac_natCast) (natLitShared k)
     return (false, k, pf)
 
-/-- Recognise a `ℚ`-valued expression `q̂` (the argument of a real `Rat.cast`) as
-`(neg, num, den, pf : ((q̂ : ℚ) : ℝ) = sfrac neg num den)`. Handles the two dyadic shapes the
-`*_approx%` value elaborators emit (`↑p/↑Q` from `mkNatDyadic`, `(↑mp − ↑mn)/↑Q` from
-`mkSignedDyadic`), their negations, and a plain constant (a named `ℚ` `def`), delta-unfolded once
-and re-recognised. -/
+/-- Recognise a `ℚ`-valued expression `q̂` as `(neg, num, den, pf : ((q̂ : ℚ) : ℝ) = sfrac neg num
+den)`. Handles the dyadic shapes of `mkNatDyadic` and `mkSignedDyadic`, their negations, and named
+`ℚ` constants (unfolded). -/
 meta partial def recognizeRatCastQ (q : Expr) : MetaM (Bool × ℕ × ℕ × Expr) := do
   match_expr q with
   | Neg.neg _ _ inner =>

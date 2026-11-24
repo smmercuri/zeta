@@ -1,7 +1,14 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Native.Eval.Encl
-public import Native.Eval.Trig
+public import Enclosure.Defs
+public import Enclosure.BinarySplit.Defs
+public import Native.Eval.Const
 
 /-!
 # `Native.Eval.Fix`: fixed-point enclosures, the computable part
@@ -17,8 +24,7 @@ by the nearest multiple of `π/2`. The soundness theorems are in `Native.Fix`.
 namespace Native
 
 /-- A fixed-point enclosure on the grid `1/Q`: `x ∈ c/Q ± r/Q`, with `|c| ≤ m·Q`. The magnitude
-bound `m` is small, so multiplication bounds its radius with machine-word arithmetic rather than
-by multiplying the (large) centres into the radii. -/
+bound `m` is small, so multiplication bounds its radius with machine-word arithmetic on `m`. -/
 structure Fx where
   c : Int
   r : Nat
@@ -51,16 +57,15 @@ def mul (Q : Nat) (a b : Fx) : Fx :=
   ⟨a.c * b.c / (Q : Int), a.m * b.r + b.m * a.r + a.r * b.r / Q + 2, a.m * b.m⟩
 
 /-- `x·y` as `mul`, but with the centres themselves in the radius rather than their magnitude
-bounds: `m ≥ 1` for any nonzero value, so `mul` charges a factor far below `1` (`cos 2πp` near
-`p = 1/4`) as if it were `1`, and multiplies the other factor's radius into the product unshrunk. -/
+bounds: tighter when a factor is far below `1`, since `m ≥ 1` for any nonzero value. -/
 def mulExact (Q : Nat) (a b : Fx) : Fx :=
   ⟨a.c * b.c / (Q : Int), (a.c.natAbs * b.r + b.c.natAbs * a.r + a.r * b.r) / Q + 2, a.m * b.m⟩
 
 /-- `x/k` for a positive integer `k`. -/
 def divNat (k : Nat) (a : Fx) : Fx := ⟨a.c / (k : Int), a.r / k + 2, a.m / k + 1⟩
 
-/-- The same enclosure with its magnitude bound recomputed from the centre: after a cancelling
-subtraction, or a sum of many terms, the bound carried along can be far from the truth. -/
+/-- The same enclosure with its magnitude bound recomputed from the centre (the carried bound
+drifts after cancellation or long sums). -/
 def tighten (Q : Nat) (a : Fx) : Fx := ⟨a.c, a.r, a.c.natAbs / Q + 1⟩
 
 /-- Widen the radius by `R`. -/

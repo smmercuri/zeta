@@ -12,9 +12,7 @@ public import Zeta.Analysis.Calculus.IteratedDeriv
 /-!
 # Iterated derivatives of the restriction to `ℝ` of an entire function
 
-`HasDerivAt.real_of_complex` differentiates the real part of a complex function along the real
-axis once. Iterating it needs the derivative of an entire function to be entire again, which on
-`ℂ` is `Differentiable.deriv`.
+The iterated form of `HasDerivAt.real_of_complex` for an entire function.
 
 ## Main results
 
@@ -26,8 +24,8 @@ axis once. Iterating it needs the derivative of an entire function to be entire 
 
 open Complex
 
-/-- **The iterated derivatives along the real axis of the real part of an entire function** are
-the real parts of its iterated derivatives. -/
+/-- The iterated derivatives along the real axis of the real part of an entire function are the
+real parts of its iterated derivatives. -/
 theorem Differentiable.iteratedDeriv_re_of_complex {e : ℂ → ℂ} (he : Differentiable ℂ e) (n : ℕ)
     (x : ℝ) : iteratedDeriv n (fun y : ℝ ↦ (e y).re) x = (iteratedDeriv n e x).re := by
   induction n generalizing e with

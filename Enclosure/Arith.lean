@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.Core
@@ -61,7 +66,7 @@ theorem Real.IsNear.neg {x : ℝ} {nx : Bool} {cnx cdx rnx rdx : ℕ}
   have : -x - -sfrac nx cnx cdx = -(x - sfrac nx cnx cdx) := by ring
   rwa [this, abs_neg]
 
-/-- `x − y` (via `add ∘ neg`); same shape as `add`, with `hnum` flipping `y`'s sign. -/
+/-- `x − y`: same shape as `add`, with `hnum` flipping `y`'s sign. -/
 theorem Real.IsNear.sub {x y : ℝ} {nx ny nR : Bool} {cnx cdx rnx rdx cny cdy rny rdy cnR : ℕ}
     (hx : Real.IsNear x nx cnx cdx rnx rdx) (hy : Real.IsNear y ny cny cdy rny rdy)
     (hcdx : Nat.ble (nat_lit 1) cdx) (hcdy : Nat.ble (nat_lit 1) cdy)
@@ -131,7 +136,7 @@ private theorem ble_one_mul {a b : ℕ} (ha : Nat.ble (nat_lit 1) a
   omega
 
 /-- Re-represent an enclosure's centre exactly (`cn/D = cn'/cd'`, cross-multiplied by `hc`) and
-widen its radius (`Rn/Rd ≤ rn'/rd'`, by `hr`). The shared tail of the `*Lit` combinators. -/
+widen its radius (`Rn/Rd ≤ rn'/rd'`, by `hr`). -/
 theorem Real.IsNear.reprLit {x : ℝ} {n : Bool} {cn D Rn Rd cn' cd' rn' rd' : ℕ}
     (h : Real.IsNear x n cn D Rn Rd)
     (hD : Nat.ble (nat_lit 1) D) (hRd : Nat.ble (nat_lit 1) Rd) (hcd' : Nat.ble (nat_lit 1)
@@ -193,10 +198,8 @@ One variant per input sign pair, baking the signs in so `hnum` is a plain `Nat.b
 private theorem beq_of_eq {a b : ℕ} (h : a = b) : Nat.beq a b = true := by
   simpa [Nat.beq_eq_true_eq] using h
 
-/-- The eight side conditions shared by every `addLit`/`subLit` sign variant, as one Boolean.
-Each `a ≤ b` is carried as `Nat.sub a b`, each `a = b` as the pair of differences, and the sum is
-compared against zero, so the check stays on `Nat.sub`/`add`/`mul`/`beq`. The per-variant `hnum`
-stays a separate argument, since its shape depends on the signs. -/
+/-- The eight sign-independent side conditions of the `addLit`/`subLit` sign variants as one
+Boolean, packed as in `recentreOk` (each `a = b` as the pair of differences). -/
 def addLitOk (cdx rdx cdy rdy cnR cnR' cdR' rnx rny rnR' rdR' : ℕ) : Bool :=
   Nat.beq
     (Nat.add (Nat.sub (nat_lit 1) cdx)
@@ -234,8 +237,8 @@ private theorem addLitOk_parts {cdx rdx cdy rdy cnR cnR' cdR' rnx rny rnR' rdR' 
     beq_of_eq (Nat.le_antisymm (Nat.le_of_sub_eq_zero z7) (Nat.le_of_sub_eq_zero z8)),
     Nat.ble_eq.mpr (Nat.le_of_sub_eq_zero z9)⟩
 
-/-- The eight side conditions shared by all four `mulLit` sign variants, as one Boolean, in the
-same packed form as `addLitOk`. -/
+/-- The eight side conditions of the `mulLit` sign variants as one Boolean, packed as in
+`addLitOk`. -/
 def mulLitOk (cnx cdx rnx rdx cny cdy rny rdy cnR cdR rnR rdR : ℕ) : Bool :=
   Nat.beq
     (Nat.add (Nat.sub (nat_lit 1) cdx)
@@ -538,8 +541,8 @@ theorem Real.IsNear.recentre {x : ℝ} {n : Bool} {cn cd rn rd cn' cd' rn' rd' :
       rw [hmagdiff]; exact add_le_add h le_rfl
     _ ≤ (rn' : ℝ) / rd' := hkey
 
-/-- `Real.IsNear.recentre` with its six side conditions behind `recentreOk`, so the statement the
-kernel instantiates carries one short application rather than six arithmetic trees. -/
+/-- `Real.IsNear.recentre` with its six side conditions packed into `recentreOk`, so the kernel
+instantiates one short application rather than six arithmetic trees. -/
 theorem Real.IsNear.recentre' {x : ℝ} {n : Bool} {cn cd rn rd cn' cd' rn' rd' : ℕ}
     (h : Real.IsNear x n cn cd rn rd)
     (hs : recentreOk cn cd rn rd cn' cd' rn' rd' = true) :

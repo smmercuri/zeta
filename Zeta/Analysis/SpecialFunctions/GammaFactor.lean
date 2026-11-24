@@ -13,19 +13,13 @@ public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Complex
 /-!
 # The functional-equation factor of the Riemann zeta function
 
-The factor `χ` characterised by `ζ(s) = χ(s) ζ(1-s)` is the shape in which Siegel states the
-identity behind the Riemann–Siegel formula (`riemann_siegel_zero.tex`, `def:rsz_mirror`). It must
-be *defined* by a `Γ`-quotient — here `Γ_ℝ(1-s)/Γ_ℝ(s)` in Deligne's archimedean factor of
-`Mathlib/Analysis/SpecialFunctions/Gamma/Deligne.lean`, equivalently `π^{s-1/2} Γ((1-s)/2) / Γ(s/2)`
-— and never by the classical product `2^s π^{s-1} sin(πs/2) Γ(1-s)`: `Complex.Gamma` takes the junk
-value `0` at its poles, so the product form collapses to `0` at every even integer `s ≥ 2`, where
-the true value is not `0` — for instance `χ(2) = -2π²`. The quotient form inverts `Γ` rather than
-multiplying it, so its only junk values are at the poles `s = 1, 3, 5, …` of `Γ((1-s)/2)`, and at
-`s = 0, -2, -4, …` the junk value `1/Γ(0) = 0` of the denominator agrees with the true `χ(s) = 0`.
-
-Both classical identities therefore carry an exclusion, and the two excluded sets differ: at
-`s = 1, 3, 5, …` the two sides of the cosine identity disagree, and at `s = 2, 4, 6, …` the two
-sides of the product identity do.
+The factor `χ` with `ζ(s) = χ(s) ζ(1-s)` (`riemann_siegel_zero.tex`, `def:rsz_mirror`), defined as
+the quotient `Γ_ℝ(1-s)/Γ_ℝ(s)` of Deligne's archimedean factors
+(`Mathlib/Analysis/SpecialFunctions/Gamma/Deligne.lean`). It is not defined by the classical product
+`2^s π^{s-1} sin(πs/2) Γ(1-s)`: `Complex.Gamma` takes the junk value `0` at its poles, so the
+product vanishes at every even `s ≥ 2` (yet `χ(2) = -2π²`). The quotient's only junk values are at
+the poles `s = 1, 3, 5, …` of `Γ((1-s)/2)`. Hence the cosine identity excludes `s = 1, 3, 5, …` and
+the product identity excludes `s = 2, 4, 6, …`.
 
 ## Main results
 
@@ -35,7 +29,6 @@ sides of the product identity do.
 * `Complex.chi_mul_cos`: `χ(s) cos(πs/2) = (2π)^s / (2Γ(s))`, off `{1, 3, 5, …}`;
 * `Complex.chi_eq_two_cpow_mul_cpow_mul_sin_mul_Gamma`:
   `χ(s) = 2^s π^{s-1} sin(πs/2) Γ(1-s)`, off `{2, 4, 6, …}`;
-* `Complex.Gammaℝ_conj`: `Γ_ℝ(s̄) = conj (Γ_ℝ(s))`;
 * `Complex.differentiableAt_chi`: `χ` is holomorphic off `{1, 3, 5, …}`.
 -/
 @[expose] public section
@@ -112,24 +105,6 @@ theorem chi_eq_two_cpow_mul_cpow_mul_sin_mul_Gamma {s : ℂ} (hs : ∀ n : ℕ, 
   push_cast
   rw [← h2]
   ring
-
-/-- **Deligne's real archimedean factor commutes with conjugation**, `Γ_ℝ(s̄) = conj (Γ_ℝ(s))`. -/
-theorem Gammaℝ_conj (s : ℂ) : Gammaℝ (starRingEnd ℂ s) = starRingEnd ℂ (Gammaℝ s) := by
-  have harg : ((π : ℝ) : ℂ).arg ≠ π := by
-    rw [arg_ofReal_of_nonneg Real.pi_pos.le]
-    exact fun h ↦ Real.pi_ne_zero h.symm
-  have hpow : ((π : ℝ) : ℂ) ^ (-(starRingEnd ℂ s) / 2)
-      = starRingEnd ℂ (((π : ℝ) : ℂ) ^ (-s / 2)) := by
-    have h := conj_cpow ((π : ℝ) : ℂ) (-(starRingEnd ℂ s) / 2) harg
-    rw [conj_ofReal] at h
-    rw [h]
-    congr 2
-    simp only [map_div₀, map_neg, conj_conj, map_ofNat]
-  have hGam : Gamma (starRingEnd ℂ s / 2) = starRingEnd ℂ (Gamma (s / 2)) := by
-    rw [← Gamma_conj]
-    congr 1
-    simp only [map_div₀, map_ofNat]
-  rw [Gammaℝ_def, Gammaℝ_def, map_mul, hpow, hGam]
 
 /-- **`χ` is holomorphic off `s = 1, 3, 5, …`.** -/
 theorem differentiableAt_chi {s : ℂ} (hs : ∀ n : ℕ, s ≠ 2 * n + 1) : DifferentiableAt ℂ chi s := by

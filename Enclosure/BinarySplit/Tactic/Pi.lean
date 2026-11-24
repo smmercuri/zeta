@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Functions.Pi
@@ -21,10 +26,8 @@ open Enclosure
 /-! ### Elaborator and tactic -/
 
 open Lean Elab Term Meta in
-/-- Shared core: `(P, Q, proof)` with `proof : Real.IsNear Real.pi false P Q 1 E`, the dyadic
-`P/Q` from the Machin decomposition (`Q = 2^k`, `P = 16·c₁ − 4·c₂`). Each Machin factor
-`arctan(1/5)`, `arctan(1/239)` is the enclosure built by `mkArctanPos`, lifted to its own aux
-lemma (`mkBoundAux`) so the combined term stays small. -/
+/-- `(P, Q, proof)` with `proof : Real.IsNear Real.pi false P Q 1 E`, from Machin's formula
+`P = 16·c₁ − 4·c₂` with the factors `arctan(1/5)`, `arctan(1/239)` as auxiliary lemmas. -/
 meta def mkPiProof (E : ℕ) : MetaM (ℕ × ℕ × Expr) := do
   let D := 20 * E
   let (h₁, neg₁, c₁, Q) ← mkArctanPos 1 5 D
@@ -41,14 +44,14 @@ meta def mkPiProof (E : ℕ) : MetaM (ℕ × ℕ × Expr) := do
   return (P, Q, app)
 
 open Lean Elab Term Meta in
-/-- Value-only signed centre `(neg, cn, Q)` for the factor `arctan(1/v)` at precision `1/D`,
-via the value core `arctanCore`. Used by `pi_approx%` and the sin range reduction. -/
+/-- The signed centre `(neg, cn, Q)` of the factor `arctan(1/v)` at precision `1/D`, without a
+proof. -/
 meta def mkArctanFactorVal (v D : ℕ) : MetaM (Bool × ℕ × ℕ) := do
   let (m, Q, _, _, _) ← arctanCore 1 v D
   return (decide (m < 0), m.natAbs, Q)
 
 open Lean Elab Term Meta in
-/-- Value-only `π ≈ P/Q` to precision `1/E` (the Machin combination, no proof). -/
+/-- `(P, Q)` with `P/Q ≈ π` to precision `1/E`, without a proof; memoized in `piValCache`. -/
 meta def piVal (E : ℕ) : MetaM (ℕ × ℕ) := do
   if let some r := (← piValCache.get)[E]? then
     return r
@@ -60,8 +63,8 @@ meta def piVal (E : ℕ) : MetaM (ℕ × ℕ) := do
   return r
 
 open Lean Elab Term Meta in
-/-- `pi_approx% E : ℚ` is the dyadic rational `P/Q` approximating `Real.pi` to `1/E`,
-as a plain `ℚ` value (no proof). Its companion `IsNear` enclosure is `pi_near%`. -/
+/-- `pi_approx% E : ℚ` is the dyadic rational `P/Q` approximating `Real.pi` to `1/E`, without a
+proof (the enclosure is `pi_near%`). -/
 elab "pi_approx% " En:num : term => do
   let (P, Q) ← piVal En.getNat
   mkNatDyadic P Q
@@ -75,26 +78,23 @@ open Lean Elab Term Meta in
 elab "piDen% " En:num : term => do return natLitShared (← piVal En.getNat).2
 
 open Lean Elab Term Meta in
-/-- `pi_near% E` : the Machin `IsNear` enclosure of `π` (centre `P/Q`, radius `1/E`), as a proof
-term. Used to state the reusable fixed-precision constants below. -/
+/-- `pi_near% E` : a proof of `Real.IsNear Real.pi false P Q 1 E` from `mkPiProof`. -/
 elab "pi_near% " En:num : term => do
   let (_, _, pf) ← mkPiProof En.getNat
   return pf
 
 /-! ### Reusable named `π` constants
 
-Fixed-precision `IsNear` enclosures of `π`, each kernel-checked once. The sin range reduction and
-the `pi_near%` enclosure reference these rather than rebuilding `π` per call. -/
+Fixed-precision `IsNear` enclosures of `π`, each kernel-checked once and referenced in place of a
+fresh Machin certificate. -/
 
-/-- `π` to `1/10¹⁵` as an `IsNear` enclosure with literal dyadic fields; the 15-dp shared `π`
-constant, kernel-checked once. -/
+/-- `π` to `1/10¹⁵` as an `IsNear` enclosure with literal dyadic fields. -/
 theorem pi_near_15 :
     Real.IsNear Real.pi false (piNum% 1000000000000000) (piDen% 1000000000000000)
       (nat_lit 1) (nat_lit 1000000000000000) :=
   pi_near% 1000000000000000
 
-/-- `π` to `1/10⁵⁰` as an `IsNear` enclosure with literal dyadic fields; the 50-dp shared `π`
-constant, kernel-checked once. -/
+/-- `π` to `1/10⁵⁰` as an `IsNear` enclosure with literal dyadic fields. -/
 theorem pi_near_50 :
     Real.IsNear Real.pi
       false (piNum% 100000000000000000000000000000000000000000000000000)
@@ -103,23 +103,8 @@ theorem pi_near_50 :
   pi_near% 100000000000000000000000000000000000000000000000000
 
 open Lean Elab Term Meta in
-/-- Pick a cached `π` tier for a needed precision `1/E` (`E ≤ 10⁵⁰`). Returns
-`(Euse, Pc, PQ, proof)` with `proof : Real.IsNear Real.pi false Pc PQ 1 Euse`. With
-`weaken := true` and the nearest tier at least three bits finer than `E`, the tier is recentred
-once (`mkWeakenedNear`) to radius `1/(4E)` with ~`log₂ E`-bit fields; this pays only for a
-`weaken := true` caller. Composing sites take the default `weaken := false` and use the tier as is.
-`none` above the 10⁵⁰ tier. -/
-meta def mkPiTier? (E : ℕ) (weaken : Bool := false) : MetaM (Option (ℕ × ℕ × ℕ × Expr)) := do
-  let some (T, name) :=
-      if E ≤ 10 ^ 15 then some (10 ^ 15, ``pi_near_15)
-      else if E ≤ 10 ^ 50 then some (10 ^ 50, ``pi_near_50)
-      else none
-    | return none
-  let (pt, Qt) ← piVal T
-  if weaken && 8 * E ≤ T then
-    let (proof, Pc, PQ) ← mkWeakenedNear name (mkConst ``Real.pi) false pt Qt 1 T (4 * E)
-    return some (4 * E, Pc, PQ, proof)
-  else
-    return some (T, pt, Qt, mkConst name)
+/-- `mkConstTier?` for `π` (tiers `pi_near_15`, `pi_near_50`). -/
+meta def mkPiTier? (E : ℕ) (weaken : Bool := false) : MetaM (Option (ℕ × ℕ × ℕ × Expr)) :=
+  mkConstTier? (mkConst ``Real.pi) ``pi_near_15 ``pi_near_50 piVal E weaken
 
 end BSN

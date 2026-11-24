@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.Core
@@ -68,7 +73,7 @@ theorem Real.IsNear.cos_image {x c : ℝ} {nc : Bool} {cn cd ρn ρd : ℕ}
   lipschitz_image (fun _ _ => Real.abs_cos_sub_cos_le _ _) hx hc hsc hρd hrsd
 
 /-- Midpoint enclosure from rational endpoints: if `a/Q ≤ z ≤ b/Q` (`Q > 0`), then `z` is near the
-midpoint `(a+b)/(2Q)` with radius `(b−a)/(2Q)`. Shared tail of `sqrt_image` and `inv_image`. -/
+midpoint `(a+b)/(2Q)` with radius `(b−a)/(2Q)`. -/
 theorem Real.IsNear.of_endpoints {z : ℝ} {a b Q : ℕ} (hQ : Nat.ble 1 Q)
     (h1 : (a : ℝ) / Q ≤ z) (h2 : z ≤ (b : ℝ) / Q) :
     Real.IsNear z false (a.add b) (Nat.mul (nat_lit 2) Q) (b.sub a) (Nat.mul (nat_lit 2) Q) := by
@@ -85,9 +90,8 @@ theorem Real.IsNear.of_endpoints {z : ℝ} {a b Q : ℕ} (hQ : Nat.ble 1 Q)
   push_cast [hcast]
   exact ⟨by linarith [h1, hc1], by linarith [h2, hc2]⟩
 
-/-- `√` of a nonnegative enclosure `S ∈ [lo, hi]`: with square-to-verify bounds `a/Q ≤ √lo` and
-`√hi ≤ b/Q` on the rational endpoints, monotonicity gives `√S ∈ [a/Q, b/Q]`, returned as the
-midpoint `(a+b)/(2Q) ± (b−a)/(2Q)`. -/
+/-- `√` of a nonnegative enclosure `S ∈ [lo, hi]`: from square-to-verify bounds `a/Q ≤ √lo` and
+`√hi ≤ b/Q` on the rational endpoints, `√S` is near `(a+b)/(2Q)` with radius `(b−a)/(2Q)`. -/
 theorem Real.IsNear.sqrt_image {S : ℝ} {cn cd rn rd a b Q : ℕ}
     (hS : Real.IsNear S false cn cd rn rd)
     (hcd : Nat.ble 1 cd) (hrd : Nat.ble 1 rd) (hQ : Nat.ble 1 Q)

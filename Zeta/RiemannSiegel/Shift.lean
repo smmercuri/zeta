@@ -18,12 +18,12 @@ difference of the two contour integrals is the partial sum `∑ n^{-s}` (`rieman
 `sec:rs_shift`).
 
 The argument is carried out in the rotated coordinate `z = e^{iπ/4} x`, in which the slanted lines
-become the *vertical* lines `Re z = a/√2` and the contour becomes an honest axis-parallel
-rectangle; that is what lets it reuse `PrimeNumberTheoremAnd`'s rectangle residue calculus rather
-than developing parallelogram contours. It suffices to cross one integer at a time, and three
-inputs then feed the single-pole rectangle theorem `ResidueTheoremOnRectangleWithSimplePole'`:
+become the *vertical* lines `Re z = a/√2` and the contour becomes an axis-parallel rectangle, to
+which `PrimeNumberTheoremAnd`'s rectangle residue calculus applies. It suffices to cross one
+integer at a time, and three inputs then feed the single-pole rectangle theorem
+`ResidueTheoremOnRectangleWithSimplePole'`:
 
-* the integrand is holomorphic on the closed rectangle minus the pole — the branch
+* the integrand is holomorphic on the closed rectangle minus the pole: the branch
   `Zeta.RiemannSiegel.slantCpow` because the rectangle lies in the rotated right half-plane, and
   the kernel `Zeta.RiemannSiegel.kernel` because the only integer in a slanted strip of width one
   is the one being crossed;
@@ -40,10 +40,9 @@ The rectangle apparatus is developed for an arbitrary integrand
 (`Zeta.RiemannSiegel.slantIntegral_sub_slantIntegral_of_pole`, and the three lemmas feeding it),
 because the first-order chapter deforms the contour of the *model* integrand
 `Zeta.RiemannSiegel.modelFun` across the same kind of strip; the Riemann–Siegel results below are
-its corollaries. Two of those lemmas — `Zeta.RiemannSiegel.tendsto_HIntegral_of_norm_le` and
-`Zeta.RiemannSiegel.tendsto_RectangleIntegral_of_tendsto` — mention no Riemann–Siegel object at all,
-and live here only because `PrimeNumberTheoremAnd`'s `HIntegral` and `RectangleIntegral` are
-declared in the root namespace of a package this project does not own.
+its corollaries. Two of those lemmas, `Zeta.RiemannSiegel.tendsto_HIntegral_of_norm_le` and
+`Zeta.RiemannSiegel.tendsto_RectangleIntegral_of_tendsto`, are general facts about
+`PrimeNumberTheoremAnd`'s `HIntegral` and `RectangleIntegral`.
 
 ## Main results
 
@@ -80,29 +79,29 @@ theorem norm_exp_neg_pi_div_four_mul_I : ‖exp (-((π / 4 : ℝ) * I))‖ = 1 :
 
 /-! ### The rotation `z ↦ e^{-iπ/4} z` on integrands -/
 
-/-- The **rotation of an integrand**, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)`: the change of variable
+/-- The rotation of an integrand, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)`: the change of variable
 that straightens the slanted contour `Zeta.RiemannSiegel.line` into a vertical line. -/
 noncomputable def rotatedFun (f : ℂ → ℂ) (z : ℂ) : ℂ :=
   exp (-((π / 4 : ℝ) * I)) * f (exp (-((π / 4 : ℝ) * I)) * z)
 
-/-- **A rotated integrand, evaluated at a rotated point.** -/
+/-- A rotated integrand, evaluated at a rotated point. -/
 theorem rotatedFun_exp_mul (f : ℂ → ℂ) (x : ℂ) :
     rotatedFun f (exp ((π / 4 : ℝ) * I) * x) = exp (-((π / 4 : ℝ) * I)) * f x := by
   rw [rotatedFun, ← mul_assoc, exp_neg_pi_div_four_mul_I_mul_exp, one_mul]
 
-/-- **The modulus of a rotated integrand** is that of the integrand at the rotated point. -/
+/-- The modulus of a rotated integrand is that of the integrand at the rotated point. -/
 theorem norm_rotatedFun (f : ℂ → ℂ) (z : ℂ) :
     ‖rotatedFun f z‖ = ‖f (exp (-((π / 4 : ℝ) * I)) * z)‖ := by
   rw [rotatedFun, norm_mul, norm_exp_neg_pi_div_four_mul_I, one_mul]
 
-/-- **A rotated integrand is holomorphic wherever the integrand is.** -/
+/-- A rotated integrand is holomorphic wherever the integrand is. -/
 theorem differentiableAt_rotatedFun {f : ℂ → ℂ} {z : ℂ}
     (hf : DifferentiableAt ℂ f (exp (-((π / 4 : ℝ) * I)) * z)) :
     DifferentiableAt ℂ (rotatedFun f) z :=
   (hf.comp z (by fun_prop)).const_mul _
 
-/-- **The inverse rotation carries a punctured neighbourhood of a rotated point to a punctured
-neighbourhood of the point.** -/
+/-- The inverse rotation carries a punctured neighbourhood of a rotated point to a punctured
+neighbourhood of the point. -/
 theorem tendsto_nhdsWithin_exp_neg_pi_div_four_mul_I (w : ℂ) :
     Tendsto (fun z : ℂ ↦ exp (-((π / 4 : ℝ) * I)) * z)
       (𝓝[≠] (exp ((π / 4 : ℝ) * I) * w)) (𝓝[≠] w) := by
@@ -116,7 +115,7 @@ theorem tendsto_nhdsWithin_exp_neg_pi_div_four_mul_I (w : ℂ) :
     exact fun hcon ↦
       hz (by rw [← hcon, ← mul_assoc, exp_pi_div_four_mul_I_mul_exp_neg, one_mul])
 
-/-- **A rotated integrand inherits the simple poles of the integrand**, at the rotated points and
+/-- A rotated integrand inherits the simple poles of the integrand, at the rotated points and
 with the same residues. -/
 theorem tendsto_sub_mul_rotatedFun {f : ℂ → ℂ} {n : ℤ} {R : ℂ}
     (h : Tendsto (fun x ↦ (x - n) * f x) (𝓝[≠] (n : ℂ)) (𝓝 R)) :
@@ -130,22 +129,22 @@ theorem tendsto_sub_mul_rotatedFun {f : ℂ → ℂ} {n : ℤ} {R : ℂ}
 
 /-! ### The Riemann–Siegel integrand in rotated coordinates -/
 
-/-- The **Riemann–Siegel integrand in rotated coordinates**, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)` for
+/-- The Riemann–Siegel integrand in rotated coordinates, `F(z) = e^{-iπ/4} f(e^{-iπ/4} z)` for
 `f(x) = x^{-s} G(x)`. -/
 noncomputable def rotatedIntegrand (s : ℂ) : ℂ → ℂ := rotatedFun (integrand s)
 
-/-- **The rotated integrand, evaluated at a rotated point.** -/
+/-- The rotated integrand, evaluated at a rotated point. -/
 theorem rotatedIntegrand_exp_mul (s x : ℂ) :
     rotatedIntegrand s (exp ((π / 4 : ℝ) * I) * x) = exp (-((π / 4 : ℝ) * I)) * integrand s x :=
   rotatedFun_exp_mul _ _
 
-/-- **The Riemann–Siegel integrand is holomorphic off the integers**, wherever the slanted branch
+/-- The Riemann–Siegel integrand is holomorphic off the integers, wherever the slanted branch
 of the power is. -/
 theorem differentiableAt_integrand (s : ℂ) {x : ℂ} (hx : exp ((π / 4 : ℝ) * I) * x ∈ slitPlane)
     (hn : ∀ n : ℤ, x ≠ n) : DifferentiableAt ℂ (integrand s) x :=
   (differentiableAt_slantCpow (-s) hx).mul (differentiableAt_kernel hn)
 
-/-- **The rotated integrand is holomorphic off the rotated integers**, on the right half-plane. -/
+/-- The rotated integrand is holomorphic off the rotated integers, on the right half-plane. -/
 theorem differentiableAt_rotatedIntegrand (s : ℂ) {z : ℂ} (hz : 0 < z.re)
     (hn : ∀ n : ℤ, z ≠ exp ((π / 4 : ℝ) * I) * n) :
     DifferentiableAt ℂ (rotatedIntegrand s) z := by
@@ -154,7 +153,7 @@ theorem differentiableAt_rotatedIntegrand (s : ℂ) {z : ℂ} (hz : 0 < z.re)
   exact differentiableAt_rotatedFun (differentiableAt_integrand s
     (mem_slitPlane_iff.2 (Or.inl (by rwa [hzz]))) fun n hcon ↦ hn n (by rw [← hzz, hcon]))
 
-/-- **Every positive integer is a simple pole of the Riemann–Siegel integrand**, with residue
+/-- Every positive integer is a simple pole of the Riemann–Siegel integrand, with residue
 `n^{-s}/(2πi)`. -/
 theorem tendsto_sub_mul_integrand (s : ℂ) {n : ℤ} (hn : 0 < n) :
     Tendsto (fun x ↦ (x - n) * integrand s x) (𝓝[≠] (n : ℂ))
@@ -172,7 +171,7 @@ theorem tendsto_sub_mul_integrand (s : ℂ) {n : ℤ} (hn : 0 < n) :
       nhdsWithin_le_nhds).mul (tendsto_sub_mul_kernel n))
   rw [integrand]; ring
 
-/-- **Every rotated positive integer is a simple pole of the rotated integrand**, with residue
+/-- Every rotated positive integer is a simple pole of the rotated integrand, with residue
 `n^{-s}/(2πi)`. -/
 theorem tendsto_sub_mul_rotatedIntegrand (s : ℂ) {n : ℤ} (hn : 0 < n) :
     Tendsto (fun z ↦ (z - exp ((π / 4 : ℝ) * I) * n) * rotatedIntegrand s z)
@@ -181,7 +180,7 @@ theorem tendsto_sub_mul_rotatedIntegrand (s : ℂ) {n : ℤ} (hn : 0 < n) :
 
 /-! ### The Gaussian bound on the horizontal sides -/
 
-/-- **A Gaussian bound for the Riemann–Siegel integrand** away from the real axis. -/
+/-- A Gaussian bound for the Riemann–Siegel integrand away from the real axis. -/
 theorem norm_integrand_le (s : ℂ) {x : ℂ} (hx : 0 < (exp ((π / 4 : ℝ) * I) * x).re)
     (h1 : 1 ≤ ‖x‖) (h2 : Real.sqrt 2 / 2 ≤ |x.im|) :
     ‖integrand s x‖ ≤ Real.exp (‖x‖ * |s.re| + 3 * π * |s.im| / 4 - 2 * π * x.re * x.im) := by
@@ -223,7 +222,7 @@ theorem le_abs_im_of_im_eq_mul {z : ℂ} {c d : ℝ} (hc : 0 ≤ c) (hz : z.im =
   rw [hz, abs_mul, abs_of_nonneg hc]
   exact le_mul_of_one_le_right hc hd
 
-/-- **A Gaussian bound for the rotated integrand** on a horizontal segment far from the real
+/-- A Gaussian bound for the rotated integrand on a horizontal segment far from the real
 axis. -/
 private theorem norm_rotatedIntegrand_le (s : ℂ) {ξ y : ℝ} (hξ : 0 < ξ) (h1 : 1 ≤ |y|)
     (h2 : 1 ≤ |y - ξ|) :
@@ -257,7 +256,7 @@ private theorem norm_rotatedIntegrand_le (s : ℂ) {ξ y : ℝ} (hξ : 0 < ξ) (
     rw [hprod]
     nlinarith [abs_nonneg s.re]
 
-/-- **A horizontal side of the truncated rectangle vanishes** as the truncation recedes, for any
+/-- A horizontal side of the truncated rectangle vanishes as the truncation recedes, for any
 integrand whose modulus is bounded by a Gaussian in the height. -/
 theorem tendsto_HIntegral_of_norm_le {F : ℂ → ℂ} {β α c C₀ C₁ T : ℝ} (hβα : β ≤ α) (hc : 0 < c)
     (hb : ∀ ξ y : ℝ, β ≤ ξ → ξ ≤ α → T ≤ |y| →
@@ -287,7 +286,7 @@ theorem tendsto_HIntegral_of_norm_le {F : ℂ → ℂ} {β α c C₀ C₁ T : �
   refine squeeze_zero_norm' ?_ (hφ0.comp hy)
   filter_upwards [hy.eventually_ge_atTop T] with H hH using hbound H hH
 
-/-- **The horizontal sides of the truncated rectangle vanish** as the truncation recedes. -/
+/-- The horizontal sides of the truncated rectangle vanish as the truncation recedes. -/
 theorem tendsto_HIntegral_rotatedIntegrand (s : ℂ) {β α : ℝ} (hβ : 0 < β) (hβα : β ≤ α)
     {y : ℝ → ℝ} (hy : Tendsto (fun H ↦ |y H|) atTop atTop) :
     Tendsto (fun H ↦ HIntegral (rotatedIntegrand s) β α (y H)) atTop (𝓝 0) := by
@@ -310,7 +309,7 @@ private theorem div_sqrt_two (x : ℝ) : x / Real.sqrt 2 = Real.sqrt 2 / 2 * x :
   rw [div_eq_iff (Real.sqrt_pos.2 two_pos).ne']
   linear_combination (-(x / 2)) * Real.mul_self_sqrt (by norm_num : (0 : ℝ) ≤ 2)
 
-/-- **A truncated vertical side of the rotated rectangle is a truncation of the slant integral**,
+/-- A truncated vertical side of the rotated rectangle is a truncation of the slant integral,
 for any integrand that the rotation carries onto `f`. -/
 theorem VIntegral_eq_intervalIntegral_line {F f : ℂ → ℂ}
     (hF : ∀ x : ℂ, F (exp ((π / 4 : ℝ) * I) * x) = exp (-((π / 4 : ℝ) * I)) * f x) (a H : ℝ) :
@@ -343,15 +342,15 @@ theorem VIntegral_eq_intervalIntegral_line {F f : ℂ → ℂ}
   push_cast
   linear_combination ((I + 1) / 2) * hsqC - (((Real.sqrt 2 : ℝ) : ℂ) ^ 2 / 2) * Complex.I_sq
 
-/-- **A truncated vertical side of the rotated rectangle is a truncation of the contour
-integral.** -/
+/-- A truncated vertical side of the rotated rectangle is a truncation of the contour
+integral. -/
 theorem VIntegral_rotatedIntegrand (s : ℂ) (a H : ℝ) :
     VIntegral (rotatedIntegrand s) (a / Real.sqrt 2) (-H) H
       = (1 + I) * ∫ w in (-(H / Real.sqrt 2) - a / 2)..(H / Real.sqrt 2 - a / 2),
           contourIntegrand s a w :=
   VIntegral_eq_intervalIntegral_line (rotatedIntegrand_exp_mul s) a H
 
-/-- **The truncated vertical side converges to the slant integral.** -/
+/-- The truncated vertical side converges to the slant integral. -/
 theorem tendsto_VIntegral_nhds_slantIntegral {F f : ℂ → ℂ}
     (hF : ∀ x : ℂ, F (exp ((π / 4 : ℝ) * I) * x) = exp (-((π / 4 : ℝ) * I)) * f x) {a : ℝ}
     (hint : Integrable fun w : ℝ ↦ f (line a w)) :
@@ -366,14 +365,14 @@ theorem tendsto_VIntegral_nhds_slantIntegral {F f : ℂ → ℂ}
       tendsto_atBot_add_const_right atTop (-(a / 2)) (tendsto_neg_atTop_atBot.comp hdiv)
   · simpa [sub_eq_add_neg] using tendsto_atTop_add_const_right atTop (-(a / 2)) hdiv
 
-/-- **The truncated vertical side converges to the Riemann–Siegel contour integral.** -/
+/-- The truncated vertical side converges to the Riemann–Siegel contour integral. -/
 theorem tendsto_VIntegral_rotatedIntegrand (s : ℂ) {a : ℝ}
     (hint : Integrable (contourIntegrand s a)) :
     Tendsto (fun H : ℝ ↦ VIntegral (rotatedIntegrand s) (a / Real.sqrt 2) (-H) H) atTop
       (𝓝 (contourIntegral s a)) :=
   tendsto_VIntegral_nhds_slantIntegral (rotatedIntegrand_exp_mul s) hint
 
-/-- **The truncated rectangle converges to the difference of its two vertical sides.** -/
+/-- The truncated rectangle converges to the difference of its two vertical sides. -/
 theorem tendsto_RectangleIntegral_of_tendsto {F : ℂ → ℂ} {β α : ℝ} {A B : ℂ}
     (h1 : Tendsto (fun H : ℝ ↦ HIntegral F β α (-H)) atTop (𝓝 0))
     (h2 : Tendsto (fun H : ℝ ↦ HIntegral F β α H) atTop (𝓝 0))
@@ -386,7 +385,7 @@ theorem tendsto_RectangleIntegral_of_tendsto {F : ℂ → ℂ} {β α : ℝ} {A 
   refine Tendsto.congr (fun H ↦ ?_) h5
   simp [RectangleIntegral]
 
-/-- **The truncated rectangle converges to the difference of the two contour integrals.** -/
+/-- The truncated rectangle converges to the difference of the two contour integrals. -/
 theorem tendsto_RectangleIntegral_rotatedIntegrand (s : ℂ) {a b : ℝ} (hb0 : 0 < b / Real.sqrt 2)
     (hba : b / Real.sqrt 2 ≤ a / Real.sqrt 2) (hia : Integrable (contourIntegrand s a))
     (hib : Integrable (contourIntegrand s b)) :
@@ -401,7 +400,7 @@ theorem tendsto_RectangleIntegral_rotatedIntegrand (s : ℂ) {a b : ℝ} (hb0 : 
 
 /-! ### The contour-shift identity -/
 
-/-- **The one-step contour shift**, for any integrand holomorphic off the integers whose horizontal
+/-- The one-step contour shift, for any integrand holomorphic off the integers whose horizontal
 sides vanish: moving the contour from `L(n − ½)` out to `L(n + ½)` crosses the single integer `n`,
 and the difference of the two slant integrals is `2πi` times the residue there. -/
 theorem slantIntegral_sub_slantIntegral_of_pole {f F : ℂ → ℂ} {n : ℤ} {R : ℂ} (hn : 0 < n)
@@ -520,7 +519,7 @@ theorem slantIntegral_sub_slantIntegral_of_pole {f F : ℂ → ℂ} {n : ℤ} {R
     filter_upwards [key] with H hH using hH.symm
   exact (tendsto_nhds_unique hconst hlim).symm
 
-/-- **The one-step contour shift.** Crossing the integer `n` picks up its residue `n^{-s}`. -/
+/-- The one-step contour shift: crossing the integer `n` picks up its residue `n^{-s}`. -/
 theorem contourIntegral_sub_contourIntegral_eq_cpow_neg (s : ℂ) {n : ℤ} (hn : 0 < n) :
     contourIntegral s ((n : ℝ) + 1 / 2) - contourIntegral s ((n : ℝ) - 1 / 2)
       = (n : ℂ) ^ (-s) := by
@@ -545,7 +544,7 @@ theorem contourIntegral_sub_contourIntegral_eq_cpow_neg (s : ℂ) {n : ℤ} (hn 
   rw [contourIntegral_eq_slantIntegral, contourIntegral_eq_slantIntegral, hkey]
   field_simp
 
-/-- **The Riemann–Siegel contour-shift identity** (`riemann_siegel.tex`, `thm:rs_shift`): moving
+/-- The Riemann–Siegel contour-shift identity (`riemann_siegel.tex`, `thm:rs_shift`): moving
 the slanted contour from `j + ½` out to `k + ½` sweeps across the integers `j < n ≤ k`, and the
 difference of the two contour integrals is the corresponding partial sum. -/
 theorem contourIntegral_sub_contourIntegral_eq_sum_cpow_neg (s : ℂ) {j k : ℕ} (hjk : j ≤ k) :
@@ -562,7 +561,7 @@ theorem contourIntegral_sub_contourIntegral_eq_sum_cpow_neg (s : ℂ) {j k : ℕ
     push_cast
     linear_combination hstep
 
-/-- **Partial sums from the contour** (`riemann_siegel.tex`, `cor:rs_partial_sum`): the integral
+/-- Partial sums from the contour (`riemann_siegel.tex`, `cor:rs_partial_sum`): the integral
 over the far contour is the partial sum `∑_{n ≤ k} n^{-s}` plus the `k`-independent quantity
 `I(s, ½)`. -/
 theorem sum_cpow_neg_eq_contourIntegral_sub_contourIntegral (s : ℂ) (k : ℕ) :

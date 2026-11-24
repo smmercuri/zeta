@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure
-public import Mathlib.Data.Complex.Basic
+public import Mathlib.Basic.Complex.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 public import Mathlib.Analysis.SpecialFunctions.Complex.Log
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan
@@ -30,7 +35,7 @@ theorem Complex.IsNear.re_isNear {z : ℂ}
     (h : Complex.IsNear z reNeg reCn reCd reRn reRd imNeg imCn imCd imRn imRd) :
     Real.IsNear z.re reNeg reCn reCd reRn reRd := h.1
 
-/-- Imaginary-part accessor; see `Complex.IsNear.re_isNear`. -/
+/-- Imaginary-part accessor. -/
 theorem Complex.IsNear.im_isNear {z : ℂ}
     {reNeg : Bool} {reCn reCd reRn reRd : ℕ} {imNeg : Bool} {imCn imCd imRn imRd : ℕ}
     (h : Complex.IsNear z reNeg reCn reCd reRn reRd imNeg imCn imCd imRn imRd) :
@@ -93,8 +98,8 @@ The `*LitP` variants consume the paired proofs `h1`/`h2` directly, carrying both
 literal-output conditions in one application. Sign conditions use the raw `Bool.rec` forms
 `numPosC`/`numNegC`. -/
 
-/-- `numPos` in raw `Bool.rec` form (kernel fast path, no `cond`/`Bool.casesOn` wrappers): same
-value. -/
+/-- `numPos` spelled as a raw `Bool.rec`, so the kernel reduces it without `cond`/`Bool.casesOn`
+wrappers. -/
 def numPosC (neg : Bool) (cn : ℕ) : ℕ := @Bool.rec (fun _ => ℕ) cn 0 neg
 
 /-- `numNeg` in raw `Bool.rec` form; see `numPosC`. -/
@@ -106,8 +111,8 @@ theorem numPosC_eq (neg : Bool) (cn : ℕ) : numPosC neg cn = numPos neg cn := b
 theorem numNegC_eq (neg : Bool) (cn : ℕ) : numNegC neg cn = numNeg neg cn := by
   cases neg <;> rfl
 
-/-- Paired addition with literal outputs: `Real.IsNear.addLit` on both components, concluded
-through `Complex.IsNear.add`. Suffix `r`/`i` = real/imaginary component. -/
+/-- Paired addition with literal outputs: `Real.IsNear.addLit` on both components. Suffix `r`/`i`
+marks the real/imaginary component. -/
 theorem Complex.IsNear.addLitP {z w : ℂ}
     {nxr : Bool} {cnxr cdxr rnxr rdxr : ℕ} {nxi : Bool} {cnxi cdxi rnxi rdxi : ℕ}
     {nyr : Bool} {cnyr cdyr rnyr rdyr : ℕ} {nyi : Bool} {cnyi cdyi rnyi rdyi : ℕ}
@@ -204,7 +209,7 @@ theorem Complex.IsNear.recentre2 {z : ℂ}
   ⟨h.1.recentre hrcd hrcd' hrrd hrrd' hrfloor hrrad,
    h.2.recentre hicd hicd' hird hird' hifloor hirad⟩
 
-/-- One-sided rectangle recentre: round only the real component; imaginary passes through. -/
+/-- One-sided rectangle recentre: round only the real component. -/
 theorem Complex.IsNear.recentreRe {z : ℂ}
     {rN : Bool} {rCn rCd rRn rRd : ℕ} {iN : Bool} {iCn iCd iRn iRd : ℕ}
     {rCn' rCd' rRn' rRd' : ℕ}
@@ -219,7 +224,7 @@ theorem Complex.IsNear.recentreRe {z : ℂ}
     Complex.IsNear z rN rCn' rCd' rRn' rRd' iN iCn iCd iRn iRd :=
   ⟨h.1.recentre hrcd hrcd' hrrd hrrd' hrfloor hrrad, h.2⟩
 
-/-- One-sided rectangle recentre for the IMAGINARY component; see `recentreRe`. -/
+/-- One-sided rectangle recentre: round only the imaginary component. -/
 theorem Complex.IsNear.recentreIm {z : ℂ}
     {rN : Bool} {rCn rCd rRn rRd : ℕ} {iN : Bool} {iCn iCd iRn iRd : ℕ}
     {iCn' iCd' iRn' iRd' : ℕ}
@@ -260,40 +265,12 @@ theorem Complex.inv_im_eq_mul (z : ℂ) : (z⁻¹).im = -z.im * (Complex.normSq 
 theorem Complex.normSq_eq_mul_add_mul (z : ℂ) :
     Complex.normSq z = z.re * z.re + z.im * z.im := Complex.normSq_apply z
 
-/-! ### Complex finite-sum splitting (the mirror of the real lemmas in `Sums.lean`) -/
-
-/-- Split a complex `Finset.Ico` sum at a midpoint `m ∈ [a,b]`. -/
-theorem sum_Ico_consec_complex (f : ℕ → ℂ) (a m b : ℕ)
-    (hab : Nat.ble a m = true) (hmb : Nat.ble m b = true) :
-    (∑ i ∈ Finset.Ico a b, f i) = (∑ i ∈ Finset.Ico a m, f i) + (∑ i ∈ Finset.Ico m b, f i) :=
-  (Finset.sum_Ico_consecutive f (Nat.le_of_ble_eq_true hab) (Nat.le_of_ble_eq_true hmb)).symm
-
-/-- A width-one complex `Finset.Ico` sum (`b = a+1`) is the single term `f a`. -/
-theorem sum_Ico_width_one_complex (f : ℕ → ℂ) (a b : ℕ) (h : Nat.beq b (a.add 1) = true) :
-    (∑ i ∈ Finset.Ico a b, f i) = f a := by
-  have hb : b = a + 1 := Nat.eq_of_beq_eq_true h
-  subst hb
-  rw [Finset.sum_Ico_succ_top (Nat.le_refl a), Finset.Ico_self, Finset.sum_empty, zero_add]
-
-/-- An empty complex `Finset.Ico` sum (`a = b`) is `0`. -/
-theorem sum_Ico_empty_complex (f : ℕ → ℂ) (a b : ℕ) (h : Nat.beq a b = true) :
-    (∑ i ∈ Finset.Ico a b, f i) = 0 := by
-  have hb : a = b := Nat.eq_of_beq_eq_true h
-  subst hb
-  rw [Finset.Ico_self, Finset.sum_empty]
-
-/-- A complex `Finset.range n` sum as a `Finset.Ico 0 n` sum. -/
-theorem sum_range_eq_Ico_complex (f : ℕ → ℂ) (n : ℕ) :
-    (∑ i ∈ Finset.range n, f i) = (∑ i ∈ Finset.Ico 0 n, f i) := by
-  rw [Finset.range_eq_Ico]
-
 /-! ### The complex logarithm, componentwise
 
 For `z = ⟨p/q, r/q⟩` in the right half-plane, the real part of `Complex.log z` is `½·log(normSq z)`
 and the imaginary part is `arctan(r/p)`. -/
 
-/-- In the right half-plane `z.arg = arctan(z.im/z.re)`, since `arg ∈ (−π/2, π/2)` there and
-`arctan` inverts `tan`. (Mathlib has no direct `arg = arctan` statement.) -/
+/-- In the right half-plane `z.arg = arctan(z.im/z.re)`. -/
 theorem Complex.arg_eq_arctan_of_re_pos {z : ℂ} (hz : 0 < z.re) :
     z.arg = Real.arctan (z.im / z.re) := by
   have h1 : -(Real.pi / 2) < z.arg := Complex.neg_pi_div_two_lt_arg_iff.mpr (Or.inl hz)
@@ -320,7 +297,7 @@ theorem clog_re_eq (p r q N M : ℕ) (hq : Nat.ble (nat_lit 1) q = true)
   push_cast
   ring
 
-/-- Imaginary part of `Complex.log ⟨p/q, r/q⟩` (`p, q > 0`) as `arctan(r/p)` (the `q` cancels). -/
+/-- Imaginary part of `Complex.log ⟨p/q, r/q⟩` (`p, q > 0`) as `arctan(r/p)`. -/
 theorem clog_im_eq (p r q : ℕ) (hp : Nat.ble (nat_lit 1) p
       = true) (hq : Nat.ble (nat_lit 1) q = true) :
     (Complex.log ⟨sfrac false p q, sfrac false r q⟩).im = Real.arctan ((r : ℝ) / p) := by

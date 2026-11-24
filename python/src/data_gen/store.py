@@ -16,14 +16,16 @@ def zeros_below(start: float) -> int | None:
     """How many critical-line zeros lie below `start`, for the Turing count check.
 
     Zero if `start` is below the first zero. Otherwise the zeros below `start` are some other
-    store's — the Euler–Maclaurin one at low height — so its row count is read off its manifest,
-    provided that store ends exactly at `start`. `None` when no such store is found, in which
-    case the count cannot be checked here."""
+    store's (the Euler–Maclaurin one at low height), so its row count is read off its manifest,
+    provided that store searched up to exactly `start` (older manifests record only `height`,
+    where its last interval ends). `None` when no such store is found, in which case the count
+    cannot be checked here."""
     if start < FIRST_ZERO:
         return 0
     for manifest in Path(OUT_DIR).expanduser().glob("*/zeros/manifest.json"):
         m = json.loads(manifest.read_text())
-        if m["height"] and abs(Decimal(m["height"]) - Decimal(str(start))) < Decimal("1e-9"):
+        top = m.get("end", m["height"])
+        if top is not None and abs(Decimal(str(top)) - Decimal(str(start))) < Decimal("1e-9"):
             return int(m["rows"])
     return None
 
@@ -39,9 +41,9 @@ if __name__ == "__main__":
     approx = build_approx(args)
 
     # The gram block first: Turing's bound is stated at its lower gram point `g_N`, so the zero
-    # bundle must tile `[start, g_N]` exactly — every zero below `g_N` counted, none above it.
-    # Searching only to `end` and then looking for a block above it drops the zeros in
-    # `(end, g_N)`; at height 1e5 that gap held two.
+    # bundle must tile `[start, g_N]` exactly: every zero below `g_N` counted, none above it.
+    # Searching only to `end` and then looking for a block above it would drop the zeros in
+    # `(end, g_N)`.
     bl = store_gram(
         args.end,
         approx,

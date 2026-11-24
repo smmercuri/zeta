@@ -158,7 +158,7 @@ lemma intervalIntegrable_logNormGammaArchimedean {t : ℝ} (ht : t ≠ 0) (a b :
     IntervalIntegrable (fun σ : ℝ ↦ logNormGammaArchimedean t σ) volume a b :=
   (continuous_logNormGammaArchimedean ht).intervalIntegrable a b
 
-/-- **Strip integral as a shifted interval integral.** For `a ≤ b` and any shift `s`,
+/-- Strip integral as a shifted interval integral: for `a ≤ b` and any shift `s`,
 `∫_{Ioo (a+s) (b+s)} f = ∫ x in a..b, f (x + s)`. -/
 lemma intervalIntegral.Ioo_eq_comp_add_right (f : ℝ → ℝ) {a b s : ℝ} (hab : a ≤ b) :
     (∫ σ in Set.Ioo (a + s) (b + s), f σ) = ∫ x in a..b, f (x + s) := by
@@ -204,7 +204,7 @@ The tight constant `C_a = (d²/2) log 2π + (d/2) log 2 + d²/10⁴` (`≤ 4/5` 
 an order of magnitude below the Stirling-band constant of
 `logNormGammaArchimedean_strip_diff_ge_of`. -/
 
-/-- **Horizontal derivative of `log‖Γ((σ+it)/2)‖`.** For `t ≠ 0` and `σ > 0`,
+/-- Horizontal derivative of `log‖Γ((σ+it)/2)‖`: for `t ≠ 0` and `σ > 0`,
 `d/dσ log‖Γ((σ+it)/2)‖ = ½ Re ψ((σ+it)/2)`. -/
 private lemma hasDerivAt_log_norm_Gamma_archLine_half {t : ℝ} (_ht : t ≠ 0) {σ : ℝ} (hσ : 0 < σ) :
     HasDerivAt (fun u : ℝ ↦ Real.log ‖Complex.Gamma (((u : ℂ) + Complex.I * t) / 2)‖)
@@ -215,7 +215,7 @@ private lemma hasDerivAt_log_norm_Gamma_archLine_half {t : ℝ} (_ht : t ≠ 0) 
     rw [Complex.div_ofNat_re, show ((σ : ℂ) + Complex.I * t).re = σ by simp]; linarith
   simpa [Complex.mul_re] using Complex.hasDerivAt_log_norm_Gamma_comp hpath hzpos
 
-/-- **Pointwise digamma lower bound on the strip.** For `t ≥ 168π` and `1/2 ≤ u ≤ 9/2`,
+/-- Pointwise digamma lower bound on the strip: for `t ≥ 168π` and `1/2 ≤ u ≤ 9/2`,
 `½ Re ψ((u+it)/2) ≥ ½ log(t/2) - 1/10⁴`. -/
 private lemma half_re_digamma_archLine_ge {t : ℝ} (ht : 168 * Real.pi ≤ t)
     {u : ℝ} (hu1 : 1 / 2 ≤ u) (hu2 : u ≤ 9 / 2) :
@@ -269,7 +269,7 @@ private lemma half_re_digamma_archLine_ge {t : ℝ} (ht : 168 * Real.pi ≤ t)
     nlinarith [ht504, hu2]
   linarith [hlogz, hpole_le, hEre, hψre, htail]
 
-/-- **Tight lower bound on the `Γ` strip difference.** For `t ≥ 168π`, `0 < d ≤ 2` and
+/-- Tight lower bound on the `Γ` strip difference: for `t ≥ 168π`, `0 < d ≤ 2` and
 `1/2 ≤ σ ≤ 1/2 + d`,
 `log‖Γ((σ+d+it)/2)‖ - log‖Γ((σ+it)/2)‖ ≥ (d/2) log(t/2) - d/10⁴`. -/
 private lemma logNormGamma_half_diff_ge {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2) {t : ℝ}
@@ -281,7 +281,7 @@ private lemma logNormGamma_half_diff_ge {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2) {
   have htne : t ≠ 0 := by nlinarith
   have hσd : σ ≤ σ + d := by linarith
   -- the derivative `½ Re ψ((u+it)/2)` is `≥ ½ log(t/2) - 10⁻⁴` on the strip `[σ, σ+d] ⊂ (0, 9/2]`,
-  -- so the mean-value inequality gives the claim with no integrability side conditions
+  -- so the mean-value inequality gives the claim
   have hderiv : ∀ u ∈ Set.Icc σ (σ + d),
       HasDerivAt (fun v : ℝ ↦ Real.log ‖Complex.Gamma (((v : ℂ) + Complex.I * t) / 2)‖)
         (1 / 2 * (Complex.digamma (((u : ℂ) + Complex.I * t) / 2)).re) u :=
@@ -300,7 +300,7 @@ private lemma logNormGamma_half_diff_ge {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2) {
   push_cast at hmvt ⊢
   nlinarith [hmvt]
 
-/-- **Reverse-triangle bounds for the two linear factors of the archimedean function.** Along the
+/-- Reverse-triangle bounds for the two linear factors of the archimedean function. Along the
 line `s = σ + it`, the `s`-factor log-modulus is nondecreasing under the `d`-shift, and the
 `(s-1)`-factor loses at most `½ log 2`. -/
 lemma logNormGammaArchimedean_line_log_norm_diff_ge {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2)
@@ -336,9 +336,8 @@ lemma logNormGammaArchimedean_line_log_norm_diff_ge {d : ℝ} (hd : 0 < d) (hd' 
     push_cast at hlow hhigh
     nlinarith [hlow, hhigh]
 
-/-- **Tight pointwise lower bound for the shifted archimedean integrand difference.** The
-band-free counterpart of `logNormGammaArchimedean_diff_ge`, with no Stirling constants `L₁, L₂`
-in the bound. -/
+/-- Tight pointwise lower bound for the shifted archimedean integrand difference, with an
+explicit constant; the tight counterpart of `logNormGammaArchimedean_diff_ge`. -/
 lemma logNormGammaArchimedean_diff_ge_tight {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2)
     {t : ℝ} (ht : 168 * Real.pi ≤ t) {σ : ℝ} (hσ1 : 1 / 2 ≤ σ) (hσ2 : σ ≤ 1 / 2 + d) :
     (d / 2) * Real.log (t / 2) - (d / 2) * Real.log Real.pi - 1 / 2 * Real.log 2 - d / 10000 ≤
@@ -381,7 +380,7 @@ lemma logNormGammaArchimedean_diff_ge {d : ℝ} (hd : 0 < d) (hd' : d ≤ 2)
   push_cast at hlo hup
   nlinarith [hE1, hE2, hlo, hup]
 
-/-- **Constant-lower-bound strip-difference scaffold.** If the shifted archimedean integrand
+/-- Constant lower bound for the strip difference. If the shifted archimedean integrand
 difference is `≥ G` pointwise on the strip `[1/2, 1/2+d]`, then the strip difference
 `A(½+d) - A(½)` is `≥ d · G`. -/
 private lemma logNormGammaArchimedean_strip_diff_ge_of_pointwise {d G : ℝ} (hd : 1 / 2 < d)
@@ -420,7 +419,7 @@ private lemma logNormGammaArchimedean_strip_diff_ge_of_pointwise {d G : ℝ} (hd
   rwa [intervalIntegral.integral_const, smul_eq_mul,
     show (1 / 2 + d - 1 / 2 : ℝ) = d by ring] at hmono
 
-/-- **Parametric archimedean strip-difference bound.** Given any pair of Stirling constants
+/-- Parametric archimedean strip-difference bound. Given any pair of Stirling constants
 `L₁, L₂` realising the two-sided bound on `log‖Γ((σ+it)/2)‖`, the strip difference is bounded
 below by `(d²/2) log t - C` with the explicit
 `C = (d²/2)(log 2 + log π) + (d/2) log 2 + d(L₂ - L₁)`. -/
@@ -449,10 +448,9 @@ theorem logNormGammaArchimedean_strip_diff_ge_of {d L₁ L₂ : ℝ} (hd : 1 / 2
   rw [hlogt] at key
   nlinarith [key]
 
-/-- **Tight archimedean strip-difference bound** (`lem:ls_Ca`). The strip difference
+/-- Tight archimedean strip-difference bound (`lem:ls_Ca`). The strip difference
 `A(½+d) - A(½)` is bounded below by `(d²/2) log t - C_a` with the explicit
-`C_a = (d²/2)(log 2 + log π) + (d/2) log 2 + d²/10⁴` (`≤ 4/5` at `d = 74/100`), carrying no
-Stirling band width. -/
+`C_a = (d²/2)(log 2 + log π) + (d/2) log 2 + d²/10⁴` (`≤ 4/5` at `d = 74/100`). -/
 theorem logNormGammaArchimedean_strip_diff_ge_tight {d : ℝ} (hd : 1 / 2 < d) (hd' : d ≤ 2) :
     ∀ t : ℝ, 168 * Real.pi ≤ t →
       (d ^ 2 / 2) * Real.log t -
@@ -471,7 +469,7 @@ theorem logNormGammaArchimedean_strip_diff_ge_tight {d : ℝ} (hd : 1 / 2 < d) (
   rw [hlogt] at key
   nlinarith [key]
 
-/-- **Archimedean strip-difference bound** (`lem:ll_arch`). With
+/-- Archimedean strip-difference bound (`lem:ll_arch`). With
 `A(a) := ∫_a^{a+d} log‖½ s(s-1) Γ_ℝ(s)‖ dσ` along `s = σ + it`, there is a `t`-independent
 constant `C` with `A(½+d) - A(½) ≥ (d²/2) log t - C` for all `t ≥ 168π`. -/
 theorem logNormGammaArchimedean_strip_diff_ge {d : ℝ} (hd : 1 / 2 < d) (hd' : d ≤ 2) :

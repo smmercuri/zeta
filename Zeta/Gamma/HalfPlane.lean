@@ -35,7 +35,7 @@ namespace Complex
 theorem ne_neg_natCast_of_re_pos {z : ℂ} (hz : 0 < z.re) (m : ℕ) : z ≠ -(m : ℂ) := by
   rintro rfl; exact absurd hz (by simp)
 
-/-- **`Γ` is differentiable at every point of the right half-plane.** -/
+/-- `Γ` is differentiable at every point of the right half-plane. -/
 theorem differentiableAt_Gamma_of_re_pos {z : ℂ} (hz : 0 < z.re) :
     DifferentiableAt ℂ Complex.Gamma z :=
   Complex.differentiableAt_Gamma z (ne_neg_natCast_of_re_pos hz)
@@ -59,7 +59,7 @@ theorem differentiableOn_digamma_re_pos :
   exact (differentiableOn_Gamma_re_pos.deriv (isOpen_re_gt 0)).div differentiableOn_Gamma_re_pos
     fun _ hz ↦ Complex.Gamma_ne_zero_of_re_pos hz
 
-/-- **Differentiability of the digamma function.** On the right half-plane `{Re > 0}`,
+/-- On the right half-plane `{Re > 0}`,
 `ψ = Complex.digamma` is complex-differentiable. -/
 theorem differentiableAt_digamma {s : ℂ} (hs : 0 < s.re) :
     DifferentiableAt ℂ Complex.digamma s :=

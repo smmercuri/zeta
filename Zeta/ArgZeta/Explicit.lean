@@ -65,7 +65,7 @@ private lemma logDeriv_riemannXi_zero_eq {B : ℝ}
     simpa using ((hasDerivAt_id (0 : ℂ)).const_mul (B : ℂ)).const_add (Complex.log (1 / 2))
   rw [logDeriv_riemannXi_zero_eq_deriv (by fun_prop) hrep, hde.deriv]
 
-/-- **De-existentialised shift identity** (`lem:le_shift_no_kappa`). The constant `κ` of
+/-- The de-existentialised shift identity (`lem:le_shift_no_kappa`). The constant `κ` of
 `exists_const_tsum_log_norm_riemannXiZeros_shift_eq` is `0`, so for every `s` and `s + d` not
 zeros of `ξ`, `∑ᵢ [log‖s+d-ρᵢ‖ - log‖s-ρᵢ‖] = log‖ξ(s+d)‖ - log‖ξ(s)‖`. -/
 theorem tsum_log_norm_riemannXiZeros_shift_eq {s : ℂ} {d : ℝ}
@@ -145,9 +145,8 @@ theorem tsum_log_norm_riemannXiZeros_shift_eq {s : ℂ} {d : ℝ}
   rw [hfinal, hdiffXi]
   linear_combination (-(d : ℝ)) * hκ0
 
-/-- **Explicit bound on real `log Γ` over `[1/4, 4/5]`** (`lem:le_gamma_bounded`): for every
-`σ ∈ [1/4, 4/5]`, `|log Γ(σ)| ≤ log 4`. This pins the sole non-explicit ingredient `M` of the
-archimedean constant. -/
+/-- For every `σ ∈ [1/4, 4/5]`, `|log Γ(σ)| ≤ log 4` (`lem:le_gamma_bounded`). This pins the sole
+non-explicit ingredient `M` of the archimedean constant. -/
 theorem abs_log_Gamma_le_log_four {σ : ℝ} (hσ : 1 / 4 ≤ σ) (hσ' : σ ≤ 4 / 5) :
     |Real.log (Real.Gamma σ)| ≤ Real.log 4 := by
   set g : ℝ → ℝ := Real.log ∘ Real.Gamma with hgdef
@@ -230,7 +229,7 @@ private lemma norm_digamma_sub_log_add_le_explicit {s : ℂ} (hs : (1 / 4 : ℝ)
   rw [key, norm_neg]
   exact norm_digammaRemainderIoi_one_le hspos
 
-/-- **Explicit archimedean witness** (`lem:le_arch_explicit`).  For `d = 53/100`, the strip
+/-- The explicit archimedean witness (`lem:le_arch_explicit`).  For `d = 53/100`, the strip
 difference `A(½+d) - A(½)` is bounded below by `(d²/2) log t - C_a` with an explicit numeral
 `C_a ≤ 10`, for all `t ≥ 168π`. -/
 theorem logNormGammaArchimedean_strip_diff_ge_explicit :
@@ -316,7 +315,7 @@ private lemma le_logNormZetaIntegral_53_of {Ct a₂ : ℝ}
     t ht hzero
   nlinarith [hlt, hCa10, ha₂]
 
-/-- **Explicit lower bound on `I(t)`** (`lem:le_I_lower_explicit`). For `d = 53/100` and all
+/-- Explicit lower bound on `I(t)` (`lem:le_I_lower_explicit`): for `d = 53/100` and all
 `t ≥ 168π` off the zeros of `ζ` on `{σ + it : σ ≥ ½}`, `-I(t) ≤ 136 + (3/4)d² log t`. -/
 theorem le_logNormZetaIntegral_explicit :
     ∀ t : ℝ, 168 * π ≤ t →
@@ -324,7 +323,7 @@ theorem le_logNormZetaIntegral_explicit :
       -logNormZetaIntegral t ≤ 136 + 3 / 4 * (53 / 100) ^ 2 * Real.log t :=
   le_logNormZetaIntegral_53_of logNormZetaIntegral_tail_ge_explicit (by norm_num)
 
-/-- **Crude Lehman bound** (`thm:le_concrete`). For all reals `t₁ < t₂` with `168π < t₁`, neither
+/-- The crude Lehman bound (`thm:le_concrete`): for all reals `t₁ < t₂` with `168π < t₁`, neither
 an ordinate of a zero of `ζ` on `{σ + it : σ ≥ ½}`,
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 47 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_concrete :
@@ -344,7 +343,7 @@ theorem norm_integral_argZeta_le_concrete :
     nlinarith [log_two_pi_le_three_log_two, Real.log_two_lt_d9, Real.pi_gt_d2]
   linarith [hconst]
 
-/-- **Sharp lower bound on `I(t)`** (`lem:le_I_lower_sharp`): `-I(t) ≤ 233/5 + (3/4)d² log t` at
+/-- Sharp lower bound on `I(t)` (`lem:le_I_lower_sharp`): `-I(t) ≤ 233/5 + (3/4)d² log t` at
 `d = 53/100`. Sharpens `le_logNormZetaIntegral_explicit` by the sharp tail `C_t ≤ 23/5`. -/
 theorem le_logNormZetaIntegral_sharp :
     ∀ t : ℝ, 168 * π ≤ t →
@@ -352,9 +351,9 @@ theorem le_logNormZetaIntegral_sharp :
       -logNormZetaIntegral t ≤ 233 / 5 + 3 / 4 * (53 / 100) ^ 2 * Real.log t :=
   le_logNormZetaIntegral_53_of logNormZetaIntegral_tail_ge_sharp (by norm_num)
 
-/-- **Lower bound on `I(t)` at the sharpened pairing constant `c = 2`** (`lem:ls_rung_two`):
-`-I(t) ≤ 206/5 + (3/4)d² log t` at `d = 53/100`. The genuine `log t` coefficient is the smaller
-`(c-1)/2·d² = d²/2`; it is weakened here to the `3/4·d²` expected by the assembly core. -/
+/-- Lower bound on `I(t)` at the pairing constant `c = 2` (`lem:ls_rung_two`):
+`-I(t) ≤ 206/5 + (3/4)d² log t` at `d = 53/100`. The proved `log t` coefficient is the smaller
+`(c-1)/2·d² = d²/2`, weakened here to the `3/4·d²` expected by the assembly core. -/
 theorem le_logNormZetaIntegral_sharp_two :
     ∀ t : ℝ, 168 * π ≤ t →
       (∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) →
@@ -377,9 +376,9 @@ theorem le_logNormZetaIntegral_sharp_two :
     Real.log_nonneg (by linarith [ht, Real.pi_gt_d2])
   nlinarith [hlt, hconst, hlogpos]
 
-/-- **Lower bound on `I(t)` with the tight archimedean constant** (`lem:ls_Ca`):
+/-- Lower bound on `I(t)` with the tight archimedean constant (`lem:ls_Ca`):
 `-I(t) ≤ 158/5 + (3/4)d² log t` at `d = 53/100`. Sharpens `le_logNormZetaIntegral_sharp_two` by
-the digamma-level archimedean witness (`C_a ≤ 0.45` in place of the band-based `10`). -/
+the digamma-level archimedean witness `C_a ≤ 0.45`. -/
 theorem le_logNormZetaIntegral_tight :
     ∀ t : ℝ, 168 * π ≤ t →
       (∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + Complex.I * t) ≠ 0) →
@@ -409,7 +408,7 @@ theorem le_logNormZetaIntegral_tight :
   have hlogpos : (0 : ℝ) ≤ Real.log t := Real.log_nonneg (by linarith [ht, Real.pi_gt_d2])
   nlinarith [hlt, hconst, hlogpos]
 
-/-- Shared design-point-P1 core (`d = 74/100`, `c = 2`, tight archimedean and tail constants):
+/-- Shared lower-bound core at `d = 74/100`, `c = 2`, with tight archimedean and tail constants:
 given a zero-sum witness `Cψ` and a numeral `a₂` dominating the assembled constant,
 `-I(t) ≤ a₂ + (74/100)²/2·log t`. -/
 private lemma le_logNormZetaIntegral_p1_of {Cψ a₂ : ℝ}
@@ -440,9 +439,8 @@ private lemma le_logNormZetaIntegral_p1_of {Cψ a₂ : ℝ}
     mul_le_mul_of_nonneg_left (by linarith [log_pi_le_two_log_two]) (by positivity)
   nlinarith [hlt, ha₂, h1]
 
-/-- **Lower bound on `I(t)` at the deeper strip `d = 74/100`** (design point P1 of
-`sec:ls_optim`): `-I(t) ≤ 57/5 + (74/100)²/2 · log t` for `t ≥ 168π` off the zeros. Unlike
-`le_logNormZetaIntegral_sharp_two` and `_tight`, this keeps the genuine `log t` coefficient
+/-- Lower bound on `I(t)` at the deeper strip `d = 74/100` (`sec:ls_optim`):
+`-I(t) ≤ 57/5 + (74/100)²/2 · log t` for `t ≥ 168π` off the zeros. The `log t` coefficient is
 `d²/2`; at `d = 74/100` the weakened `3/4·d²` would violate the shape constraint
 `b₁ + b₂ ≤ 0.128π`. -/
 theorem le_logNormZetaIntegral_eleven_halves :
@@ -452,7 +450,7 @@ theorem le_logNormZetaIntegral_eleven_halves :
   le_logNormZetaIntegral_p1_of tsum_re_inv_riemannXiZeros_sub_le_tight
     (by nlinarith [Real.log_two_lt_d9, Real.log_nonneg (by norm_num : (1 : ℝ) ≤ 2)])
 
-/-- **Dirichlet-sharpened lower additive constant** (`thm:ls_five`, lower half):
+/-- Dirichlet-sharpened lower additive constant (`thm:ls_five`, lower half):
 `-I(t) ≤ 933/100 + (74/100)²/2 · log t`. Sharpens `le_logNormZetaIntegral_eleven_halves` by the
 sharp zero-sum constant `C_ψ ≤ 319/100`. -/
 theorem le_logNormZetaIntegral_five :
@@ -462,7 +460,7 @@ theorem le_logNormZetaIntegral_five :
   le_logNormZetaIntegral_p1_of tsum_re_inv_riemannXiZeros_sub_le_tight_sharp
     (by nlinarith [Real.log_two_lt_d9, Real.log_nonneg (by norm_num : (1 : ℝ) ≤ 2)])
 
-/-- **Sharpened Lehman bound** (`thm:le_sharp`). For all reals `t₁ < t₂` with `168π < t₁`, neither
+/-- The sharpened Lehman bound (`thm:le_sharp`): for all reals `t₁ < t₂` with `168π < t₁`, neither
 an ordinate of a zero of `ζ` on `{σ + it : σ ≥ ½}`,
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 18 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_eighteen :
@@ -482,7 +480,7 @@ theorem norm_integral_argZeta_le_eighteen :
     nlinarith [log_two_pi_le_three_log_two, Real.log_two_lt_d9, Real.pi_gt_d2]
   linarith [hconst]
 
-/-- **Pairing-sharpened Lehman bound** (`thm:ls_conditional_weak` route at `c = 2`):
+/-- Pairing-sharpened Lehman bound (`thm:ls_conditional_weak` at `c = 2`):
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 33/2 + 0.128 log(t₂/2π)`, for `t₁, t₂` as in
 `norm_integral_argZeta_le_eighteen`. -/
 theorem norm_integral_argZeta_le_sharp_two :
@@ -511,7 +509,7 @@ private lemma logNormZetaIntegral_le_five_weak (t : ℝ) (ht : 168 * π ≤ t)
   have hlog : (0 : ℝ) ≤ Real.log t := Real.log_nonneg (by nlinarith [Real.pi_gt_three])
   linarith [logNormZetaIntegral_le_five ht hzero]
 
-/-- **Upper-and-pairing-sharpened Lehman bound** (levers U1 and rung R1):
+/-- Lehman bound from the sharpened upper constant `a₁ ≤ 5` and the pairing constant `c = 2`:
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 15 + 0.128 log(t₂/2π)`, for `t₁, t₂` as in
 `norm_integral_argZeta_le_eighteen`. -/
 theorem norm_integral_argZeta_le_fifteen :
@@ -531,7 +529,7 @@ theorem norm_integral_argZeta_le_fifteen :
     nlinarith [log_two_pi_le_three_log_two, Real.log_two_lt_d9, Real.pi_gt_d2]
   linarith [hconst]
 
-/-- **Archimedean-sharpened Lehman bound** (`lem:ls_Ca` cashed in):
+/-- Archimedean-sharpened Lehman bound (from `lem:ls_Ca`):
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 12 + 0.128 log(t₂/2π)`, for `t₁, t₂` as in
 `norm_integral_argZeta_le_eighteen`. -/
 theorem norm_integral_argZeta_le_twelve :
@@ -550,7 +548,7 @@ theorem norm_integral_argZeta_le_twelve :
     nlinarith [log_two_pi_le_three_log_two, Real.log_two_lt_d9, Real.pi_gt_d2]
   linarith [hconst]
 
-/-- **Tail-sharpened Lehman bound** (design point P1 at `d = 74/100`, sharpened tail):
+/-- Tail-sharpened Lehman bound (at `d = 74/100`, sharpened tail):
 `|∫_{t₁}^{t₂} S(t) dt| ≤ 11/2 + 0.128 log(t₂/2π)`, for `t₁, t₂` as in
 `norm_integral_argZeta_le_eighteen`. This is the ceiling of the `N`-majorant tail. -/
 theorem norm_integral_argZeta_le_eleven_halves :
@@ -571,8 +569,8 @@ theorem norm_integral_argZeta_le_eleven_halves :
     nlinarith [log_two_pi_le_three_log_two, Real.log_two_lt_d9, Real.pi_gt_d2]
   linarith [hconst]
 
-/-- **Strip-depth-sharpened Lehman bound** (`rem:ls_p1_correction`):
-`|∫_{t₁}^{t₂} S(t) dt| ≤ 6 + 0.128 log(t₂/2π)`. Superseded by the stronger
+/-- Strip-depth-sharpened Lehman bound (`rem:ls_p1_correction`):
+`|∫_{t₁}^{t₂} S(t) dt| ≤ 6 + 0.128 log(t₂/2π)`, a consequence of
 `norm_integral_argZeta_le_eleven_halves`. -/
 theorem norm_integral_argZeta_le_six :
     ∀ t₁ t₂ : ℝ, 168 * π < t₁ → t₁ < t₂ →
@@ -582,9 +580,9 @@ theorem norm_integral_argZeta_le_six :
   fun t₁ t₂ ht1 h12 hne1 hne2 ↦
     (norm_integral_argZeta_le_eleven_halves t₁ t₂ ht1 h12 hne1 hne2).trans (by linarith)
 
-/-- **Dirichlet-sharpened Lehman bound** (`thm:ls_five`). For all reals `t₁ < t₂` with `168π < t₁`,
-neither an ordinate of a zero of `ζ` on `{σ + it : σ ≥ ½}`,
-`|∫_{t₁}^{t₂} S(t) dt| ≤ 5 + 0.128 log(t₂/2π)`. The true value is `≈ 4.79`. -/
+/-- The Dirichlet-sharpened Lehman bound (`thm:ls_five`): for all reals `t₁ < t₂` with
+`168π < t₁`, neither an ordinate of a zero of `ζ` on `{σ + it : σ ≥ ½}`,
+`|∫_{t₁}^{t₂} S(t) dt| ≤ 5 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_five :
     ∀ t₁ t₂ : ℝ, 168 * π < t₁ → t₁ < t₂ →
       (∀ σ : ℝ, (1 / 2 : ℝ) ≤ σ → riemannZeta ((σ : ℂ) + I * t₁) ≠ 0) →
@@ -624,7 +622,7 @@ private lemma exists_zeroFree_Ioo {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) :
   rw [Set.mem_sdiff] at htd
   exact ⟨t, htd.1, fun σ hσ hz ↦ htd.2 ⟨⟨σ, hσ, hz⟩, Set.Ioo_subset_Icc_self htd.1⟩⟩
 
-/-- **Parametric endpoint-removal core.** Any conditional bound
+/-- Parametric endpoint-removal core: any conditional bound
 `|∫_{t₁}^{t₂} S| ≤ A + 0.128 log(t₂/2π)` at zero-free endpoints extends to all `t₁ < t₂` with
 `168π < t₁`. -/
 private lemma norm_integral_argZeta_le_unconditional_of {A : ℝ}
@@ -709,65 +707,58 @@ private lemma norm_integral_argZeta_le_unconditional_of {A : ℝ}
       (by have := halt n; linarith) (hab n) (hafree n) (hbfree n)
   exact le_of_tendsto_of_tendsto' hlhs.abs hrhs hbound
 
-/-- **Crude Lehman bound, unconditional** (`thm:le_concrete_unconditional`). For all reals
-`t₁ < t₂` with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 47 + 0.128 log(t₂/2π)`, with no zero-freeness
-hypothesis at the endpoints. -/
+/-- The crude Lehman bound at arbitrary endpoints (`thm:le_concrete_unconditional`): for all
+reals `t₁ < t₂` with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 47 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_concrete_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 47 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_concrete ht1 h12
 
-/-- **Sharpened Lehman bound, unconditional** (`thm:le_sharp_unconditional`). For all reals
-`t₁ < t₂` with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 18 + 0.128 log(t₂/2π)`, with no zero-freeness
-hypothesis at the endpoints. -/
+/-- The sharpened Lehman bound at arbitrary endpoints (`thm:le_sharp_unconditional`): for all
+reals `t₁ < t₂` with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 18 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_eighteen_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 18 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_eighteen ht1 h12
 
-/-- **Pairing-sharpened Lehman bound, unconditional.** For all reals `t₁ < t₂` with `168π < t₁`,
-`|∫_{t₁}^{t₂} S(t) dt| ≤ 33/2 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis at the
-endpoints. -/
+/-- The pairing-sharpened Lehman bound at arbitrary endpoints: for all reals `t₁ < t₂` with
+`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 33/2 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_sharp_two_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 33 / 2 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_sharp_two ht1 h12
 
-/-- **Upper-and-pairing-sharpened Lehman bound, unconditional.** For all reals `t₁ < t₂` with
-`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 15 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis at
-the endpoints. -/
+/-- `norm_integral_argZeta_le_fifteen` at arbitrary endpoints: for all reals `t₁ < t₂` with
+`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 15 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_fifteen_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 15 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_fifteen ht1 h12
 
-/-- **Archimedean-sharpened Lehman bound, unconditional.** For all reals `t₁ < t₂` with
-`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 12 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis at
-the endpoints. -/
+/-- The archimedean-sharpened Lehman bound at arbitrary endpoints: for all reals `t₁ < t₂` with
+`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 12 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_twelve_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 12 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_twelve ht1 h12
 
-/-- **Strip-depth-sharpened Lehman bound, unconditional.** For all reals `t₁ < t₂` with
-`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 6 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis at
-the endpoints. -/
+/-- The strip-depth-sharpened Lehman bound at arbitrary endpoints: for all reals `t₁ < t₂` with
+`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 6 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_six_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 6 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_six ht1 h12
 
-/-- **Tail-sharpened Lehman bound, unconditional.** For all reals `t₁ < t₂` with `168π < t₁`,
-`|∫_{t₁}^{t₂} S(t) dt| ≤ 11/2 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis at the
-endpoints. -/
+/-- The tail-sharpened Lehman bound at arbitrary endpoints: for all reals `t₁ < t₂` with
+`168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 11/2 + 0.128 log(t₂/2π)`. -/
 theorem norm_integral_argZeta_le_eleven_halves_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 11 / 2 + 0.128 * Real.log (t₂ / (2 * π)) :=
   norm_integral_argZeta_le_unconditional_of norm_integral_argZeta_le_eleven_halves ht1 h12
 
-/-- **Dirichlet-sharpened Lehman bound, unconditional** (`thm:ls_five`). For all reals `t₁ < t₂`
-with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 5 + 0.128 log(t₂/2π)`, with no zero-freeness hypothesis
-at the endpoints. This is the sharpest additive constant proved here. -/
+/-- The Dirichlet-sharpened Lehman bound at arbitrary endpoints (`thm:ls_five`): for all reals
+`t₁ < t₂` with `168π < t₁`, `|∫_{t₁}^{t₂} S(t) dt| ≤ 5 + 0.128 log(t₂/2π)`. This is the sharpest
+additive constant proved here. -/
 theorem norm_integral_argZeta_le_five_unconditional {t₁ t₂ : ℝ} (ht1 : 168 * π < t₁)
     (h12 : t₁ < t₂) :
     |∫ t in t₁..t₂, argZeta t| ≤ 5 + 0.128 * Real.log (t₂ / (2 * π)) :=

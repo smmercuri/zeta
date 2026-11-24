@@ -17,15 +17,8 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 # Euler's integral with a complex rate
 
 Mathlib's `Complex.integral_cpow_mul_exp_neg_mul_Ioi` evaluates `∫_0^∞ t^{a-1} e^{-rt} dt` as
-`(1/r)^a Γ(a)`, but only for a *real* rate `r > 0`. Riemann's passage from the Mordell integral to
-`ζ` integrates over the ray `e^{-iπ/4}(0, ∞)` (`riemann_siegel_zero.tex`, `lem:rsz_gamma_cplx`) and
-so needs a *complex* rate `b` with `Re b > 0`; there is no such statement in
-`Mathlib/Analysis/SpecialFunctions/Gamma/` nor in `Mathlib/Analysis/MellinTransform.lean`.
-
-The extension is by the identity theorem in `b` on the right half-plane, not by rotating the ray.
-Both sides are holomorphic there — the left-hand side by differentiation under the integral sign,
-dominated by `t^{Re a - 1} e^{-δt}` and `t^{Re a} e^{-δt}` on the ball of radius `δ = (Re b₀)/2` —
-and they already agree on the positive reals, which accumulate inside the half-plane.
+`(1/r)^a Γ(a)` only for a *real* rate `r > 0`. This file extends it to a *complex* rate `b` with
+`Re b > 0` (`riemann_siegel_zero.tex`, `lem:rsz_gamma_cplx`).
 
 ## Main results
 
@@ -34,9 +27,9 @@ and they already agree on the positive reals, which accumulate inside the half-p
 * `Complex.integral_cpow_mul_exp_neg_mul_Ioi'`: `∫_0^∞ t^{a-1} e^{-bt} dt = (1/b)^a Γ(a)`, the
   strict generalisation of `Complex.integral_cpow_mul_exp_neg_mul_Ioi` to a complex rate;
 * `Complex.integral_cpow_neg_mul_exp_neg_mul_Ioi`: the reindexed form
-  `∫_0^∞ ρ^{-s} e^{-bρ} dρ = Γ(1-s) b^{s-1}` in which the Riemann–Siegel argument uses it;
-* `Real.integral_rpow_neg_mul_exp_neg_mul_Ioi`: its real shadow
-  `∫_0^∞ ρ^{-c} e^{-rρ} dρ = Γ(1-c) r^{c-1}`, which is what bounds a series of ray integrals.
+  `∫_0^∞ ρ^{-s} e^{-bρ} dρ = Γ(1-s) b^{s-1}`;
+* `Real.integral_rpow_neg_mul_exp_neg_mul_Ioi`: its real counterpart
+  `∫_0^∞ ρ^{-c} e^{-rρ} dρ = Γ(1-c) r^{c-1}`.
 -/
 @[expose] public section
 
@@ -47,7 +40,7 @@ open scoped Real
 
 namespace Real
 
-/-- **The real majorant of Euler's integrand** `t ↦ t^c e^{-δt}` is integrable on `(0, ∞)` for
+/-- The real majorant of Euler's integrand, `t ↦ t^c e^{-δt}`, is integrable on `(0, ∞)` for
 `c > -1` and `δ > 0`. -/
 theorem integrableOn_rpow_mul_exp_neg_mul_Ioi {c δ : ℝ} (hc : -1 < c) (hδ : 0 < δ) :
     IntegrableOn (fun t : ℝ ↦ t ^ c * exp (-δ * t)) (Ioi 0) := by
@@ -57,8 +50,8 @@ end Real
 
 namespace Complex
 
-/-- **Euler's integrand with a complex rate is absolutely integrable** on `(0, ∞)` as soon as the
-rate has positive real part. -/
+/-- Euler's integrand with a complex rate is absolutely integrable on `(0, ∞)` when the rate has
+positive real part. -/
 theorem integrableOn_cpow_mul_exp_neg_mul_Ioi {a b : ℂ} (ha : 0 < a.re) (hb : 0 < b.re) :
     IntegrableOn (fun t : ℝ ↦ (t : ℂ) ^ (a - 1) * exp (-(b * t))) (Ioi 0) := by
   refine (Real.integrableOn_rpow_mul_exp_neg_mul_Ioi (by linarith : (-1 : ℝ) < a.re - 1) hb).mono'
@@ -69,8 +62,7 @@ theorem integrableOn_cpow_mul_exp_neg_mul_Ioi {a b : ℂ} (ha : 0 < a.re) (hb : 
     rw [norm_mul, norm_cpow_eq_rpow_re_of_pos (mem_Ioi.1 ht), norm_exp]
     simp [mul_re, neg_mul]
 
-/-- **Euler's integral with a complex rate**: `∫_0^∞ t^{a-1} e^{-bt} dt = (1/b)^a Γ(a)` whenever
-`Re a > 0` and `Re b > 0`. -/
+/-- **Euler's integral with a complex rate.** -/
 theorem integral_cpow_mul_exp_neg_mul_Ioi' {a b : ℂ} (ha : 0 < a.re) (hb : 0 < b.re) :
     ∫ t : ℝ in Ioi 0, (t : ℂ) ^ (a - 1) * exp (-(b * t)) = (1 / b) ^ a * Gamma a := by
   set F : ℂ → ℂ := fun z ↦ ∫ t : ℝ in Ioi 0, (t : ℂ) ^ (a - 1) * exp (-(z * t)) with hF
@@ -153,9 +145,8 @@ theorem integral_cpow_mul_exp_neg_mul_Ioi' {a b : ℂ} (ha : 0 < a.re) (hb : 0 <
   exact hFan.eqOn_of_preconnected_of_frequently_eq hGan
     (convex_halfSpace_re_gt 0).isPreconnected (by simp) hagree hb
 
-/-- **Euler's integral with a complex rate, in the form used by the Riemann–Siegel argument**:
-`∫_0^∞ ρ^{-s} e^{-bρ} dρ = Γ(1-s) b^{s-1}` for `Re s < 1` and `Re b > 0`, the power being the
-principal branch (`riemann_siegel_zero.tex`, `lem:rsz_gamma_cplx`). -/
+/-- **Euler's integral with a complex rate, reindexed**, with the principal branch of the power
+(`riemann_siegel_zero.tex`, `lem:rsz_gamma_cplx`). -/
 theorem integral_cpow_neg_mul_exp_neg_mul_Ioi {s b : ℂ} (hs : s.re < 1) (hb : 0 < b.re) :
     ∫ ρ : ℝ in Ioi 0, (ρ : ℂ) ^ (-s) * exp (-(b * ρ)) = Gamma (1 - s) * b ^ (s - 1) := by
   have ha : 0 < (1 - s).re := by simpa using hs
@@ -171,9 +162,8 @@ end Complex
 
 namespace Real
 
-/-- **Euler's integral in real form**: `∫_0^∞ ρ^{-c} e^{-rρ} dρ = Γ(1-c) r^{c-1}` for `c < 1` and
-`r > 0`. It is the real shadow of `Complex.integral_cpow_neg_mul_exp_neg_mul_Ioi`, obtained by
-pushing that identity through the coercion `ℝ → ℂ`. -/
+/-- **Euler's integral in real form**, the real counterpart of
+`Complex.integral_cpow_neg_mul_exp_neg_mul_Ioi`. -/
 theorem integral_rpow_neg_mul_exp_neg_mul_Ioi {c r : ℝ} (hc : c < 1) (hr : 0 < r) :
     ∫ ρ in Ioi (0 : ℝ), ρ ^ (-c) * exp (-(r * ρ)) = Gamma (1 - c) * r ^ (c - 1) := by
   have hint : ∫ ρ in Ioi (0 : ℝ), (ρ : ℂ) ^ (-(c : ℂ)) * Complex.exp (-((r : ℂ) * ρ))

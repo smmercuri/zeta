@@ -16,12 +16,12 @@ public import Zeta.RiemannSiegel.Saddle
 
 The crude inner estimate `Zeta.RiemannSiegel.norm_integral_inner_le` bounds `|e^Δ - 1|` by `2|Δ|`
 and integrates in absolute value, discarding the cancellation that produces the next classical
-Riemann–Siegel coefficient. This file keeps that term instead: it subtracts the `T^{-1/2}`-linear
-part `P₁(y)/√T` of the saddle discrepancy — `Zeta.RiemannSiegel.saddleLinear` — before estimating,
-and so bounds the *second-order* remainder (`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`).
+Riemann–Siegel coefficient. This file subtracts the `T^{-1/2}`-linear part `P₁(y)/√T` of the
+saddle discrepancy (`Zeta.RiemannSiegel.saddleLinear`) before estimating, and so bounds the
+*second-order* remainder (`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`).
 
 Two features distinguish it from the crude chain. The splitting radius is
-`Zeta.RiemannSiegel.sharpSplitRadius`, proportional to `√T` rather than to `T^{1/12}`, chosen so
+`Zeta.RiemannSiegel.sharpSplitRadius`, proportional to `√T`, chosen so
 that `|y| ≤ √T/2` holds on the whole inner region and the Taylor radius `1/2` of
 `Zeta.RiemannSiegel.norm_saddleDiscrepancy_le` is available with no further hypothesis. And the two
 contributions are integrated against *different* Gaussians: the linear discrepancy against the
@@ -46,7 +46,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- The **splitting radius of the sharp saddle estimate** `W = (√T - 1)/(2√2)`, `T = t/2π`
+/-- The splitting radius of the sharp saddle estimate `W = (√T - 1)/(2√2)`, `T = t/2π`
 (`riemann_siegel_first.tex`, `sec:rsf_sharp`). -/
 noncomputable def sharpSplitRadius (t : ℝ) : ℝ :=
   (Real.sqrt (t / (2 * π)) - 1) / (2 * Real.sqrt 2)
@@ -54,7 +54,7 @@ noncomputable def sharpSplitRadius (t : ℝ) : ℝ :=
 /-- An explicit upper bound for `√2`. -/
 theorem sqrt_two_le : Real.sqrt 2 ≤ 1.41422 := (Real.sqrt_le_left (by norm_num)).2 (by norm_num)
 
-/-- **`x ↦ xᵏ e^{-bx²}` is antitone past the point where `b x² ≥ k`.** -/
+/-- `x ↦ xᵏ e^{-bx²}` is antitone past the point where `b x² ≥ k`. -/
 theorem pow_mul_exp_neg_mul_sq_le {b A₀ A : ℝ} {k : ℕ} (hb : 0 < b) (hA₀ : 0 < A₀)
     (hbA : (k : ℝ) ≤ b * A₀ ^ 2) (hA : A₀ ≤ A) :
     A ^ k * Real.exp (-b * A ^ 2) ≤ A₀ ^ k * Real.exp (-b * A₀ ^ 2) := by
@@ -92,8 +92,8 @@ theorem pow_mul_exp_neg_mul_sq_le {b A₀ A : ℝ} {k : ℕ} (hb : 0 < b) (hA₀
         congr 2
         ring
 
-/-- **Absolute convergence of the linear term of the saddle discrepancy against the model
-integrand**: `P₁` is a cubic, so the integrand is a combination of the model moments of orders
+/-- Absolute convergence of the linear term of the saddle discrepancy against the model
+integrand: `P₁` is a cubic, so the integrand is a combination of the model moments of orders
 one and three. -/
 theorem integrable_modelIntegrand_mul_saddleLinear_div (p S : ℂ) :
     Integrable fun w : ℝ ↦ modelIntegrand p (1 / 2) w
@@ -114,7 +114,7 @@ contour. -/
 private theorem sq_sub_le {p : ℝ} (hκ : |1 / 2 - p| ≤ 1 / 2) : (1 / 2 - p) ^ 2 ≤ 1 / 4 := by
   nlinarith [sq_le_sq' (abs_le.1 hκ).1 (abs_le.1 hκ).2]
 
-/-- **The distance to the saddle is dominated by the centred contour parameter** on the unit
+/-- The distance to the saddle is dominated by the centred contour parameter on the unit
 interval of fractional parts. -/
 private theorem norm_line_sub_ofReal_sq_le_of_abs_le {p : ℝ} (hκ : |1 / 2 - p| ≤ 1 / 2) (w : ℝ) :
     ‖line (1 / 2) w - (p : ℂ)‖ ^ 2 ≤ 2 * (w + (1 / 2 - p) / 2) ^ 2 + 1 / 8 := by
@@ -149,7 +149,7 @@ private theorem exp_remainder_weight_le {Y u : ℝ} (hQ : Y ^ 2 ≤ 2 * u ^ 2 + 
     mul_le_mul_of_nonneg_left h6 (by positivity)
   nlinarith [e4, e6, hQ]
 
-/-- **The pointwise majorant for the linear discrepancy** on the inner region: the model integrand
+/-- The pointwise majorant for the linear discrepancy on the inner region: the model integrand
 against `Δ - P₁(y)/√T`, dominated by the model Gaussian times an even polynomial of degree four. -/
 private theorem norm_modelIntegrand_mul_saddleDiscrepancy_sub_linear_le {t : ℝ} (ht : 0 < t)
     {ν : ℕ} {p S w : ℝ} (hS : S = Real.sqrt (t / (2 * π))) (hp : p = S - ν)
@@ -191,7 +191,7 @@ private theorem norm_modelIntegrand_mul_saddleDiscrepancy_sub_linear_le {t : ℝ
           (div_nonneg (by positivity) hT0.le) (by positivity)
     _ = _ := by field_simp
 
-/-- **The pointwise majorant for the exponential remainder** on the inner region: the model
+/-- The pointwise majorant for the exponential remainder on the inner region: the model
 integrand against `e^Δ - 1 - Δ`, dominated by the widened Gaussian times an even polynomial of
 degree six. -/
 private theorem norm_modelIntegrand_mul_exp_sub_one_sub_self_le {t : ℝ} (ht : 0 < t)
@@ -279,7 +279,7 @@ private theorem norm_modelIntegrand_mul_exp_sub_one_sub_self_le {t : ℝ} (ht : 
         · positivity
     _ = _ := by field_simp
 
-/-- **The numerical constant of the sharp inner estimate.** -/
+/-- The numerical constant of the sharp inner estimate. -/
 private theorem sharp_inner_constant_le :
     11 / 5 * (1 / 2 * (1 / 8 + π / 64 + 5 / (16 * π)))
       + 47 / 20 * ((π ^ 3 + 21 * π ^ 2 + 189 * π + 837) / (288 * π)) * Real.sqrt (3 / 8)
@@ -301,7 +301,7 @@ private theorem sharp_inner_constant_le :
     mul_le_mul hBR hs (Real.sqrt_nonneg _) (by norm_num)
   linarith
 
-/-- **The sharp inner saddle-point estimate** (`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`):
+/-- The sharp inner saddle-point estimate (`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`):
 over the region `|w| ≤ W = (√T - 1)/(2√2)` about the saddle, the model integrand against the
 second-order remainder `e^Δ - 1 - P₁(y)/√T` contributes at most `(299/100) T^{-1}`. -/
 theorem norm_integral_inner_sub_linear_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) {ν : ℕ}

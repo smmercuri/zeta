@@ -10,11 +10,7 @@ public import Mathlib.Analysis.SpecialFunctions.Sqrt
 /-!
 # A telescoping bound for sums of inverse square roots
 
-At `s = 1/2` the sum `∑ n^{-s}` diverges, so the useful statement is the sharp-order one
-`∑_{n ≤ ν} n^{-1/2} ≤ 2√ν`, which mathlib does not record.
-
-It is consumed by `Zeta/RiemannSiegel/ZeroOrder.lean`, where it converts a perturbation of the
-Riemann–Siegel phase into a perturbation of the main sum.
+The bound `∑_{n ≤ ν} n^{-1/2} ≤ 2√ν`, which Mathlib does not record.
 
 ## Main results
 
@@ -25,7 +21,7 @@ Riemann–Siegel phase into a perturbation of the main sum.
 
 namespace Real
 
-/-- **The inverse square roots up to `ν` sum to at most `2√ν`.** -/
+/-- The inverse square roots up to `ν` sum to at most `2√ν`. -/
 theorem sum_one_div_sqrt_le (ν : ℕ) :
     ∑ n ∈ Finset.Icc 1 ν, 1 / Real.sqrt n ≤ 2 * Real.sqrt ν := by
   induction ν with

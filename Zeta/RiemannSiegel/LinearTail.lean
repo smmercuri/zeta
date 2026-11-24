@@ -14,12 +14,9 @@ public import Zeta.RiemannSiegel.InnerSharp
 `P₁(y)/√T` of the saddle discrepancy over the inner region `|w| ≤ W` only. What the assembly needs
 subtracted is the *moment*: the same integrand over the whole contour `L(1/2)`, which is
 `-M'''(p)/(96π²)` by `Zeta.RiemannSiegel.neg_half_modelMoment_one_sub_eq`. The difference between
-the two is the tail estimated here (`riemann_siegel_first.tex`, `lem:rsf_linear_tail`) — the one
-bookkeeping step that the crude chain of `Zeta.RiemannSiegel.norm_integral_inner_le`, which never
-retains a linear term, does not need.
+the two is the tail estimated here (`riemann_siegel_first.tex`, `lem:rsf_linear_tail`).
 
-The tail is a Gaussian one, but taken against a *cubic* in the contour parameter rather than
-against a constant, which is what
+The tail is a Gaussian one taken against a cubic in the contour parameter, which is what
 `integral_compl_Icc_exp_neg_mul_sq_mul_poly_comp_add_right_le` supplies. At the sharp splitting
 radius `W = (√T - 1)/(2√2)` the surviving exponent `4π(W - 1/4)²` grows linearly in `T`, so the
 Gaussian factor beats the lone `√T` that the linear term carries and the bound `T^{-1}/200` is
@@ -31,7 +28,7 @@ uniform over `T ≥ 16`.
   (`riemann_siegel_first.tex`, `lem:rsf_linear_tail`): outside the inner region the linear term
   contributes at most `T^{-1}/200`;
 * `Zeta.RiemannSiegel.norm_integral_linear_add_iteratedDeriv_three_modelIntegral_le`: the same
-  estimate in the form the assembly consumes — over the inner region the linear term is
+  estimate in the form the assembly consumes: over the inner region the linear term is
   `-M'''(p)T^{-1/2}/(96π²)` to within `T^{-1}/200`.
 -/
 @[expose] public section
@@ -43,7 +40,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The pointwise majorant for the linear term**: the model integrand against `P₁(y)`, dominated
+/-- The pointwise majorant for the linear term: the model integrand against `P₁(y)`, dominated
 by the model Gaussian in the centred contour parameter `ξ = w + (1/2 - p)/2` times a cubic in
 `|ξ|`. -/
 private theorem norm_modelIntegrand_mul_saddleLinear_le {p : ℝ} (hκ : |1 / 2 - p| ≤ 1 / 2)
@@ -108,8 +105,8 @@ private theorem norm_modelIntegrand_mul_saddleLinear_le {p : ℝ} (hκ : |1 / 2 
         mul_le_mul h8 ((norm_saddleLinear_le _).trans hcubic) (norm_nonneg _) (by positivity)
     _ = _ := by rw [husq]; ring
 
-/-- **The radius `A = W - 1/4` surviving the recentring of the model Gaussian is at least
-`81/100`** above the threshold `T ≥ 16`. -/
+/-- The radius `A = W - 1/4` surviving the recentring of the model Gaussian is at least
+`81/100` above the threshold `T ≥ 16`. -/
 private theorem le_sharpSplitRadius_sub_quarter {t : ℝ} (ht : 16 ≤ t / (2 * π)) :
     81 / 100 ≤ sharpSplitRadius t - 1 / 4 := by
   have hs2u : Real.sqrt 2 ≤ 1.41422 := sqrt_two_le
@@ -117,7 +114,7 @@ private theorem le_sharpSplitRadius_sub_quarter {t : ℝ} (ht : 16 ≤ t / (2 * 
   rw [sharpSplitRadius, le_sub_iff_add_le, le_div_iff₀ (by positivity)]
   linarith
 
-/-- **The numerical endgame of the linear tail estimate**: past `A = 81/100` the Gaussian factor
+/-- The numerical bound closing the linear tail estimate: past `A = 81/100` the Gaussian factor
 `e^{-4πA²}` beats the single power of `√T` that the linear term carries. -/
 private theorem linear_tail_constant_le {S A : ℝ} (hS : 0 ≤ S) (hA : 81 / 100 ≤ A)
     (hSA : S ≤ 5 * A) :
@@ -154,7 +151,7 @@ private theorem linear_tail_constant_le {S A : ℝ} (hS : 0 ≤ S) (hA : 81 / 10
     _ ≤ 135 * ((81 / 100 : ℝ) ^ 3 * Real.exp (-(4 * π) * (81 / 100 : ℝ) ^ 2)) := by gcongr
     _ ≤ π / 110 := hnum
 
-/-- **The linear term outside the inner region** (`riemann_siegel_first.tex`,
+/-- The linear term outside the inner region (`riemann_siegel_first.tex`,
 `lem:rsf_linear_tail`): over `|w| > W = (√T - 1)/(2√2)` the `T^{-1/2}`-linear part `P₁(y)/√T` of
 the saddle discrepancy contributes at most `T^{-1}/200`. -/
 theorem norm_integral_linear_tail_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) {ν : ℕ}
@@ -255,7 +252,7 @@ theorem norm_integral_linear_tail_le {t : ℝ} (ht : 16 ≤ t / (2 * π)) {ν : 
         linarith [linear_tail_constant_le hS0.le (by linarith) hSA]
     _ = 1 / 200 / (t / (2 * π)) := by rw [hTS]
 
-/-- **The linear term over the inner region is the third derivative of the model integral**
+/-- The linear term over the inner region is the third derivative of the model integral
 (`riemann_siegel_first.tex`, `lem:rsf_linear_tail`, second display): the truncated linear integral
 differs from `-M'''(p)T^{-1/2}/(96π²)` by at most `T^{-1}/200`. -/
 theorem norm_integral_linear_add_iteratedDeriv_three_modelIntegral_le {t : ℝ}

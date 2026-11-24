@@ -46,7 +46,7 @@ open scoped Real
 
 namespace Zeta.RiemannSiegel
 
-/-- **The gap between `T` and `a²` at a crossing point `a` within `½` of the saddle `S = √T`.** -/
+/-- The gap between `T` and `a²` at a crossing point `a` within `½` of the saddle `S = √T`. -/
 theorem abs_sub_sq_le {T S a : ℝ} (hTS : S ^ 2 = T) (h0 : 0 ≤ S + a) (h1 : S - 1 / 2 ≤ a)
     (h2 : a ≤ S + 1 / 2) : |T - a ^ 2| ≤ a + 1 / 4 := by
   rw [← hTS, show S ^ 2 - a ^ 2 = (S - a) * (S + a) by ring, abs_mul, abs_of_nonneg h0]
@@ -55,7 +55,7 @@ theorem abs_sub_sq_le {T S a : ℝ} (hTS : S ^ 2 = T) (h0 : 0 ≤ S + a) (h1 : S
         exact abs_le.2 ⟨by linarith, by linarith⟩
     _ ≤ a + 1 / 4 := by linarith
 
-/-- **The comparison `T ≤ c⁴a²` in the `rpow` exponents of the order-zero bound.** -/
+/-- The comparison `T ≤ c⁴a²` in the `rpow` exponents of the order-zero bound. -/
 theorem rpow_neg_half_le_mul_rpow_neg_quarter {T a c : ℝ} (ha : 0 < a) (hT : 0 < T) (hc : 0 < c)
     (h : T ≤ c ^ 4 * a ^ 2) : a ^ (-(1 / 2) : ℝ) ≤ c * T ^ (-(1 / 4) : ℝ) := by
   have key : T ^ (1 / 4 : ℝ) ≤ c * a ^ (1 / 2 : ℝ) :=
@@ -67,12 +67,12 @@ theorem rpow_neg_half_le_mul_rpow_neg_quarter {T a c : ℝ} (ha : 0 < a) (hT : 0
     div_le_div_iff₀ (Real.rpow_pos_of_pos ha _) (Real.rpow_pos_of_pos hT _)]
   linarith
 
-/-- **The triangle bound for a multiplicative perturbation `E - 1`.** -/
+/-- The triangle bound for a multiplicative perturbation `E - 1`. -/
 theorem norm_mul_sub_one_le (A E : ℂ) : ‖A * (E - 1)‖ ≤ ‖A * E‖ + ‖A‖ := by
   rw [mul_sub, mul_one]
   exact norm_sub_le _ _
 
-/-- **The crossing point controls the contour**: `|x|^{-1/2} ≤ 2^{1/4} a^{-1/2}` along `L(a)`,
+/-- The crossing point controls the contour: `|x|^{-1/2} ≤ 2^{1/4} a^{-1/2}` along `L(a)`,
 since `|x| ≥ a/√2`. -/
 private theorem norm_line_rpow_neg_half_le {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
     ‖line a w‖ ^ (-(1 / 2) : ℝ) ≤ 2 ^ (1 / 4 : ℝ) * a ^ (-(1 / 2) : ℝ) := by
@@ -88,7 +88,7 @@ private theorem norm_line_rpow_neg_half_le {a : ℝ} (ha0 : 0 < a) (w : ℝ) :
   exact Real.antitoneOn_rpow_Ioi_of_exponent_nonpos (by norm_num) (Set.mem_Ioi.2 hlb)
     (Set.mem_Ioi.2 (hlb.trans_le hxlb)) hxlb
 
-/-- **The Gaussian majorant for the Riemann–Siegel integrand on the critical line.** -/
+/-- The Gaussian majorant for the Riemann–Siegel integrand on the critical line. -/
 theorem norm_contourIntegrand_le {t a : ℝ} {n : ℤ} (ht : 0 ≤ t) (ha : a = n + 1 / 2) (ha0 : 0 < a)
     (hT : t / (2 * π) ≤ 2 * a ^ 2) (w : ℝ) :
     ‖contourIntegrand (1 / 2 + t * I) a w‖
@@ -104,11 +104,10 @@ theorem norm_contourIntegrand_le {t a : ℝ} {n : ℤ} (ht : 0 ≤ t) (ha : a = 
   gcongr
   linarith
 
-/-- **The sharp majorant for the integrand outside the unit interval**: beyond `|w| = 1` the
-kernel's denominator contributes its full exponential decay `e^{π|w|}`, rather than the constant
-`√2/2` of `Zeta.RiemannSiegel.norm_contourIntegrand_le`, and the phase is retained rather than
-dominated by a Gaussian (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`). No hypothesis on `a`
-beyond positivity is needed: away from the real axis the lower bound on `|sin (πx)|` is uniform. -/
+/-- The sharp majorant for the integrand outside the unit interval: beyond `|w| = 1` the
+kernel's denominator contributes its full exponential decay `e^{π|w|}`, and the phase appears
+as is (`riemann_siegel_first.tex`, `lem:rsf_outer_sharp`). The only hypothesis on `a` is
+positivity: away from the real axis the lower bound on `|sin (πx)|` is uniform. -/
 theorem norm_contourIntegrand_le' {t a : ℝ} (ha0 : 0 < a) {w : ℝ} (hw : 1 ≤ |w|) :
     ‖contourIntegrand (1 / 2 + t * I) a w‖
       ≤ 100 / 99 * (2 ^ (1 / 4 : ℝ) * a ^ (-(1 / 2) : ℝ))
@@ -135,7 +134,7 @@ theorem norm_contourIntegrand_le' {t a : ℝ} (ha0 : 0 < a) {w : ℝ} (hw : 1 �
         mul_le_mul_of_nonneg_left (by linarith)
           (mul_nonneg (mul_nonneg (by norm_num) hK0) (by positivity))
 
-/-- **The order-zero bound for the shifted Riemann–Siegel integral**, in which `B = 2π|T - a²|/a`
+/-- The order-zero bound for the shifted Riemann–Siegel integral, in which `B = 2π|T - a²|/a`
 measures the distance, in units of the contour, from the crossing point `a` to the saddle `√T`. -/
 theorem norm_contourIntegral_le {t a : ℝ} {n : ℤ} (ht : 0 ≤ t) (ha : a = n + 1 / 2) (ha0 : 0 < a)
     (hT : t / (2 * π) ≤ 2 * a ^ 2) :
@@ -193,7 +192,7 @@ private theorem two_mul_pi_rpow_one_div_four_le : (2 * π : ℝ) ^ (1 / 4 : ℝ)
   exact (Real.sqrt_le_left (by norm_num)).2
     ((Real.sqrt_le_left (by norm_num)).2 (by nlinarith [Real.pi_lt_d6]))
 
-/-- **The numerical form of the order-zero bound**, at the half-integer crossing point nearest the
+/-- The numerical form of the order-zero bound, at the half-integer crossing point nearest the
 saddle: `|I(1/2 + it, ⌊√T⌋ + 1/2)| ≤ 95 T^{-1/4}` for `t ≥ 32π`. -/
 theorem norm_contourIntegral_le_ninetyFive {t a : ℝ} {n : ℤ} (ht : 32 * π ≤ t) (ha : a = n + 1 / 2)
     (hn : (n : ℝ) ≤ Real.sqrt (t / (2 * π))) (hn' : Real.sqrt (t / (2 * π)) < n + 1) :
@@ -222,7 +221,7 @@ theorem norm_contourIntegral_le_ninetyFive {t a : ℝ} {n : ℤ} (ht : 32 * π �
     rw [div_le_iff₀ (by positivity)]
     nlinarith [hB, hB0, Real.pi_lt_d6, mul_nonneg hpi.le
       (by linarith [Real.pi_lt_d6] : (0 : ℝ) ≤ 3.141593 - π)]
-  -- the loss from crossing at a half-integer rather than at the saddle
+  -- the loss from crossing at a half-integer
   have hexp : Real.exp ((2 * π * |t / (2 * π) - a ^ 2| / a) ^ 2 / (4 * π)) ≤ 37.12 :=
     (Real.exp_le_exp.2 hBsq).trans exp_three_point_six_le
   -- `a^{-1/2} ≤ 1.07 T^{-1/4}`, since `a ≥ (7/8)√T`
@@ -237,7 +236,7 @@ theorem norm_contourIntegral_le_ninetyFive {t a : ℝ} {n : ℤ} (ht : 32 * π �
           (Real.exp_pos _).le (by positivity)
     _ ≤ 95 * (t / (2 * π)) ^ (-(1 / 4) : ℝ) := by linarith
 
-/-- **The order-zero bound in terms of `t`** rather than of `T = t/2π`. -/
+/-- The order-zero bound in terms of `t`: `|I(1/2 + it, a)| ≤ 151 t^{-1/4}`. -/
 theorem norm_contourIntegral_le_hundredFiftyOne {t a : ℝ} {n : ℤ} (ht : 32 * π ≤ t)
     (ha : a = n + 1 / 2) (hn : (n : ℝ) ≤ Real.sqrt (t / (2 * π)))
     (hn' : Real.sqrt (t / (2 * π)) < n + 1) :

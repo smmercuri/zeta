@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Functions.Arctan
@@ -22,13 +27,14 @@ private meta partial def arctanTermCountAux (u v M L vk : ℕ) : ℕ :=
   if L.ble (vk * (4 * M + 1)) then M
   else arctanTermCountAux u v (M + 1) (L * u ^ 4) (vk * v ^ 4)
 
-/-- Least `M ≥ 1` with `u^(4M+1)·2D ≤ v^(4M+1)·(4M+1)`; powers threaded incrementally
-(like `expTermCount`), not recomputed per step. -/
+/-- Least `M ≥ 1` with `u^(4M+1)·2D ≤ v^(4M+1)·(4M+1)`. -/
 private meta def arctanTermCount (u v D : ℕ) : ℕ :=
     arctanTermCountAux u v 1 (u ^ 5 * (2 * D)) (v ^ 5)
 
 open Lean Elab Term Meta in
-/-- Core for `arctan (u/v)` (`u<v`) at `1/D` via binary splitting. -/
+/-- `(m, Q, M, even, odd)` for `arctan (u/v)` (`u < v`) at precision `1/D`: the signed
+floor-rounded numerator `m` over `Q = dyadicDenom D`, the term count, and the two binary-split
+values. -/
 meta def arctanCore (u v D : ℕ) : MetaM (Int × ℕ × ℕ × (ℕ × ℕ × ℕ) × (ℕ × ℕ × ℕ)) := do
   let Q := dyadicDenom D
   let M := arctanTermCount u v D
@@ -45,10 +51,8 @@ meta def arctanCore (u v D : ℕ) : MetaM (Int × ℕ × ℕ × (ℕ × ℕ × �
   return (m, Q, M, (Te, Qe, Pe), (To, Qo, Po))
 
 open Lean Elab Term Meta in
-/-- Build the arctan inner enclosure `Real.IsNear (arctan (↑u/↑v)) neg cn Q 1 D` (`u<v`); return
-`(proof, neg, cn, Q)`. Shared by the Machin π combiner. A thin wrapper over
-the shared `mkEvenOddCertCore` (even value `u(Qe+Te)/(v·Qe)`, odd `u³(Qo+To)/(3v³·Qo)`,
-7 leading side conditions of the sign-specialized `arctan_dyadic_bound_f`/`_t`). -/
+/-- `(proof, neg, cn, Q)` with `proof : Real.IsNear (arctan (↑u/↑v)) neg cn Q 1 D`, for
+`u < v`. -/
 meta def mkArctanPos (u v D : ℕ) : MetaM (Expr × Bool × ℕ × ℕ) :=
   mkEvenOddCertCore ``arctanEvenP ``arctanEvenQ ``arctanOddP ``arctanOddQ
     (arctanEvenP u) (arctanEvenQ v) (arctanOddP u) (arctanOddQ v) u v (arctanTermCount u v D) D

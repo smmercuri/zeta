@@ -25,7 +25,7 @@ Here `B̃_{2m}(x) = bernoulliFun (2m) (Int.fract x)` is the periodized even Bern
 - `centered_kernel_mul_sign_nonneg`: the centered kernel has constant sign `(-1)^m`.
 - `integral_abs_bernoulliFun_sub_self`: the period-mean
   `∫_0^1 |bernoulliFun (2m) x - B_{2m}| dx = |B_{2m}|`.
-- `integral_Ioi_cos_mul_rpow_nonneg`: **Pólya's positivity lemma**,
+- `integral_Ioi_cos_mul_rpow_nonneg`: Pólya's positivity lemma,
   `∫_N^∞ cos(2πkx) x^{-a} dx ≥ 0` for `N ≥ 1` and `a > 1`.
 - `integral_Ioi_abs_bernoulliFun_fract_sub_mul_rpow_le`: the weighted averaging bound.
 - `zetaRemainder_eq_integral_bernoulliFun_fract_sub`: the centered-kernel representation of the
@@ -54,7 +54,7 @@ private theorem hasSum_one_div_nat_pow_bernoulli (m : ℕ) (hm0 : m ≠ 0) :
             / (2 * m)! from by rw [mul_pow, ← h2]; ring]
   exact hasSum_zeta_nat hm0
 
-/-- **Centered cosine–Fourier expansion of the periodized even Bernoulli kernel.** For `m ≥ 1`
+/-- Centered cosine–Fourier expansion of the periodized even Bernoulli kernel. For `m ≥ 1`
 and all `x ∈ ℝ`, with `A_m = 2(2m)!/(2π)^{2m}`,
 `bernoulliFun (2m) (Int.fract x) - B_{2m} = (-1)^{m+1} A_m ∑_k (cos(2πkx) - 1)/k^{2m}`. -/
 theorem bernoulliFun_sub_self_eq_tsum_cos (m : ℕ) (hm : 1 ≤ m) (x : ℝ) :
@@ -100,7 +100,7 @@ theorem bernoulliFun_sub_self_eq_tsum_cos (m : ℕ) (hm : 1 ≤ m) (x : ℝ) :
     field_simp; linear_combination ha2
   linear_combination (-(B - b)) * hEF
 
-/-- **Constant sign of the centered even Bernoulli kernel.** For `m ≥ 1` and all `x`,
+/-- Constant sign of the centered even Bernoulli kernel. For `m ≥ 1` and all `x`,
 `(-1)^m (B̃_{2m}(x) - B_{2m}) ≥ 0`. -/
 theorem centered_kernel_mul_sign_nonneg (m : ℕ) (hm : 1 ≤ m) (x : ℝ) :
     0 ≤ (-1 : ℝ) ^ m * (bernoulliFun (2 * m) (Int.fract x) - (bernoulli (2 * m) : ℝ)) := by
@@ -113,7 +113,7 @@ theorem centered_kernel_mul_sign_nonneg (m : ℕ) (hm : 1 ≤ m) (x : ℝ) :
   rw [bernoulliFun_sub_self_eq_tsum_cos m hm x, ← mul_assoc, ← mul_assoc, hs3]
   linarith [mul_nonneg hA (neg_nonneg.mpr hS)]
 
-/-- **Period-mean of the centered even Bernoulli kernel.** For `m ≥ 1`,
+/-- Period-mean of the centered even Bernoulli kernel. For `m ≥ 1`,
 `∫_0^1 |bernoulliFun (2m) x - B_{2m}| dx = |B_{2m}|`. The integrand uses the Bernoulli polynomial
 `bernoulliFun (2m)`, which agrees on `[0,1)` with the periodized kernel `B̃_{2m}`. -/
 theorem integral_abs_bernoulliFun_sub_self (m : ℕ) (hm : 1 ≤ m) :
@@ -172,7 +172,7 @@ private theorem integrableOn_Ioi_cos_mul_rpow {ω q N : ℝ} (hq : q < -1) (hN :
   integrableOn_Ioi_of_bound_mul_rpow (Real.continuous_cos.comp (continuous_const.mul continuous_id))
     (fun _ ↦ abs_le.mpr ⟨Real.neg_one_le_cos _, Real.cos_le_one _⟩) hq hN
 
-/-- **Positivity of the weighted sine integral.** For `p > 1` and integers `N, k ≥ 1`,
+/-- Positivity of the weighted sine integral. For `p > 1` and integers `N, k ≥ 1`,
 `∫_N^∞ sin(2πkx) x^{-p} dx ≥ 0`. -/
 private theorem integral_Ioi_sin_mul_rpow_nonneg {p : ℝ} (hp : 1 < p) {N k : ℕ}
     (hN : 1 ≤ N) (hk : 1 ≤ k) :
@@ -249,7 +249,7 @@ private theorem integral_Ioi_sin_mul_rpow_nonneg {p : ℝ} (hp : 1 < p) {N k : �
       fun n ↦ (hpartial n).symm
   simpa using Antitone.alternating_series_le_tendsto htend_sum hcanti 0
 
-/-- **Pólya's positivity lemma (1918).** For an integer `N ≥ 1`, a real `a > 1`, and any natural
+/-- Pólya's positivity lemma (1918). For an integer `N ≥ 1`, a real `a > 1`, and any natural
 `k`, `∫_N^∞ cos(2πkx) x^{-a} dx ≥ 0`. -/
 theorem integral_Ioi_cos_mul_rpow_nonneg {a : ℝ} (ha : 1 < a) {N k : ℕ} (hN : 1 ≤ N) :
     0 ≤ ∫ x in Set.Ioi (N : ℝ), cos (2 * π * k * x) * x ^ (-a) := by
@@ -320,7 +320,7 @@ theorem integral_Ioi_cos_mul_rpow_nonneg {a : ℝ} (ha : 1 < a) {N k : ℕ} (hN 
   rw [heq, zero_add]
   exact mul_nonneg (div_nonneg (by linarith) hω0.le) hJ
 
-/-- **Centered-kernel representation of the `ζ` remainder.** For `1 ≤ N` and `Re s > -(2M+1)`,
+/-- Centered-kernel representation of the `ζ` remainder. For `1 ≤ N` and `Re s > -(2M+1)`,
 the remainder `zetaRemainder` is a single integral of the *centered* even Bernoulli kernel:
 `R_M(s, N) = -(s)_{2M+2}/(2M+2)! · ∫_N^∞ (B̃_{2M+2}(x) - B_{2M+2}) x^{-s-(2M+2)} dx`. -/
 theorem zetaRemainder_eq_integral_bernoulliFun_fract_sub (s : ℂ) (M N : ℕ) (hN : 1 ≤ N)
@@ -370,7 +370,7 @@ theorem zetaRemainder_eq_integral_bernoulliFun_fract_sub (s : ℂ) (M N : ℕ) (
   field_simp
   ring
 
-/-- **Weighted averaging bound for the centered kernel.** For `m ≥ 1`, real `a > 1`, and integer
+/-- Weighted averaging bound for the centered kernel. For `m ≥ 1`, real `a > 1`, and integer
 `N ≥ 1`, `∫_N^∞ |B̃_{2m}(x) - B_{2m}| x^{-a} dx ≤ |B_{2m}| ∫_N^∞ x^{-a} dx`. -/
 theorem integral_Ioi_abs_bernoulliFun_fract_sub_mul_rpow_le (m : ℕ) (hm : 1 ≤ m) {a : ℝ}
     (ha : 1 < a) {N : ℕ} (hN : 1 ≤ N) :
@@ -454,7 +454,7 @@ theorem integral_Ioi_abs_bernoulliFun_fract_sub_mul_rpow_le (m : ℕ) (hm : 1 �
           hAmζ ▸ tsum_nonneg fun k ↦ div_nonneg hAm0.le (by positivity)
         rw [tsum_mul_right, hAmζ, ← abs_eq_neg_one_pow_mul hnn]
 
-/-- **The explicit Euler–Maclaurin remainder bound for `ζ`**, `K · ‖t_{M+1}(s,N)‖`, with the
+/-- The explicit Euler–Maclaurin remainder bound for `ζ`, `K · ‖t_{M+1}(s,N)‖`, with the
 constant `K = ‖s + (2M+1)‖ / (Re s + (2M+1))` and the leading Bernoulli term
 `t_{M+1}(s,N) = B_{2M+2}/(2M+2)! · (s)_{2M+1} · N^{-s-(2M+1)}`. -/
 noncomputable abbrev zetaRemainderBound (s : ℂ) (M N : ℕ) : ℝ :=
@@ -463,7 +463,7 @@ noncomputable abbrev zetaRemainderBound (s : ℂ) (M N : ℕ) : ℝ :=
         * (ascPochhammer ℂ (2 * M + 1)).eval s
         * (N : ℂ) ^ (-s - ((2 * M + 1 : ℕ) : ℂ))‖
 
-/-- **Borwein error bound.** For `1 ≤ N` and `Re s > -(2M+1)`, the Euler–Maclaurin remainder for
+/-- Borwein error bound. For `1 ≤ N` and `Re s > -(2M+1)`, the Euler–Maclaurin remainder for
 `ζ` is bounded by the first omitted term, scaled by `K = |s+2M+1|/(Re s+2M+1) ≥ 1`
 (`thm:zeta_error_bound`). -/
 theorem norm_zetaRemainder_le (s : ℂ) (M N : ℕ) (hN : 1 ≤ N) (hs : -(2 * M + 1 : ℝ) < s.re) :

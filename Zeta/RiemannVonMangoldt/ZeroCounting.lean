@@ -29,16 +29,14 @@ Riemann ξ function.
 
 open Complex
 
-/-- **Zeros of ζ off the real axis lie in the open critical strip.** If `ζ s = 0` and
-`s.im ≠ 0`, then `0 < Re s < 1`. -/
+/-- **Zeros of ζ off the real axis lie in the open critical strip.** -/
 theorem riemannZeta_re_mem_Ioo_of_eq_zero_of_im_ne_zero {s : ℂ}
     (hz : riemannZeta s = 0) (him : s.im ≠ 0) : s.re ∈ Set.Ioo (0 : ℝ) 1 :=
   ⟨not_le.mp fun h ↦ Kadiri.riemannZeta_ne_zero_of_re_nonpos_im_ne_zero h him hz,
     not_le.mp fun h ↦ riemannZeta_ne_zero_of_one_le_re h hz⟩
 
-/-- **`N(T)` counts the zeros of ξ in a box.** For every `T`, `riemannZeta.N T` is the sum, over
-the zeros `ρ` of ξ with `0 < Re ρ < 1` and `0 < Im ρ < T`, of the multiplicity
-`meromorphicOrderAt riemannXi ρ`. -/
+/-- **`N(T)` counts the zeros `ρ` of ξ with `0 < Re ρ < 1` and `0 < Im ρ < T`**, with
+multiplicity `meromorphicOrderAt riemannXi ρ`. -/
 theorem riemannZeta.N_eq_tsum_riemannXi_order (T : ℝ) :
     riemannZeta.N T =
       ∑' ρ : {z : ℂ // riemannXi z = 0 ∧ z.re ∈ Set.Ioo (0 : ℝ) 1 ∧ z.im ∈ Set.Ioo (0 : ℝ) T},
@@ -65,7 +63,7 @@ theorem riemannZeta.N_eq_tsum_riemannXi_order (T : ℝ) :
           (riemannZeta_re_mem_Ioo_of_eq_zero_of_im_ne_zero hzero hzim.1.ne')
         simp only [one_mul, riemannZeta.order,
           meromorphicOrderAt_riemannXi_eq_riemannZeta hre0 hre1]
-    _ = _ := (Equiv.setCongr hset).tsum_eq
+    _ = _ := (Set.equivOfEq hset).tsum_eq
         (fun ρ ↦ (((meromorphicOrderAt riemannXi (ρ : ℂ)).untopD 0 : ℤ) : ℝ))
 
 /-- A complex number at height `T` is `↑(its real part) + I·T`. -/
@@ -73,10 +71,8 @@ private theorem eq_ofReal_re_add_I_mul {T : ℝ} {z : ℂ} (hz : z.im = T) :
     z = (↑z.re : ℂ) + Complex.I * (T : ℂ) := by
   apply Complex.ext <;> simp [hz]
 
-/-- **Reduction of the ordinate hypothesis to a compact segment.** For `T > 0`, non-vanishing of
-`ζ` on the whole horizontal line `{s : Im s = T}` follows from non-vanishing on the half-open
-real-part segment `Re ∈ [½, 1)` at height `T`. This is what makes the ordinate hypothesis of
-`riemannZeta.N_eq` numerically certifiable. -/
+/-- **Reduction of the ordinate hypothesis to a compact segment**: `ζ` does not vanish on the
+line `Im s = T` if it does not vanish on the segment `Re ∈ [½, 1)` at height `T`. -/
 theorem riemannZeta_ne_zero_of_forall_re_mem_Ico {T : ℝ} (hT : 0 < T)
     (h : ∀ σ : ℝ, σ ∈ Set.Ico (1 / 2 : ℝ) 1 →
       riemannZeta ((σ : ℂ) + Complex.I * (T : ℂ)) ≠ 0) :

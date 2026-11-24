@@ -22,7 +22,7 @@ from pathlib import Path
 from data_gen.gen_gram_certificates import parse_gram_points
 from data_gen.gen_zero_certificates import (
     default_stores,
-    plan_batches,
+    plan_stores,
     write_module,
 )
 
@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def gen_count_certificate(unfolds: str, zsrc: str, native: bool = False) -> str:
-    """The module text. `native` builds it on the native assembler (`Native.Certificates`) instead,
+    """The module text. With `native`, it builds on the native assembler (`Native.Certificates`),
     as `Native.certifiedZeroCount`."""
     script = "gen_native_certificates.py" if native else "gen_count_certificate.py"
     assembler = "Native.Certificates" if native else "Zeta.Zeros.Certificates"
@@ -117,18 +117,20 @@ def check_heights(height: int, top: int) -> None:
         f"Zeta/Main.lean states height {main}, comparator/Main {challenge}, and the certificates "
         f"give height {height} (nothing written).\nBoth are hand-written: change Zeta/Main.lean and "
         f"comparator/Main/{{Challenge.lean, Solution.lean, config.json}} together{hint}, or run "
-        f"./gen_certificates.sh, which does it.")
+        f"scripts/gen_certificates.sh, which does it.")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(usage="gen_count_certificate.py <out.lean> "
-                                       "[--gram STORE] [--height H] [<store>…]")
+                                       "[--gram STORE] [--height H] [--ignore-style] [<store>…]")
     ap.add_argument("out", type=Path)
     ap.add_argument("stores", nargs="*", type=Path,
                     help="zero stores; default every store under python/out/, as "
                          "gen_zero_certificates.py")
     ap.add_argument("--gram", type=Path, help="the gram store (default: the one under python/out/)")
     ap.add_argument("--height", type=int, help="headline height, at most ⌊gp1.fst⌋ (the default)")
+    ap.add_argument("--ignore-style", action="store_true",
+                    help="allow lines past the 100-column limit (long `--no-widen` endpoints)")
     args = ap.parse_args()
     stores = args.stores or default_stores()
     gram = args.gram or default_gram()
@@ -143,12 +145,12 @@ def main() -> None:
 
     # `norm_num` must see through whatever wrapper constructors the last batch built its
     # endpoints with, exactly as a seam must; only the shared plan knows which batch that is.
-    last_ref = plan_batches(stores, head)[-1][0]
-    unfolds = "".join(", " + u for u in last_ref.dialect.seam_unfold)
+    last = plan_stores(stores)[-1]
+    unfolds = "".join(", " + u for u in last.dialect.seam_unfold)
 
     srcs = "\n".join(f"  {s.resolve().relative_to(ROOT)}" for s in stores)
-    write_module(args.out, gen_count_certificate(unfolds, srcs))
-    print(f"wrote {args.out} (certifiedZeroCount, last batch {last_ref.qual})")
+    write_module(args.out, gen_count_certificate(unfolds, srcs), args.ignore_style)
+    print(f"wrote {args.out} (certifiedZeroCount, last batch {last.qual(last.batches)})")
 
 
 if __name__ == "__main__":

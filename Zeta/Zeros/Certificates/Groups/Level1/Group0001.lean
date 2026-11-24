@@ -85,7 +85,7 @@ theorem upTo_RS0001 : BatchSpec 252 1000 1000 474603 1000 :=
   BatchSpec.append upTo_EM0001 RiemannSiegel.Batch0001.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0002. -/
-theorem upTo_RS0002 : BatchSpec 452 1000 1000 749551 1000 :=
+theorem upTo_RS0002 : BatchSpec 452 1000 1000 748976 1000 :=
   BatchSpec.append upTo_RS0001 RiemannSiegel.Batch0002.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0003. -/
@@ -101,7 +101,7 @@ theorem upTo_RS0005 : BatchSpec 1052 1000 1000 1480141 1000 :=
   BatchSpec.append upTo_RS0004 RiemannSiegel.Batch0005.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0006. -/
-theorem upTo_RS0006 : BatchSpec 1252 1000 1000 1706963 1000 :=
+theorem upTo_RS0006 : BatchSpec 1252 1000 1000 1707173 1000 :=
   BatchSpec.append upTo_RS0005 RiemannSiegel.Batch0006.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0007. -/
@@ -113,7 +113,7 @@ theorem upTo_RS0008 : BatchSpec 1652 1000 1000 2146286 1000 :=
   BatchSpec.append upTo_RS0007 RiemannSiegel.Batch0008.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0009. -/
-theorem upTo_RS0009 : BatchSpec 1852 1000 1000 2359735 1000 :=
+theorem upTo_RS0009 : BatchSpec 1852 1000 1000 2359934 1000 :=
   BatchSpec.append upTo_RS0008 RiemannSiegel.Batch0009.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0010. -/
@@ -141,7 +141,7 @@ theorem upTo_RS0015 : BatchSpec 3052 1000 1000 3585487 1000 :=
   BatchSpec.append upTo_RS0014 RiemannSiegel.Batch0015.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0016. -/
-theorem upTo_RS0016 : BatchSpec 3252 1000 1000 3782522 1000 :=
+theorem upTo_RS0016 : BatchSpec 3252 1000 1000 3782644 1000 :=
   BatchSpec.append upTo_RS0015 RiemannSiegel.Batch0016.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0017. -/
@@ -189,7 +189,7 @@ theorem upTo_RS0027 : BatchSpec 5452 1000 1000 5865789 1000 :=
   BatchSpec.append upTo_RS0026 RiemannSiegel.Batch0027.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0028. -/
-theorem upTo_RS0028 : BatchSpec 5652 1000 1000 6049062 1000 :=
+theorem upTo_RS0028 : BatchSpec 5652 1000 1000 6049119 1000 :=
   BatchSpec.append upTo_RS0027 RiemannSiegel.Batch0028.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0029. -/
@@ -221,7 +221,7 @@ theorem upTo_RS0035 : BatchSpec 7052 1000 1000 7311607 1000 :=
   BatchSpec.append upTo_RS0034 RiemannSiegel.Batch0035.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0036. -/
-theorem upTo_RS0036 : BatchSpec 7252 1000 1000 7489592 1000 :=
+theorem upTo_RS0036 : BatchSpec 7252 1000 1000 7489758 1000 :=
   BatchSpec.append upTo_RS0035 RiemannSiegel.Batch0036.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0037. -/
@@ -237,7 +237,7 @@ theorem upTo_RS0039 : BatchSpec 7852 1000 1000 8018952 1000 :=
   BatchSpec.append upTo_RS0038 RiemannSiegel.Batch0039.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0040. -/
-theorem upTo_RS0040 : BatchSpec 8052 1000 1000 8193850 1000 :=
+theorem upTo_RS0040 : BatchSpec 8052 1000 1000 8193959 1000 :=
   BatchSpec.append upTo_RS0039 RiemannSiegel.Batch0040.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0041. -/
@@ -253,15 +253,15 @@ theorem upTo_RS0043 : BatchSpec 8652 1000 1000 8717662 1000 :=
   BatchSpec.append upTo_RS0042 RiemannSiegel.Batch0043.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0044. -/
-theorem upTo_RS0044 : BatchSpec 8852 1000 1000 8891162 1000 :=
+theorem upTo_RS0044 : BatchSpec 8852 1000 1000 8891108 1000 :=
   BatchSpec.append upTo_RS0043 RiemannSiegel.Batch0044.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0045. -/
-theorem upTo_RS0045 : BatchSpec 9052 1000 1000 9063603 1000 :=
+theorem upTo_RS0045 : BatchSpec 9052 1000 1000 9063657 1000 :=
   BatchSpec.append upTo_RS0044 RiemannSiegel.Batch0045.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0046. -/
-theorem upTo_RS0046 : BatchSpec 9252 1000 1000 9236079 1000 :=
+theorem upTo_RS0046 : BatchSpec 9252 1000 1000 9236187 1000 :=
   BatchSpec.append upTo_RS0045 RiemannSiegel.Batch0046.batch rfl rfl rfl
 
 /-- The zeros of every batch up to RiemannSiegel.Batch0047. -/

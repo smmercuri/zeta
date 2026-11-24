@@ -27,12 +27,12 @@ The Riemann zeta function has no zeros on the real line other than the trivial z
 
 open Set
 
-/-- **ζ does not vanish on the real segment `(0, 1)`.** -/
+/-- `ζ` does not vanish on the real segment `(0, 1)`. -/
 theorem riemannZeta_ne_zero_of_mem_Ioo_zero_one {x : ℝ} (hx : x ∈ Ioo 0 1) :
     riemannZeta x ≠ 0 :=
   fun hz ↦ by simpa [hz] using riemannZeta_ofReal_re_neg_of_mem_Ioo hx
 
-/-- **ζ has no non-trivial real zeros.** For real `x` that is not a trivial zero `-2(n+1)`,
+/-- `ζ` has no non-trivial real zeros: for real `x` that is not a trivial zero `-2(n+1)`,
 `ζ(x) ≠ 0`. -/
 theorem riemannZeta_ofReal_ne_zero {x : ℝ} (h : ¬∃ n : ℕ, x = -2 * (n + 1)) :
     riemannZeta x ≠ 0 := by

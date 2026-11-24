@@ -38,21 +38,22 @@ namespace Complex
 theorem arg_add_arg_neg_conj {z : ℂ} (hz : 0 < z.im) :
     z.arg + (-(starRingEnd ℂ z)).arg = Real.pi := by
   have hpi : z.arg ≠ Real.pi := fun h ↦ hz.ne' (Complex.arg_eq_pi_iff.mp h).2
-  rw [Complex.arg_neg_eq_arg_add_pi_of_im_neg (by simpa using hz), Complex.arg_conj, if_neg hpi]
+  rw [Complex.arg_neg_eq_arg_add_pi_of_im_neg (by simpa using hz), Complex.arg_conj,
+    ite_eq_right hpi]
   ring
 
 end Complex
 
 variable {a b : ℝ}
 
-/-- **The argument variation of a nonzero constant is `0`.** -/
+/-- The argument variation of a nonzero constant is `0`. -/
 theorem argVariation_const (hab : a ≤ b) {c : ℂ} (hc : c ≠ 0) :
     argVariation a b (fun _ ↦ c) = 0 := by
   rw [argVariation_eq_of_isContLog hab
     (g := fun _ ↦ Complex.log c) ⟨continuousOn_const, fun _ _ ↦ Complex.exp_log hc⟩]
   ring
 
-/-- **Argument variation along an affine segment that stays in the slit plane** is the
+/-- Argument variation along an affine segment that stays in the slit plane is the
 difference of the principal arguments of the endpoints. -/
 theorem argVariation_lineSeg {z₀ z₁ : ℂ}
     (h : ∀ u ∈ Set.Icc (0 : ℝ) 1, lineSeg z₀ z₁ u ∈ Complex.slitPlane) :
@@ -103,7 +104,7 @@ theorem argVariation_poly_seg {z₀ z₁ : ℂ}
     argVariation_mul zero_le_one hcont h0 hcont1 h1,
     argVariation_lineSeg hs, hsub, argVariation_lineSeg hs1]
 
-/-- **Argument of the polynomial factor.** For `T > 0`, `Δ_{L_T} arg (½ s (s - 1)) = π`. -/
+/-- Argument of the polynomial factor: for `T > 0`, `Δ_{L_T} arg (½ s (s - 1)) = π`. -/
 theorem argVariation_poly_L {T : ℝ} (hT : 0 < T) :
     argVariationContourL (fun s ↦ (1 / 2) * (s * (s - 1))) T = Real.pi := by
   -- slit-plane membership via a constant real part `> 0` …

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Mathlib.Algebra.BigOperators.Intervals
@@ -8,16 +13,15 @@ public import Mathlib.Algebra.BigOperators.Ring.Finset
 /-!
 # The binary-split engine over `ℕ`
 
-`binarySplit`, computing `∑_{m≤i<n} (a i / b i) · ∏_{m≤j<i} (p j / q j)` and the running product as
-integer numerator/denominator pairs over `ℕ`, with its spec and the certificate equation lemmas
-(`binarySplit_of_le`/`_of_base`/`_rec`), whose boolean side conditions (`Nat.beq`/`ble`/`blt`) the
-proof metaprogram discharges by reflection. The signed rational `sfrac` it works over lives in
-`Enclosure.Sfrac` (opened below).
+The spec of `binarySplit` (defined in `Enclosure.BinarySplit.Defs`), which computes
+`∑_{m≤i<n} ∏_{m≤j≤i} (p j / q j)` and the full product as numerator/denominator pairs over `ℕ`,
+and the certificate equation lemmas (`binarySplit_of_le`/`_of_base*`/`_rec`), whose Boolean side
+conditions (`Nat.beq`/`ble`/`blt`) are discharged by reflection. The signed rational `sfrac`
+lives in `Enclosure.Sfrac` (opened below).
 
-The design follows Bhavik Mehta's `Compute/LogSmallBig.lean`: the certificate lemmas carry the
-literal result tuple, and the companion metaprogram (`Enclosure.BinarySplit.Tactic.Engine`) computes
-the tuple in `MetaM` and emits these literals, leaving the kernel only `Nat.beq` equalities on
-concrete numerals to check.
+Following Bhavik Mehta's `Compute/LogSmallBig.lean`, the certificate lemmas carry the literal
+result tuple, which the metaprogram (`Enclosure.BinarySplit.Tactic.Engine`) computes in `MetaM`, so
+the kernel checks only `Nat.beq` equalities on numerals.
 -/
 @[expose] public section
 
@@ -29,9 +33,7 @@ open Enclosure
 
 Each term is a running product `term_i = ∏_{m≤j≤i} (p j / q j)`, and `binarySplit` returns
 `(T, Q, P)` with `∑ term_i = T/Q`, `∏ (p/q) = P/Q`, where `Q = ∏q` is the true common denominator
-(no redundant factor). Combine: `T = Tl·Qr + Pl·Tr`, `Q = Ql·Qr`, `P = Pl·Pr`. The certificate
-lemmas (`binarySplit_of_le`/`_of_base`/`_rec`) carry literal outputs tied by `beq`; `proveBS` emits
-the tuple with `beq` reflection. -/
+(no redundant factor). Combine: `T = Tl·Qr + Pl·Tr`, `Q = Ql·Qr`, `P = Pl·Pr`. -/
 
 open Finset
 
@@ -101,24 +103,36 @@ theorem binarySplit_spec {p q : ℕ → ℕ} {m n T Q P : ℕ} (hq : ∀ i, q i 
       push_cast
       field_simp
 
-/-! ### Certificate equation lemmas (literal outputs tied by `beq`), for the proof metaprogram.
+/-- A split from `0`: `Q ≠ 0`, and `T/Q` is the sum of the running products over `range n`. -/
+theorem binarySplit_range_spec {p q : ℕ → ℕ} {n T Q P : ℕ} (hq : ∀ i, q i ≠ 0)
+    (h : (T, Q, P) = binarySplit p q 0 n) :
+    Q ≠ 0 ∧ ∑ i ∈ range n, ∏ j ∈ Ico 0 (i + 1), ((p j : ℚ) / q j) = (T : ℚ) / Q := by
+  refine ⟨?_, by rw [range_eq_Ico]; exact (binarySplit_spec hq h).2⟩
+  have hb := binarySplit_nonzero (p := p) (m := 0) (n := n) hq
+  rw [← h] at hb
+  simpa using hb
 
-The boolean side conditions are phrased with the primitive `Nat.add`/`Nat.mul`/... so the
-kernel meets them directly, without unfolding `HAdd.hAdd → Add.add → Nat.add` per condition. -/
+/-! ### Certificate equation lemmas (literal outputs tied by `beq`)
+
+The Boolean side conditions use the primitive `Nat.add`/`Nat.mul`/..., so the kernel meets them
+without unfolding `HAdd.hAdd → Add.add → Nat.add` per condition. -/
 
 /-- Primitive-to-notation form of `Nat.div`, the companion of `Nat.add_eq`/`Nat.mul_eq`. -/
 theorem Nat.div_eq' {a b : ℕ} : a.div b = a / b := rfl
 
 theorem binarySplit_of_le {p q : ℕ → ℕ} {m n : ℕ} (h : n.ble m) :
     binarySplit p q m n = (0, 1, 1) := by
-  rw [binarySplit]; simp only [Nat.ble_eq] at h; rw [dif_neg (by omega)]
+  rw [binarySplit]; simp only [Nat.ble_eq] at h; rw [dite_eq_right (by omega)]
 
-theorem binarySplit_of_base {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.succ).beq n) (hT : T.beq (p m)) (hQ : Q.beq (q m)) (hP : P.beq (p m)) :
+/-- A leaf of the binary-splitting tree. Binders here and in the wider `binarySplit_of_base⟨w⟩` are
+ordered least-changing first, so the olean shares identical application prefixes. -/
+theorem binarySplit_of_base
+    {m n : ℕ} (h2 : (m.succ).beq n) {q : ℕ → ℕ} {Q : ℕ} (hQ : Q.beq (q m)) {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq (p m)) {T : ℕ} (hT : T.beq (p m)) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
-  rw [binarySplit, dif_pos (by omega), dif_pos rfl]
+  rw [binarySplit, dite_eq_left (by omega), dite_eq_left rfl]
 
 theorem binarySplit_rec {p q : ℕ → ℕ}
     {m n k tl ql pl tr qr pr T Q P : ℕ}
@@ -130,19 +144,16 @@ theorem binarySplit_rec {p q : ℕ → ℕ}
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.blt_eq, Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.div_eq'] at h1 hk hT hQ hP
   subst hk hT hQ hP
-  rw [binarySplit, dif_pos (by omega), dif_neg (by omega), hl, hr]
+  rw [binarySplit, dite_eq_left (by omega), dite_eq_right (by omega), hl, hr]
 
-/-! Wider base cases collapse a two- to four-leaf subtree into one application, so the proof
-metaprogram materializes one node where the leaf/leaf/`_rec` shape needed three (`_of_base2`),
-five (`_of_base3`), or seven (`_of_base4`). The tuples are the same combines over the same
-midpoint splits, so the emitted literals match the narrow-base tree's roots exactly, and the
-side conditions stay single `Nat.beq`s over the sequence values. -/
+/-! Wider base cases: `_of_base2`/`3`/`4` each state a two- to four-leaf subtree (three, five or
+seven nodes of the leaf/`_rec` shape) as one application, with the same midpoint splits and hence
+the same literals, and single `Nat.beq` side conditions over the sequence values. -/
 
-theorem binarySplit_of_base2 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 2).beq n)
-    (hT : T.beq (((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))))
-    (hQ : Q.beq ((q m).mul (q (m.succ))))
-    (hP : P.beq ((p m).mul (p (m.succ)))) :
+theorem binarySplit_of_base2
+    {m n : ℕ} (h2 : (m.add 2).beq n) {q : ℕ → ℕ} {Q : ℕ} (hQ : Q.beq ((q m).mul (q (m.succ))))
+    {P : ℕ} {p : ℕ → ℕ} (hP : P.beq ((p m).mul (p (m.succ)))) {T : ℕ}
+    (hT : T.beq (((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -153,13 +164,13 @@ theorem binarySplit_of_base2 {p q : ℕ → ℕ} {m n T Q P : ℕ}
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base3 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 3).beq n)
+theorem binarySplit_of_base3
+    {m n : ℕ} (h2 : (m.add 3).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((q m).mul ((q (m.succ)).mul (q (m.add 2))))) {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((p m).mul ((p (m.succ)).mul (p (m.add 2))))) {T : ℕ}
     (hT : T.beq (((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add
       ((p m).mul (((p (m.succ)).mul (q (m.add 2))).add
-        ((p (m.succ)).mul (p (m.add 2)))))))
-    (hQ : Q.beq ((q m).mul ((q (m.succ)).mul (q (m.add 2)))))
-    (hP : P.beq ((p m).mul ((p (m.succ)).mul (p (m.add 2))))) :
+        ((p (m.succ)).mul (p (m.add 2))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -172,14 +183,15 @@ theorem binarySplit_of_base3 {p q : ℕ → ℕ} {m n T Q P : ℕ}
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base4 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 4).beq n)
+theorem binarySplit_of_base4
+    {m n : ℕ} (h2 : (m.add 4).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq (((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3))))) {P : ℕ}
+    {p : ℕ → ℕ} (hP : P.beq (((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))))
+    {T : ℕ}
     (hT : T.beq (((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul
         ((q (m.add 2)).mul (q (m.add 3)))).add
       (((p m).mul (p (m.succ))).mul
-        (((p (m.add 2)).mul (q (m.add 3))).add ((p (m.add 2)).mul (p (m.add 3)))))))
-    (hQ : Q.beq (((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))))
-    (hP : P.beq (((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3))))) :
+        (((p (m.add 2)).mul (q (m.add 3))).add ((p (m.add 2)).mul (p (m.add 3))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -193,19 +205,21 @@ theorem binarySplit_of_base4 {p q : ℕ → ℕ} {m n T Q P : ℕ}
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-/-! The rest of the ladder (widths 5-16, generated mechanically as midpoint combines of two
-narrower bases; see `dev/gen_base_lemmas.py`): `proveBS` dispatches on `n - m` up to its cap. -/
+/-! The rest of the ladder (widths 5-16, generated mechanically); `proveBS`
+dispatches on `n - m` up to its cap. -/
 
-theorem binarySplit_of_base5 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 5).beq n)
+theorem binarySplit_of_base5
+    {m n : ℕ} (h2 : (m.add 5).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq (((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
+        4))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq (((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
+        4))))))
+    {T : ℕ}
     (hT : T.beq (((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add 2)).mul
         ((q (m.add 3)).mul (q (m.add 4))))).add (((p m).mul (p (m.succ))).mul (((p (m.add 2)).mul
         ((q (m.add 3)).mul (q (m.add 4)))).add ((p (m.add 2)).mul (((p (m.add 3)).mul (q (m.add
-        4))).add ((p (m.add 3)).mul (p (m.add 4)))))))))
-    (hQ : Q.beq (((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
-        4))))))
-    (hP : P.beq (((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
-        4)))))) :
+        4))).add ((p (m.add 3)).mul (p (m.add 4))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -219,17 +233,19 @@ theorem binarySplit_of_base5 {p q : ℕ → ℕ} {m n T Q P : ℕ}
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base6 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 6).beq n)
+theorem binarySplit_of_base6
+    {m n : ℕ} (h2 : (m.add 6).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq (((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
+        4)).mul (q (m.add 5))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
+        4)).mul (p (m.add 5))))))
+    {T : ℕ}
     (hT : T.beq (((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul ((q (m.add 3)).mul ((q
         (m.add 4)).mul (q (m.add 5))))).add (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul
         (((p (m.add 3)).mul ((q (m.add 4)).mul (q (m.add 5)))).add ((p (m.add 3)).mul (((p (m.add
-        4)).mul (q (m.add 5))).add ((p (m.add 4)).mul (p (m.add 5)))))))))
-    (hQ : Q.beq (((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
-        4)).mul (q (m.add 5))))))
-    (hP : P.beq (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
-        4)).mul (p (m.add 5)))))) :
+        4)).mul (q (m.add 5))).add ((p (m.add 4)).mul (p (m.add 5))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -244,18 +260,20 @@ theorem binarySplit_of_base6 {p q : ℕ → ℕ} {m n T Q P : ℕ}
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base7 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 7).beq n)
+theorem binarySplit_of_base7
+    {m n : ℕ} (h2 : (m.add 7).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq (((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
+        4))).mul ((q (m.add 5)).mul (q (m.add 6))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
+        4))).mul ((p (m.add 5)).mul (p (m.add 6))))))
+    {T : ℕ}
     (hT : T.beq (((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul (((q (m.add 3)).mul (q
         (m.add 4))).mul ((q (m.add 5)).mul (q (m.add 6))))).add (((p m).mul ((p (m.succ)).mul (p
         (m.add 2)))).mul (((((p (m.add 3)).mul (q (m.add 4))).add ((p (m.add 3)).mul (p (m.add
         4)))).mul ((q (m.add 5)).mul (q (m.add 6)))).add (((p (m.add 3)).mul (p (m.add 4))).mul
-        (((p (m.add 5)).mul (q (m.add 6))).add ((p (m.add 5)).mul (p (m.add 6)))))))))
-    (hQ : Q.beq (((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
-        4))).mul ((q (m.add 5)).mul (q (m.add 6))))))
-    (hP : P.beq (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
-        4))).mul ((p (m.add 5)).mul (p (m.add 6)))))) :
+        (((p (m.add 5)).mul (q (m.add 6))).add ((p (m.add 5)).mul (p (m.add 6))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -267,23 +285,25 @@ theorem binarySplit_of_base7 {p q : ℕ → ℕ} {m n T Q P : ℕ}
       ((p (m + 3) * q (m + 4) + p (m + 3) * p (m + 4)) * (q (m + 5) * q (m + 6)) + p (m + 3) * p
           (m + 4) * (p (m + 5) * q (m + 6) + p (m + 5) * p (m + 6)), q (m + 3) * q (m + 4) * (q (m
           + 5) * q (m + 6)), p (m + 3) * p (m + 4) * (p (m + 5) * p (m + 6))) :=
-    binarySplit_of_base4 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base4 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base8 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 8).beq n)
+theorem binarySplit_of_base8
+    {m n : ℕ} (h2 : (m.add 8).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q (m.add
+        4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul (q (m.add 7))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p (m.add
+        4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul (p (m.add 7))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add
         2)).mul (q (m.add 3)))).add (((p m).mul (p (m.succ))).mul (((p (m.add 2)).mul (q (m.add
         3))).add ((p (m.add 2)).mul (p (m.add 3)))))).mul (((q (m.add 4)).mul (q (m.add 5))).mul
         ((q (m.add 6)).mul (q (m.add 7))))).add ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul
         (p (m.add 3)))).mul (((((p (m.add 4)).mul (q (m.add 5))).add ((p (m.add 4)).mul (p (m.add
         5)))).mul ((q (m.add 6)).mul (q (m.add 7)))).add (((p (m.add 4)).mul (p (m.add 5))).mul
-        (((p (m.add 6)).mul (q (m.add 7))).add ((p (m.add 6)).mul (p (m.add 7)))))))))
-    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q (m.add
-        4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul (q (m.add 7))))))
-    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p (m.add
-        4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul (p (m.add 7)))))) :
+        (((p (m.add 6)).mul (q (m.add 7))).add ((p (m.add 6)).mul (p (m.add 7))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -291,17 +311,23 @@ theorem binarySplit_of_base8 {p q : ℕ → ℕ} {m n T Q P : ℕ}
       ((p m * q (m + 1) + p m * p (m + 1)) * (q (m + 2) * q (m + 3)) + p m * p (m + 1) * (p (m +
           2) * q (m + 3) + p (m + 2) * p (m + 3)), q m * q (m + 1) * (q (m + 2) * q (m + 3)), p m
           * p (m + 1) * (p (m + 2) * p (m + 3))) :=
-    binarySplit_of_base4 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base4 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 4) (m + 8) =
       ((p (m + 4) * q (m + 5) + p (m + 4) * p (m + 5)) * (q (m + 6) * q (m + 7)) + p (m + 4) * p
           (m + 5) * (p (m + 6) * q (m + 7) + p (m + 6) * p (m + 7)), q (m + 4) * q (m + 5) * (q (m
           + 6) * q (m + 7)), p (m + 4) * p (m + 5) * (p (m + 6) * p (m + 7))) :=
-    binarySplit_of_base4 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base4 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base9 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 9).beq n)
+theorem binarySplit_of_base9
+    {m n : ℕ} (h2 : (m.add 9).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q (m.add
+        4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p (m.add
+        4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add
         2)).mul (q (m.add 3)))).add (((p m).mul (p (m.succ))).mul (((p (m.add 2)).mul (q (m.add
         3))).add ((p (m.add 2)).mul (p (m.add 3)))))).mul (((q (m.add 4)).mul (q (m.add 5))).mul
@@ -310,11 +336,7 @@ theorem binarySplit_of_base9 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         ((p (m.add 4)).mul (p (m.add 5)))).mul ((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add
         8))))).add (((p (m.add 4)).mul (p (m.add 5))).mul (((p (m.add 6)).mul ((q (m.add 7)).mul
         (q (m.add 8)))).add ((p (m.add 6)).mul (((p (m.add 7)).mul (q (m.add 8))).add ((p (m.add
-        7)).mul (p (m.add 8)))))))))))
-    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q (m.add
-        4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))))))
-    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p (m.add
-        4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8))))))) :
+        7)).mul (p (m.add 8))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -322,18 +344,26 @@ theorem binarySplit_of_base9 {p q : ℕ → ℕ} {m n T Q P : ℕ}
       ((p m * q (m + 1) + p m * p (m + 1)) * (q (m + 2) * q (m + 3)) + p m * p (m + 1) * (p (m +
           2) * q (m + 3) + p (m + 2) * p (m + 3)), q m * q (m + 1) * (q (m + 2) * q (m + 3)), p m
           * p (m + 1) * (p (m + 2) * p (m + 3))) :=
-    binarySplit_of_base4 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base4 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 4) (m + 9) =
       ((p (m + 4) * q (m + 5) + p (m + 4) * p (m + 5)) * (q (m + 6) * (q (m + 7) * q (m + 8))) + p
           (m + 4) * p (m + 5) * (p (m + 6) * (q (m + 7) * q (m + 8)) + p (m + 6) * (p (m + 7) * q
           (m + 8) + p (m + 7) * p (m + 8))), q (m + 4) * q (m + 5) * (q (m + 6) * (q (m + 7) * q
           (m + 8))), p (m + 4) * p (m + 5) * (p (m + 6) * (p (m + 7) * p (m + 8)))) :=
-    binarySplit_of_base5 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base5 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base10 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 10).beq n)
+theorem binarySplit_of_base10
+    {m n : ℕ} (h2 : (m.add 10).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
+        4))))).mul (((q (m.add 5)).mul (q (m.add 6))).mul ((q (m.add 7)).mul ((q (m.add 8)).mul (q
+        (m.add 9)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
+        4))))).mul (((p (m.add 5)).mul (p (m.add 6))).mul ((p (m.add 7)).mul ((p (m.add 8)).mul (p
+        (m.add 9)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add
         2)).mul ((q (m.add 3)).mul (q (m.add 4))))).add (((p m).mul (p (m.succ))).mul (((p (m.add
         2)).mul ((q (m.add 3)).mul (q (m.add 4)))).add ((p (m.add 2)).mul (((p (m.add 3)).mul (q
@@ -343,13 +373,7 @@ theorem binarySplit_of_base10 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         5)).mul (q (m.add 6))).add ((p (m.add 5)).mul (p (m.add 6)))).mul ((q (m.add 7)).mul ((q
         (m.add 8)).mul (q (m.add 9))))).add (((p (m.add 5)).mul (p (m.add 6))).mul (((p (m.add
         7)).mul ((q (m.add 8)).mul (q (m.add 9)))).add ((p (m.add 7)).mul (((p (m.add 8)).mul (q
-        (m.add 9))).add ((p (m.add 8)).mul (p (m.add 9)))))))))))
-    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
-        4))))).mul (((q (m.add 5)).mul (q (m.add 6))).mul ((q (m.add 7)).mul ((q (m.add 8)).mul (q
-        (m.add 9)))))))
-    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
-        4))))).mul (((p (m.add 5)).mul (p (m.add 6))).mul ((p (m.add 7)).mul ((p (m.add 8)).mul (p
-        (m.add 9))))))) :
+        (m.add 9))).add ((p (m.add 8)).mul (p (m.add 9))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -358,18 +382,26 @@ theorem binarySplit_of_base10 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           1) * (p (m + 2) * (q (m + 3) * q (m + 4)) + p (m + 2) * (p (m + 3) * q (m + 4) + p (m +
           3) * p (m + 4))), q m * q (m + 1) * (q (m + 2) * (q (m + 3) * q (m + 4))), p m * p (m +
           1) * (p (m + 2) * (p (m + 3) * p (m + 4)))) :=
-    binarySplit_of_base5 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base5 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 5) (m + 10) =
       ((p (m + 5) * q (m + 6) + p (m + 5) * p (m + 6)) * (q (m + 7) * (q (m + 8) * q (m + 9))) + p
           (m + 5) * p (m + 6) * (p (m + 7) * (q (m + 8) * q (m + 9)) + p (m + 7) * (p (m + 8) * q
           (m + 9) + p (m + 8) * p (m + 9))), q (m + 5) * q (m + 6) * (q (m + 7) * (q (m + 8) * q
           (m + 9))), p (m + 5) * p (m + 6) * (p (m + 7) * (p (m + 8) * p (m + 9)))) :=
-    binarySplit_of_base5 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base5 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base11 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 11).beq n)
+theorem binarySplit_of_base11
+    {m n : ℕ} (h2 : (m.add 11).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
+        4))))).mul (((q (m.add 5)).mul ((q (m.add 6)).mul (q (m.add 7)))).mul ((q (m.add 8)).mul
+        ((q (m.add 9)).mul (q (m.add 10)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
+        4))))).mul (((p (m.add 5)).mul ((p (m.add 6)).mul (p (m.add 7)))).mul ((p (m.add 8)).mul
+        ((p (m.add 9)).mul (p (m.add 10)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add
         2)).mul ((q (m.add 3)).mul (q (m.add 4))))).add (((p m).mul (p (m.succ))).mul (((p (m.add
         2)).mul ((q (m.add 3)).mul (q (m.add 4)))).add ((p (m.add 2)).mul (((p (m.add 3)).mul (q
@@ -380,13 +412,7 @@ theorem binarySplit_of_base11 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         (m.add 6)).mul (q (m.add 7))).add ((p (m.add 6)).mul (p (m.add 7)))))).mul ((q (m.add
         8)).mul ((q (m.add 9)).mul (q (m.add 10))))).add (((p (m.add 5)).mul ((p (m.add 6)).mul (p
         (m.add 7)))).mul (((p (m.add 8)).mul ((q (m.add 9)).mul (q (m.add 10)))).add ((p (m.add
-        8)).mul (((p (m.add 9)).mul (q (m.add 10))).add ((p (m.add 9)).mul (p (m.add 10)))))))))))
-    (hQ : Q.beq ((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul ((q (m.add 3)).mul (q (m.add
-        4))))).mul (((q (m.add 5)).mul ((q (m.add 6)).mul (q (m.add 7)))).mul ((q (m.add 8)).mul
-        ((q (m.add 9)).mul (q (m.add 10)))))))
-    (hP : P.beq ((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul ((p (m.add 3)).mul (p (m.add
-        4))))).mul (((p (m.add 5)).mul ((p (m.add 6)).mul (p (m.add 7)))).mul ((p (m.add 8)).mul
-        ((p (m.add 9)).mul (p (m.add 10))))))) :
+        8)).mul (((p (m.add 9)).mul (q (m.add 10))).add ((p (m.add 9)).mul (p (m.add 10))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -395,7 +421,7 @@ theorem binarySplit_of_base11 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           1) * (p (m + 2) * (q (m + 3) * q (m + 4)) + p (m + 2) * (p (m + 3) * q (m + 4) + p (m +
           3) * p (m + 4))), q m * q (m + 1) * (q (m + 2) * (q (m + 3) * q (m + 4))), p m * p (m +
           1) * (p (m + 2) * (p (m + 3) * p (m + 4)))) :=
-    binarySplit_of_base5 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base5 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 5) (m + 11) =
       ((p (m + 5) * (q (m + 6) * q (m + 7)) + p (m + 5) * (p (m + 6) * q (m + 7) + p (m + 6) * p
           (m + 7))) * (q (m + 8) * (q (m + 9) * q (m + 10))) + p (m + 5) * (p (m + 6) * p (m + 7))
@@ -403,12 +429,20 @@ theorem binarySplit_of_base11 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           9) * p (m + 10))), q (m + 5) * (q (m + 6) * q (m + 7)) * (q (m + 8) * (q (m + 9) * q (m
           + 10))), p (m + 5) * (p (m + 6) * p (m + 7)) * (p (m + 8) * (p (m + 9) * p (m + 10))))
           :=
-    binarySplit_of_base6 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base6 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base12 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 12).beq n)
+theorem binarySplit_of_base12
+    {m n : ℕ} (h2 : (m.add 12).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
+        4)).mul (q (m.add 5))))).mul (((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))).mul
+        ((q (m.add 9)).mul ((q (m.add 10)).mul (q (m.add 11)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
+        4)).mul (p (m.add 5))))).mul (((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul
+        ((p (m.add 9)).mul ((p (m.add 10)).mul (p (m.add 11)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul ((q (m.add 3)).mul ((q
         (m.add 4)).mul (q (m.add 5))))).add (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul
@@ -421,13 +455,7 @@ theorem binarySplit_of_base12 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         (m.add 8)))))).mul ((q (m.add 9)).mul ((q (m.add 10)).mul (q (m.add 11))))).add (((p
         (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul (((p (m.add 9)).mul ((q (m.add
         10)).mul (q (m.add 11)))).add ((p (m.add 9)).mul (((p (m.add 10)).mul (q (m.add 11))).add
-        ((p (m.add 10)).mul (p (m.add 11)))))))))))
-    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
-        4)).mul (q (m.add 5))))).mul (((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))).mul
-        ((q (m.add 9)).mul ((q (m.add 10)).mul (q (m.add 11)))))))
-    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
-        4)).mul (p (m.add 5))))).mul (((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul
-        ((p (m.add 9)).mul ((p (m.add 10)).mul (p (m.add 11))))))) :
+        ((p (m.add 10)).mul (p (m.add 11))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -437,7 +465,7 @@ theorem binarySplit_of_base12 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 4) * q (m + 5)) + p (m + 3) * (p (m + 4) * q (m + 5) + p (m + 4) * p (m + 5))), q m
           * (q (m + 1) * q (m + 2)) * (q (m + 3) * (q (m + 4) * q (m + 5))), p m * (p (m + 1) * p
           (m + 2)) * (p (m + 3) * (p (m + 4) * p (m + 5)))) :=
-    binarySplit_of_base6 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base6 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 6) (m + 12) =
       ((p (m + 6) * (q (m + 7) * q (m + 8)) + p (m + 6) * (p (m + 7) * q (m + 8) + p (m + 7) * p
           (m + 8))) * (q (m + 9) * (q (m + 10) * q (m + 11))) + p (m + 6) * (p (m + 7) * p (m +
@@ -445,12 +473,20 @@ theorem binarySplit_of_base12 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 10) * p (m + 11))), q (m + 6) * (q (m + 7) * q (m + 8)) * (q (m + 9) * (q (m + 10)
           * q (m + 11))), p (m + 6) * (p (m + 7) * p (m + 8)) * (p (m + 9) * (p (m + 10) * p (m +
           11)))) :=
-    binarySplit_of_base6 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base6 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base13 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 13).beq n)
+theorem binarySplit_of_base13
+    {m n : ℕ} (h2 : (m.add 13).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
+        4)).mul (q (m.add 5))))).mul (((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))).mul
+        (((q (m.add 9)).mul (q (m.add 10))).mul ((q (m.add 11)).mul (q (m.add 12)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
+        4)).mul (p (m.add 5))))).mul (((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul
+        (((p (m.add 9)).mul (p (m.add 10))).mul ((p (m.add 11)).mul (p (m.add 12)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul ((q (m.add 3)).mul ((q
         (m.add 4)).mul (q (m.add 5))))).add (((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul
@@ -464,13 +500,7 @@ theorem binarySplit_of_base13 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         11)).mul (q (m.add 12))))).add (((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul
         (((((p (m.add 9)).mul (q (m.add 10))).add ((p (m.add 9)).mul (p (m.add 10)))).mul ((q
         (m.add 11)).mul (q (m.add 12)))).add (((p (m.add 9)).mul (p (m.add 10))).mul (((p (m.add
-        11)).mul (q (m.add 12))).add ((p (m.add 11)).mul (p (m.add 12)))))))))))
-    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul ((q (m.add 3)).mul ((q (m.add
-        4)).mul (q (m.add 5))))).mul (((q (m.add 6)).mul ((q (m.add 7)).mul (q (m.add 8)))).mul
-        (((q (m.add 9)).mul (q (m.add 10))).mul ((q (m.add 11)).mul (q (m.add 12)))))))
-    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul ((p (m.add 3)).mul ((p (m.add
-        4)).mul (p (m.add 5))))).mul (((p (m.add 6)).mul ((p (m.add 7)).mul (p (m.add 8)))).mul
-        (((p (m.add 9)).mul (p (m.add 10))).mul ((p (m.add 11)).mul (p (m.add 12))))))) :
+        11)).mul (q (m.add 12))).add ((p (m.add 11)).mul (p (m.add 12))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -480,7 +510,7 @@ theorem binarySplit_of_base13 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 4) * q (m + 5)) + p (m + 3) * (p (m + 4) * q (m + 5) + p (m + 4) * p (m + 5))), q m
           * (q (m + 1) * q (m + 2)) * (q (m + 3) * (q (m + 4) * q (m + 5))), p m * (p (m + 1) * p
           (m + 2)) * (p (m + 3) * (p (m + 4) * p (m + 5)))) :=
-    binarySplit_of_base6 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base6 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 6) (m + 13) =
       ((p (m + 6) * (q (m + 7) * q (m + 8)) + p (m + 6) * (p (m + 7) * q (m + 8) + p (m + 7) * p
           (m + 8))) * (q (m + 9) * q (m + 10) * (q (m + 11) * q (m + 12))) + p (m + 6) * (p (m +
@@ -489,12 +519,22 @@ theorem binarySplit_of_base13 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           12))), q (m + 6) * (q (m + 7) * q (m + 8)) * (q (m + 9) * q (m + 10) * (q (m + 11) * q
           (m + 12))), p (m + 6) * (p (m + 7) * p (m + 8)) * (p (m + 9) * p (m + 10) * (p (m + 11)
           * p (m + 12)))) :=
-    binarySplit_of_base7 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base7 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base14 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 14).beq n)
+theorem binarySplit_of_base14
+    {m n : ℕ} (h2 : (m.add 14).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
+        4))).mul ((q (m.add 5)).mul (q (m.add 6))))).mul (((q (m.add 7)).mul ((q (m.add 8)).mul (q
+        (m.add 9)))).mul (((q (m.add 10)).mul (q (m.add 11))).mul ((q (m.add 12)).mul (q (m.add
+        13)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
+        4))).mul ((p (m.add 5)).mul (p (m.add 6))))).mul (((p (m.add 7)).mul ((p (m.add 8)).mul (p
+        (m.add 9)))).mul (((p (m.add 10)).mul (p (m.add 11))).mul ((p (m.add 12)).mul (p (m.add
+        13)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul (((q (m.add 3)).mul (q
         (m.add 4))).mul ((q (m.add 5)).mul (q (m.add 6))))).add (((p m).mul ((p (m.succ)).mul (p
@@ -510,15 +550,7 @@ theorem binarySplit_of_base14 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         7)).mul ((p (m.add 8)).mul (p (m.add 9)))).mul (((((p (m.add 10)).mul (q (m.add 11))).add
         ((p (m.add 10)).mul (p (m.add 11)))).mul ((q (m.add 12)).mul (q (m.add 13)))).add (((p
         (m.add 10)).mul (p (m.add 11))).mul (((p (m.add 12)).mul (q (m.add 13))).add ((p (m.add
-        12)).mul (p (m.add 13)))))))))))
-    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
-        4))).mul ((q (m.add 5)).mul (q (m.add 6))))).mul (((q (m.add 7)).mul ((q (m.add 8)).mul (q
-        (m.add 9)))).mul (((q (m.add 10)).mul (q (m.add 11))).mul ((q (m.add 12)).mul (q (m.add
-        13)))))))
-    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
-        4))).mul ((p (m.add 5)).mul (p (m.add 6))))).mul (((p (m.add 7)).mul ((p (m.add 8)).mul (p
-        (m.add 9)))).mul (((p (m.add 10)).mul (p (m.add 11))).mul ((p (m.add 12)).mul (p (m.add
-        13))))))) :
+        12)).mul (p (m.add 13))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -529,7 +561,7 @@ theorem binarySplit_of_base14 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 4) * (p (m + 5) * q (m + 6) + p (m + 5) * p (m + 6))), q m * (q (m + 1) * q (m +
           2)) * (q (m + 3) * q (m + 4) * (q (m + 5) * q (m + 6))), p m * (p (m + 1) * p (m + 2)) *
           (p (m + 3) * p (m + 4) * (p (m + 5) * p (m + 6)))) :=
-    binarySplit_of_base7 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base7 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 7) (m + 14) =
       ((p (m + 7) * (q (m + 8) * q (m + 9)) + p (m + 7) * (p (m + 8) * q (m + 9) + p (m + 8) * p
           (m + 9))) * (q (m + 10) * q (m + 11) * (q (m + 12) * q (m + 13))) + p (m + 7) * (p (m +
@@ -538,12 +570,22 @@ theorem binarySplit_of_base14 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           13))), q (m + 7) * (q (m + 8) * q (m + 9)) * (q (m + 10) * q (m + 11) * (q (m + 12) * q
           (m + 13))), p (m + 7) * (p (m + 8) * p (m + 9)) * (p (m + 10) * p (m + 11) * (p (m + 12)
           * p (m + 13)))) :=
-    binarySplit_of_base7 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base7 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base15 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 15).beq n)
+theorem binarySplit_of_base15
+    {m n : ℕ} (h2 : (m.add 15).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
+        4))).mul ((q (m.add 5)).mul (q (m.add 6))))).mul ((((q (m.add 7)).mul (q (m.add 8))).mul
+        ((q (m.add 9)).mul (q (m.add 10)))).mul (((q (m.add 11)).mul (q (m.add 12))).mul ((q
+        (m.add 13)).mul (q (m.add 14)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
+        4))).mul ((p (m.add 5)).mul (p (m.add 6))))).mul ((((p (m.add 7)).mul (p (m.add 8))).mul
+        ((p (m.add 9)).mul (p (m.add 10)))).mul (((p (m.add 11)).mul (p (m.add 12))).mul ((p
+        (m.add 13)).mul (p (m.add 14)))))))
+    {T : ℕ}
     (hT : T.beq (((((((p m).mul ((q (m.succ)).mul (q (m.add 2)))).add ((p m).mul (((p (m.add
         1)).mul (q (m.add 2))).add ((p (m.succ)).mul (p (m.add 2)))))).mul (((q (m.add 3)).mul (q
         (m.add 4))).mul ((q (m.add 5)).mul (q (m.add 6))))).add (((p m).mul ((p (m.succ)).mul (p
@@ -560,15 +602,7 @@ theorem binarySplit_of_base15 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         (m.add 7)).mul (p (m.add 8))).mul ((p (m.add 9)).mul (p (m.add 10)))).mul (((((p (m.add
         11)).mul (q (m.add 12))).add ((p (m.add 11)).mul (p (m.add 12)))).mul ((q (m.add 13)).mul
         (q (m.add 14)))).add (((p (m.add 11)).mul (p (m.add 12))).mul (((p (m.add 13)).mul (q
-        (m.add 14))).add ((p (m.add 13)).mul (p (m.add 14)))))))))))
-    (hQ : Q.beq ((((q m).mul ((q (m.succ)).mul (q (m.add 2)))).mul (((q (m.add 3)).mul (q (m.add
-        4))).mul ((q (m.add 5)).mul (q (m.add 6))))).mul ((((q (m.add 7)).mul (q (m.add 8))).mul
-        ((q (m.add 9)).mul (q (m.add 10)))).mul (((q (m.add 11)).mul (q (m.add 12))).mul ((q
-        (m.add 13)).mul (q (m.add 14)))))))
-    (hP : P.beq ((((p m).mul ((p (m.succ)).mul (p (m.add 2)))).mul (((p (m.add 3)).mul (p (m.add
-        4))).mul ((p (m.add 5)).mul (p (m.add 6))))).mul ((((p (m.add 7)).mul (p (m.add 8))).mul
-        ((p (m.add 9)).mul (p (m.add 10)))).mul (((p (m.add 11)).mul (p (m.add 12))).mul ((p
-        (m.add 13)).mul (p (m.add 14))))))) :
+        (m.add 14))).add ((p (m.add 13)).mul (p (m.add 14))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -579,7 +613,7 @@ theorem binarySplit_of_base15 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 4) * (p (m + 5) * q (m + 6) + p (m + 5) * p (m + 6))), q m * (q (m + 1) * q (m +
           2)) * (q (m + 3) * q (m + 4) * (q (m + 5) * q (m + 6))), p m * (p (m + 1) * p (m + 2)) *
           (p (m + 3) * p (m + 4) * (p (m + 5) * p (m + 6)))) :=
-    binarySplit_of_base7 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base7 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 7) (m + 15) =
       (((p (m + 7) * q (m + 8) + p (m + 7) * p (m + 8)) * (q (m + 9) * q (m + 10)) + p (m + 7) * p
           (m + 8) * (p (m + 9) * q (m + 10) + p (m + 9) * p (m + 10))) * (q (m + 11) * q (m + 12)
@@ -589,12 +623,22 @@ theorem binarySplit_of_base15 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           * (q (m + 9) * q (m + 10)) * (q (m + 11) * q (m + 12) * (q (m + 13) * q (m + 14))), p (m
           + 7) * p (m + 8) * (p (m + 9) * p (m + 10)) * (p (m + 11) * p (m + 12) * (p (m + 13) * p
           (m + 14)))) :=
-    binarySplit_of_base8 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base8 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 
-theorem binarySplit_of_base16 {p q : ℕ → ℕ} {m n T Q P : ℕ}
-    (h2 : (m.add 16).beq n)
+theorem binarySplit_of_base16
+    {m n : ℕ} (h2 : (m.add 16).beq n) {q : ℕ → ℕ} {Q : ℕ}
+    (hQ : Q.beq (((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q
+        (m.add 4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul (q (m.add 7))))).mul ((((q (m.add
+        8)).mul (q (m.add 9))).mul ((q (m.add 10)).mul (q (m.add 11)))).mul (((q (m.add 12)).mul
+        (q (m.add 13))).mul ((q (m.add 14)).mul (q (m.add 15)))))))
+    {P : ℕ} {p : ℕ → ℕ}
+    (hP : P.beq (((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p
+        (m.add 4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul (p (m.add 7))))).mul ((((p (m.add
+        8)).mul (p (m.add 9))).mul ((p (m.add 10)).mul (p (m.add 11)))).mul (((p (m.add 12)).mul
+        (p (m.add 13))).mul ((p (m.add 14)).mul (p (m.add 15)))))))
+    {T : ℕ}
     (hT : T.beq (((((((((p m).mul (q (m.succ))).add ((p m).mul (p (m.succ)))).mul ((q (m.add
         2)).mul (q (m.add 3)))).add (((p m).mul (p (m.succ))).mul (((p (m.add 2)).mul (q (m.add
         3))).add ((p (m.add 2)).mul (p (m.add 3)))))).mul (((q (m.add 4)).mul (q (m.add 5))).mul
@@ -613,15 +657,7 @@ theorem binarySplit_of_base16 {p q : ℕ → ℕ} {m n T Q P : ℕ}
         (p (m.add 11)))).mul (((((p (m.add 12)).mul (q (m.add 13))).add ((p (m.add 12)).mul (p
         (m.add 13)))).mul ((q (m.add 14)).mul (q (m.add 15)))).add (((p (m.add 12)).mul (p (m.add
         13))).mul (((p (m.add 14)).mul (q (m.add 15))).add ((p (m.add 14)).mul (p (m.add
-        15)))))))))))
-    (hQ : Q.beq (((((q m).mul (q (m.succ))).mul ((q (m.add 2)).mul (q (m.add 3)))).mul (((q
-        (m.add 4)).mul (q (m.add 5))).mul ((q (m.add 6)).mul (q (m.add 7))))).mul ((((q (m.add
-        8)).mul (q (m.add 9))).mul ((q (m.add 10)).mul (q (m.add 11)))).mul (((q (m.add 12)).mul
-        (q (m.add 13))).mul ((q (m.add 14)).mul (q (m.add 15)))))))
-    (hP : P.beq (((((p m).mul (p (m.succ))).mul ((p (m.add 2)).mul (p (m.add 3)))).mul (((p
-        (m.add 4)).mul (p (m.add 5))).mul ((p (m.add 6)).mul (p (m.add 7))))).mul ((((p (m.add
-        8)).mul (p (m.add 9))).mul ((p (m.add 10)).mul (p (m.add 11)))).mul (((p (m.add 12)).mul
-        (p (m.add 13))).mul ((p (m.add 14)).mul (p (m.add 15))))))) :
+        15))))))))))) :
     binarySplit p q m n = (T, Q, P) := by
   simp only [Nat.beq_eq, Nat.add_eq, Nat.mul_eq, Nat.succ_eq_add_one] at h2 hT hQ hP
   subst h2 hT hQ hP
@@ -633,7 +669,7 @@ theorem binarySplit_of_base16 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           p (m + 6) * p (m + 7))), q m * q (m + 1) * (q (m + 2) * q (m + 3)) * (q (m + 4) * q (m +
           5) * (q (m + 6) * q (m + 7))), p m * p (m + 1) * (p (m + 2) * p (m + 3)) * (p (m + 4) *
           p (m + 5) * (p (m + 6) * p (m + 7)))) :=
-    binarySplit_of_base8 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base8 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   have hr : binarySplit p q (m + 8) (m + 16) =
       (((p (m + 8) * q (m + 9) + p (m + 8) * p (m + 9)) * (q (m + 10) * q (m + 11)) + p (m + 8) *
           p (m + 9) * (p (m + 10) * q (m + 11) + p (m + 10) * p (m + 11))) * (q (m + 12) * q (m +
@@ -643,7 +679,7 @@ theorem binarySplit_of_base16 {p q : ℕ → ℕ} {m n T Q P : ℕ}
           (m + 9) * (q (m + 10) * q (m + 11)) * (q (m + 12) * q (m + 13) * (q (m + 14) * q (m +
           15))), p (m + 8) * p (m + 9) * (p (m + 10) * p (m + 11)) * (p (m + 12) * p (m + 13) * (p
           (m + 14) * p (m + 15)))) :=
-    binarySplit_of_base8 (by simp +arith) (by simp +arith; ring) (by simp +arith) (by simp +arith)
+    binarySplit_of_base8 (by simp +arith) (by simp +arith) (by simp +arith) (by simp +arith)
   exact binarySplit_rec (by simp [Nat.blt_eq]) (by simp [Nat.div_eq']; omega)
     (by simp) (by simp) (by simp) hl hr
 

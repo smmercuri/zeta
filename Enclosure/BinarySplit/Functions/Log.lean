@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Enclosure.BinarySplit.Basic
@@ -64,17 +69,10 @@ theorem artanh_value (u v N T Q P : ℕ) (hv : v ≠ 0) (hN : 1 ≤ N)
       = ∑ i ∈ Finset.range N, ((u : ℚ) / v) ^ (2 * i + 1) / ((2 * i + 1 : ℕ) : ℚ) := by
   have hqne : ∀ i, artanhQ v i ≠ 0 := by
     intro i; simp only [artanhQ, Nat.mul_eq, Nat.pow_eq, Nat.add_eq]
-    exact Nat.mul_ne_zero (pow_ne_zero 2 hv) (by omega)
-  have hQ0 : Q ≠ 0 := by
-    have hb := binarySplit_nonzero (p := artanhP u) (q := artanhQ v)
-      (m := 0) (n := N - 1) hqne
-    rw [← h] at hb
-    simpa using hb
-  have hspec := (binarySplit_spec (p := artanhP u) (q := artanhQ v)
-    (m := 0) (n := N - 1) hqne h).2
-  rw [Finset.sum_congr rfl (fun i _ => artanh_fold_term u v i hv)] at hspec
-  rw [← Finset.range_eq_Ico] at hspec
-  have hNeq : N = N - 1 + 1 := by omega
+    exact Nat.mul_ne_zero (pow_ne_zero 2 hv) (by lia)
+  obtain ⟨hQ0, hspec⟩ := binarySplit_range_spec hqne h
+  rw [Finset.sum_congr rfl (fun i _ ↦ artanh_fold_term u v i hv)] at hspec
+  have hNeq : N = N - 1 + 1 := by lia
   rw [hNeq, Finset.sum_range_succ']
   have hterm : ∀ i ∈ Finset.range (N - 1),
       ((u : ℚ) / v) ^ (2 * (i + 1) + 1) / ((2 * (i + 1) + 1 : ℕ) : ℚ)
@@ -104,7 +102,7 @@ theorem log_dyadic_bound (u v N Nm Qd Qdy D T P p S Dd : ℕ)
     Real.IsNear (Real.log ((S : ℝ) / (Dd : ℝ))) false p Qdy 1 D := by
   have hNm' : Nm = N - 1 := by
     have h : Nm + 1 = N := Nat.eq_of_beq_eq_true hNm
-    omega
+    lia
   subst hNm'
   obtain rfl : S = v + u := Nat.eq_of_beq_eq_true hS
   obtain rfl : Dd = v - u := Nat.eq_of_beq_eq_true hDd
@@ -112,17 +110,17 @@ theorem log_dyadic_bound (u v N Nm Qd Qdy D T P p S Dd : ℕ)
   have hDr : (0 : ℝ) < D := pos_real_of_ble hD
   simp only [Nat.blt_eq, Nat.ble_eq, Nat.add_eq, Nat.mul_eq,
     Nat.pow_eq] at huv hg hQd hD hv hN htail hr1 hr2 hQ
-  have hQdy0 : 0 < Qdy := by omega
+  have hQdy0 : 0 < Qdy := by lia
   have hQdyr : (0 : ℝ) < Qdy := by exact_mod_cast hQdy0
-  have hvne : v ≠ 0 := by omega
-  have hv0 : (0 : ℝ) < v := by exact_mod_cast (by omega : 0 < v)
-  have hQd0 : (0 : ℝ) < Qd := by exact_mod_cast (by omega : 0 < Qd)
+  have hvne : v ≠ 0 := by lia
+  have hv0 : (0 : ℝ) < v := by exact_mod_cast (by lia : 0 < v)
+  have hQd0 : (0 : ℝ) < Qd := by exact_mod_cast (by lia : 0 < Qd)
   have hden0 : (0 : ℝ) < (v : ℝ) * Qd := mul_pos hv0 hQd0
   -- artanh value of the split as a real, = the artanh Taylor partial sum
   have hsumR : (u : ℝ) * ((Qd : ℝ) + T) / ((v : ℝ) * Qd)
       = ∑ i ∈ Finset.range N, ((u : ℝ) / v) ^ (2 * i + 1) / (2 * (i : ℝ) + 1) := by
     have hq := artanh_value u v N T Qd P hvne hN hsplit.symm
-    have hr := congrArg (fun r : ℚ => (r : ℝ)) hq
+    have hr := congrArg (fun r : ℚ ↦ (r : ℝ)) hq
     push_cast at hr
     rw [hr]
   have hlog' : |Real.log (((v + u : ℕ) : ℝ) / ((v - u : ℕ) : ℝ))
@@ -155,23 +153,9 @@ theorem log_dyadic_bound (u v N Nm Qd Qdy D T P p S Dd : ℕ)
       _ ≤ 1 / (2 * D) := hA2
   have h2val : 2 * ((u : ℝ) * ((Qd : ℝ) + T) / ((v : ℝ) * Qd))
       = ((2 * (u * (Qd + T)) : ℕ) : ℝ) / ((v * Qd : ℕ) : ℝ) := by push_cast; ring
-  have e1 : (p : ℝ) / Qdy ≤ ((2 * (u * (Qd + T)) : ℕ) : ℝ) / ((v * Qd : ℕ) : ℝ) := by
-    rw [div_le_div_iff₀ hQdyr (by exact_mod_cast hden0)]; exact_mod_cast hr1
-  have e2 : ((2 * (u * (Qd + T)) : ℕ) : ℝ) / ((v * Qd : ℕ) : ℝ) < (p : ℝ) / Qdy + 1 / Qdy := by
-    rw [← add_div, div_lt_div_iff₀ (by exact_mod_cast hden0) hQdyr]; exact_mod_cast hr2
-  have hround' : |2 * ((u : ℝ) * ((Qd : ℝ) + T) / ((v : ℝ) * Qd)) - (p : ℝ) / Qdy|
-      ≤ 1 / (2 * D) := by
-    rw [h2val, abs_of_nonneg (sub_nonneg.mpr e1)]
-    calc ((2 * (u * (Qd + T)) : ℕ) : ℝ) / ((v * Qd : ℕ) : ℝ) - (p : ℝ) / Qdy
-        ≤ 1 / Qdy := by linarith [e2]
-      _ ≤ 1 / (2 * D) := by
-          rw [div_le_div_iff₀ hQdyr (mul_pos two_pos hDr), one_mul, one_mul]; exact_mod_cast hQ
-  calc |Real.log (((v + u : ℕ) : ℝ) / ((v - u : ℕ) : ℝ)) - (p : ℝ) / Qdy|
-      ≤ |Real.log (((v + u : ℕ) : ℝ) / ((v - u : ℕ) : ℝ))
-            - 2 * ((u : ℝ) * ((Qd : ℝ) + T) / ((v : ℝ) * Qd))|
-          + |2 * ((u : ℝ) * ((Qd : ℝ) + T) / ((v : ℝ) * Qd)) - (p : ℝ) / Qdy| := abs_sub_le _ _ _
-    _ ≤ 1 / (2 * D) + 1 / (2 * D) := add_le_add hlog' hround'
-    _ = 1 / D := by rw [← add_div, one_add_one_eq_two, ← div_div, div_self two_ne_zero]
+  rw [h2val] at hlog'
+  exact grid_round _ _ _ _ Qdy D hlog' (by exact_mod_cast hr1) (by exact_mod_cast hr2)
+    (by exact_mod_cast hden0) hDr hQdyr hQ
 
 /-! ### `log` enclosure transports and the signed verifier -/
 
@@ -197,9 +181,8 @@ theorem isNear_log_arg (P : ℝ) (pn pd cn cd rn rd : ℕ) (neg : Bool) (hP : P 
     (h : Real.IsNear (Real.log (sfrac false pn pd)) neg cn cd rn rd) :
     Real.IsNear (Real.log P) neg cn cd rn rd := by rw [hP]; exact h
 
-/-- `log` of an enclosure. For a positive enclosure `x ∈ [lo, hi]` with rational endpoints
-`L1/K1 = lo`, `L2/K2 = hi`, certified `log` enclosures at the endpoints sandwich `log x` by
-monotonicity. -/
+/-- `log` of a positive enclosure `x ∈ [lo, hi]` with rational endpoints `L1/K1 = lo`,
+`L2/K2 = hi`, from certified `log` enclosures at the endpoints. -/
 theorem isNear_log_image {x : ℝ} {n1 n2 nR : Bool}
     {cn cd ρn ρd L1 K1 L2 K2 c1 d1 r1 e1 c2 d2 r2 e2 cnR cdR rnR rdR : ℕ}
     (hx : Real.IsNear x false cn cd ρn ρd)

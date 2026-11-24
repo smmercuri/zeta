@@ -1,5 +1,5 @@
 from sage.all import pi, log, RealField
-from config import PREC, DIGITS, GRAM_GAP_MARGIN, GRAM_ZERO_DP, LEHMAN_LOG_COEFF
+from config import PREC, GRAM_DP, GRAM_GAP_MARGIN, GRAM_ZERO_DP, LEHMAN_LOG_COEFF
 from util import ZInterval, coe_int
 from decimal import ROUND_CEILING, ROUND_FLOOR
 from fractions import Fraction
@@ -21,7 +21,7 @@ class GramBlockSearchError(RuntimeError):
 
 
 def gram_point_interval(
-    n: int, seed_dps: int = 30, safety: int = 8, out_digits: int = DIGITS
+    n: int, seed_dps: int = 30, safety: int = 8, out_digits: int = GRAM_DP
 ):
     """
     Untrusted candidate rational interval (a, b) around the Gram point g_n
@@ -115,20 +115,20 @@ class GramBlock:
             rounded.append(r)
         return rounded
 
-    def block_data(self, i, seed_dps=30, safety=8, out_digits=DIGITS):
+    def block_data(self, i, seed_dps=30, safety=8, out_digits=GRAM_DP):
         l_idx, u_idx = self.blocks[i]
         gl, gu = self.gram_blocks[i]
         il = gram_point_interval(l_idx, seed_dps, safety, out_digits)
         iu = gram_point_interval(u_idx, seed_dps, safety, out_digits)
         return {"lower": (l_idx, gl, il[0], il[1]), "upper": (u_idx, gu, iu[0], iu[1])}
 
-    def data(self, seed_dps=30, safety=8, out_digits=DIGITS):
+    def data(self, seed_dps=30, safety=8, out_digits=GRAM_DP):
         return [
             self.block_data(i, seed_dps, safety, out_digits)
             for i in range(len(self.blocks))
         ]
 
-    def gram_intervals(self, seed_dps=30, safety=8, out_digits=DIGITS):
+    def gram_intervals(self, seed_dps=30, safety=8, out_digits=GRAM_DP):
         intervals = self.data(seed_dps, safety, out_digits)
         return [g["lower"] for g in intervals] + [intervals[-1]["upper"]]
 

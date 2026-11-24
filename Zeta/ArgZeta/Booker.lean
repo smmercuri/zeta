@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.Analysis.SpecialFunctions.Integrability.Basic
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.Complex.ExponentialBounds
 public import Mathlib.Analysis.Complex.Norm
@@ -32,9 +33,8 @@ denominator `D(τ) = bookerKernelDenom m v τ`.
 * `bookerSinglePoleIntegral_le_of` (`lem:lb_booker_single`): `∫₀² Λ k_a ≤ c·(1-a)/((1-a)²+v²)`
   for `a ∈ [-1, 1]`, `v ≠ 0`, any `c ≥ 2`.
 * `bookerPairIntegral_le_of` (`lem:lb_booker`): Lehman's zero-pairing estimate, parametric in
-  `c ≥ 2`. The corollary `bookerPairIntegral_le` (`c = 5/2`) is the constant consumed by the
-  current lower-bound assembly; `bookerPairIntegral_le_two` (`c = 2`) is rung R1 of
-  `lehman_sharp.tex`.
+  `c ≥ 2`. The corollary `bookerPairIntegral_le` (`c = 5/2`) is the constant used by the
+  lower-bound assembly; `bookerPairIntegral_le_two` (`c = 2`) is `lem:ls_rung_two`.
 -/
 @[expose] public section
 
@@ -157,7 +157,7 @@ private lemma intervalIntegrable_log_sub_left (m : ℝ) :
   exact h.symm
 
 /-- The `v = 0` slice `Φ₀(m) = (m+1)log(m+1) + (m-1)log|m-1| - 2m log m` of the folded single-pole
-integral (`def:lb_slice`). The `|m - 1|` keeps the definition total and continuous through
+integral (`def:lb_slice`). The `|m - 1|` makes the definition total and continuous through
 `m = 1`. -/
 noncomputable def bookerSlice (m : ℝ) : ℝ :=
   (m + 1) * Real.log (m + 1) + (m - 1) * Real.log |m - 1| - 2 * m * Real.log m
@@ -605,7 +605,7 @@ lemma bookerSinglePole_le_of {m v : ℝ} (hm0 : 0 ≤ m) (hm2 : m ≤ 2) (hv : v
       have hdisp := bookerSinglePole_le_of_dispersive hm hd
       have hpos : (0 : ℝ) ≤ m / (m ^ 2 + v ^ 2) := by positivity
       exact le_trans hdisp (mul_le_mul_of_nonneg_right (by linarith) hpos)
-    · -- Concentrated régime `3v² < m²`: bound `P` by the slice, not the rational remainder.
+    · -- Concentrated régime `3v² < m²`: bound `P` by the slice.
       have hP : bookerSinglePole m v ≤ bookerSlice m := bookerSinglePole_le_bookerSlice hm hv
       have hΦ : m * bookerSlice m ≤ 3 / 2 := mul_bookerSlice_le hm hm2
       have hmv2 : (0 : ℝ) < m ^ 2 + v ^ 2 := by positivity
@@ -827,16 +827,15 @@ theorem bookerPairIntegral_le_of {d : ℝ} (hd1 : 1 / 2 < d) {w : ℂ}
   · rw [abs_div, abs_of_pos hd0, div_le_one hd0]; linarith
   · exact div_ne_zero hwim hd0.ne'
 
-/-- The `c = 5/2` case of `bookerPairIntegral_le_of`, the constant consumed by the current
-lower-bound assembly. -/
+/-- The `c = 5/2` case of `bookerPairIntegral_le_of`, the constant used by the lower-bound
+assembly. -/
 theorem bookerPairIntegral_le {d : ℝ} (hd1 : 1 / 2 < d) {w : ℂ}
     (hw : |w.re| ≤ 1 / 2) (hwim : w.im ≠ 0) :
     bookerPairIntegral d w
       ≤ 5 / 2 * d ^ 2 * (1 / ((d : ℂ) + w) + 1 / ((d : ℂ) - (starRingEnd ℂ) w)).re :=
   bookerPairIntegral_le_of hd1 hw hwim (by norm_num)
 
-/-- **Rung R1 of the Lehman-constant sharpening** (`lem:ls_rung_two`): the zero-pairing estimate
-at the improved pairing constant `c = 2`, in place of `5/2`. -/
+/-- The zero-pairing estimate at the pairing constant `c = 2` (`lem:ls_rung_two`). -/
 theorem bookerPairIntegral_le_two {d : ℝ} (hd1 : 1 / 2 < d) {w : ℂ}
     (hw : |w.re| ≤ 1 / 2) (hwim : w.im ≠ 0) :
     bookerPairIntegral d w

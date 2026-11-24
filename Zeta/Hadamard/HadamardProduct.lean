@@ -65,7 +65,7 @@ theorem logDeriv_riemannXi_zero_eq_deriv {h : ℂ → ℂ} (hdiff : Differentiab
     logDeriv riemannXi 0 = deriv h 0 := by
   have hP0ne : riemannXiCanonicalProduct riemannXiZeros 0 ≠ 0 := by
     rw [riemannXiCanonicalProduct_zero]; norm_num
-  rw [funext hrep, logDeriv_mul (f := fun s ↦ Complex.exp (h s))
+  rw [funext hrep, logDeriv_fun_mul (f := fun s ↦ Complex.exp (h s))
       (g := riemannXiCanonicalProduct riemannXiZeros) 0 (Complex.exp_ne_zero _) hP0ne
       (hdiff 0).hasDerivAt.cexp.differentiableAt
       (differentiable_riemannXiCanonicalProduct riemannXiZeros

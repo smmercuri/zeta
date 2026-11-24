@@ -24,16 +24,26 @@ run is paid per shard.
 
 Run from the project root, after `gen_zero_certificates.py` on the same stores:
     PYTHONPATH=python/src python3 python/src/data_gen/gen_comparator.py comparator [<store>…]
+        [--ignore-style]   # allow lines past the 100-column limit (long `--no-widen` endpoints)
+        [--prune]          # remove batch targets from an earlier, larger run (else: list, stop)
+        [--shards]         # batch targets only, each stating its BatchSpec inline: no shared
+                           #   statements and no reduction, for sampled checks at any height
 """
 from __future__ import annotations
 
 import json
 import re
+import shutil
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from data_gen.gen_zero_certificates import (BatchRef, default_stores, gram_cap, header,
-                                             plan_batches, write_module)
+from data_gen.gen_zero_certificates import (BatchRef, default_stores, generated_by, header,
+                                             is_planned, iter_batches, module_qual,
+                                             plan_stores, write_module)
+
+#: this generator, as named in the header of every file it writes
+SCRIPT = "gen_comparator.py"
 
 #: the axioms every target may use
 PERMITTED_AXIOMS = ["propext", "Quot.sound", "Classical.choice"]
@@ -57,7 +67,7 @@ def statements_file(refs: list[BatchRef], src: str) -> str:
             line = f"abbrev {spec(r)} : Prop :=\n  Zeta.Certificates.{r.spec}"
         return f"/-- The statement exported by batch {r.qual}. -/\n{line}"
     defs = "\n\n".join(one(r) for r in refs)
-    return header(src, note) + f"""import Zeta.Zeros.Certificates.Basic
+    return header(src, note, SCRIPT) + f"""import Zeta.Zeros.Certificates.Basic
 
 namespace Comparator
 
@@ -65,6 +75,14 @@ namespace Comparator
 
 end Comparator
 """
+
+
+def shards_marker(src: str) -> str:
+    """`Statements.lean` in `--shards` mode: no statements, since every target states its own.
+    `comparator/sharded_run.sh` looks for this file and names its runs after its hash."""
+    note = ("Batch targets only (`gen_comparator.py --shards`): each states its batch's exported\n"
+            "statement inline, so there is nothing to share here and no reduction.")
+    return header(src, note, SCRIPT)
 
 
 def target(ref: BatchRef) -> str:
@@ -82,25 +100,34 @@ def config(module: str, names: list[str]) -> str:
     }, indent=4) + "\n"
 
 
-def batch_files(ref: BatchRef, src: str) -> dict[str, str]:
-    stmt = spec(ref)
+def inline_statement(ref: BatchRef) -> str:
+    """A batch's exported statement written out, for a target that imports no shared statements."""
+    return f"Zeta.Certificates.{ref.spec}"
+
+
+def batch_files(ref: BatchRef, src: str, shards: bool = False) -> dict[str, str]:
+    stmt = inline_statement(ref) if shards else spec(ref)
+    imp = "Zeta.Zeros.Certificates.Basic" if shards else "Batches.Statements"
+    head = f"theorem {target(ref)} : {stmt} :="
+    if len(head) > 100:  # high batches with long endpoint literals
+        head = f"theorem {target(ref)} :\n    {stmt} :="
     note_c = f"Comparator challenge for batch {ref.qual}: its exported statement, by `sorry`."
     note_s = f"Comparator solution for batch {ref.qual}: the batch's own theorem."
-    challenge = header(src, note_c) + f"""import Batches.Statements
+    challenge = header(src, note_c, SCRIPT) + f"""import {imp}
 
 namespace Comparator
 
-theorem {target(ref)} : {stmt} :=
+{head}
   sorry
 
 end Comparator
 """
-    solution = header(src, note_s) + f"""import Batches.Statements
+    solution = header(src, note_s, SCRIPT) + f"""import {imp}
 import Zeta.Zeros.Certificates.{ref.qual}
 
 namespace Comparator
 
-theorem {target(ref)} : {stmt} :=
+{head}
   Zeta.Certificates.{ref.qual}.batch
 
 end Comparator
@@ -119,7 +146,7 @@ def reduction_files(refs: list[BatchRef], height: int, src: str) -> dict[str, st
     note_s = ("Comparator solution for the reduction: the batch statements are folded with\n"
               "`BatchSpec.append` exactly as the assembler `Zeta.Zeros.Certificates` does, and\n"
               "the total fed to `riemannHypothesisUpTo_of_batchSpec`. No batch module is imported.")
-    challenge = header(src, note_c) + f"""import Mathlib.NumberTheory.LSeries.RiemannZeta
+    challenge = header(src, note_c, SCRIPT) + f"""import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Batches.Statements
 
 namespace Comparator
@@ -141,7 +168,7 @@ end Comparator
         steps.append(f"  have u_{cur.seam_tag} : BatchSpec {total} {a0} {ad0} {bn} {bd} :=\n"
                      f"    BatchSpec.append u_{prev.seam_tag} h_{cur.seam_tag} rfl rfl rfl")
     last = refs[-1]
-    solution = header(src, note_s) + f"""import Batches.Statements
+    solution = header(src, note_s, SCRIPT) + f"""import Batches.Statements
 import Zeta.Zeros.Certificates.Fold
 import Zeta.Zeros.RiemannHypothesisUpTo.Basic
 import Zeta.Gram.Certificates
@@ -177,28 +204,67 @@ def headline_height(root: Path) -> int:
     return int(m.group(1))
 
 
+def stale_targets(batches: Path, keep: Callable[[Path], bool]) -> list[Path]:
+    """The batch target directories under `batches` that this run does not write: left by an
+    earlier run over more batches. Only directories whose `Challenge.lean` names this script or
+    `gen_zero_certificates.py` as its generator count."""
+    return sorted(d for m in batches.iterdir() if m.is_dir() for d in m.glob("Batch*")
+                  if d.is_dir() and not keep(d) and (d / "Challenge.lean").is_file()
+                  and any(generated_by(d / "Challenge.lean", g)
+                          for g in (SCRIPT, "gen_zero_certificates.py")))
+
+
 def main() -> None:
-    if len(sys.argv) < 2:
-        raise SystemExit("usage: gen_comparator.py <comparator_dir> [<store>…]")
-    out = Path(sys.argv[1])
-    stores = [Path(a) for a in sys.argv[2:]] or default_stores()
-    plan = plan_batches(stores, gram_cap())
-    refs = [p[0] for p in plan]
-    srcs = ", ".join(dict.fromkeys(str(p[3]) for p in plan))
-    height = headline_height(out.resolve().parent)
+    argv = sys.argv[1:]
+    style = "--ignore-style" in argv
+    prune = "--prune" in argv
+    shards = "--shards" in argv
+    argv = [a for a in argv if a not in ("--ignore-style", "--prune", "--shards")]
+    if not argv:
+        raise SystemExit("usage: gen_comparator.py <comparator_dir> [--ignore-style] [--prune] "
+                         "[--shards] [<store>…]")
+    out = Path(argv[0])
+    stores = [Path(a) for a in argv[1:]] or default_stores()
+    plan = plan_stores(stores)
+    total = sum(p.batches for p in plan)
+    # the statements and the reduction name every batch; the targets alone need one at a time
+    refs = (ref for ref, _, _, _ in iter_batches(plan))
+    if not shards:
+        refs = list(refs)
+    srcs = ", ".join(str(p.store) for p in plan)
+    height = None if shards else headline_height(out.resolve().parent)
+
+    batches = out / "Batches"
+    stale = (stale_targets(batches, lambda d: is_planned(plan, module_qual(batches, d)))
+             if batches.is_dir() else [])
+    if stale:
+        shown = "".join(f"\n  {d}" for d in stale[:5]) + ("\n  …" if len(stale) > 5 else "")
+        if not prune:
+            raise SystemExit(f"gen_comparator.py: {len(stale)} batch target(s) from an earlier run "
+                             f"would be left stale (nothing written):{shown}\n"
+                             "re-run with --prune to delete them")
+        for d in stale:
+            shutil.rmtree(d)
+        print(f"pruned {len(stale)} stale batch target(s):{shown}")
 
     (out / "Batches").mkdir(parents=True, exist_ok=True)
-    write_module(out / "Batches" / "Statements.lean", statements_file(refs, srcs))
+    write_module(out / "Batches" / "Statements.lean",
+                 shards_marker(srcs) if shards else statements_file(refs, srcs), style)
     for ref in refs:
         d = out.joinpath("Batches", *ref.qual.split("."))
         d.mkdir(parents=True, exist_ok=True)
-        for name, text in batch_files(ref, srcs).items():
-            write_module(d / name, text)
+        for name, text in batch_files(ref, srcs, shards).items():
+            write_module(d / name, text, style)
+    if shards:
+        if (out / "Reduction").is_dir():
+            print(f"note: {out / 'Reduction'} is from an earlier run and does not match these targets")
+        print(f"wrote {total} batch targets (inline statements, no reduction) under {out}")
+        return
     d = out / "Reduction"
     d.mkdir(parents=True, exist_ok=True)
     for name, text in reduction_files(refs, height, srcs).items():
-        write_module(d / name, text)
-    print(f"wrote {len(refs)} batch targets + the reduction (height {height}) under {out}")
+        write_module(d / name, text, style)
+    print(f"wrote {total} batch targets + the reduction (height {height}) under {out}")
 
 
 if __name__ == "__main__":

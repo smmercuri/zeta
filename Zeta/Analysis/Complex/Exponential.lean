@@ -6,23 +6,17 @@ Authors: Salvatore Mercuri
 module
 
 public import Mathlib.Analysis.Calculus.Deriv.MeanValue
+public import Mathlib.Analysis.Calculus.Deriv.Pow
 public import Mathlib.Analysis.Complex.Exponential
 public import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 # Explicit bounds for the exponential
 
-Mathlib bounds the quadratic Taylor remainder `exp z - 1 - z` in two ways, and neither is what a
-Gaussian-weighted estimate needs. `Complex.norm_exp_sub_one_sub_id_le` has the sharp constant
-`‖z‖²` but only for `‖z‖ ≤ 1`, and `Complex.norm_exp_sub_sum_le_norm_mul_exp` is unrestricted but
-loses the factorial: it gives `‖z‖² e^{‖z‖}` where the series gives `‖z‖² e^{‖z‖}/2`.
-
-The factor of two is not slack. In the sharp Riemann–Siegel saddle estimate
-(`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`) this term dominates, and doubling it doubles
-the constant of the whole first-order formula.
-
-Also collected here are the two numerical values of `exp` that the same estimate consumes, in the
-style of `Mathlib/Analysis/Complex/ExponentialBounds.lean`.
+An unrestricted bound `‖z‖² e^{‖z‖}/2` for the quadratic Taylor remainder `exp z - 1 - z`, and two
+numerical values of `exp`. Mathlib's `Complex.norm_exp_sub_one_sub_id_le` needs `‖z‖ ≤ 1`, and
+`Complex.norm_exp_sub_sum_le_norm_mul_exp` loses the factor `1/2`, which the Riemann–Siegel saddle
+estimate (`riemann_siegel_first.tex`, `lem:rsf_inner_sharp`) cannot afford.
 
 ## Main results
 
@@ -49,7 +43,8 @@ private theorem hasDerivAt_sq_div_two_sub_one_add_exp_neg_mul (x : ℝ) :
   rw [show x - x * exp (-x) = x + (-exp (-x) * (1 + x) + exp (-x) * 1) by ring]
   exact (h1.sub_const 1).add (h2.mul h3)
 
-/-- **The quadratic Taylor remainder of the real exponential.** -/
+/-- The quadratic Taylor remainder of the real exponential: `e^r - 1 - r ≤ (r²/2) e^r` for
+`r ≥ 0`. -/
 theorem exp_sub_one_sub_id_le {r : ℝ} (hr : 0 ≤ r) : exp r - 1 - r ≤ r ^ 2 / 2 * exp r := by
   have hd := hasDerivAt_sq_div_two_sub_one_add_exp_neg_mul
   have hmono : MonotoneOn (fun y : ℝ ↦ y ^ 2 / 2 - 1 + exp (-y) * (1 + y)) (Set.Ici 0) := by
@@ -69,14 +64,14 @@ theorem exp_sub_one_sub_id_le {r : ℝ} (hr : 0 ≤ r) : exp r - 1 - r ≤ r ^ 2
   rw [h3] at h2
   linarith
 
-/-- **An explicit upper bound for `e^{π/4}`.** -/
+/-- An explicit upper bound for `e^{π/4}`. -/
 theorem exp_pi_div_four_le : exp (π / 4) ≤ 11 / 5 := by
   have h : π / 4 ≤ 0.7854 := by linarith [pi_lt_d4]
   refine (exp_le_exp.2 h).trans ?_
   refine (exp_bound' (by norm_num) (by norm_num) (n := 4) (by norm_num)).trans ?_
   norm_num [Finset.sum_range_succ, Nat.factorial]
 
-/-- **An explicit upper bound for `e^{1/2 + π/3}`.** -/
+/-- An explicit upper bound for `e^{1/2 + π/3}`. -/
 theorem exp_half_add_pi_div_three_le : exp (1 / 2 + π / 3) ≤ 47 / 10 := by
   -- `1/2 + π/3 ≤ 1.5472 = 4 · 0.3868`, and the quartic power keeps `exp_bound'` inside its
   -- radius of validity: `1.4723 ^ 4 = 4.6988 ≤ 4.7`
@@ -93,7 +88,7 @@ end Real
 
 namespace Complex
 
-/-- **The quadratic Taylor remainder of the complex exponential**, with no restriction on `‖z‖`. -/
+/-- The quadratic Taylor remainder of the complex exponential, for every `z`. -/
 theorem norm_exp_sub_one_sub_id_le' (z : ℂ) : ‖exp z - 1 - z‖ ≤ ‖z‖ ^ 2 / 2 * Real.exp ‖z‖ := by
   have h := norm_exp_sub_sum_le_exp_norm_sub_sum z 2
   have hz : ∑ m ∈ Finset.range 2, z ^ m / (m ! : ℂ) = 1 + z := by

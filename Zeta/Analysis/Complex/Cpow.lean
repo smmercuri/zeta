@@ -11,17 +11,9 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Powers on the critical line and in polar form
 
-Two facts about Mathlib's principal `Complex.cpow` that it does not itself record: its value at a
-number presented in polar form `r e^{iθ}`, and the real part of a unit-phase Dirichlet term.
-
-The polar formula is the workhorse for evaluating `x ↦ x^{-s}` along a ray through the origin: the
-principal branch is `e^{-s Log x}` with `Log (r e^{iθ}) = log r + iθ` as soon as `θ ∈ (-π, π]`, so
-the ray simply contributes a constant phase `e^{iθ u}` to the real power `r^u`.
-
-The real part of a single term `e^{iθ} x^{-(½+it)}` of a Dirichlet series on the critical line,
-taken along Mathlib's principal branch at a positive real `x`. It is what turns the partial sum
-`∑_{n ≤ ν} n^{-s}` produced by the Riemann–Siegel contour shift into the real main sum
-`2 ∑_{n ≤ ν} n^{-1/2} cos (θ − t log n)`.
+Facts about Mathlib's principal `Complex.cpow` that it does not record: its value at a number in
+polar form `r e^{iθ}`, a positive real factor splitting out, and the real part of a unit-phase
+Dirichlet term `e^{iθ} x^{-(½+it)}` on the critical line.
 
 ## Main results
 
@@ -52,8 +44,7 @@ theorem ofReal_mul_exp_mul_I_cpow {r θ : ℝ} (hr : 0 < r) (hθ₁ : -π < θ) 
   congr 1
   ring
 
-/-- **A positive real factor splits out of a principal power**, the branch cut being invisible to
-a positive dilation. -/
+/-- **A positive real factor splits out of a principal power.** -/
 theorem ofReal_mul_cpow {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ≠ 0) (u : ℂ) :
     ((r : ℂ) * z) ^ u = (r : ℂ) ^ u * z ^ u := by
   have hr0 : (r : ℂ) ≠ 0 := ofReal_ne_zero.2 hr.ne'

@@ -29,7 +29,7 @@ The exact formula `N(T) = θ(T)/π + 1 + S(T)`, for `T > 0` not the ordinate of 
 open Complex Set
 
 
-/-- **Zeros of `ξ` lie in the open critical strip.** If `ξ s = 0` then `0 < Re s < 1`. -/
+/-- **Zeros of `ξ` lie in the open critical strip.** -/
 theorem riemannXi_re_mem_Ioo_of_eq_zero {s : ℂ} (hs : riemannXi s = 0) :
     s.re ∈ Set.Ioo (0 : ℝ) 1 := by
   -- `ξ ≠ 0` whenever `Re z ≥ 1`.
@@ -50,13 +50,13 @@ theorem riemannXi_re_mem_Ioo_of_eq_zero {s : ℂ} (hs : riemannXi s = 0) :
     rw [not_lt] at h
     exact hge s h hs
 
-/-- **Every zero of `ξ` is a zero of `ζ`.** -/
+/-- Every zero of `ξ` is a zero of `ζ`. -/
 theorem riemannZeta_eq_zero_of_riemannXi_eq_zero {s : ℂ} (hs : riemannXi s = 0) :
     riemannZeta s = 0 :=
   have h := riemannXi_re_mem_Ioo_of_eq_zero hs
   (riemannXi_eq_zero_iff h.1 h.2).mp hs
 
-/-- **`ξ` has no real zeros.** -/
+/-- `ξ` has no real zeros. -/
 theorem riemannXi_ne_zero_of_im_eq_zero {z : ℂ} (hz : z.im = 0) : riemannXi z ≠ 0 := by
   intro hξ
   obtain ⟨hr0, hr1⟩ := riemannXi_re_mem_Ioo_of_eq_zero hξ
@@ -64,7 +64,7 @@ theorem riemannXi_ne_zero_of_im_eq_zero {z : ℂ} (hz : z.im = 0) : riemannXi z 
   rw [hz'] at hξ
   exact riemannXi_ofReal_ne_zero_of_mem_Icc ⟨by linarith, by linarith⟩ hξ
 
-/-- **Contour factorisation of `ξ` on a segment.** On an affine segment `lineSeg z₀ z₁` that
+/-- Contour factorisation of `ξ` on a segment. On an affine segment `lineSeg z₀ z₁` that
 stays in the right half-plane, avoids `1`, and where `ζ` is non-vanishing, the argument variation
 of `ξ` splits as that of the polynomial factor, `Γ_ℝ`, and `ζ`. -/
 private theorem argVariation_riemannXi_seg (z₀ z₁ : ℂ)
@@ -121,7 +121,7 @@ private theorem rectangle_corner_eq (T : ℝ) :
       ∧ (-1 : ℂ).re = -1 ∧ (-1 : ℂ).im = 0 :=
   ⟨by simp, by simp, by norm_num, by norm_num⟩
 
-/-- **`ξ ≠ 0` on the boundary of the counting rectangle** with corners `-1` and `2 + iT`, for
+/-- `ξ ≠ 0` on the boundary of the counting rectangle with corners `-1` and `2 + iT`, for
 `T > 0` not the ordinate of a zero of `ζ`. -/
 private theorem riemannXi_ne_zero_of_mem_rectangleBorder {T : ℝ}
     (hT' : ∀ s : ℂ, s.im = T → riemannZeta s ≠ 0) {ρ : ℂ}
@@ -142,8 +142,7 @@ private theorem riemannXi_ne_zero_of_mem_rectangleBorder {T : ℝ}
     rw [hre] at hr1; norm_num at hr1
 
 
-/-- **The exact Riemann–von Mangoldt formula** (`thm:N_formula`). For `T > 0` not the ordinate of
-a zero of `ζ`, `N(T) = θ(T)/π + 1 + S(T)`. -/
+/-- **The exact Riemann–von Mangoldt formula** `N(T) = θ(T)/π + 1 + S(T)` (`thm:N_formula`). -/
 theorem riemannZeta.N_eq {T : ℝ} (hT : 0 < T)
     (hT' : ∀ s : ℂ, s.im = T → riemannZeta s ≠ 0) :
     riemannZeta.N T = riemannSiegelTheta T / Real.pi + 1 + argZeta T := by
@@ -195,7 +194,7 @@ theorem riemannZeta.N_eq {T : ℝ} (hT : 0 < T)
       = ∑ ρ ∈ hfin.toFinset, (((meromorphicOrderAt riemannXi ρ).untopD 0 : ℤ) : ℝ) := by
     rw [← Finset.tsum_subtype' hfin.toFinset
         (fun ρ ↦ (((meromorphicOrderAt riemannXi ρ).untopD 0 : ℤ) : ℝ)), hfin.coe_toFinset]
-    exact (Equiv.setCongr hRS.symm).tsum_eq
+    exact (Set.equivOfEq hRS.symm).tsum_eq
       (fun ρ ↦ (((meromorphicOrderAt riemannXi (ρ : ℂ)).untopD 0 : ℤ) : ℝ))
   -- the halving identity
   have hhalf := argVariation_riemannXi_rectangle_eq_two_mul hT hT'
@@ -230,9 +229,8 @@ theorem riemannZeta.N_eq {T : ℝ} (hT : 0 < T)
   field_simp
   ring
 
-/-- **The exact Riemann–von Mangoldt formula from a certifiable hypothesis.** As
-`riemannZeta.N_eq`, but assuming only non-vanishing of `ζ` on the segment `Re ∈ [½, 1)` at height
-`T` — the form a finite ball-arithmetic certificate produces. -/
+/-- **The exact Riemann–von Mangoldt formula from a certifiable hypothesis**: `riemannZeta.N_eq`
+assuming only that `ζ` does not vanish on the segment `Re ∈ [½, 1)` at height `T`. -/
 theorem riemannZeta.N_eq_of_forall_re_mem_Ico {T : ℝ} (hT : 0 < T)
     (h : ∀ σ : ℝ, σ ∈ Set.Ico (1 / 2 : ℝ) 1 →
       riemannZeta ((σ : ℂ) + Complex.I * (T : ℂ)) ≠ 0) :

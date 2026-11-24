@@ -115,7 +115,7 @@ private theorem hasDerivAt_cpow_closed_form (s : ℂ) (j : ℕ) {x : ℝ} (hx : 
     rw [he, hp]
     simp only [Complex.cpow_zero, mul_one, mul_zero, zero_mul]
     exact hasDerivAt_const x _
-  · -- general case: differentiate the genuine power via the cpow rule.
+  · -- general case: differentiate the power via the cpow rule.
     have hpow := hasDerivAt_ofReal_cpow_const (r := -s - (j : ℂ)) hx.ne' he
     have key : (-1 : ℂ) ^ (j + 1) * (ascPochhammer ℂ (j + 1)).eval s
           * (x : ℂ) ^ (-s - ((j : ℂ) + 1))

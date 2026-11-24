@@ -24,8 +24,7 @@ order-zero chapter, and no new lower bound is needed. The contour parameter is c
 nonetheless, because the unit shift of `ModelShift.lean` deforms `L(1/2)` out to `L(3/2)`.
 
 The point of this file is the **half shift** `modelIntegral_add_half`, one of the two functional
-equations that pin `M` algebraically — with no analytic continuation, no Liouville argument and no
-growth estimate anywhere in the chapter.
+equations that pin `M` algebraically.
 
 ## Main results
 
@@ -80,7 +79,7 @@ theorem modelFun_eq_mul_kernel (p x : ℂ) :
     show 2 * (π : ℂ) * I * (x - p) ^ 2 - π * I * x ^ 2 + π * I * x ^ 2
       = 2 * π * I * (x - p) ^ 2 by ring]
 
-/-- **Translating the model integrand by one** reverses its sign and shifts `p` by one. -/
+/-- Translating the model integrand by one reverses its sign and shifts `p` by one. -/
 theorem modelFun_add_one (p x : ℂ) : modelFun p (x + 1) = -modelFun (p - 1) x := by
   have hden : exp ((π : ℂ) * I * (x + 1)) - exp (-((π : ℂ) * I * (x + 1)))
       = -(exp ((π : ℂ) * I * x) - exp (-((π : ℂ) * I * x))) := by
@@ -90,20 +89,20 @@ theorem modelFun_add_one (p x : ℂ) : modelFun p (x + 1) = -modelFun (p - 1) x 
     ring
   rw [modelFun, modelFun, hden, show (x + 1 - p) ^ 2 = (x - (p - 1)) ^ 2 by ring, div_neg]
 
-/-- **The model integrand is dominated by its Gaussian numerator**, wherever the kernel denominator
+/-- The model integrand is dominated by its Gaussian numerator, wherever the kernel denominator
 is bounded below. -/
 theorem norm_modelFun_le (p : ℂ) {x : ℂ} {c : ℝ} (hc : 0 < c) (hx : c ≤ ‖sin (π * x)‖) :
     ‖modelFun p x‖ ≤ ‖exp (2 * π * I * (x - p) ^ 2)‖ / (2 * c) := by
   rw [modelFun_eq_div_two_mul_I_mul_sin, norm_div, Complex.norm_two_mul_I_mul]
   gcongr
 
-/-- **The model integrand is dominated by its Gaussian numerator along a half-integer contour.** -/
+/-- The model integrand is dominated by its Gaussian numerator along a half-integer contour. -/
 theorem norm_modelIntegrand_le (p : ℂ) {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) (w : ℝ) :
     ‖modelIntegrand p a w‖ ≤ ‖exp (2 * π * I * (line a w - p) ^ 2)‖ / Real.sqrt 2 := by
   rw [modelIntegrand, show Real.sqrt 2 = 2 * (Real.sqrt 2 / 2) by ring]
   exact norm_modelFun_le p (by positivity) (norm_sin_pi_mul_line_ge ha w)
 
-/-- **The model integrand is continuous along a half-integer contour.** -/
+/-- The model integrand is continuous along a half-integer contour. -/
 theorem continuous_modelIntegrand (p : ℂ) {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) :
     Continuous (modelIntegrand p a) := by
   have hline := continuous_line a
@@ -114,15 +113,15 @@ theorem continuous_modelIntegrand (p : ℂ) {a : ℝ} {n : ℤ} (ha : a = n + 1 
   exact Continuous.div (by fun_prop) (by fun_prop) fun w ↦ by
     simpa [I_ne_zero] using sin_pi_mul_line_ne_zero ha w
 
-/-- **Absolute convergence of the model integral**, for every complex `p`. -/
+/-- Absolute convergence of the model integral, for every complex `p`. -/
 theorem integrable_modelIntegrand (p : ℂ) {a : ℝ} {n : ℤ} (ha : a = n + 1 / 2) :
     Integrable (modelIntegrand p a) :=
   Integrable.mono' ((integrable_exp_two_pi_mul_I_mul_line_sub_sq a p).norm.div_const _)
     (continuous_modelIntegrand p ha).aestronglyMeasurable
     (.of_forall (norm_modelIntegrand_le p ha))
 
-/-- **The modulus of the model Gaussian along the half-integer contour, with the square
-completed**: a Gaussian in the contour parameter, of peak `e^{π(½ − p)²}` and centre
+/-- The modulus of the model Gaussian along the half-integer contour, with the square
+completed: a Gaussian in the contour parameter, of peak `e^{π(½ − p)²}` and centre
 `−(½ − p)/2`. -/
 theorem norm_exp_two_pi_mul_I_mul_line_sub_sq (p w : ℝ) :
     ‖exp (2 * π * I * (line (1 / 2) w - (p : ℂ)) ^ 2)‖
@@ -132,8 +131,8 @@ theorem norm_exp_two_pi_mul_I_mul_line_sub_sq (p w : ℝ) :
     show -(4 * π * (1 / 2 + w - p) * (w - 0))
       = π * (1 / 2 - p) ^ 2 + -(4 * π) * (w + (1 / 2 - p) / 2) ^ 2 by ring, Real.exp_add]
 
-/-- **The modulus of the model Gaussian along the half-integer contour, as a Gaussian in the
-distance to the centre** (`riemann_siegel_first.tex`, `lem:rsf_kernel_gauss`). -/
+/-- The modulus of the model Gaussian along the half-integer contour, as a Gaussian in the
+distance to the centre (`riemann_siegel_first.tex`, `lem:rsf_kernel_gauss`). -/
 theorem norm_exp_two_pi_mul_I_mul_line_sub_sq' (p w : ℝ) :
     ‖exp (2 * π * I * (line (1 / 2) w - (p : ℂ)) ^ 2)‖
       = Real.exp (2 * π * (1 / 2 - p) ^ 2) *
@@ -143,7 +142,7 @@ theorem norm_exp_two_pi_mul_I_mul_line_sub_sq' (p w : ℝ) :
   congr 1
   ring
 
-/-- **An explicit bound for the model integral at a real point.** -/
+/-- An explicit bound for the model integral at a real point. -/
 theorem norm_modelIntegral_le (p : ℝ) :
     ‖modelIntegral p (1 / 2)‖ ≤ Real.exp (π * (1 / 2 - p) ^ 2) / 2 := by
   have hs2 : (0 : ℝ) < Real.sqrt 2 := Real.sqrt_pos.2 two_pos
@@ -165,7 +164,7 @@ theorem norm_modelIntegral_le (p : ℝ) :
         rw [integral_const_mul, hgauss]
         field_simp
 
-/-- **The half shift for the model integral**:
+/-- The half shift for the model integral:
 `M(p + 1/2) = i e^{2πip} M(p) − i e^{iπ/8} e^{iπp}/√2`, for every complex `p`. -/
 theorem modelIntegral_add_half (p : ℂ) :
     modelIntegral (p + 1 / 2) (1 / 2)

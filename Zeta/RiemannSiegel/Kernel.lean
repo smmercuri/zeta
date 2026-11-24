@@ -52,13 +52,13 @@ theorem kernel_eq_div_two_mul_I_mul_sin (x : ℂ) :
     kernel x = exp (π * I * x ^ 2) / (2 * I * sin (π * x)) := by
   rw [kernel, show ((π : ℂ) * I * x) = (π * x) * I by ring, exp_mul_I_sub_exp_neg_mul_I]
 
-/-- **The Riemann–Siegel kernel is holomorphic off `ℤ`.** -/
+/-- The Riemann–Siegel kernel is holomorphic off `ℤ`. -/
 theorem differentiableAt_kernel {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) : DifferentiableAt ℂ kernel x := by
   rw [funext kernel_eq_div_two_mul_I_mul_sin]
   exact DifferentiableAt.div (by fun_prop) (by fun_prop)
     (by simpa [I_ne_zero] using sin_pi_mul_ne_zero hx)
 
-/-- **Quasi-periodicity of the Riemann–Siegel kernel.** -/
+/-- Quasi-periodicity of the Riemann–Siegel kernel. -/
 theorem kernel_add_one (x : ℂ) : kernel (x + 1) = exp (2 * π * I * x) * kernel x := by
   rw [kernel_eq_div_two_mul_I_mul_sin, kernel_eq_div_two_mul_I_mul_sin,
     show ((π : ℂ) * (x + 1)) = π * x + π by ring, sin_add_pi,
@@ -66,7 +66,7 @@ theorem kernel_add_one (x : ℂ) : kernel (x + 1) = exp (2 * π * I * x) * kerne
     exp_add, exp_add, exp_pi_mul_I]
   ring
 
-/-- **The increment of the Riemann–Siegel kernel across one period is a Gaussian.** -/
+/-- The increment of the Riemann–Siegel kernel across one period is a Gaussian. -/
 theorem kernel_add_one_sub_kernel {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) :
     kernel (x + 1) - kernel x = exp (π * I * x * (x + 1)) := by
   have hs : (2 : ℂ) * I * sin ((π : ℂ) * x) ≠ 0 := by
@@ -76,12 +76,12 @@ theorem kernel_add_one_sub_kernel {x : ℂ} (hx : ∀ n : ℤ, x ≠ n) :
     ← exp_add, show (2 * (π : ℂ) * I * x + π * I * x ^ 2) = π * I * x * (x + 1) + π * x * I by
       ring, show ((π : ℂ) * I * x * (x + 1) + -((π : ℂ) * x * I)) = π * I * x ^ 2 by ring, one_mul]
 
-/-- **The Riemann–Siegel kernel is odd.** -/
+/-- The Riemann–Siegel kernel is odd. -/
 theorem kernel_neg (x : ℂ) : kernel (-x) = -kernel x := by
   rw [kernel, kernel, neg_sq, show (π : ℂ) * I * -x = -((π : ℂ) * I * x) by ring, neg_neg,
     ← neg_sub, div_neg]
 
-/-- **Gaussian expansion of the Riemann–Siegel kernel in the lower half-plane**, with every
+/-- Gaussian expansion of the Riemann–Siegel kernel in the lower half-plane, with every
 coefficient the same constant `e^{-iπ/4}`. -/
 theorem kernel_eq_tsum_of_im_neg {x : ℂ} (hx : x.im < 0) :
     kernel x
@@ -108,7 +108,7 @@ theorem kernel_eq_tsum_of_im_neg {x : ℂ} (hx : x.im < 0) :
     Complex.exp_neg ((π : ℂ) * I * x), div_eq_mul_inv, mul_inv]
   ring
 
-/-- **Gaussian expansion of the Riemann–Siegel kernel in the upper half-plane.** -/
+/-- Gaussian expansion of the Riemann–Siegel kernel in the upper half-plane. -/
 theorem kernel_eq_neg_tsum_of_im_pos {x : ℂ} (hx : 0 < x.im) :
     kernel x
       = -(exp (-((π / 4 : ℝ) * I)) * ∑' k : ℕ, exp (π * I * (x + (2 * k + 1) / 2) ^ 2)) := by
@@ -117,7 +117,7 @@ theorem kernel_eq_neg_tsum_of_im_pos {x : ℂ} (hx : 0 < x.im) :
     (π : ℂ) * I * (-x - (2 * (k : ℂ) + 1) / 2) ^ 2 = π * I * (x + (2 * k + 1) / 2) ^ 2)] at h
   linear_combination -h
 
-/-- **Every integer is a simple pole of the Riemann–Siegel kernel, with residue `1/(2πi)`.** -/
+/-- Every integer is a simple pole of the Riemann–Siegel kernel, with residue `1/(2πi)`. -/
 theorem tendsto_sub_mul_kernel (n : ℤ) :
     Tendsto (fun x ↦ (x - n) * kernel x) (𝓝[≠] (n : ℂ)) (𝓝 (1 / (2 * π * I))) := by
   have hpi : (π : ℂ) ≠ 0 := ofReal_ne_zero.2 Real.pi_ne_zero

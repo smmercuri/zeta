@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Salvatore Mercuri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Salvatore Mercuri
+-/
 module
 
 public import Enclosure.Defs
@@ -75,7 +80,7 @@ def fallbackOk (a b : Nat × Nat) (W₁ : Nat) : Bool :=
 /-- Every bracket of the tiling checks, given the left boundary `a` and its linear-free sign `sa`
 (already computed when it was the previous bracket's right boundary). Each bracket passes `rowOk`
 and has differing linear-free signs, against the batch's error bound `B`, or else differing full
-signs (`fallbackOk`). The right boundary's sign is computed once and passed on. -/
+signs (`fallbackOk`). -/
 def tilingOk (tab : TermTable) (W W₁ : Nat) (B : Option Encl) :
     Nat × Nat → Option Bool → List (Nat × Nat) → Bool
   | _, _, [] => true

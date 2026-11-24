@@ -1,7 +1,12 @@
+/-
+Copyright (c) 2026 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 module
 
 public import Mathlib.NumberTheory.Bernoulli
-public import Mathlib.Data.Complex.Basic
+public import Mathlib.Basic.Complex.Basic
 
 /-!
 # Tangent numbers
@@ -17,8 +22,8 @@ The tangent numbers are *defined* here following Knuth and Buckholtz (*Math. Com
 ## Main definitions
 
 * `tangentPoly`  : the tangent polynomials `Pₙ`, exactly Knuth's `P₀ = X`, `Pₙ₊₁ = (1 + X²)·Pₙ′`.
-* `tangentNumber`: the `n`-th tangent number `Tₙ = P_{2n-1}(0)`; these come out *positive* with
-                   no sign correction (`tangentNumber 1 = 1, 2 = 2, 3 = 16, 4 = 272, …`).
+* `tangentNumber`: the `n`-th tangent number `Tₙ = P_{2n-1}(0)`; these are *positive*
+                   (`tangentNumber 1 = 1, 2 = 2, 3 = 16, 4 = 272, …`).
 * `tanhPoly`     : the hyperbolic analogue `Qₙ₊₁ = (1 − X²)·Qₙ′`, used to bridge to the rational
                    power series `tanhSeries`.
 * `tanhSeries`   : the formal power series `tanh x = (e^{2x} - 1)/(e^{2x} + 1) ∈ ℚ⟦X⟧`,
@@ -33,12 +38,9 @@ The tangent numbers are *defined* here following Knuth and Buckholtz (*Math. Com
     `[x^{2m+1}] tanh x = 2^(2m+2) · (2^(2m+2) − 1) · bernoulli (2m+2) / (2m+2)!`.
 * `tangentNumber_eq`      : the resulting closed form for the tangent numbers.
 
-We carry the *power-series* half of the development over `tanh` rather than `tan` because
-`tanh x = (e^{2x}−1)/(e^{2x}+1)` has *rational* coefficients, so it lives in `ℚ⟦X⟧` and is directly
-comparable with Mathlib's Bernoulli generating functions.  The tangent polynomials `Pₙ` (`1 + X²`)
-and their hyperbolic analogues `Qₙ` (`1 − X²`) are related by `x ↦ i·x`; that substitution, proved
-as `map_tanhPoly` over `ℂ[X]`, is the only place complex numbers enter, and it lets the
-positive `Pₙ(0)` inherit the Bernoulli closed form.
+The power-series half of the development is over `tanh`, whose coefficients are rational, so it
+lives in `ℚ⟦X⟧` beside Mathlib's Bernoulli generating functions. The substitution `x ↦ i·x` relating
+`Pₙ` to the hyperbolic `Qₙ` (`map_tanhPoly`, over `ℂ[X]`) is the only place complex numbers enter.
 -/
 @[expose] public section
 
@@ -59,8 +61,7 @@ The polynomial recurrence `P₀ = X`, `Pₙ₊₁ = (1 + X²)·Pₙ′`, and the
 `Tₙ = P_{2n-1}(0)`. -/
 
 /-- The tangent polynomials `Pₙ` (Knuth & Buckholtz, *Math. Comp.* **21** (1967)):
-`P₀ = X`, `Pₙ₊₁ = (1 + X²)·Pₙ′`, so that `dⁿ/dxⁿ tan x = Pₙ(tan x)`.  The tangent numbers are the
-(positive) constant terms `P_{2n-1}(0) = 1, 2, 16, 272, …`. -/
+`P₀ = X`, `Pₙ₊₁ = (1 + X²)·Pₙ′`, so that `dⁿ/dxⁿ tan x = Pₙ(tan x)`. -/
 def tangentPoly : ℕ → ℕ[X]
   | 0 => X
   | (n + 1) => (1 + X ^ 2) * derivative (tangentPoly n)
@@ -70,8 +71,7 @@ lemma tangentPoly_succ (n : ℕ) :
   rfl
 
 /-- The `n`-th tangent number (for `n ≥ 1`): `T₁ = 1, T₂ = 2, T₃ = 16, T₄ = 272, …`, the constant
-term `P_{2n-1}(0)` of the tangent polynomial.  These come out *positive*, with no sign
-correction. -/
+term `P_{2n-1}(0)` of the tangent polynomial.  These are *positive*. -/
 def tangentNumber (n : ℕ) : ℕ :=
   (tangentPoly (2 * n - 1)).eval 0
 
@@ -125,7 +125,7 @@ section ForMathlib
 /-- The `k`-th coefficient of the `n`-th formal derivative `Dⁿ f` is `(k+1)(k+2)⋯(k+n)` times the
 `(k+n)`-th coefficient of `f`. -/
 private lemma coeff_iterate_derivative {R : Type*} [CommRing R] (f : R⟦X⟧) (n k : ℕ) :
-    coeff k ((d⁄dX R)^[n] f) = (k + 1).ascFactorial n * coeff (k + n) f := by
+    coeff k (d⁄dX^[n] f) = (k + 1).ascFactorial n * coeff (k + n) f := by
   induction n generalizing k with
   | zero => simp
   | succ n ih =>
@@ -133,10 +133,9 @@ private lemma coeff_iterate_derivative {R : Type*} [CommRing R] (f : R⟦X⟧) (
       ← Nat.succ_ascFactorial]
     grind
 
-/-- Specialisation at `k = 0`: the constant term of `Dⁿ f` is `n!` times the `n`-th coefficient of
-`f`, that is, `coeff 0 (Dⁿ f) = n! · coeff n f`. -/
+/-- The constant term of `Dⁿ f` is `n!` times the `n`-th coefficient of `f`. -/
 private lemma coeff_zero_iterate {R : Type*} [CommRing R] (f : R⟦X⟧) (n : ℕ) :
-    coeff 0 ((d⁄dX R)^[n] f) = n ! * coeff n f := by simpa using coeff_iterate_derivative f n 0
+    coeff 0 (d⁄dX^[n] f) = n ! * coeff n f := by simpa using coeff_iterate_derivative f n 0
 
 end ForMathlib
 
@@ -145,15 +144,10 @@ end ForMathlib
 The power series `tanh x = (e^{2x} - 1)/(e^{2x} + 1) ∈ ℚ⟦X⟧`, its well-definedness, and the ODE
 `(tanh)′ = 1 − tanh²`. -/
 
-/-- `tanh x = (e^{2x} - 1)/(e^{2x} + 1)`, as a formal power series over `ℚ` (rational since
-`e^{2x} = (eˣ)²`).  Its coefficients `(2n-1)! · [x^{2n-1}] tanh x` are the tangent numbers up to
-sign. -/
+/-- `tanh x = (e^{2x} - 1)/(e^{2x} + 1)`, as a formal power series over `ℚ`. Its coefficients
+`(2n-1)! · [x^{2n-1}] tanh x` are the tangent numbers up to sign. -/
 def tanhSeries : ℚ⟦X⟧ :=
   (exp ℚ ^ 2 - 1) * (exp ℚ ^ 2 + 1)⁻¹
-
-/-- The constant term of `e^{2x} + 1` is `2`, hence nonzero. -/
-private lemma constantCoeff_expSq_add_one_ne_zero :
-    constantCoeff (exp ℚ ^ 2 + 1) ≠ 0 := by simp
 
 /-- The defining identity of `tanhSeries`, cleared of the inverse:
 `tanh x · (e^{2x} + 1) = e^{2x} - 1`. -/
@@ -173,16 +167,16 @@ private lemma constantCoeff_tanhSeries : constantCoeff tanhSeries = 0 := by simp
 
 /-- `tanhSeries` satisfies the ODE `(tanh)′ = 1 − tanh²`. -/
 private lemma derivative_tanhSeries :
-    d⁄dX ℚ tanhSeries = 1 - tanhSeries ^ 2 := by
-  have hd : tanhSeries * (2 * (exp ℚ * exp ℚ)) + (exp ℚ ^ 2 + 1) * d⁄dX ℚ tanhSeries =
+    d⁄dX tanhSeries = 1 - tanhSeries ^ 2 := by
+  have hd : tanhSeries * (2 * (exp ℚ * exp ℚ)) + (exp ℚ ^ 2 + 1) * d⁄dX tanhSeries =
       2 * (exp ℚ * exp ℚ) := by
-    simpa [derivative_exp] using congr(d⁄dX ℚ $tanhSeries_mul_expSq_add_one)
+    simpa [derivative_exp] using congr(d⁄dX $tanhSeries_mul_expSq_add_one)
   refine mul_left_cancel₀ expSq_add_one_ne_zero ?_
   linear_combination hd - (1 - tanhSeries) * tanhSeries_mul_expSq_add_one
 
 open scoped Polynomial
 
--- dumb helper lemma
+-- `aeval tanhSeries` commutes with mapping the coefficients from `ℤ` to `ℚ`.
 private lemma aeval_tanhSeries_map (p : ℤ[X]) :
     Polynomial.aeval tanhSeries (p.map (algebraMap ℤ ℚ)) = Polynomial.aeval tanhSeries p :=
   (Polynomial.aeval_eq_aeval_map (by ext; simp) p tanhSeries).symm
@@ -190,7 +184,7 @@ private lemma aeval_tanhSeries_map (p : ℤ[X]) :
 /-- The defining property of the hyperbolic tangent polynomials at the level of power series:
 `Dⁿ(tanh) = Qₙ(tanh)`. -/
 private lemma iterate_derivative_tanhSeries (n : ℕ) :
-    (d⁄dX ℚ)^[n] tanhSeries = (tanhPoly n).aeval tanhSeries := by
+    d⁄dX^[n] tanhSeries = (tanhPoly n).aeval tanhSeries := by
   induction n with
   | zero => simp [tanhPoly]
   | succ n ih =>
@@ -242,7 +236,7 @@ private lemma eval_tangentPoly (m : ℕ) :
   rw [eval_tanhPoly] at hq
   rw [mul_assoc, hq, ← mul_assoc, ← pow_add, Even.neg_one_pow ⟨m, rfl⟩, one_mul]
 
--- TODO: put in ForMathlib, and then in mathlib
+-- Coefficients of a power series times a numeral.
 section
 
 variable {R : Type*} [Semiring R] {p : R⟦X⟧}
