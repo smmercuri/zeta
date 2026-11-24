@@ -2,20 +2,18 @@
 
 This repository proves in Lean's kernel that all the nontrivial zeros of the 
 Riemann zeta function up to a specified height $T$ lie on the critical line, 
-as predicted by the Riemann hypothesis. 
-Intervals are certified on the critical line, proving the location of 
-nontrivial zeros with configurable precision. 
-The main theorem is proved fully in the kernel, depending 
+as given by the Riemann hypothesis, and that they are all simple. 
+The main theorems are proved fully in the kernel, depending 
 only on the standard axiom set `[propext, Classical.choice, Quot.sound]`.
 Our current record is $T = 100,000,300$: the $248,008,818$ zeros with imaginary part between $0$ and
-the Gram point $g \approx 100,000,300.797$ just above $T$ all lie on the critical line.
-At this height, the proof spans 6 million Lean files and 66 million lines of code.
+the Gram point $g \approx 100,000,300.797$ just above $T$ all lie on the critical line 
+and are simple. At this height, the proof spans 6 million Lean files and 66 million lines of code.
 
 ---
 
 ## Table of contents
 
-- [Main theorem](#main-theorem)
+- [Main theorems](#main-theorems)
 - [Frontier](#frontier)
 - [Installation](#installation)
 - [Build](#build)
@@ -28,17 +26,22 @@ At this height, the proof spans 6 million Lean files and 66 million lines of cod
 
 ---
 
-## Main theorem 
+## Main theorems 
 
-The main theorem is a term of type
+The main theorems are terms of type
 ```lean
 def RiemannHypothesisUpTo (T : ℝ) : Prop :=
   ∀ s, riemannZeta s = 0 → (¬∃ n : ℕ, s = -2 * (n + 1)) → s ≠ 1 → |s.im| < T → s.re = 1/2
+
+def SimpleZerosUpTo (T : ℝ) : Prop :=
+  ∀ s, riemannZeta s = 0 → s.im ∈ Ioo 0 T → meromorphicOrderAt riemannZeta s = 1
 ```
-which is the statement that all the nontrivial zeros of the Riemann zeta 
+The first is the statement that all the nontrivial zeros of the Riemann zeta 
 function with imaginary part in `(-T, T)` (equivalently `(0, T)`) lie 
 on the critical line. It is proved as `Zeta.riemannHypothesisUpTo_<T>`, and as
 `Native.riemannHypothesisUpTo_<T>` at the Native trust layer (see [Trust model](#trust-model)).
+The second is the statement that the zeros with imaginary part in `(0, T)` are simple, and is 
+proved as `Zeta.simpleZerosUpTo_<T>`.
 
 --- 
 
@@ -52,23 +55,22 @@ Heights reached at each trust layer; see [Architecture](#architecture) for the r
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 18 min 25 s | 2.5 | 65 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | server<sup>[5](#note-server)</sup> | 1 h 40 min | 79 | 164 |
 | | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | server | 66 h 3 min | 3,161 | 538 |
-| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | HPC<sup>[6](#note-hpc)</sup> | 49 h 55 min<sup>[7](#note-previous)</sup> | 244,190 | 3,545 |
+| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | HPC<sup>[6](#note-hpc)</sup> | 22 h 48 min | 139,753 | 2,029 |
 | **Native** | [10,011](https://github.com/smmercuri/zeta/tree/v1-1e4) | 10,156 | laptop | 26 s | 0.012 | 4.3 |
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 1 min 9 s | 0.11 | 2.9 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | laptop | 14 min | 1.9 | 3.9 |
 | | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 3 h 47 min | 33.4 | 5.7 |
-| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 85 h 20 min<sup>[7](#note-previous)</sup> | 4,018 | 58 |
+| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 26 h 57 min | 1,259 | 18.3 |
 | **Python** | [10,011](https://github.com/smmercuri/zeta/tree/v1-1e4) | 10,156 | laptop | 39 s | 0.027 | 9.7 |
 | | [100,013](https://github.com/smmercuri/zeta/tree/v1-1e5) | 138,090 | laptop | 1 min 40 s | 0.19 | 4.9 |
 | | [1,000,449](https://github.com/smmercuri/zeta/tree/v1-1e6) | 1,748,002 | laptop | 17 min | 2.6 | 5.3 |
 | | [10,001,072](https://github.com/smmercuri/zeta/tree/v1-1e7) | 21,138,563 | laptop | 4 h 44 min | 45 | 7.7 |
-| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 40 h 28 min<sup>[7](#note-previous)</sup> | 1,927 | 28 |
+| | [100,000,300](https://github.com/smmercuri/zeta/tree/v1-1e8) | 248,008,818 | server | 41 h 2 min | 1,956 | 28 |
 
 1. <a id="note-zeros"></a>**Zeros.** The number of zeros certified on the critical line, namely those with positive imaginary part below the first Gram point above `T`. Since `T` is that Gram point rounded down, this can slightly exceed the number in `(0, T)`.
 2. <a id="note-wall"></a>**Wall time** represents the time to build the certificates, with Mathlib 
    and the rest of the libraries built beforehand, using all available threads or as many workers as 
-   `build.sh` fits in memory. At $10^8$, where the build was split across many nodes over several 
-   campaigns, it is the total time with at least one node building. For Native, it is an endpoint
+   `build.sh` fits in memory. At $10^8$, where the build was split across many nodes, it is the total time with at least one node building. For Native, it is an endpoint
    build (`scripts/build.sh --native --endpoint`), which skips the prediction of the kernel run. For Python, it is the time for the zero search.
    Each height links to the tagged commit its timings were measured at.
 3. <a id="note-cpu"></a>**CPU core-hours** represents the total user and system CPU time for the build described in 
@@ -79,11 +81,7 @@ Heights reached at each trust layer; see [Architecture](#architecture) for the r
 5. <a id="note-server"></a>**Server.** A dedicated server with 24 cores, 48 threads and 256 GB RAM.
 6. <a id="note-hpc"></a>**HPC.** EPCC's [Cirrus](https://www.cirrus.ac.uk/) supercomputer, whose
    nodes each have 288 cores, 576 threads and 745 GB RAM. This project had a budget of 128
-   concurrent nodes, of which up to 57 were used concurrently.
-7. <a id="note-previous"></a>**Previous version.** All timings at $10^8$ were measured with an 
-   earlier version of the project. They are not directly comparable 
-   with the kernel timings at lower heights, which were measured with the current version and are 
-   substantially faster (at $10^6$, 1 h 40 min against 3 h 28 min previously).
+   concurrent nodes.
 
 Each of the heights in the above table is available through branches, tags or GitHub 
 releases on the remote repository. 
@@ -103,8 +101,7 @@ these results correspond to, without the zero data or generated Lean certificate
 GitHub storage limitations.
 At these tags, `Zeta/Main.lean` therefore still states the $10^4$ theorem and certificates.
 To obtain the main theorem at the tag's height, download the zeros from Zenodo
-([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://zenodo.org/records/24085183)), unpack them into the repository, and run `scripts/gen_certificates.sh`
-(`./gen_certificates.sh` at `v1-1e8`). Each Zenodo record's README gives the exact commands.
+([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://doi.org/10.5281/zenodo.24085182)), unpack them into the repository, and run `scripts/gen_certificates.sh`. Each Zenodo record's README gives the exact commands.
 
 ---
 
@@ -173,14 +170,14 @@ cd .comparator-tools
 echo 'leanprover/lean4:v4.35.0' > lean-toolchain
 lake build lean4export comparator
 ```
-The tools must match the Lean version of the checkout (`lean-toolchain`). The `v1-1e8`
-tag uses Lean `v4.33.1`, so for it use tag `v4.33.0` and `leanprover/lean4:v4.33.1`.
+The tools must match the Lean version of the checkout (`lean-toolchain`).
 Then verify the main theorem's statement in shards:
 ```bash
 comparator/sharded_run.sh [--size 10] [--jobs 1]
 ```
 This checks each batch's statement and the reduction, which collectively imply the main 
-theorem's statement. It does not check `Zeta.riemannHypothesisUpTo_<T>` itself; see
+theorem's statement. It does not check `Zeta.riemannHypothesisUpTo_<T>` itself, and no comparator 
+target checks `Zeta.simpleZerosUpTo_<T>`; see
 [`comparator/README.md`](comparator/README.md#running) for what it establishes 
 and the warning below for why this is the default comparator setup.
 
@@ -188,7 +185,7 @@ Comparator can also be run on a single target with `comparator/run.sh <config.js
 batches with `comparator/shard.sh RiemannSiegel/Batch0001 RiemannSiegel/Batch0002`, or on a
 reproducible random sample with `comparator/sharded_run.sh --sample 300 --seed <public value>`.
 
-The comparator targets for the `v1-1e7` and `v1-1e8` tags are on Zenodo ([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://zenodo.org/records/24085183)), with instructions in each record's `COMPARATOR.md`. Use those
+The comparator targets for the `v1-1e7` and `v1-1e8` tags are on Zenodo ([1e7](https://doi.org/10.5281/zenodo.24090489) and [1e8](https://doi.org/10.5281/zenodo.24085182)), with instructions in each record's `COMPARATOR.md`. Use those
 rather than the targets committed at these two tags, which are for $10^4$, and avoid `gen_certificates.sh --comparator`,
 which is impractical at this scale.
 
@@ -311,9 +308,12 @@ degree of trust.
 - At large heights proof terms are too large to keep (see [Scaling](#scaling)). 
   The kernel checks every batch during the build, after which its proof term in the private 
   `olean` is either compressed losslessly or replaced by a placeholder with its SHA-256 recorded.
-  Where proofs are discarded, the proofs cannot be inspected afterwards without re-running
-  the build. Trust at these heights depends additionally on our published build archives on Zenodo, and 
-  comparator runs to verify sampled batches.
+  Because the kernel has successfully checked these batches, the trust base is unaffected by this.
+  Where proofs are discarded, the only loss is that their proof terms cannot be inspected in the 
+  build artefacts without re-running the build. 
+  Reproducing the result means rebuilding from source whether or not proofs are kept, so 
+  it is limited by compute. The full comparator check is also limited by the Lean issue noted under 
+  [Comparator](#comparator), but comparator can check sampled batches independently.
   We have run a successful comparator check at height $10^4$, and complete sharded
   comparator checks at heights $10^5$ and $10^6$.
 
@@ -325,9 +325,9 @@ Up to the Gram point just above 100,000,300 there are 248,008,818 zeros and
 certificates for each must be proved.
 Writing an efficient kernel-checked numerical proof and organising how the collection of
 all these proofs should be structured are both challenges.
-At $10^8$ (tag [`v1-1e8`](https://github.com/smmercuri/zeta/tree/v1-1e8), commit `3dab6480a8`), 
-the `Zeta` library had 6,013,447 modules and 66,053,983 lines of Lean code (the total line 
-count of 240,354,586 is inflated by certificate module documentation).
+At $10^8$ (tag [`v1-1e8`](https://github.com/smmercuri/zeta/tree/v1-1e8)), 
+the `Zeta` library had 6,013,448 modules and 66,053,993 lines of Lean code (the total line 
+count of 240,354,232 is inflated by certificate module documentation).
 
 ### Kernel 
 
@@ -425,6 +425,11 @@ and is lossless so enables easy restoration; discarding involves overwriting
 the private oleans with a placeholder, which effectively reduces their storage 
 to zero but they can only be restored by rebuilding.
 
+Lake also writes a `.setup.json` file for each module, recording the absolute paths of everything 
+it imports (about 2 MB each). At $10^8$ they were estimated at over 10 TB, so the contents of 
+these files were similarly discarded. The build was unaffected, as Lake only needs the files of 
+already-built modules to exist.
+
 ### Native prechecking and working precision
 
 The native module can be used as a test prior to a more expensive kernel run 
@@ -447,9 +452,7 @@ On a laptop or a server, heights $10^4$ through $10^7$ build with a single `scri
 command over the whole range `(0, T)`. On the Cirrus supercomputer, in order to leverage concurrency across the 
 budgeted 128 nodes, the height range `(0, 1e8)` was split up into 175 
 independent ranges, each of which was built on a separate node. 
-The number of nodes was increased gradually, to a peak of 57, until 
-all ranges were built. 
-After this, build artifacts were archived.
+Once all ranges were built, build artifacts were archived.
 A final assembly job unpacked all the range archives into a single node with 
 $1.5$ TB RAM to run the final build.
 
