@@ -22,7 +22,7 @@ from pathlib import Path
 from data_gen.gen_gram_certificates import parse_gram_points
 from data_gen.gen_zero_certificates import (
     default_stores,
-    plan_batches,
+    plan_stores,
     write_module,
 )
 
@@ -145,12 +145,12 @@ def main() -> None:
 
     # `norm_num` must see through whatever wrapper constructors the last batch built its
     # endpoints with, exactly as a seam must; only the shared plan knows which batch that is.
-    last_ref = plan_batches(stores)[-1][0]
-    unfolds = "".join(", " + u for u in last_ref.dialect.seam_unfold)
+    last = plan_stores(stores)[-1]
+    unfolds = "".join(", " + u for u in last.dialect.seam_unfold)
 
     srcs = "\n".join(f"  {s.resolve().relative_to(ROOT)}" for s in stores)
     write_module(args.out, gen_count_certificate(unfolds, srcs), args.ignore_style)
-    print(f"wrote {args.out} (certifiedZeroCount, last batch {last_ref.qual})")
+    print(f"wrote {args.out} (certifiedZeroCount, last batch {last.qual(last.batches)})")
 
 
 if __name__ == "__main__":

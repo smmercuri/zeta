@@ -11,10 +11,10 @@ The height-dependent scale of the formalization in this project presents challen
 in facilitating independent verification. 
 Comparator exports the solution's entire dependency closure and re-checks it in a fresh kernel, 
 so it does not need to trust any pre-compiled oleans. 
-Up to height `1e5`, the main theorem of this project can be built on a local machine in under 
-an hour and requires approximately 30GB of local storage for the `olean` files.
-However, at height `1e6` and beyond, this becomes a build of a day or more with around 1TB of
-storage required.
+Up to height `1e5`, the main theorem of this project can be built on a laptop in under 
+20 minutes and requires approximately 18GB of local storage for the proof terms.
+However, at height `1e6` this becomes a build of 1 h 40 min on a 48-thread server with around 500GB of
+storage required, and both grow quickly beyond that.
 We thus provide two methods, _sharded_ and _global_, for the independent verification of the 
 main theorem. Sharded is the main method; see the warning under [Running](#running).
 
@@ -51,6 +51,8 @@ directly running this challenge, which builds (if not already built) and then re
 set of zero and Gram certificates in one run. This is feasible locally only at height `1e4`: 
 it becomes impractical as the height grows, and at `1e6` it is infeasible on an ordinary 
 machine. See the warning under [Running](#running).
+
+Both methods check the Riemann hypothesis theorem. No target checks `Zeta.simpleZerosUpTo_<T>`.
 
 **Background.**
 `Analytic/` checks the main theorems in the background material used for the main theorem's proof. 
@@ -96,10 +98,14 @@ Much like the project's formal code itself, the batch and reduction challenges a
 project data using Python scripts, and should never be handwritten. 
 First, make sure that the project's formal certificates have already been generated using 
 `gen_zero_certificates.py`. 
-Activate the Python `zeta` environment.
 Then run
 
-    python python/src/data_gen/gen_comparator.py comparator
+    PYTHONPATH=python/src python3 python/src/data_gen/gen_comparator.py comparator
+
+This uses only the Python standard library, so the `zeta` environment is not needed. Pass `--shards` 
+to write only the batch targets, each stating its `BatchSpec` inline, with no shared statements and no 
+reduction. This is for sampled checks at heights where the reduction is too large, and uses little 
+memory at any height.
 
 Alternatively pass `--comparator` to `scripts/gen_certificates.sh` when generating all 
 Lean certificate files; `scripts/pipeline.sh` regenerates them by default.
