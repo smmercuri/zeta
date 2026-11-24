@@ -40,28 +40,35 @@ Run from the project root:
 from __future__ import annotations
 
 import argparse
+import re
+from collections.abc import Iterator
 from dataclasses import dataclass
+from itertools import groupby, islice
 from pathlib import Path
 
 from data_gen.gen_count_certificate import gen_count_certificate
 from data_gen.gen_zero_certificates import (
     BATCHES_PER_DIR,
     BatchRef,
-    chunk_groups,
+    StorePlan,
     default_stores,
     fold_levels,
     fold_name,
     gen_bundle,
     gen_fold,
     header,
+    group_quals,
+    iter_batches,
     module_path,
-    plan_batches,
+    module_qual,
+    plan_stores,
     prune_or_stop,
     rel,
     stale_files,
     wrap_params,
     write_module,
 )
+from data_gen.lean_dialect import LeanDialect
 
 #: batches per generated native module
 NATIVE_BATCHES_PER_MODULE = 25
@@ -74,8 +81,8 @@ SCRIPT = "gen_native_certificates.py"
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def kernel_module(ref: BatchRef) -> str:
-    return f"Zeta.Zeros.Certificates.{ref.qual}"
+def kernel_module(qual: str) -> str:
+    return f"Zeta.Zeros.Certificates.{qual}"
 
 
 def theorem_name(ref: BatchRef) -> str:
@@ -244,85 +251,88 @@ def main() -> None:
     native_root = args.native_root
     style = args.ignore_style
     stores = args.stores or default_stores()
-    plan = plan_batches(stores)
+    plan = plan_stores(stores)
+    srcs = ", ".join(str(p.store) for p in plan)
+    cert_dir = native_root / "Certificates"
 
-    #: every batch module with the batches it holds, sorted into plan order below
-    units: list[tuple[str, list[BatchRef]]] = []
-    native = [item for item in plan if item[0].dialect.native_metaprogram]
-    for ref, _, _, _ in plan:
-        if not ref.dialect.native_metaprogram:
-            path = ROOT / (kernel_module(ref).replace(".", "/") + ".lean")
+    for p in plan:
+        for bidx in range(1, p.batches + 1) if not p.dialect.native_metaprogram else ():
+            path = ROOT / (kernel_module(p.qual(bidx)).replace(".", "/") + ".lean")
             if not path.exists():
                 raise SystemExit(f"{path} is missing: run gen_zero_certificates.py first (a native "
-                                 f"build keeps the kernel-checked {ref.dialect.method} batches)")
-            units.append((kernel_module(ref), [ref]))
-    # pack each method's native batches, in order, into shards
-    by_dir: dict[str, list] = {}
-    for item in native:
-        by_dir.setdefault(item[0].dialect.subdir, []).append(item)
-    #: each shard's path, method subdirectory, number and batches
-    shards: list[tuple[Path, str, int, list]] = []
-    cert_dir = native_root / "Certificates"
-    for subdir, items in by_dir.items():
-        chunks = [items[i:i + NATIVE_BATCHES_PER_MODULE]
-                  for i in range(0, len(items), NATIVE_BATCHES_PER_MODULE)]
-        width, split = max(4, len(str(len(chunks)))), len(chunks) > BATCHES_PER_DIR
-        for k, chunk in enumerate(chunks, start=1):
-            qual = shard_qual(subdir, k, width, split)
-            shards.append((module_path(cert_dir, qual), subdir, k, chunk))
-            units.append((f"Native.Certificates.{qual}", [i[0] for i in chunk]))
-
-    refs = [p[0] for p in plan]
-    srcs = ", ".join(dict.fromkeys(str(p[3]) for p in plan))
-    position = {ref: i for i, ref in enumerate(refs)}
-    units.sort(key=lambda u: position[u[1][0]])
-    if [r for _, rs in units for r in rs] != refs:
+                                 f"build keeps the kernel-checked {p.dialect.method} batches)")
+    # consecutive stores of one method share its shards, so each method's must be consecutive
+    runs = [(d, list(ps)) for d, ps in groupby(plan, key=lambda p: p.dialect)]
+    if len({d.subdir for d, _ in runs}) != len(runs):
         raise SystemExit("batch modules do not cover the plan in order")
+    #: each native method's number of shards, by subdirectory
+    n_shards = {d.subdir: -(-sum(p.batches for p in ps) // NATIVE_BATCHES_PER_MODULE)
+                for d, ps in runs if d.native_metaprogram}
+    n_native = sum(p.batches for p in plan if p.dialect.native_metaprogram)
+    n_kernel = sum(p.batches for p in plan) - n_native
+    n_units = sum(n_shards.values()) + n_kernel
+
+    def shard(subdir: str, k: int) -> str:
+        n = n_shards[subdir]
+        return shard_qual(subdir, k, max(4, len(str(n))), n > BATCHES_PER_DIR)
+
+    def keep_shard(path: Path) -> bool:
+        qual = module_qual(cert_dir, path)
+        subdir, m = qual.split(".")[0], re.search(r"\.Shard(\d+)$", qual)
+        k = int(m[1]) if m else 0
+        return 1 <= k <= n_shards[subdir] and qual == shard(subdir, k)
+
+    shard_dirs = [d for s in n_shards for d in (cert_dir / s, *(cert_dir / s).glob("D*"))]
+    group_dir = cert_dir / "Groups"
+    groups = set(group_quals(n_units, NATIVE_MODULES_PER_GROUP, GroupRef))
+    prune_or_stop(stale_files(shard_dirs, "Shard*.lean", keep_shard, SCRIPT)
+                  + stale_files([group_dir, *group_dir.glob("Level*")], "Group*.lean",
+                                lambda f: module_qual(cert_dir, f) in groups, SCRIPT),
+                  args.prune, SCRIPT)
+
+    def write_shards(dialect: LeanDialect, stores: list[StorePlan]
+                     ) -> Iterator[tuple[str, list[BatchRef]]]:
+        """A method's batch modules with the batches each holds, its shards written as they fill."""
+        batches = iter_batches(stores)
+        if not dialect.native_metaprogram:
+            yield from ((kernel_module(ref.qual), [ref]) for ref, _, _, _ in batches)
+            return
+        k = 0
+        while chunk := list(islice(batches, NATIVE_BATCHES_PER_MODULE)):
+            k += 1
+            qual = shard(dialect.subdir, k)
+            srcs_k = ", ".join(dict.fromkeys(str(i[3]) for i in chunk))
+            text = gen_shard(dialect.subdir, k, [(i[0], i[1]) for i in chunk], chunk[-1][2], srcs_k)
+            write_module(module_path(cert_dir, qual), text, style)
+            yield f"Native.Certificates.{qual}", [i[0] for i in chunk]
+
+    def write_group(g: GroupRef, children: list, modules: list[str]) -> None:
+        write_module(module_path(cert_dir, g.qual), gen_group(g, children, modules, srcs), style)
+
     # runs of consecutive modules fold into level-1 groups, those into a tree, the top level's
     # groups in the assembler; a level-1 group's children are the batches of its modules
-    unit_chunks = [units[i:i + NATIVE_MODULES_PER_GROUP]
-                   for i in range(0, len(units), NATIVE_MODULES_PER_GROUP)]
-    level1 = chunk_groups(1, [[r for _, rs in chunk for r in rs] for chunk in unit_chunks], GroupRef)
-    modules = {g: [m for m, _ in chunk] for (g, _), chunk in zip(level1, unit_chunks)}
-    levels = fold_levels(level1, NATIVE_MODULES_PER_GROUP, GroupRef)
-
-    written: dict[Path, set[Path]] = {}
-    for d in by_dir:
-        for dd in (cert_dir / d, *(cert_dir / d).glob("D*")):
-            written.setdefault(dd, set())
-    for path, _, _, _ in shards:
-        written.setdefault(path.parent, set()).add(path)
-    group_dir = cert_dir / "Groups"
-    group_written: dict[Path, set[Path]] = {d: set() for d in (group_dir, *group_dir.glob("Level*"))}
-    for level in levels:
-        for g, _ in level:
-            path = module_path(cert_dir, g.qual)
-            group_written.setdefault(path.parent, set()).add(path)
-    prune_or_stop(stale_files(written, "Shard*.lean", SCRIPT)
-                  + stale_files(group_written, "Group*.lean", SCRIPT), args.prune, SCRIPT)
-
-    for path, subdir, k, chunk in shards:
-        srcs_k = ", ".join(dict.fromkeys(str(i[3]) for i in chunk))
-        text = gen_shard(subdir, k, [(i[0], i[1]) for i in chunk], chunk[-1][2], srcs_k)
-        write_module(path, text, style)
-
-    for level in levels:
+    units = (unit for d, ps in runs for unit in write_shards(d, ps))
+    level1: list[GroupRef] = []
+    width = max(4, len(str(-(-n_units // NATIVE_MODULES_PER_GROUP))))
+    while chunk := list(islice(units, NATIVE_MODULES_PER_GROUP)):
+        refs = [r for _, rs in chunk for r in rs]
+        level1.append(GroupRef(1, len(level1) + 1, width, sum(r.count for r in refs),
+                               refs[0].first, refs[-1].last))
+        write_group(level1[-1], refs, [m for m, _ in chunk])
+    levels = fold_levels([(g, []) for g in level1], NATIVE_MODULES_PER_GROUP, GroupRef)
+    for level in levels[1:]:
         for g, children in level:
-            imports = modules[g] if g.level == 1 else [c.module for c in children]
-            write_module(module_path(cert_dir, g.qual), gen_group(g, children, imports, srcs),
-                         style)
-    groups = [g for g, _ in levels[-1]]
-    write_module(native_root / "Certificates.lean", gen_native_assembler(groups, srcs), style)
+            write_group(g, children, [c.module for c in children])
+    write_module(native_root / "Certificates.lean",
+                 gen_native_assembler([g for g, _ in levels[-1]], srcs), style)
 
-    last_ref = refs[-1]
-    unfolds = "".join(", " + u for u in last_ref.dialect.seam_unfold)
+    unfolds = "".join(", " + u for u in plan[-1].dialect.seam_unfold)
     zsrc = "\n".join(f"  {rel(str(s))}" for s in stores)
     write_module(native_root / "CountCertificates.lean",
                  gen_count_certificate(unfolds, zsrc, native=True), style)
 
-    n_native = len(native)
-    print(f"wrote {n_native} native batches in {len(shards)} modules, "
-          f"{len(refs) - n_native} kernel batches reused, "
+    print(f"wrote {n_native} native batches in {sum(n_shards.values())} modules, "
+          f"{n_kernel} kernel batches reused, "
           f"{' + '.join(str(len(level)) for level in levels)} groups ({len(levels)} "
           f"level{'s' * (len(levels) > 1)}), + assembler and count certificate under {native_root}")
 
