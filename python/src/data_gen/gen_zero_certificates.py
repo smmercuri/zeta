@@ -49,10 +49,12 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from decimal import Decimal
+from itertools import islice
 from pathlib import Path
 
 from config import (BATCH_BASE_GB, BATCH_ROW_NU_GB, BATCH_SIZE, CHILDREN_PER_GROUP,
@@ -162,19 +164,18 @@ class BatchRef:
         return f"{self.dialect.tag}{self.bidx:0{self.width}d}"
 
 
-def parse_file(path: Path, dialect: LeanDialect) -> list[list[str]]:
+def iter_file(path: Path, dialect: LeanDialect) -> Iterator[list[str]]:
     """One store file's rows, in the column order `dialect` renders."""
-    rows: list[list[str]] = []
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or not line[0].isdigit():
-            continue
-        parts = [p.strip() for p in line.split(",")]
-        if len(parts) != dialect.row_width:
-            continue
-        dialect.check_row(path, parts)
-        rows.append(parts)
-    return rows
+    with path.open() as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or not line[0].isdigit():
+                continue
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) != dialect.row_width:
+                continue
+            dialect.check_row(path, parts)
+            yield parts
 
 
 def gen_batch(ref: BatchRef, rows: list[list[str]], params: dict, src: str) -> str:
@@ -347,10 +348,15 @@ def fold_levels(level1: list[tuple[GroupRef, list]], per_group: int,
     return levels
 
 
-def plan_groups(refs: list[BatchRef]) -> list[list[tuple[GroupRef, list]]]:
-    """The fold tree over the batches, `CHILDREN_PER_GROUP` children to a group."""
-    chunks = [refs[i:i + CHILDREN_PER_GROUP] for i in range(0, len(refs), CHILDREN_PER_GROUP)]
-    return fold_levels(chunk_groups(1, chunks), CHILDREN_PER_GROUP)
+def group_quals(children: int, per_group: int, make: Callable[..., GroupRef] = GroupRef
+                ) -> Iterator[str]:
+    """The names of every group `fold_levels` makes over `children` level-1 children."""
+    level = 0
+    while level == 0 or children > per_group:
+        level, children = level + 1, -(-children // per_group)
+        width = max(4, len(str(children)))
+        for k in range(1, children + 1):
+            yield make(level, k, width, 0, (0, 1), (0, 1)).qual
 
 
 def gen_group(g: GroupRef, refs: list, src: str) -> str:
@@ -421,35 +427,75 @@ end
 """
 
 
-def load_store(store: Path) -> tuple[Path, LeanDialect, list[list[str]], dict]:
-    """A store's dialect, all its rows in ascending height, and its parameters."""
+def iter_rows(store: Path, manifest: dict, dialect: LeanDialect) -> Iterator[list[str]]:
+    """A store's rows in ascending height, read lazily."""
+    for meta in manifest["files"]:
+        path, count = store / meta["file"], 0
+        for row in iter_file(path, dialect):
+            count += 1
+            yield row
+        if count != meta["rows"]:
+            raise SystemExit(f"{path}: manifest lists {meta['rows']} rows, parsed {count}")
+
+
+@dataclass(frozen=True)
+class StorePlan:
+    """One store's place in the plan: how many batches it makes, hence their names, but neither
+    the batches nor the rows, which `iter_batches` reads back."""
+
+    store: Path
+    dialect: LeanDialect
+    manifest: dict
+    batches: int
+    #: the first row's left endpoint and the last row's right endpoint
+    left: Decimal
+    right: Decimal
+
+    @property
+    def params(self) -> dict:
+        return self.manifest["params"]
+
+    @property
+    def width(self) -> int:
+        return max(4, len(str(self.batches)))
+
+    @property
+    def split(self) -> bool:
+        return self.batches > BATCHES_PER_DIR
+
+    def qual(self, bidx: int) -> str:
+        """`BatchRef.qual` of this store's batch `bidx`."""
+        return BatchRef(self.dialect, bidx, "", 0, width=self.width, split=self.split).qual
+
+
+def scan_store(store: Path) -> StorePlan:
+    """Read `store` through once, checking its rows and counting its batches."""
     manifest = json.loads((store / "manifest.json").read_text())
     dialect = dialect_for(store, manifest)
-    rows: list[list[str]] = []
-    for meta in manifest["files"]:
-        file_rows = parse_file(store / meta["file"], dialect)
-        if len(file_rows) != meta["rows"]:
-            raise SystemExit(
-                f"{store / meta['file']}: manifest lists {meta['rows']} rows, parsed {len(file_rows)}"
-            )
-        rows += file_rows
-    if not rows:
+    total = end = batches = 0  # rows read, and where the current batch ends
+    left, row = "", []
+    for row in iter_rows(store, manifest, dialect):
+        if total == end:
+            end = total + batch_rows(float(row[1]))
+            batches += 1
+            left = left or row[1]
+        total += 1
+        if int(row[0]) != total:
+            raise SystemExit(f"{store}: row indices are not 1, 2, … across its files (row {total})")
+    if not total:
         raise SystemExit(f"no rows parsed from {store}")
-    if [int(r[0]) for r in rows] != list(range(1, len(rows) + 1)):
-        raise SystemExit(f"{store}: row indices are not 1, 2, …, {len(rows)} across its files")
-    return store, dialect, rows, manifest["params"]
+    return StorePlan(store, dialect, manifest, batches, Decimal(left), Decimal(row[2]))
 
 
-def check_tiling(loaded: list[tuple[Path, LeanDialect, list[list[str]], dict]]) -> None:
+def check_tiling(scanned: list[StorePlan]) -> None:
     """Reject stores that overlap, so the seam obligations are provable.
 
     `Separated` is `≤`, so abutting stores are fine and a gap is fine; an overlap is not, and
     catching it here beats a `norm_num` failure inside a generated seam theorem."""
-    for (ps, _, prows, _), (ns_, _, nrows, _) in zip(loaded, loaded[1:]):
-        prev_right, next_left = Decimal(prows[-1][2]), Decimal(nrows[0][1])
-        if prev_right > next_left:
+    for p, n in zip(scanned, scanned[1:]):
+        if p.right > n.left:
             raise SystemExit(
-                f"stores overlap: {ps} ends at {prev_right} but {ns_} starts at {next_left}"
+                f"stores overlap: {p.store} ends at {p.right} but {n.store} starts at {n.left}"
             )
 
 
@@ -463,28 +509,38 @@ def batch_rows(t: float) -> int:
     return max(1, min(MAX_BATCH_SIZE, int((WORKER_GB - BATCH_BASE_GB) / (BATCH_ROW_NU_GB * nu))))
 
 
-def plan_batches(stores: list[Path]) -> list[tuple[BatchRef, list[list[str]], dict, Path]]:
-    """Every store's rows, chunked into the Lean modules that will hold them.
-
-    Ordered by height across stores, so the last entry is the bundle's last interval however
-    many stores contributed. `gen_count_certificate` reads that entry, which is why the
-    chunking lives in this function: the two generators must agree exactly on which module
-    holds which zero."""
-    loaded = [load_store(s) for s in stores]
-    loaded.sort(key=lambda t: Decimal(t[2][0][1]))
-    check_tiling(loaded)
-    plan: list[tuple[BatchRef, list[list[str]], dict, Path]] = []
-    for store, dialect, rows, params in loaded:
-        starts = [0]
-        while (end := starts[-1] + batch_rows(float(rows[starts[-1]][1]))) < len(rows):
-            starts.append(end)
-        width, split = max(4, len(str(len(starts)))), len(starts) > BATCHES_PER_DIR
-        for bidx, (start, end) in enumerate(zip(starts, starts[1:] + [len(rows)]), start=1):
-            chunk = rows[start:end]
-            ref = BatchRef(dialect, bidx, chunk[-1][0], len(chunk), start,
-                           parse_dec(chunk[0][1]), parse_dec(chunk[-1][2]), width, split)
-            plan.append((ref, chunk, params, store))
+def plan_stores(stores: list[Path]) -> list[StorePlan]:
+    """The stores in ascending order of height, each with its number of batches. The last batch of
+    the last one is then the bundle's last, however many stores contributed."""
+    plan = sorted((scan_store(s) for s in stores), key=lambda p: p.left)
+    check_tiling(plan)
     return plan
+
+
+def iter_batches(plan: Iterable[StorePlan]
+                 ) -> Iterator[tuple[BatchRef, list[list[str]], dict, Path]]:
+    """Every store's rows, chunked into the Lean modules that will hold them, one batch in memory
+    at a time. The chunking lives here and in `scan_store`, which counts the chunks, because the
+    generators must agree exactly on which module holds which zero."""
+    for p in plan:
+        rows = iter_rows(p.store, p.manifest, p.dialect)
+        start = bidx = 0
+        for first in rows:
+            chunk = [first, *islice(rows, batch_rows(float(first[1])) - 1)]
+            bidx += 1
+            yield (BatchRef(p.dialect, bidx, chunk[-1][0], len(chunk), start, parse_dec(first[1]),
+                            parse_dec(chunk[-1][2]), p.width, p.split), chunk, p.params, p.store)
+            start += len(chunk)
+        if bidx != p.batches:
+            raise SystemExit(f"{p.store}: {p.batches} batches planned, {bidx} read: it changed "
+                             "during the run")
+
+
+def is_planned(plan: list[StorePlan], qual: str) -> bool:
+    """Whether `qual` names one of the plan's batches."""
+    m = re.search(r"\.Batch(\d+)$", qual)
+    return m is not None and any(1 <= int(m[1]) <= p.batches and qual == p.qual(int(m[1]))
+                                 for p in plan)
 
 
 def default_stores() -> list[Path]:
@@ -531,11 +587,17 @@ def generated_by(path: Path, script: str) -> bool:
     return f"AUTO-GENERATED by `python/src/data_gen/{script}`" in head
 
 
-def stale_files(written: dict[Path, set[Path]], pattern: str, script: str) -> list[Path]:
-    """Files matching `pattern` in each directory of `written` that `script` generated earlier but
-    this run does not write (`written` maps each output directory to the files this run writes)."""
-    return sorted(f for d, keep in written.items() if d.is_dir()
-                  for f in d.glob(pattern) if f not in keep and generated_by(f, script))
+def module_qual(root: Path, path: Path) -> str:
+    """The module of the file `path` (dotted, relative to `root`): inverse to `module_path`."""
+    return ".".join(path.relative_to(root).with_suffix("").parts)
+
+
+def stale_files(dirs: Iterable[Path], pattern: str, keep: Callable[[Path], bool],
+                script: str) -> list[Path]:
+    """Files matching `pattern` in each of `dirs` that `script` generated earlier but this run does
+    not write (`keep` says whether it writes a file)."""
+    return sorted(f for d in dirs if d.is_dir()
+                  for f in d.glob(pattern) if not keep(f) and generated_by(f, script))
 
 
 def prune_or_stop(stale: list[Path], prune: bool, script: str) -> None:
@@ -574,39 +636,47 @@ def main() -> None:
     lean_root = args.lean_root
     style = args.ignore_style
     stores = args.stores or default_stores()
-    plan = plan_batches(stores)
+    plan = plan_stores(stores)
+    total = sum(p.batches for p in plan)
+    srcs = ", ".join(str(p.store) for p in plan)
 
     cert_dir = lean_root / "Certificates"
-    refs = [p[0] for p in plan]
-    levels = plan_groups(refs)
-    written: dict[Path, set[Path]] = {}
-    for ref in refs:
-        for d in (cert_dir / ref.dialect.subdir, *(cert_dir / ref.dialect.subdir).glob("D*")):
-            written.setdefault(d, set())
-        path = module_path(cert_dir, ref.qual)
-        written.setdefault(path.parent, set()).add(path)
+    batch_dirs = [d for subdir in dict.fromkeys(p.dialect.subdir for p in plan)
+                  for d in (cert_dir / subdir, *(cert_dir / subdir).glob("D*"))]
     group_dir = cert_dir / "Groups"
-    group_written: dict[Path, set[Path]] = {d: set() for d in (group_dir, *group_dir.glob("Level*"))}
-    for level in levels:
-        for g, _ in level:
-            path = module_path(cert_dir, g.qual)
-            group_written.setdefault(path.parent, set()).add(path)
-    prune_or_stop(stale_files(written, "Batch*.lean", "gen_zero_certificates.py")
-                  + stale_files(group_written, "Group*.lean", "gen_zero_certificates.py"),
+    groups = set(group_quals(total, CHILDREN_PER_GROUP))
+    prune_or_stop(stale_files(batch_dirs, "Batch*.lean",
+                              lambda f: is_planned(plan, module_qual(cert_dir, f)),
+                              "gen_zero_certificates.py")
+                  + stale_files([group_dir, *group_dir.glob("Level*")], "Group*.lean",
+                                lambda f: module_qual(cert_dir, f) in groups,
+                                "gen_zero_certificates.py"),
                   args.prune, "gen_zero_certificates.py")
 
-    for ref, chunk, params, store in plan:
-        write_module(module_path(cert_dir, ref.qual), gen_batch(ref, chunk, params, str(store)),
-                     style)
+    def write_batches() -> Iterator[BatchRef]:
+        for ref, rows, params, store in iter_batches(plan):
+            write_module(module_path(cert_dir, ref.qual), gen_batch(ref, rows, params, str(store)),
+                         style)
+            yield ref
 
-    srcs = ", ".join(dict.fromkeys(str(p[3]) for p in plan))
-    for level in levels:
-        for g, chunk in level:
-            write_module(module_path(cert_dir, g.qual), gen_group(g, chunk, srcs), style)
+    def write_group(g: GroupRef, children: list) -> None:
+        write_module(module_path(cert_dir, g.qual), gen_group(g, children, srcs), style)
+
+    refs = write_batches()
+    level1: list[GroupRef] = []
+    width = max(4, len(str(-(-total // CHILDREN_PER_GROUP))))
+    while chunk := list(islice(refs, CHILDREN_PER_GROUP)):
+        level1.append(GroupRef(1, len(level1) + 1, width, sum(r.count for r in chunk),
+                               chunk[0].first, chunk[-1].last))
+        write_group(level1[-1], chunk)
+    levels = fold_levels([(g, []) for g in level1], CHILDREN_PER_GROUP)
+    for level in levels[1:]:
+        for g, children in level:
+            write_group(g, children)
     write_module(lean_root / "Certificates.lean", gen_assembler([g for g, _ in levels[-1]], srcs),
                  style)
 
-    print(f"wrote {len(refs)} batch modules, "
+    print(f"wrote {total} batch modules, "
           f"{' + '.join(str(len(level)) for level in levels)} group modules "
           f"({len(levels)} level{'s' * (len(levels) > 1)}) and the assembler under {cert_dir}")
 

@@ -1,8 +1,8 @@
 from sage.all import RealField
 import os
 from concurrent.futures import ProcessPoolExecutor
-from collections.abc import Iterator
-from itertools import chain
+from collections.abc import Callable, Iterator
+from itertools import chain, repeat
 
 from config import SIGN_MARGIN
 from util import (
@@ -272,6 +272,12 @@ class AdaptiveGrid(SearchGrid):
                 raise UncertainSign(
                     f"range edge t = {float(p.t)} has |Z| within {SIGN_MARGIN}*error; move the edge"
                 )
+
+
+def _next_good_index(n: int, approx: ZApproximant) -> int:
+    """Index of the first good (after rounding) Gram point from `g_n`. Top-level so
+    that `ZeroSearch._gram_range_cut` can map it over a process pool."""
+    return SignedGramPoint(GramPoint(n), approx).next_good().n
 
 
 class ZeroSearch:
@@ -647,6 +653,7 @@ class ZeroSearch:
         g_start: SignedGramPoint,
         g_end: SignedGramPoint,
         num_ranges: int,
+        map_fn: Callable = map,
     ) -> list[int]:
         """Interpolates the range `[g_start, g_end]` to produce up to `num_ranges + 1`
         strictly increasing indices, all of which are good after rounding. The inputs
@@ -658,6 +665,8 @@ class ZeroSearch:
             g_start (SignedGramPoint): start of Gram range.
             g_end (SignedGramPoint): end of Gram range.
             num_ranges (int): number of ranges to produce
+            map_fn (Callable, optional): `map` used to find the good cut points,
+                e.g. a process pool's `map`. Defaults to the builtin `map`.
 
         Returns:
             list[int]: list of gram indices defining the Gram ranges
@@ -670,11 +679,8 @@ class ZeroSearch:
                 f"g_{g_start.n} and g_{g_end.n} must be good after rounding."
             )
         n_start, n_end = g_start.n, g_end.n
-        range_idx = range(1, num_ranges)
-        gram_pts = [
-            GramPoint(n_start + j * (n_end - n_start) // num_ranges) for j in range_idx
-        ]
-        cuts = [SignedGramPoint(g, g_start.approx).next_good().n for g in gram_pts]
+        idx = sorted({n_start + j * (n_end - n_start) // num_ranges for j in range(1, num_ranges)})
+        cuts = map_fn(_next_good_index, idx, repeat(g_start.approx))
         return sorted({n_start, *cuts, n_end})
 
     def _parallel_gram_zeros(
@@ -689,8 +695,8 @@ class ZeroSearch:
         passed to parallel workers. Smaller and more numerous segments are preferred
         so that if a merge is needed (`self._search_merged_gram_ranges`) the
         additional cost is low."""
-        cuts = self._gram_range_cut(g_start, g_end, 64 * num_workers)
         with ProcessPoolExecutor(max_workers=num_workers) as ex:
+            cuts = self._gram_range_cut(g_start, g_end, 64 * num_workers, ex.map)
             ranges = ex.map(self._search_gram_grid, cuts[:-1], cuts[1:])
             yield from self._search_merged_gram_ranges(ranges, verbose, len(cuts) - 1)
         if verbose:

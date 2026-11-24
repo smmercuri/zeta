@@ -31,27 +31,19 @@ Run from the project root, after `gen_zero_certificates.py` on the same stores:
 """
 from __future__ import annotations
 
-import inspect
 import json
 import re
 import shutil
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 from data_gen.gen_zero_certificates import (BatchRef, default_stores, generated_by, header,
-                                             plan_batches, write_module)
+                                             is_planned, iter_batches, module_qual,
+                                             plan_stores, write_module)
 
 #: this generator, as named in the header of every file it writes
 SCRIPT = "gen_comparator.py"
-
-# Older releases' planners (v1-1e7, v1-1e8) have `write_module(path, text)` without the style
-# argument; accepting both lets this generator write their batch targets too (`--shards`).
-_WRITE_TAKES_STYLE = len(inspect.signature(write_module).parameters) >= 3
-
-
-def write(path: Path, text: str, style: bool) -> None:
-    write_module(path, text, style) if _WRITE_TAKES_STYLE else write_module(path, text)
-
 
 #: the axioms every target may use
 PERMITTED_AXIOMS = ["propext", "Quot.sound", "Classical.choice"]
@@ -212,12 +204,12 @@ def headline_height(root: Path) -> int:
     return int(m.group(1))
 
 
-def stale_targets(batches: Path, keep: set[Path]) -> list[Path]:
+def stale_targets(batches: Path, keep: Callable[[Path], bool]) -> list[Path]:
     """The batch target directories under `batches` that this run does not write: left by an
     earlier run over more batches. Only directories whose `Challenge.lean` names this script or
     `gen_zero_certificates.py` as its generator count."""
     return sorted(d for m in batches.iterdir() if m.is_dir() for d in m.glob("Batch*")
-                  if d.is_dir() and d not in keep and (d / "Challenge.lean").is_file()
+                  if d.is_dir() and not keep(d) and (d / "Challenge.lean").is_file()
                   and any(generated_by(d / "Challenge.lean", g)
                           for g in (SCRIPT, "gen_zero_certificates.py")))
 
@@ -233,13 +225,18 @@ def main() -> None:
                          "[--shards] [<store>…]")
     out = Path(argv[0])
     stores = [Path(a) for a in argv[1:]] or default_stores()
-    plan = plan_batches(stores)
-    refs = [p[0] for p in plan]
-    srcs = ", ".join(dict.fromkeys(str(p[3]) for p in plan))
+    plan = plan_stores(stores)
+    total = sum(p.batches for p in plan)
+    # the statements and the reduction name every batch; the targets alone need one at a time
+    refs = (ref for ref, _, _, _ in iter_batches(plan))
+    if not shards:
+        refs = list(refs)
+    srcs = ", ".join(str(p.store) for p in plan)
     height = None if shards else headline_height(out.resolve().parent)
 
-    keep = {out.joinpath("Batches", *ref.qual.split(".")) for ref in refs}
-    stale = stale_targets(out / "Batches", keep) if (out / "Batches").is_dir() else []
+    batches = out / "Batches"
+    stale = (stale_targets(batches, lambda d: is_planned(plan, module_qual(batches, d)))
+             if batches.is_dir() else [])
     if stale:
         shown = "".join(f"\n  {d}" for d in stale[:5]) + ("\n  …" if len(stale) > 5 else "")
         if not prune:
@@ -251,23 +248,23 @@ def main() -> None:
         print(f"pruned {len(stale)} stale batch target(s):{shown}")
 
     (out / "Batches").mkdir(parents=True, exist_ok=True)
-    write(out / "Batches" / "Statements.lean",
+    write_module(out / "Batches" / "Statements.lean",
                  shards_marker(srcs) if shards else statements_file(refs, srcs), style)
     for ref in refs:
         d = out.joinpath("Batches", *ref.qual.split("."))
         d.mkdir(parents=True, exist_ok=True)
         for name, text in batch_files(ref, srcs, shards).items():
-            write(d / name, text, style)
+            write_module(d / name, text, style)
     if shards:
         if (out / "Reduction").is_dir():
             print(f"note: {out / 'Reduction'} is from an earlier run and does not match these targets")
-        print(f"wrote {len(refs)} batch targets (inline statements, no reduction) under {out}")
+        print(f"wrote {total} batch targets (inline statements, no reduction) under {out}")
         return
     d = out / "Reduction"
     d.mkdir(parents=True, exist_ok=True)
     for name, text in reduction_files(refs, height, srcs).items():
-        write(d / name, text, style)
-    print(f"wrote {len(refs)} batch targets + the reduction (height {height}) under {out}")
+        write_module(d / name, text, style)
+    print(f"wrote {total} batch targets + the reduction (height {height}) under {out}")
 
 
 if __name__ == "__main__":
